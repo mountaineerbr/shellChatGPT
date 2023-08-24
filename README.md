@@ -5,9 +5,15 @@ Shell wrapper for text and chat completions, DALL-E, Whisper, and awesome-chatgp
 
 <br />
 
-The project is [alive at GitLab](https://gitlab.com/fenixdragao/shellchatgpt).
+**The project is [alive at GitLab](https://gitlab.com/fenixdragao/shellchatgpt).**
 
 <https://gitlab.com/fenixdragao/shellchatgpt>
+
+
+<br />
+
+Bash and Zsh-compatible [chatgpt.sh](https://gitlab.com/fenixdragao/shellchatgpt/-/blob/main/chatgpt.sh)
+script, with configuration file template, and complete documentation.
 
 
 <br />
