@@ -4,7 +4,7 @@ Shell wrapper for OpenAI API for ChatGPT, DALL-E, and Whisper.
 
 <br />
 
-**This project [moved to GitLab](https://gitlab.com/fenixdragao/shellchatgpt).**
+# **This project [moved to GitLab](https://gitlab.com/fenixdragao/shellchatgpt).**
 
 <https://gitlab.com/fenixdragao/shellchatgpt>
 
