@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="mountaineerbr" />
+  <title>CHATGPT.SH(1) v0.18.13 | General Commands Manual</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CHATGPT.SH(1) v0.18.13 | General Commands Manual</h1>
+<p class="author">mountaineerbr</p>
+<p class="date">October 2023</p>
+</header>
+<h3 id="name">NAME</h3>
+<div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
+Whisper</div>
+<h3 id="synopsis">SYNOPSIS</h3>
+<div class="line-block">   <strong>chatgpt.sh</strong>
+[<code>-c</code>|<code>-d</code>] [<code>opt</code>]
+[<em>PROMPT</em>|<em>TEXT_FILE</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-e</code> [<code>opt</code>]
+[<em>INSTRUCTION</em>] [<em>INPUT</em>|<em>TEXT_FILE</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
+[<em>S</em>|<em>M</em>|<em>L</em>] [<em>PROMPT</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
+[<em>S</em>|<em>M</em>|<em>L</em>] [<em>PNG_FILE</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
+[<em>S</em>|<em>M</em>|<em>L</em>] [<em>PNG_FILE</em>]
+[<em>MASK_FILE</em>] [<em>PROMPT</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-TTT</code> [-v]
+[<code>-m</code>[<em>MODEL</em>|<em>ENCODING</em>]]
+[<em>INPUT</em>|<em>TEXT_FILE</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-w</code> [<code>opt</code>]
+[<em>AUDIO_FILE</em>] [<em>LANG</em>] [<em>PROMPT</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>]
+[<em>AUDIO_FILE</em>] [<em>PROMPT-EN</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-ccw</code> [<code>opt</code>]
+[<em>LANG</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-ccW</code>
+[<code>opt</code>]<br />
+   <strong>chatgpt.sh</strong> <code>-HHH</code>
+[<code>/</code><em>HIST_FILE</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-l</code> [<em>MODEL</em>]</div>
+<h3 id="description">DESCRIPTION</h3>
+<p>With no options set, complete INPUT in single-turn mode of plain text
+completions.</p>
+<p><code>Option -d</code> starts a multi-turn session in <strong>plain
+text completions</strong>. This does not set further options
+automatically.</p>
+<p>Set <code>option -c</code> to start a multi-turn chat mode via
+<strong>text completions</strong> and record conversation. This option
+accepts davinci and lesser models, defaults to <em>text-davinci-003</em>
+if none set. In chat mode, some options are automatically set to
+un-lobotomise the bot. Set <code>option -E</code> to exit on the first
+response.</p>
+<p>Set <code>option -cc</code> to start the chat mode via <strong>native
+chat completions</strong> and use <em>gpt-3.5+ models</em>.</p>
+<p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
+last history session.</p>
+<p>Positional arguments are read as a single <strong>PROMPT</strong>.
+Model <strong>INSTRUCTION</strong> is usually optional and can be set
+with <code>option -S</code>.</p>
+<p>When <strong>INSTRUCTION</strong> is mandatory for a chosen model
+(such as edits models), the first positional argument is read as
+INSTRUCTION, if none set, and the following ones as
+<strong>INPUT</strong> or <strong>PROMPT</strong>.</p>
+<p>If the first positional argument of the script starts with the
+command operator and a history file name, the command
+“<code>/session</code> [<em>HIST_NAME</em>]” is assumed. This wil change
+to or create a new history file (with <code>options -ccCdHH</code>).</p>
+<p>Set model with “<code>-m</code> [<em>NAME</em>]” (full model name).
+List available models with <code>option -l</code>.</p>
+<p>Set <em>maximum response tokens</em> with <code>option</code>
+“<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
+defaults to 512 tokens.</p>
+<p>If a second <em>NUM</em> is given to this option, <em>maximum model
+capacity</em> will also be set. The option syntax takes the form of
+“<code>-</code><em>NUM/NUM</em>”, and “<code>-M</code>
+<em>NUM-NUM</em>”.</p>
+<p><em>Model capacity</em> (maximum model tokens) can be set intuitively
+with <code>option</code> “<code>-N</code> <em>NUM</em>”, otherwise model
+capacity is set automatically for known models, or to <em>2048</em>
+tokens as fallback.</p>
+<p>If a plain text file path is set as the first positional argument of
+the script, the file is loaded as text PROMPT (text cmpls, chat cmpls,
+and text/code edits).</p>
+<p><code>Option -S</code> sets an INSTRUCTION prompt (the initial
+prompt) for text cmpls, chat cmpls, and text/code edits. A text file
+path may be supplied as the single argument. Also see <em>CUSTOM /
+AWESOME PROMPTS</em> section below.</p>
+<p><code>Option -e</code> sets the <strong>text edits</strong> endpoint.
+That endpoint requires both INSTRUCTION and INPUT prompts. User may
+choose a model amongst the <em>edit model family</em>. This endpoint is
+going *deprecated*.</p>
+<p><code>Option -i</code> <strong>generates images</strong> according to
+text PROMPT. If the first positional argument is an <em>IMAGE</em> file,
+then <strong>generate variations</strong> of it. If the first positional
+argument is an <em>IMAGE</em> file and the second a <em>MASK</em> file
+(with alpha channel and transparency), and a text PROMPT (required),
+then <strong>edit the</strong> <em>IMAGE</em> according to <em>MASK</em>
+and PROMPT. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
+transparency.</p>
+<p>Optionally, size of output image may be set with
+“[<em>S</em>]<em>mall</em>”, “[<em>M</em>]<em>edium</em>” or
+“[<em>L</em>]<em>arge</em>” as the first positional argument. See
+<strong>IMAGES section</strong> below for more information on
+<strong>inpaint</strong> and <strong>outpaint</strong>.</p>
+<p><code>Option -w</code> <strong>transcribes audio</strong> from
+<em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
+<em>wav</em>, and <em>webm</em> files. First positional argument must be
+an <em>AUDIO</em> file. Optionally, set a <em>TWO-LETTER</em> input
+language (<em>ISO-639-1</em>) as second argument. A PROMPT may also be
+set to guide the model’s style or continue a previous audio segment. The
+prompt should match the audio language.</p>
+<p><code>Option -W</code> <strong>translates audio</strong> stream to
+<strong>English text</strong>. A PROMPT in English may be set to guide
+the model as the second positional argument.</p>
+<p>Combine <code>-wW</code> <strong>with</strong> <code>-cc</code> to
+start <strong>chat with voice input</strong> (Whisper) support. Output
+may be piped to a voice synthesiser to have a full voice in and out
+experience.</p>
+<p><code>Option -y</code> sets python tiktoken instead of the default
+script hack to preview token count. This option makes token count
+preview accurate however it is slow. Useful for rebuilding history
+context independently from the original model used to generate
+responses.</p>
+<p>Stdin is supported when there is no positional arguments left after
+option parsing. Stdin input sets a single PROMPT.</p>
+<p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
+cache is kept at “<em>~/.cache/chatgptsh</em>”.</p>
+<p>A personal (free) OpenAI API is required, set it with
+<code>-K</code>. Also, see <strong>ENVIRONMENT section</strong>.</p>
+<p>See the online man page and script usage examples at: <a
+href="https://github.com/mountaineerbr/shellChatGPT/tree/main"
+class="uri">https://github.com/mountaineerbr/shellChatGPT/tree/main</a>.</p>
+<p>For complete model and settings information, refer to OpenAI API docs
+at <a href="https://platform.openai.com/docs/"
+class="uri">https://platform.openai.com/docs/</a>.</p>
+<h3 id="text-chat-completions">TEXT / CHAT COMPLETIONS</h3>
+<h4 id="text-completions">1. Text completions</h4>
+<p>Given a prompt, the model will return one or more predicted
+completions. For example, given a partial input, the language model will
+try completing it until probable “<code>&lt;|endoftext|&gt;</code>”, or
+other stop sequences (stops may be set with <code>-s</code>).</p>
+<p><strong>Restart</strong> and <strong>start sequences</strong> may be
+optionally set and are always preceded by a new line.</p>
+<p>To enable <strong>multiline input</strong>, set
+<code>option -u</code>. With this option set, press
+&lt;<em>CTRL-D</em>&gt; to flush input! This is useful to paste from
+clipboard. Alternatively, set <code>option -U</code> to set <em>cat
+command</em> as prompter.</p>
+<p>Type in a backslash “<em>\</em>” as the last character of the input
+line to append a literal newline once and return to edition, or press
+&lt;<em>CTRL-V</em>&gt; <em>+</em> &lt;<em>CTRL-J</em>&gt;, or
+&lt;<em>ALT-ENTER</em>&gt; (Zsh).</p>
+<p>Language model <strong>SKILLS</strong> can activated, with specific
+prompts, see <a href="https://platform.openai.com/examples"
+class="uri">https://platform.openai.com/examples</a>.</p>
+<h4 id="chat-mode">2. Chat Mode</h4>
+<h5 id="text-completions-chat">2.1 Text Completions Chat</h5>
+<p>Set <code>option -c</code> to start chat mode of text completions. It
+keeps a history file, and keeps new questions in context. This works
+with a variety of models. Set <code>option -E</code> to exit on
+response.</p>
+<h5 id="native-chat-completions">2.2 Native Chat Completions</h5>
+<p>Set the double <code>option -cc</code> to start chat completions
+mode. Turbo models are also the best option for many non-chat use
+cases.</p>
+<h5 id="q-a-format">2.3 Q &amp; A Format</h5>
+<p>The defaults chat format is “<strong>Q &amp; A</strong>”. The
+<strong>restart sequence</strong> “<em>\n Q: </em>” and the
+<strong>start text</strong> “<em>\n A:</em>” are injected for the chat
+bot to work well with text cmpls.</p>
+<p>In native chat completions, setting a prompt with “<em>:</em>” as the
+initial character sets the prompt as a <strong>SYSTEM</strong> message.
+In text completions, however, typing a colon “<em>:</em>” at the start
+of the prompt causes the text following it to be appended immediately to
+the last (response) prompt text.</p>
+<h5 id="chat-commands">2.4 Chat Commands</h5>
+<p>While in chat mode, the following commands can be typed in the new
+prompt to set a new parameter. The command operator may be either
+“<code>!</code>”, or “<code>/</code>”.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Misc</th>
+<th style="text-align: left;">Commands</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>-z</code></td>
+<td style="text-align: left;"><code>!last</code></td>
+<td>Print last response json.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!i</code></td>
+<td style="text-align: left;"><code>!info</code></td>
+<td>Information on model and session settings.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!j</code></td>
+<td style="text-align: left;"><code>!jump</code></td>
+<td>Jump to request, append start seq primer (text cmpls).</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!!j</code></td>
+<td style="text-align: left;"><code>!!jump</code></td>
+<td>Jump to request, no response priming.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!sh</code></td>
+<td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
+<td>Run command, grab and edit output.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!!sh</code></td>
+<td style="text-align: left;"><code>!!shell</code></td>
+<td>Open an interactive shell and exit.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Script</th>
+<th style="text-align: left;">Settings</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>-g</code></td>
+<td style="text-align: left;"><code>!stream</code></td>
+<td>Toggle response streaming.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-l</code></td>
+<td style="text-align: left;"><code>!models</code></td>
+<td>List language model names.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-o</code></td>
+<td style="text-align: left;"><code>!clip</code></td>
+<td>Copy responses to clipboard.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-u</code></td>
+<td style="text-align: left;"><code>!multi</code></td>
+<td>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush
+(Bash).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-U</code></td>
+<td style="text-align: left;"><code>!cat</code></td>
+<td>Toggle cat prompter, &lt;<em>CTRL-D</em>&gt; flush.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-V</code></td>
+<td style="text-align: left;"><code>!context</code></td>
+<td>Print context before request.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-VV</code></td>
+<td style="text-align: left;"><code>!debug</code></td>
+<td>Dump raw request block.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-v</code></td>
+<td style="text-align: left;"><code>!ver</code></td>
+<td>Toggle verbose modes.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-x</code></td>
+<td style="text-align: left;"><code>!ed</code></td>
+<td>Toggle text editor interface.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-xx</code></td>
+<td style="text-align: left;"><code>!!ed</code></td>
+<td>Single-shot text editor.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-y</code></td>
+<td style="text-align: left;"><code>!tik</code></td>
+<td>Toggle python tiktoken use.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!q</code></td>
+<td style="text-align: left;"><code>!quit</code></td>
+<td>Exit. Bye.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!r</code></td>
+<td style="text-align: left;"><code>!regen</code></td>
+<td>Regenerate last response.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!?</code></td>
+<td style="text-align: left;"><code>!help</code></td>
+<td>Print a help snippet.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: left;">Settings</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>!NUM</code></td>
+<td style="text-align: left;"><code>!max</code> [<em>NUM</em>]</td>
+<td>Set maximum response tokens.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-N</code></td>
+<td style="text-align: left;"><code>!modmax</code> [<em>NUM</em>]</td>
+<td>Set model token capacity.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-a</code></td>
+<td style="text-align: left;"><code>!pre</code> [<em>VAL</em>]</td>
+<td>Set presence penalty.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-A</code></td>
+<td style="text-align: left;"><code>!freq</code> [<em>VAL</em>]</td>
+<td>Set frequency penalty.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-b</code></td>
+<td style="text-align: left;"><code>!best</code> [<em>NUM</em>]</td>
+<td>Set best-of n results.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-m</code></td>
+<td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
+<td>Set model by name.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-n</code></td>
+<td style="text-align: left;"><code>!results</code> [<em>NUM</em>]</td>
+<td>Set number of results.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-p</code></td>
+<td style="text-align: left;"><code>!top</code> [<em>VAL</em>]</td>
+<td>Set top_p.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-r</code></td>
+<td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]</td>
+<td>Set restart sequence.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-R</code></td>
+<td style="text-align: left;"><code>!start</code> [<em>SEQ</em>]</td>
+<td>Set start sequence.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-s</code></td>
+<td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>]</td>
+<td>Set one stop sequence.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-t</code></td>
+<td style="text-align: left;"><code>!temp</code> [<em>VAL</em>]</td>
+<td>Set temperature.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-w</code></td>
+<td style="text-align: left;"><code>!rec</code></td>
+<td>Start audio record chat mode.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Session</th>
+<th style="text-align: left;">Management</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>-</code></td>
+<td style="text-align: left;"><code>!list</code></td>
+<td>List history files (<em>tsv</em>).</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-</code></td>
+<td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
+<td>Search sessions (for regex) and copy session to hist tail.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-c</code></td>
+<td style="text-align: left;"><code>!new</code></td>
+<td>Start new session.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-H</code></td>
+<td style="text-align: left;"><code>!hist</code></td>
+<td>Edit history in editor.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-HH</code></td>
+<td style="text-align: left;"><code>!req</code></td>
+<td>Print context request immediately (see also
+<code>option -V</code>).</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-L</code></td>
+<td style="text-align: left;"><code>!log</code> [<em>FILEPATH</em>]</td>
+<td>Save to log file.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!c</code></td>
+<td style="text-align: left;"><code>!copy</code> [<em>SRC_HIST</em>]
+[<em>DEST_HIST</em>]</td>
+<td>Copy session from source to destination.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!f</code></td>
+<td style="text-align: left;"><code>!fork</code>
+[<em>DEST_HIST</em>]</td>
+<td>Fork current session to destination.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!k</code></td>
+<td style="text-align: left;"><code>!kill</code></td>
+<td>Comment out last entry in history file.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!s</code></td>
+<td style="text-align: left;"><code>!session</code>
+[<em>HIST_FILE</em>]</td>
+<td>Change to, search for, or create history file.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!!s</code></td>
+<td style="text-align: left;"><code>!!session</code>
+[<em>HIST_FILE</em>]</td>
+<td>Same as <code>!session</code>, break session.</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">E.g.: “<code>/temp</code> <em>0.7</em>”,
+“<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”, and
+“<code>/s</code> <em>hist_name</em>”.</div>
+<h6 id="session-management">2.4.1 Session Management</h6>
+<p>The script uses a <em>TSV file</em> to record entries, which is kept
+at the script cache directory. A new history file can be created, or an
+existing one changed to with command “<code>/session</code>
+[<em>HIST_FILE</em>]”, in which <em>HIST_FILE</em> is the file name of,
+or path to, a history file.</p>
+<p>When the first postional argument to the script is the command
+operator forward slash followed by a history file name, the command
+<code>/session</code> is assumed.</p>
+<p>A history file can contain many sessions. The last one (the tail
+session) is always read if the resume <code>option -C</code> is set. To
+continue a previous session than the tail session of history file, run
+chat command “<code>/copy</code> [<em>SRC_HIST_FILE</em>]
+[<em>DEST_HIST_FILE</em>]”.</p>
+<p>It is also possible to copy a session of a history file to another
+one.</p>
+<p>If “<code>/copy</code> <em>current</em>” is run, select a session to
+copy to the tail of the current history file (or another history file)
+and resume. This is equivalent to running “<code>/fork</code>”.</p>
+<p>In order to change the chat context at run time, the history file may
+be edited with the “<code>/hist</code>” command (also for context
+injection). Delete history entries or comment them out with
+“<code>#</code>”.</p>
+<h5 id="completion-preview-regeneration">2.5 Completion Preview /
+Regeneration</h5>
+<p>To preview a prompt completion before committing it to history,
+append a forward slash “<code>/</code>” to the prompt as the last
+character. Regenerate it again or flush/accept the prompt and
+response.</p>
+<p>After a response has been written to the history file,
+<strong>regenerate</strong> it with command “<code>!regen</code>” or
+type in a single forward slash in the new empty prompt.</p>
+<h4 id="prompt-engineering-and-design">3. Prompt Engineering and
+Design</h4>
+<p>Minimal <strong>INSTRUCTION</strong> to behave like a chatbot is
+given with chat <code>options -cc</code>, unless otherwise explicitly
+set by the user.</p>
+<p>On chat mode, if no INSTRUCTION is set, minimal instruction is given,
+and some options auto set, such as increasing temp and presence penalty,
+in order to un-lobotomise the bot. With cheap and fast models of text
+cmpls, such as Curie, the <code>best_of</code> option may be worth
+setting (to 2 or 3).</p>
+<p>Prompt engineering is an art on itself. Study carefully how to craft
+the best prompts to get the most out of text, code and chat cmpls
+models.</p>
+<p>Certain prompts may return empty responses. Maybe the model has
+nothing to further complete input or it expects more text. Try trimming
+spaces, appending a full stop/ellipsis, resetting temperature, or adding
+more text.</p>
+<p>Prompts ending with a space character may result in lower quality
+output. This is because the API already incorporates trailing spaces in
+its dictionary of tokens.</p>
+<p>Note that the model’s steering and capabilities require prompt
+engineering to even know that it should answer the questions.</p>
+<p>It is also worth trying to sample 3 - 5 times (increasing the number
+of responses with option <code>-n 3</code>, for example) in order to
+obtain a good response.</p>
+<p>For more on prompt design, see:</p>
+<ul>
+<li><a
+href="https://platform.openai.com/docs/guides/completion/prompt-design"
+class="uri">https://platform.openai.com/docs/guides/completion/prompt-design</a></li>
+<li><a
+href="https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md"
+class="uri">https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md</a></li>
+</ul>
+<p>See detailed info on settings for each endpoint at:</p>
+<ul>
+<li><a href="https://platform.openai.com/docs/"
+class="uri">https://platform.openai.com/docs/</a></li>
+</ul>
+<h3 id="code-completions">CODE COMPLETIONS</h3>
+<p>Codex models are discontinued. Use davinci or <em>gpt-3.5+
+models</em> for coding tasks.</p>
+<p>Turn comments into code, complete the next line or function in
+context, add code comments, and rewrite code for efficiency, amongst
+other functions.</p>
+<p>Start with a comment with instructions, data or code. To create
+useful completions it’s helpful to think about what information a
+programmer would need to perform a task.</p>
+<h3 id="text-edits-deprecated">TEXT EDITS <em>(deprecated)</em></h3>
+<p>This endpoint is set with models with <strong>edit</strong> in their
+name or <code>option -e</code>. Editing works by setting INSTRUCTION on
+how to modify a prompt and the prompt proper.</p>
+<p>The edits endpoint can be used to change the tone or structure of
+text, or make targeted changes like fixing spelling. Edits work well on
+empty prompts, thus enabling text generation similar to the completions
+endpoint.</p>
+<p>Alternatively, use <em>gpt-4+ models</em>.</p>
+<h3 id="escaping-new-lines-and-tabs">ESCAPING NEW LINES AND TABS</h3>
+<p>As of <em>v0.18</em>, sequences “<em>\n</em>” and “<em>\t</em>” are
+only treated specially in restart, start and stop sequences!</p>
+<h3 id="custom-awesome-prompts">CUSTOM / AWESOME PROMPTS</h3>
+<p>When the argument to <code>option -S</code> starts with a full stop,
+such as “<code>-S</code> <code>.</code><em>my_prompt</em>”, load, search
+for, or create <em>my_prompt</em> prompt file. If two full stops are
+prepended to the prompt name, load it silently. If a comma is used
+instead, such as “<code>-S</code> <code>,</code><em>my_prompt</em>”,
+edit the prompt file, and then load it.</p>
+<p>When the argument to <code>option -S</code> starts with a backslash
+or a percent sign, such as “<code>-S</code>
+<code>/</code><em>linux_terminal</em>”, search for an
+<em>awesome-chatgpt-prompt(-zh)</em> (by Fatih KA and PlexPt). Set
+“<code>//</code>” or “<code>%%</code>” to refresh local cache. Use with
+<em>davinci</em> and <em>gpt-3.5+</em> models.</p>
+<p>These options also set corresponding history files automatically.</p>
+<h3 id="images-dall-e">IMAGES / DALL-E</h3>
+<h4 id="image-generations">1. Image Generations</h4>
+<p>An image can be created given a text prompt. A text PROMPT of the
+desired image(s) is required. The maximum length is 1000 characters.</p>
+<h4 id="image-variations">2. Image Variations</h4>
+<p>Variations of a given <em>IMAGE</em> can be generated. The
+<em>IMAGE</em> to use as the basis for the variations must be a valid
+PNG file, less than 4MB and square.</p>
+<h4 id="image-edits">3. Image Edits</h4>
+<p>To edit an <em>IMAGE</em>, a <em>MASK</em> file may be optionally
+provided. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
+transparency, which will be used as the mask. A text prompt is
+required.</p>
+<h5 id="imagemagick">3.1 ImageMagick</h5>
+<p>If <strong>ImageMagick</strong> is available, input <em>IMAGE</em>
+and <em>MASK</em> will be checked and processed to fit dimensions and
+other requirements.</p>
+<h5 id="transparent-colour-and-fuzz">3.2 Transparent Colour and
+Fuzz</h5>
+<p>A transparent colour must be set with
+“<code>-@</code>[<em>COLOUR</em>]” to create the mask.
+Defaults=<em>black</em>.</p>
+<p>By defaults, the <em>COLOUR</em> must be exact. Use the
+<code>fuzz option</code> to match colours that are close to the target
+colour. This can be set with “<code>-@</code>[<em>VALUE%</em>]” as a
+percentage of the maximum possible intensity, for example
+“<code>-@</code><em>10%black</em>”.</p>
+<p>See also:</p>
+<ul>
+<li><a href="https://imagemagick.org/script/color.php"
+class="uri">https://imagemagick.org/script/color.php</a></li>
+<li><a
+href="https://imagemagick.org/script/command-line-options.php#fuzz"
+class="uri">https://imagemagick.org/script/command-line-options.php#fuzz</a></li>
+</ul>
+<h5 id="mask-file-alpha-channel">3.3 Mask File / Alpha Channel</h5>
+<p>An alpha channel is generated with <strong>ImageMagick</strong> from
+any image with the set transparent colour (defaults to <em>black</em>).
+In this way, it is easy to make a mask with any black and white image as
+a template.</p>
+<h5 id="in-paint-and-out-paint">3.4 In-Paint and Out-Paint</h5>
+<p>In-painting is achieved setting an image with a MASK and a
+prompt.</p>
+<p>Out-painting can also be achieved manually with the aid of this
+script. Paint a portion of the outer area of an image with
+<em>alpha</em>, or a defined <em>transparent</em> <em>colour</em> which
+will be used as the mask, and set the same <em>colour</em> in the script
+with <code>-@</code>. Choose the best result amongst many results to
+continue the out-painting process step-wise.</p>
+<p>Optionally, for all image generations, variations, and edits, set
+<strong>size of output image</strong> with “<em>256x256</em>”
+(“<em>Small</em>”), “<em>512x512</em>” (“<em>Medium</em>”), or
+“<em>1024x1024</em>” (“<em>Large</em>”) as the first positional
+argument. Defaults=<em>512x512</em>.</p>
+<h3 id="audio-whisper">AUDIO / WHISPER</h3>
+<h4 id="transcriptions">1. Transcriptions</h4>
+<p>Transcribes audio file or voice record into the input language. Set a
+<em>two-letter</em> <em>ISO-639-1</em> language code (<em>en</em>,
+<em>es</em>, <em>ja</em>, or <em>zh</em>) as the positional argument
+following the input audio file. A prompt may also be set as last
+positional parameter to help guide the model. This prompt should match
+the audio language.</p>
+<h4 id="translations">2. Translations</h4>
+<p>Translates audio into <strong>English</strong>. An optional text to
+guide the model’s style or continue a previous audio segment is optional
+as last positional argument. This prompt should be in English.</p>
+<p>Setting <strong>temperature</strong> has an effect, the higher the
+more random.</p>
+<h3 id="environment">ENVIRONMENT</h3>
+<p><strong>CHATGPTRC</strong></p>
+<dl>
+<dt><strong>CONFFILE</strong></dt>
+<dd>
+<p>Path to user <em>chatgpt.sh configuration</em>.</p>
+<p>Defaults="<em>~/.chatgpt.conf</em>"</p>
+</dd>
+<dt><strong>FILECHAT</strong></dt>
+<dd>
+<p>Path to a history / session TSV file (script-formatted).</p>
+</dd>
+<dt><strong>INSTRUCTION</strong></dt>
+<dd>
+<p>Initial initial instruction, or system message.</p>
+</dd>
+<dt><strong>INSTRUCTION_CHAT</strong></dt>
+<dd>
+<p>Initial initial instruction, or system message for chat mode.</p>
+</dd>
+</dl>
+<p><strong>OPENAI_API_KEY</strong></p>
+<dl>
+<dt><strong>OPENAI_KEY</strong></dt>
+<dd>
+<p>Set your personal (free) OpenAI API key.</p>
+</dd>
+<dt><strong>REC_CMD</strong></dt>
+<dd>
+<p>Audio recording command (with <code>options -ccw</code> and
+<code>-Ww</code>), e.g. <em>sox</em>.</p>
+</dd>
+<dt><strong>SPEECHTOTEXT_CMD</strong></dt>
+<dd>
+<p>Speech to text command (with <code>options -ccw</code>),
+e.g. <em>termux-speech-to-text</em>.</p>
+</dd>
+</dl>
+<p><strong>VISUAL</strong></p>
+<dl>
+<dt><strong>EDITOR</strong></dt>
+<dd>
+<p>Text editor for external prompt editing.</p>
+<p>Defaults="<em>vim</em>"</p>
+</dd>
+</dl>
+<h3 id="colour-themes">COLOUR THEMES</h3>
+<p>Defaults colour scheme may be customised. A few themes are available
+in the template configuration file.</p>
+<p>A small colour library is available for the user conf file to
+personalise the theme colours.</p>
+<p>The colour palette is composed of <em>$Red</em>, <em>$Green</em>,
+<em>$Yellow</em>, <em>$Blue</em>, <em>$Purple</em>, <em>$Cyan</em>,
+<em>$White</em>, <em>$Inv</em> (invert), and <em>$Nc</em> (reset)
+variables.</p>
+<p>Bold variations are defined as <em>$BRed</em>, <em>$BGreen</em>, etc,
+and background colours can be set with <em>$On_Yellow</em>,
+<em>$On_Blue</em>, etc.</p>
+<p>Alternatively, raw escaped color sequences, such as
+<em>\e[0;35m</em>, and <em>\e[1;36m</em> may be set.</p>
+<p>Theme colours are named variables from <code>Colour1</code> to about
+<code>Colour11</code>, and may be set with colour-named variables or raw
+escape sequences (these must not change cursor position). Also,
+variables <code>$Vcol8</code>, and <code>$Vcol9</code> are set with
+special colour sequences, such as “<em>%B%F{cyan}%K{red}</em>” (only
+Zsh).</p>
+<h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
+<p>Input sequences <em>\n</em>, and <em>\t</em> must be double escaped
+to be treated literally, otherwise these will be interpreted as escaped
+newlines, and horizontal tabs in JSON encoding. This is specially
+important when input contains <em>software code</em>.</p>
+<p>Changing models in the same session may generate token count errors
+because the recorded token count may differ from model encoding to
+encoding. Set <code>option -y</code> for accurate token counting.</p>
+<p>With the exception of Davinci models, older models were designed to
+be run as one-shot.</p>
+<p>The script is expected to work with language models and inputs up to
+32k tokens.</p>
+<p>Instruction prompts are required for the model to even know that it
+should answer questions.</p>
+<p>Garbage in, garbage out. An idiot savant.</p>
+<!--
+`Zsh` does not read history file in non-interactive mode.
+
+`Ksh93` mangles multibyte characters when re-editing input prompt
+and truncates input longer than 80 chars. Workaround is to move
+cursor one char and press the up arrow key.
+
+`Ksh2020` lacks functionality compared to `Ksh83u+`, such as `read`
+with history, so avoid it.
+-->
+<h3 id="requirements">REQUIREMENTS</h3>
+<p>A free OpenAI <strong>API key</strong>. <code>Bash</code>,
+<code>cURL</code>, and <code>JQ</code>.</p>
+<p><code>ImageMagick</code>, and
+<code>Sox</code>/<code>Alsa-tools</code>/<code>FFmpeg</code> are
+optionally required.</p>
+<h3 id="options">OPTIONS</h3>
+<h4 id="model-settings">Model Settings</h4>
+<dl>
+<dt><strong>-@</strong> [[<em>VAL%</em>]<em>COLOUR</em>],
+<strong>--alpha</strong>=[[<em>VAL%</em>]<em>COLOUR</em>]</dt>
+<dd>
+<p>Set transparent colour of image mask. Def=<em>black</em>.</p>
+<p>Fuzz intensity can be set with [VAL%]. Def=<em>0%</em>.</p>
+</dd>
+</dl>
+<p><strong>-NUM</strong></p>
+<dl>
+<dt><strong>-M</strong> [<em>NUM</em>[<em>/NUM</em>]],
+<strong>--max</strong>=[<em>NUM</em>[<em>-NUM</em>]]</dt>
+<dd>
+<p>Set maximum number of <em>response tokens</em>. Def=<em>512</em>.</p>
+<p>A second number in the argument sets model capacity.</p>
+</dd>
+<dt><strong>-N</strong> [<em>NUM</em>],
+<strong>--modmax</strong>=[<em>NUM</em>]</dt>
+<dd>
+<p>Set <em>model capacity</em> tokens. Def=<em>auto</em>,
+fallback=<em>2048</em>.</p>
+</dd>
+<dt><strong>-a</strong> [<em>VAL</em>],
+<strong>--presence-penalty</strong>=[<em>VAL</em>]</dt>
+<dd>
+<p>Set presence penalty (cmpls/chat, -2.0 - 2.0).</p>
+</dd>
+<dt><strong>-A</strong> [<em>VAL</em>],
+<strong>--frequency-penalty</strong>=[<em>VAL</em>]</dt>
+<dd>
+<p>Set frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
+</dd>
+<dt><strong>-b</strong> [<em>NUM</em>],
+<strong>--best-of</strong>=[<em>NUM</em>]</dt>
+<dd>
+<p>Set best of, must be greater than <code>option -n</code> (cmpls).
+Def=<em>1</em>.</p>
+</dd>
+<dt><strong>-B</strong> [<em>NUM</em>],
+<strong>--log-prob=[<em>NUM</em>]</strong></dt>
+<dd>
+<p>Request log probabilities, also see -z (cmpls, 0 - 5),</p>
+</dd>
+<dt><strong>-m</strong> [<em>MOD</em>],
+<strong>--model</strong>=[<em>MOD</em>]</dt>
+<dd>
+<p>Set language MODEL name.</p>
+</dd>
+<dt><strong>-n</strong> [<em>NUM</em>],
+<strong>--results</strong>=[<em>NUM</em>]</dt>
+<dd>
+<p>Set number of results. Def=<em>1</em>.</p>
+</dd>
+<dt><strong>-p</strong> [<em>VAL</em>],
+<strong>--top-p</strong>=[<em>VAL</em>]</dt>
+<dd>
+<p>Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
+</dd>
+<dt><strong>-r</strong> [<em>SEQ</em>],
+<strong>--restart</strong>=[<em>SEQ</em>]</dt>
+<dd>
+<p>Set restart sequence string (cmpls).</p>
+</dd>
+<dt><strong>-R</strong> [<em>SEQ</em>],
+<strong>--start</strong>=[<em>SEQ</em>]</dt>
+<dd>
+<p>Set start sequence string (cmpls).</p>
+</dd>
+<dt><strong>-s</strong> [<em>SEQ</em>],
+<strong>--stop</strong>=[<em>SEQ</em>]</dt>
+<dd>
+<p>Set stop sequences, up to 4. Def="<em>&lt;|endoftext|&gt;</em>".</p>
+</dd>
+<dt><strong>-S</strong> [<em>INSTRUCTION</em>|<em>FILE</em>],
+<strong>--instruction</strong>=[<em>STRING</em>]</dt>
+<dd>
+<p>Set an instruction prompt. It may be a text file.</p>
+</dd>
+<dt><strong>-t</strong> [<em>VAL</em>],
+<strong>--temperature</strong>=[<em>VAL</em>]</dt>
+<dd>
+<p>Set temperature value (cmpls/chat/edits/audio), (0.0 - 2.0, whisper
+0.0 - 1.0). Def=<em>0</em>.</p>
+</dd>
+</dl>
+<h4 id="script-modes">Script Modes</h4>
+<dl>
+<dt><strong>-c</strong>, <strong>--chat</strong></dt>
+<dd>
+<p>Chat mode in text completions, session break.</p>
+</dd>
+<dt><strong>-cc</strong></dt>
+<dd>
+<p>Chat mode in chat completions, session break.</p>
+</dd>
+<dt><strong>-C</strong>, <strong>--continue</strong>,
+<strong>--resume</strong></dt>
+<dd>
+<p>Continue from (resume) last session (cmpls/chat).</p>
+</dd>
+<dt><strong>-d</strong>, <strong>--text</strong></dt>
+<dd>
+<p>Start new multi-turn session in plain text completions.</p>
+</dd>
+<dt><strong>-e</strong> [<em>INSTRUCTION</em>] [<em>INPUT</em>],
+<strong>--edit</strong></dt>
+<dd>
+<p>Set Edit mode. Model def=<em>text-davinci-edit-001</em>.</p>
+</dd>
+<dt><strong>-E</strong>, <strong>–exit</strong></dt>
+<dd>
+<p>Exit on first run (even with options -cc).</p>
+</dd>
+<dt><strong>-g</strong>, <strong>--stream</strong></dt>
+<dd>
+<p>Set response streaming.</p>
+</dd>
+<dt><strong>-G</strong>, <strong>--no-stream</strong></dt>
+<dd>
+<p>Unset response streaming.</p>
+</dd>
+<dt><strong>-i</strong> [<em>PROMPT</em>], <strong>--image</strong></dt>
+<dd>
+<p>Generate images given a prompt.</p>
+</dd>
+<dt><strong>-i</strong> [<em>PNG</em>]</dt>
+<dd>
+<p>Create variations of a given image.</p>
+</dd>
+<dt><strong>-i</strong> [<em>PNG</em>] [<em>MASK</em>]
+[<em>PROMPT</em>]</dt>
+<dd>
+<p>Edit image with mask and prompt (required).</p>
+</dd>
+<dt><strong>-q</strong>, <strong>--insert</strong>
+<em>(deprecated)</em></dt>
+<dd>
+<p>Insert text rather than completing only.</p>
+<p>Use “<em>[insert]</em>” to indicate where the language model should
+insert text (only with text cmpls models).</p>
+</dd>
+</dl>
+<p><strong>-S</strong> <code>.</code>[<em>PROMPT_NAME</em>],
+<strong>-,</strong>[<em>PROMPT_NAME</em>]</p>
+<dl>
+<dt><strong>-S</strong> <code>,</code>[<em>PROMPT_NAME</em>],
+<strong>-,</strong>[<em>PROMPT_NAME</em>]</dt>
+<dd>
+<p>Load, search for, or create custom prompt.</p>
+<p>Set <code>..</code>[<em>PROMPT</em>] to silently load prompt.</p>
+<p>Set <code>.</code><em>?</em>, or <code>.</code><em>list</em> to list
+prompt template files.</p>
+<p>Set <code>,</code>[<em>PROMPT</em>] to edit a prompt file.</p>
+</dd>
+</dl>
+<p><strong>-S</strong> <code>/</code>[<em>AWESOME_PROMPT_NAME</em>]</p>
+<dl>
+<dt><strong>-S</strong>
+<code>%</code>[<em>AWESOME_PROMPT_NAME_ZH</em>]</dt>
+<dd>
+<p>Set or search for an <em>awesome-chatgpt-prompt(-zh)</em>.
+<em>Davinci</em> and <em>gpt3.5+</em> models.</p>
+<p>Set <code>//</code> or <code>%%</code> instead to refresh cache.</p>
+</dd>
+</dl>
+<p><strong>-T</strong>, <strong>--tiktoken</strong></p>
+<p><strong>-TT</strong></p>
+<dl>
+<dt><strong>-TTT</strong></dt>
+<dd>
+<p>Count input tokens with python tiktoken (ignores special tokens). It
+heeds <code>options -ccm</code>.</p>
+<p>Set twice to print tokens, thrice to available encodings.</p>
+<p>Set model or encoding with <code>option -m</code>.</p>
+</dd>
+<dt><strong>-w</strong> [<em>AUD</em>] [<em>LANG</em>]
+[<em>PROMPT</em>], <strong>--transcribe</strong></dt>
+<dd>
+<p>Transcribe audio file into text. LANG is optional. A prompt that
+matches the audio language is optional.</p>
+<p>Set twice to get phrase-level timestamps.</p>
+</dd>
+<dt><strong>-W</strong> [<em>AUD</em>] [<em>PROMPT-EN</em>],
+<strong>--translate</strong></dt>
+<dd>
+<p>Translate audio file into English text.</p>
+<p>Set twice to get phrase-level timestamps.</p>
+</dd>
+</dl>
+<h3 id="script-settings">Script Settings</h3>
+<dl>
+<dt><strong>-f</strong>, <strong>--no-conf</strong></dt>
+<dd>
+<p>Ignore user configuration file and environment.</p>
+</dd>
+<dt><strong>-F</strong></dt>
+<dd>
+<p>Edit configuration file with text editor, if it exists.</p>
+</dd>
+<dt><strong>-FF</strong></dt>
+<dd>
+<p>Dump template configuration file to stdout.</p>
+</dd>
+<dt><strong>-h</strong>, <strong>--help</strong></dt>
+<dd>
+<p>Print the help page.</p>
+</dd>
+<dt><strong>-H</strong> [<code>/</code><em>HIST_FILE</em>],
+<strong>--hist</strong></dt>
+<dd>
+<p>Edit history file with text editor or pipe to stdout.</p>
+<p>A history file name can be optionally set as argument.</p>
+</dd>
+<dt><strong>-HH</strong> [<code>/</code><em>HIST_FILE</em>],
+<strong>-HHH</strong></dt>
+<dd>
+<p>Pretty print last history session to stdout.</p>
+<p>Heeds <code>options -ccdrR</code> to print with the specified restart
+and start sequences.</p>
+<p>Set thrice to print commented out hist entries, inclusive.</p>
+</dd>
+<dt><strong>-k</strong>, <strong>--no-colour</strong></dt>
+<dd>
+<p>Disable colour output. Def=<em>auto</em>.</p>
+</dd>
+<dt><strong>-K</strong> [<em>KEY</em>],
+<strong>--api-key</strong>=[<em>KEY</em>]</dt>
+<dd>
+<p>Set OpenAI API key.</p>
+</dd>
+<dt><strong>-l</strong> [<em>MOD</em>],
+<strong>--list-models</strong></dt>
+<dd>
+<p>List models or print details of <em>MODEL</em>.</p>
+</dd>
+<dt><strong>-L</strong> [<em>FILEPATH</em>],
+<strong>--log</strong>=[<em>FILEPATH</em>]</dt>
+<dd>
+<p>Set log file. <em>FILEPATH</em> is required.</p>
+</dd>
+<dt><strong>-o</strong>, <strong>--clipboard</strong></dt>
+<dd>
+<p>Copy response to clipboard.</p>
+</dd>
+<dt><strong>-u</strong>, <strong>--multi</strong></dt>
+<dd>
+<p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush (Bash).</p>
+</dd>
+<dt><strong>-U</strong>, <strong>--cat</strong></dt>
+<dd>
+<p>Set cat prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
+</dd>
+<dt><strong>-v</strong>, <strong>--verbose</strong></dt>
+<dd>
+<p>Less verbose.</p>
+</dd>
+<dd>
+<p>Sleep after response in voice chat (<code>-vvccw</code>).</p>
+</dd>
+<dd>
+<p>May be set multiple times.</p>
+</dd>
+</dl>
+<p><strong>-V</strong></p>
+<dl>
+<dt><strong>-VV</strong></dt>
+<dd>
+<p>Pretty-print context before request.</p>
+<p>Set twice to dump raw request block (debug).</p>
+</dd>
+<dt><strong>-x</strong>, <strong>--editor</strong></dt>
+<dd>
+<p>Edit prompt in text editor.</p>
+</dd>
+<dt><strong>-y</strong>, <strong>--tik</strong></dt>
+<dd>
+<p>Set tiktoken for token count (cmpls, chat, python).</p>
+</dd>
+<dt><strong>-Y</strong>, <strong>–no-tik</strong></dt>
+<dd>
+<p>Unset tiktoken use (cmpls, chat, python).</p>
+</dd>
+<dt><strong>-z</strong>, <strong>--last</strong></dt>
+<dd>
+<p>Print last response JSON data.</p>
+</dd>
+<dt><strong>-Z</strong></dt>
+<dd>
+<p>Run with Z-shell in interactive mode.</p>
+</dd>
+</dl>
+</body>
+</html>

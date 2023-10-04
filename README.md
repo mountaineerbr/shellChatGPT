@@ -2,20 +2,6 @@
 Shell wrapper for OpenAI API for ChatGPT, DALL-E, and Whisper.
 
 
-<br />
-
-# **This project [moved to GitLab](https://gitlab.com/fenixdragao/shellchatgpt).**
-
-<https://gitlab.com/fenixdragao/shellchatgpt>
-
-<br />
-
-Bash, and Zsh-compatible [chatgpt.sh](https://gitlab.com/fenixdragao/shellchatgpt/-/blob/main/chatgpt.sh)
-script, with configuration file template, and complete documentation.
-
-<br />
-<br />
-
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
 
 Chat completions with streaming.
@@ -23,23 +9,24 @@ Chat completions with streaming.
 
 ## 🚀 Features
 
-- Text and chat completions.
-- _Insert mode_ of text completions.
-- _Multiline_ prompt, flush input with \<ctrl-d> (optional).
+- Text and chat completions
+- _Multiline_ prompt, flush input with \<ctrl-d> (optional)
 - _Follow up_ conversations, _preview/regenerate_ responses
-- Manage _sessions_, _continue_ from last session, _print out_ session.
+- Manage _sessions_, _continue_ from last session, _print out_ session
 - Custom prompts, easily create prompts and re-use them!
 - Integration with [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts) and [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-- Personalise colour scheme.
+- Fast and accurately count chat tokens with _tiktoken_ (requires python)
+- Personalise colour scheme
 - _Generate images_ from text input
 - _Generate variations_ of images
 - _Edit images_, easily generate an alpha mask
 - _Transcribe audio_ from various languages
 - _Translate audio_ into English text
 - Record prompt voice, hear the answer back from the AI (pipe to voice synthesiser)
-- Choose amongst available models
+- Choose amongst all available models
 - Lots of command line options
-- Converts base64 JSON data to PNG image
+<!-- - Insert mode of text completions _(deprecated)_ -->
+- Converts response base64 JSON data to PNG image locally
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users).
 
 
@@ -151,7 +138,7 @@ _For better results,_ ***set an instruction/system prompt***:
     chatgpt.sh -d -S'You are an AI assistant.'  "List biggest cities in the world."
 
 
-### Insert Mode of Text Completions
+### Insert Mode of Text Completions  _(deprecated)_
 
 Set `option -q` to enable insert mode and add the
 string `[insert]` where the model should insert text:
@@ -161,8 +148,11 @@ string `[insert]` where the model should insert text:
 **OBS:** [Insert mode](https://openai.com/blog/gpt-3-edit-insert)
 works with `davinci`, `text-davinci-002`, and `text-davinci-003`.
 
+**OBS2:** recent tests suggest this endpoint may be deprecating
+on OpenAI side.
 
-### Text Edits
+
+### Text Edits  _(deprecated)_
 
 Choose an `edit` model or set `option -e` to use this endpoint.
 Two prompts are accepted, an instruction prompt and
@@ -433,9 +423,9 @@ in Arch Linux and derivative distros.
 -->
 
 
-## Termux Users
+## Tiktoken and Termux Users
 
-To run `tiktoken` with `options -Ty`, be sure to have your system
+To run `tiktoken` with `options -T -y`, be sure to have your system
 updated and installed with `python`, `rust`, and `rustc-dev` packages
 for building python `tiktoken`.
 
@@ -514,10 +504,17 @@ Alternatively, a help page snippet can be printed with `chatgpt.sh -h`.
 [edshamis](https://www.github.com/edshamis)
 
 
----
+<br />
 
-Everyone is welcome to submit issues, PRs, and new ideas!
+Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mountaineerbr/shellChatGPT/discussions/1)!
 
+--- 
+
+<br />
+
+**[The project home is at GitLab](https://gitlab.com/fenixdragao/shellchatgpt).**
+
+<https://gitlab.com/fenixdragao/shellchatgpt>
 
 <br />
 <p align="center">
