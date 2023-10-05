@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.16  oct/2023  by mountaineerbr  GPL+3
+# v0.18.17  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL NO_MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -740,7 +740,7 @@ function list_modelsf
 function lastjsonf
 {
 	if [[ -s $FILE ]]
-	then 	jq . "$FILE" || cat -- "$FILE"
+	then 	jq "$@" . "$FILE" || cat "$@" -- "$FILE"
 	fi
 }
 
@@ -1876,8 +1876,7 @@ function embedf
 function moderationf
 {
 	BLOCK="{ \"input\": \"${*:?INPUT ERR}\" }"
-	STREAM= _promptf
-	lastjsonf
+	_promptf
 }
 
 #edits
@@ -2610,7 +2609,7 @@ if [[ -n $TERMUX_VERSION ]]
 then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
 else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
-((${#})) || [[ -t 0 ]] || ((OPTTIKTOKEN)) || set -- "$(<$STDIN)"
+((${#})) || [[ -t 0 ]] || ((OPTTIKTOKEN+OPTL+OPTZ)) || set -- "$(<$STDIN)"
 
 ((OPTX)) && ((OPTE+OPTEMBED+OPTI+OPTII+OPTTIKTOKEN)) &&
 edf "$@" && set -- "$(<"$FILETXT")"  #editor
@@ -2689,11 +2688,18 @@ then 	__sysmsgf 'Image Generations'
 elif ((OPTEMBED))  #embeds
 then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	|| __warmsgf "Warning:" "Not an embedding model -- $MOD"
+	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM
 	[[ -f $1 ]] && set -- "$(<"$1")" "${@:2}"
-	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM  ;echo >&2
+	((${#})) ||
+	if echo Input:; [[ -n $ZSH_VERSION ]]
+	then 	IFS= vared -c -e -h REPLY; set -- "$REPLY"; echo >&2;
+	else 	IFS= read -r -e ${OPTCTRD:+-d $'\04'} REPLY; set -- "$REPLY"; echo >&2;
+	fi </dev/tty
 	if [[ $MOD = *embed* ]]
 	then 	embedf "$@"
-	else 	moderationf "$@"
+	else 	moderationf "$@" &&
+		printf '%-22s: %s\n' flagged $(lastjsonf | jq -r '.results[].flagged') &&
+		printf '%-22s: %.24f (%s)\n' $(lastjsonf | jq -r '.results[].categories|keys_unsorted[]' | while read -r; do 	lastjsonf | jq -r "\"$REPLY \" + (.results[].category_scores.\"$REPLY\"|tostring//empty) + \" \" + (.results[].categories.\"$REPLY\"|tostring//empty)"; done)
 	fi
 elif ((OPTE))      #edits
 then 	__sysmsgf 'Text Edits'
