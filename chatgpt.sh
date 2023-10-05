@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.15  oct/2023  by mountaineerbr  GPL+3
+# v0.18.16  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL NO_MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -165,7 +165,8 @@ Description
 	As of v0.18, sequences \`\\n' and \`\\t' are only treated specially
 	in restart, start and stop sequences!
 
-	A personal (free) OpenAI API is required, set it with -K.
+	A personal (free) OpenAI API is required, set environment or
+	option -K.
 
 
 See Also
@@ -437,7 +438,7 @@ function set_model_epnf
 					*edit*) 	EPN=2 OPTE=1;;
 					*) 		EPN=0;;
 				esac;;
-		text-*|*turbo-instruct*) 	case "$1" in
+		text-*|*turbo-instruct*|*moderation*) 	case "$1" in
 					*embedding*|*similarity*|*search*) 	EPN=5 OPTEMBED=1;;
 					*edit*) 	EPN=2 OPTE=1;;
 					*moderation*) 	EPN=1 OPTEMBED=1;;
@@ -465,6 +466,7 @@ function set_model_epnf
 function __promptf
 {
 	curl "$@" "$APIURL/${ENDPOINTS[EPN]}" \
+		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-d "$BLOCK"
@@ -732,7 +734,7 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || cat -- "$FILE"
 	else 	jq -r '.data[].id' "$FILE" | sort
-	fi
+	fi && echo moderation
 }
 
 function lastjsonf
@@ -1871,6 +1873,13 @@ function embedf
 	promptf
 }
 
+function moderationf
+{
+	BLOCK="{ \"input\": \"${*:?INPUT ERR}\" }"
+	STREAM= _promptf
+	lastjsonf
+}
+
 #edits
 function editf
 {
@@ -2606,7 +2615,7 @@ fi
 ((OPTX)) && ((OPTE+OPTEMBED+OPTI+OPTII+OPTTIKTOKEN)) &&
 edf "$@" && set -- "$(<"$FILETXT")"  #editor
 
-if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTTIKTOKEN) ))
+if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
 	then 	__sysmsgf "Max Model / Response:" "$MODMAX / $OPTMAX tokens"
      		if ((${#})) && [[ ! -f $1 ]]
@@ -2682,7 +2691,10 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	|| __warmsgf "Warning:" "Not an embedding model -- $MOD"
 	[[ -f $1 ]] && set -- "$(<"$1")" "${@:2}"
 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM  ;echo >&2
-	embedf "$@"
+	if [[ $MOD = *embed* ]]
+	then 	embedf "$@"
+	else 	moderationf "$@"
+	fi
 elif ((OPTE))      #edits
 then 	__sysmsgf 'Text Edits'
 	[[ $MOD = *edit* ]] || __warmsgf "Warning:" "Not an edits model -- $MOD"

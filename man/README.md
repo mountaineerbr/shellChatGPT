@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2023
-title: CHATGPT.SH(1) v0.18.15 \| General Commands Manual
+title: CHATGPT.SH(1) v0.18.16 \| General Commands Manual
 ---
 
 ### NAME
@@ -124,8 +124,11 @@ option parsing. Stdin input sets a single PROMPT.
 User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
 at “*~/.cache/chatgptsh*”.
 
-A personal (free) OpenAI API is required, set it with `-K`. Also, see
-**ENVIRONMENT section**.
+A personal (free) OpenAI API is required, set it with `option -K`. See
+also **ENVIRONMENT section**.
+
+The moderation endpoint can be accessed by setting the model name to
+*moderation*.
 
 See the online man page and script usage examples at:
 <https://github.com/mountaineerbr/shellChatGPT/tree/main>.
