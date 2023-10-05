@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2023
-title: CHATGPT.SH(1) v0.18.13 \| General Commands Manual
+title: CHATGPT.SH(1) v0.18.15 \| General Commands Manual
 ---
 
 ### NAME
@@ -113,9 +113,10 @@ Combine `-wW` **with** `-cc` to start **chat with voice input**
 full voice in and out experience.
 
 `Option -y` sets python tiktoken instead of the default script hack to
-preview token count. This option makes token count preview accurate
-however it is slow. Useful for rebuilding history context independently
-from the original model used to generate responses.
+preview token count. This option makes token count preview accurate fast
+(we fork tiktoken as a coprocess for fast token queries). Useful for
+rebuilding history context independently from the original model used to
+generate responses.
 
 Stdin is supported when there is no positional arguments left after
 option parsing. Stdin input sets a single PROMPT.
@@ -203,8 +204,8 @@ or “`/`”.
 | `-o`   | `!clip`    | Copy responses to clipboard.                          |
 | `-u`   | `!multi`   | Toggle multiline prompter, \<*CTRL-D*\> flush (Bash). |
 | `-U`   | `!cat`     | Toggle cat prompter, \<*CTRL-D*\> flush.              |
-| `-V`   | `!context` | Print context before request.                         |
-| `-VV`  | `!debug`   | Dump raw request block.                               |
+| `-V`   | `!context` | Print context before request (see `option -HH`).      |
+| `-VV`  | `!debug`   | Dump raw request block and confirm.                   |
 | `-v`   | `!ver`     | Toggle verbose modes.                                 |
 | `-x`   | `!ed`      | Toggle text editor interface.                         |
 | `-xx`  | `!!ed`     | Single-shot text editor.                              |
@@ -235,7 +236,7 @@ or “`/`”.
 | `-`     | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail. |
 | `-c`    | `!new`                                 | Start new session.                                         |
 | `-H`    | `!hist`                                | Edit history in editor.                                    |
-| `-HH`   | `!req`                                 | Print context request immediately (see also `option -V`).  |
+| `-HH`   | `!req`                                 | Print context request immediately (see `option -V`).       |
 | `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                          |
 | `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                   |
 | `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.                       |
@@ -484,8 +485,8 @@ Defaults="*vim*"
 
 ### COLOUR THEMES
 
-Defaults colour scheme may be customised. A few themes are available in
-the template configuration file.
+The colour scheme may be customised. A few themes are available in the
+template configuration file.
 
 A small colour library is available for the user conf file to
 personalise the theme colours.
@@ -508,14 +509,14 @@ and may be set with colour-named variables or raw escape sequences
 
 ### BUGS AND LIMITS
 
-Input sequences *\n*, and *\t* must be double escaped to be treated
-literally, otherwise these will be interpreted as escaped newlines, and
-horizontal tabs in JSON encoding. This is specially important when input
-contains *software code*.
-
-Changing models in the same session may generate token count errors
-because the recorded token count may differ from model encoding to
-encoding. Set `option -y` for accurate token counting.
+<!-- NOT ANYMORE
+Input sequences _\\n_, and _\\t_ must be double escaped to be treated
+literally, otherwise these will be interpreted as escaped newlines,
+and horizontal tabs in JSON encoding. This is specially important when
+input contains *software code*. -->
+<!-- Changing models in the same session may generate token count errors
+because the recorded token count may differ from model encoding to encoding.
+Set `option -y` for accurate token counting. -->
 
 With the exception of Davinci models, older models were designed to be
 run as one-shot.
@@ -523,8 +524,9 @@ run as one-shot.
 The script is expected to work with language models and inputs up to 32k
 tokens.
 
-Instruction prompts are required for the model to even know that it
-should answer questions.
+<!-- OBVIOUSLY, ALREADY MENTIONED
+Instruction prompts are required for the model to even know that
+it should answer questions. -->
 
 Garbage in, garbage out. An idiot savant.
 

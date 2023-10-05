@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.14  oct/2023  by mountaineerbr  GPL+3
+# v0.18.15  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL NO_MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -160,7 +160,7 @@ Description
 
 	Option -y sets python tiktoken instead of the default script hack
 	to preview token count. Set this option for accurate history
-	context length (slow).
+	context length (fast).
 
 	As of v0.18, sequences \`\\n' and \`\\t' are only treated specially
 	in restart, start and stop sequences!
@@ -221,8 +221,8 @@ Chat Commands
        -o      !clip            Copy responses to clipboard.
        -u      !multi           Toggle multiline, ctrl-d flush (bash).
        -U      !cat             Toggle cat prompter, ctrl-d flush.
-       -V      !context         Print context before request.
-       -VV     !debug           Dump raw request block.
+       -V      !context         Print context before request (see -HH).
+       -VV     !debug           Dump raw request block and confirm.
        -v      !ver             Toggle verbose modes.
        -x      !ed              Toggle text editor interface.
        -xx    !!ed              Single-shot text editor.
@@ -250,7 +250,7 @@ Chat Commands
 	                        Search sessions and copy to tail.
        -c      !new             Start new session (session break).
        -H      !hist            Edit raw history file in editor.
-      -HH      !req             Print context request immediately.
+      -HH      !req             Print context request now (see -V).
        -L      !log      [FILEPATH]
                                 Save to log file (pretty-print).
        !c      !copy     [SRC_HIST] [DEST_HIST]
@@ -450,6 +450,7 @@ function set_model_epnf
 					gpt-3.5-turbo-0301) 	((TKN_ADJ=4+1));;
 					gpt-3.5-turbo*|gpt-4*|*) 	((TKN_ADJ=3+1));;
 				esac #https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+				#also: <https://tiktokenizer.vercel.app/>
 				;;
 		*) 		#fallback
 				case "$1" in
@@ -1623,7 +1624,7 @@ function whisperf
 	then 	set -- "${@:1:1}" "${@:3}"
 	fi
 	
-	if [[ ! -e $1 ]] && ((!MTURN))
+	if [[ ! -e $1 && ! -e ${@:${#}} ]] && ((!MTURN))
 	then 	printf "${PURPLE}%s ${NC}" 'Record mic input? [Y/n]' >&2
 		case "$(__read_charf)" in
 			[AaNnQq]|$'\e') 	:;;
@@ -1633,10 +1634,12 @@ function whisperf
 		esac
 	fi
 	
-	if [[ ! -e $1 ]] || [[ $1 != *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
-	then 	printf "${BRED}Err: %s ${NC}-- %s\\n" 'Unknown audio format' "$1" >&2
+	if [[ -e $1 && $1 = *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
+	then 	file="$1"; shift;
+	elif [[ -e ${@:${#}} && ${@:${#}} = *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
+	then 	file="${@:${#}}"; set -- "${@:1:$((${#}-1))}";
+	else 	printf "${BRED}Err: %s ${NC}-- %s\\n" 'Unknown audio format' "$1" >&2
 		return 1
-	else 	file="$1" ;shift
 	fi ;[[ -e $1 ]] && shift  #get rid of eventual second filename
 	
 	#set a prompt

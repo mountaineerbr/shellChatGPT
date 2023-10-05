@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.18.13 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.18.15 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.18.13 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.18.15 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2023</p>
 </header>
@@ -288,9 +288,9 @@ may be piped to a voice synthesiser to have a full voice in and out
 experience.</p>
 <p><code>Option -y</code> sets python tiktoken instead of the default
 script hack to preview token count. This option makes token count
-preview accurate however it is slow. Useful for rebuilding history
-context independently from the original model used to generate
-responses.</p>
+preview accurate fast (we fork tiktoken as a coprocess for fast token
+queries). Useful for rebuilding history context independently from the
+original model used to generate responses.</p>
 <p>Stdin is supported when there is no positional arguments left after
 option parsing. Stdin input sets a single PROMPT.</p>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
@@ -426,12 +426,12 @@ prompt to set a new parameter. The command operator may be either
 <tr class="even">
 <td style="text-align: left;"><code>-V</code></td>
 <td style="text-align: left;"><code>!context</code></td>
-<td>Print context before request.</td>
+<td>Print context before request (see <code>option -HH</code>).</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-VV</code></td>
 <td style="text-align: left;"><code>!debug</code></td>
-<td>Dump raw request block.</td>
+<td>Dump raw request block and confirm.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-v</code></td>
@@ -578,8 +578,7 @@ prompt to set a new parameter. The command operator may be either
 <tr class="odd">
 <td style="text-align: left;"><code>-HH</code></td>
 <td style="text-align: left;"><code>!req</code></td>
-<td>Print context request immediately (see also
-<code>option -V</code>).</td>
+<td>Print context request immediately (see <code>option -V</code>).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-L</code></td>
@@ -841,8 +840,8 @@ e.g. <em>termux-speech-to-text</em>.</p>
 </dd>
 </dl>
 <h3 id="colour-themes">COLOUR THEMES</h3>
-<p>Defaults colour scheme may be customised. A few themes are available
-in the template configuration file.</p>
+<p>The colour scheme may be customised. A few themes are available in
+the template configuration file.</p>
 <p>A small colour library is available for the user conf file to
 personalise the theme colours.</p>
 <p>The colour palette is composed of <em>$Red</em>, <em>$Green</em>,
@@ -861,19 +860,21 @@ variables <code>$Vcol8</code>, and <code>$Vcol9</code> are set with
 special colour sequences, such as “<em>%B%F{cyan}%K{red}</em>” (only
 Zsh).</p>
 <h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
-<p>Input sequences <em>\n</em>, and <em>\t</em> must be double escaped
-to be treated literally, otherwise these will be interpreted as escaped
-newlines, and horizontal tabs in JSON encoding. This is specially
-important when input contains <em>software code</em>.</p>
-<p>Changing models in the same session may generate token count errors
-because the recorded token count may differ from model encoding to
-encoding. Set <code>option -y</code> for accurate token counting.</p>
+<!-- NOT ANYMORE
+Input sequences _\\n_, and _\\t_ must be double escaped to be treated
+literally, otherwise these will be interpreted as escaped newlines,
+and horizontal tabs in JSON encoding. This is specially important when
+input contains *software code*. -->
+<!-- Changing models in the same session may generate token count errors
+because the recorded token count may differ from model encoding to encoding.
+Set `option -y` for accurate token counting. -->
 <p>With the exception of Davinci models, older models were designed to
 be run as one-shot.</p>
 <p>The script is expected to work with language models and inputs up to
 32k tokens.</p>
-<p>Instruction prompts are required for the model to even know that it
-should answer questions.</p>
+<!-- OBVIOUSLY, ALREADY MENTIONED
+Instruction prompts are required for the model to even know that
+it should answer questions. -->
 <p>Garbage in, garbage out. An idiot savant.</p>
 <!--
 `Zsh` does not read history file in non-interactive mode.

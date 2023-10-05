@@ -512,9 +512,15 @@ Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mo
 
 <br />
 
-**[The project home is at GitLab](https://gitlab.com/fenixdragao/shellchatgpt).**
+**[The project home is at GitLab](https://gitlab.com/fenixdragao/shellchatgpt)**
 
 <https://gitlab.com/fenixdragao/shellchatgpt>
+
+<br />
+
+_Mirror_
+
+<https://github.com/mountaineerbr/shellChatGPT>
 
 <br />
 <p align="center">
