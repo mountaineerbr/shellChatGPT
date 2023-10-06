@@ -734,7 +734,7 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || cat -- "$FILE"
 	else 	jq -r '.data[].id' "$FILE" | sort
-	fi && echo moderation
+	fi && printf '%s\n' moderation  #text-moderation-latest text-moderation-stable
 }
 
 function lastjsonf
@@ -1964,6 +1964,10 @@ function custom_prf
 	typeset file filechat name template list msg new skip ret
 	filechat="$FILECHAT"
 	FILECHAT="${FILECHAT%%.[Tt][SsXx][VvTt]}.pr"
+	case "$INSTRUCTION" in  #lax syntax
+		*[.]) 	INSTRUCTION=".${INSTRUCTION%%[.]}";;
+		*[,]) 	INSTRUCTION=",${INSTRUCTION%%[,]}";;
+	esac
 
 	#options
 	case "$INSTRUCTION"  in
