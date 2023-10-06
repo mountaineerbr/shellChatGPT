@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.17  oct/2023  by mountaineerbr  GPL+3
+# v0.18.18  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL NO_MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -1266,7 +1266,8 @@ function cmd_runf
 			if [[ -n $ZSH_VERSION ]]
 			then 	env zsh -i
 			else 	env bash -i
-			fi ;echo >&2 ;EDIT=1
+			fi ;printf '\n%s' Prompt: >&2
+			EDIT=1 REPLY=;
 			;;
 		shell*|sh*)
 			set -- "${*##sh?(ell)*([$IFS])}"
