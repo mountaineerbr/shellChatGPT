@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.19  oct/2023  by mountaineerbr  GPL+3
+# v0.18.20  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
-then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NOTIFY
+then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 fi
 
@@ -506,26 +506,32 @@ function _promptf
 
 function promptf
 {
+	typeset pid sig
+
 	if ((STREAM))
 	then 	if ((RETRY>1))
 		then 	cat -- "$FILE"
-		else 	_promptf || return
+		else 	_promptf || exit
 		fi | prompt_printf
 	else
-		((RETRY>1)) || _promptf || return
+		((RETRY>1)) || _promptf || exit
 		if ((OPTI))
 		then 	prompt_imgprintf
 		else 	prompt_printf
 		fi
-	fi || return
+	fi & pid=$! sig="INT"  #catch <CTRL-C>
+	[[ -z $ZSH_VERSION ]] || [[ $- != *i* ]] || __clr_lineupf 10
+	
+	trap "kill -- -$pid; trap '-' $sig; echo >&2; return 2;" $sig
+	wait $pid; trap '-' $sig; echo >&2;
 
 	if ((OPTCLIP)) || [[ ! -t 1 ]]
 	then 	typeset out ;out=$(
 			((STREAM)) && set -- -j
 			prompt_pf -r "$@" "$FILE"
 		)
-		((OPTCLIP)) && (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
-		[[ ! -t 1 ]] && printf '%s\n' "$out" >&2  #stdout pipe
+		((!OPTCLIP)) || (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
+		[[ -t 1 ]] || printf '%s\n' "$out" >&2  #pipe + stderr
 	fi
 }
 
@@ -909,7 +915,7 @@ function start_tiktokenf
 		((COPROC_PID)) || COPROC_PID=$!
 		if [[ -n $ZSH_VERSION ]]
 		then 	COPROC=(p p)  #set file descriptor names
-			#clear interactive job control notification
+			#clear interactive zsh job control notification
 			[[ $- != *i* ]] || __clr_lineupf 10
 		fi
 	fi
@@ -1589,17 +1595,17 @@ function recordf
 	pid=${pid:-$!}
 	
 	sig="INT HUP TERM EXIT"
-	trap "rec_killf $pid $termux; trap - $sig" $sig
-	read </dev/tty ;rec_killf $pid $termux
-	trap "-" $sig
-	wait
+	trap "rec_killf $pid $termux; trap '-' $sig;" $sig
+	read </dev/tty; rec_killf $pid $termux;
+	trap '-' $sig
+	wait $pid
 }
 #avfoundation for macos: <https://apple.stackexchange.com/questions/326388/>
 function rec_killf
 {
 	typeset pid termux
 	pid=$1 termux=$2
-	((termux)) && termux-microphone-record -q >&2 || kill -INT $pid;
+	((termux)) && termux-microphone-record -q >&2 || kill -INT -- -$pid;
 }
 
 #set whisper language
@@ -2797,8 +2803,8 @@ else
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	if [[ -n $ZSH_VERSION ]]
 		then 	if [[ -o interactive ]] && ((OPTZZ<2))
-			then 	setopt HIST_FIND_NO_DUPS HIST_IGNORE_ALL_DUPS HIST_SAVE_NO_DUPS
-				fc -R
+			then 	setopt HIST_FIND_NO_DUPS HIST_IGNORE_ALL_DUPS HIST_SAVE_NO_DUPS #EXTENDED_HISTORY
+				fc -RI
 			else 	#load history manually
 				EPN= OPTV= OPTC= RESTART= START= OPTTIK= \
 				MODMAX=8192 OPTZZHIST=1 N_MAX=40 set_histf
@@ -2809,7 +2815,8 @@ else
 			fi
 		else 	history -c; history -r;  #set -o history;
 		fi
-		REPLY_OLD=$(trim_leadf "$(fc -ln -1 2>/dev/null)" "*([$IFS])")
+	  	[[ -s $HISTFILE ]] &&
+		REPLY_OLD=$(trim_leadf "$(fc -ln -1 | cut -c1-1000)" "*([$IFS])")
 		shell_histf "$*"
 	fi
 	cmd_runf "$*" && set --
