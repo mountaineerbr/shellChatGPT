@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2023
-title: CHATGPT.SH(1) v0.18.21 \| General Commands Manual
+title: CHATGPT.SH(1) v0.18.22 \| General Commands Manual
 ---
 
 ### NAME
@@ -122,7 +122,7 @@ Stdin is supported when there is no positional arguments left after
 option parsing. Stdin input sets a single PROMPT.
 
 While *cURL* is in the middle of transmitting a request, or receiving a
-response, \<*CTRL-C*\> may be pressed once to stop the call.
+response, \<*CTRL-C*\> may be pressed once to interrupt the call.
 
 User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
 at “*~/.cache/chatgptsh*”.
@@ -453,6 +453,15 @@ positional argument. This prompt should be in English.
 Setting **temperature** has an effect, the higher the more random.
 
 ### ENVIRONMENT
+
+**APIURL**  
+Base API URL, along with endpoint. Note that this disables the script
+setting an endpoint automatically.
+<!-- By defaults, the endpoint is automatically set based on model name. -->
+
+To change only the base API URL, set **\$APIURLBASE** instead.
+
+Defaults="*https://api.openai.com/v1/***chat/completions**"
 
 **CHATGPTRC**
 

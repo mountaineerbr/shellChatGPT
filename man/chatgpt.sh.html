@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.18.21 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.18.22 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.18.21 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.18.22 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2023</p>
 </header>
@@ -295,7 +295,7 @@ original model used to generate responses.</p>
 option parsing. Stdin input sets a single PROMPT.</p>
 <p>While <em>cURL</em> is in the middle of transmitting a request, or
 receiving a response, &lt;<em>CTRL-C</em>&gt; may be pressed once to
-stop the call.</p>
+interrupt the call.</p>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh</em>”.</p>
 <p>A personal (free) OpenAI API is required, set it with
@@ -800,6 +800,17 @@ as last positional argument. This prompt should be in English.</p>
 <p>Setting <strong>temperature</strong> has an effect, the higher the
 more random.</p>
 <h3 id="environment">ENVIRONMENT</h3>
+<dl>
+<dt><strong>APIURL</strong></dt>
+<dd>
+<p>Base API URL, along with endpoint. Note that this disables the script
+setting an endpoint automatically.
+<!-- By defaults, the endpoint is automatically set based on model name. --></p>
+<p>To change only the base API URL, set <strong>$APIURLBASE</strong>
+instead.</p>
+<p>Defaults="<em>https://api.openai.com/v1/</em><strong>chat/completions</strong>"</p>
+</dd>
+</dl>
 <p><strong>CHATGPTRC</strong></p>
 <dl>
 <dt><strong>CONFFILE</strong></dt>

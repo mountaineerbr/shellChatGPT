@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.21  oct/2023  by mountaineerbr  GPL+3
+# v0.18.22  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -64,8 +64,9 @@ INSTRUCTION_CHAT="The following is a conversation with an AI assistant. The assi
 AWEURL="https://raw.githubusercontent.com/f/awesome-chatgpt-prompts/main/prompts.csv"
 AWEURLZH="https://raw.githubusercontent.com/PlexPt/awesome-chatgpt-prompts-zh/main/prompts-zh.json"  #prompts-zh-TW.json
 
-# Base API URL
-APIURL="${APIURL:-https://api.openai.com/v1}"
+# API URL / endpoint
+APIURLBASE="${APIURLBASE:-https://api.openai.com/v1}"
+APIURL="${APIURL:-$APIURLBASE}"
 
 # CACHE AND OUTPUT DIRECTORIES
 CACHEDIR="${XDG_CACHE_HOME:-$HOME/.cache}/chatgptsh"
@@ -1286,13 +1287,13 @@ function cmd_runf
 				#abort on empty
 				[[ $REPLY = *([$IFS]) ]] && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
 
-				_sysmsgf 'Edit buffer?' '[Y]es, [n]o, te[x]t editor, [s]hell, or [r]edo ' ''
+				_sysmsgf 'Edit buffer?' '[Y]es, [n]o, [e]dit, te[x]t editor, [s]hell, or [r]edo ' ''
 				case "$(__read_charf)" in
 					[AaQqRr]) 	SKIP=1 EDIT=1 REPLY="!${args[*]}"; break;;  #abort, redo
-					[EeVvXx]) 	((OPTX)) || OPTX=2 ;break;; #yes, text editor
+					[Ee]) 		SKIP=1 EDIT=1; break;; #yes, read / vared
+					[VvXx]) 	((OPTX)) || OPTX=2 ;break;; #yes, text editor
 					[NnQq]|$'\e') 	SKIP=1 PSKIP=1; break;;  #no need to edit
 					[!Ss]|'') 	SKIP=1 EDIT=1;
-							[[ $REPLY != *$'\n'* ]] || ((OPTCTRD))||OPTCTRD=2;
 							printf '\n%s\n' '---' >&2; break;;  #yes
 				esac ;set --
 			done ;__clr_lineupf 61 #!#
@@ -2039,7 +2040,7 @@ function custom_prf
 		elif [[ -n $ZSH_VERSION ]]
 		then 	IFS= vared -c -e -h INSTRUCTION
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
-			|| { typeset OPTCTRD=2; __warmsgf $'\n''TIP:' '* <CTRL-D> to flush input * ' ;}
+			|| { typeset OPTCTRD=2; __cmdmsgf $'\n''Prompter <CTRL-D>' 'one-shot' ;}
 			IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION
 			INSTRUCTION=${INSTRUCTION%%*($'\r')}
 		fi </dev/tty
@@ -2474,7 +2475,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1 EPN=2;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_EDIT MOD_AUDIO MODMAX INSTRUCTION OPTC OPTE OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM OPTEXIT
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_EDIT MOD_AUDIO MODMAX INSTRUCTION OPTC OPTE OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM OPTEXIT APIURL APIURLBASE GPTCHATKEY
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV NC VCOL
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Nc Vcol8 Vcol9
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -2614,6 +2615,14 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 
 #set other options
 set_optsf
+APIURL=${APIURL%%/}
+if [[ $APIURL != "$APIURLBASE"* ]]  #custom api url and endpoint
+then 	if [[ $APIURL = *[!:/]/[!/]* ]]
+	then 	ENDPOINTS=("${APIURL##*/}") APIURL="${APIURL%/*}" EPN=0
+	else 	unset ENDPOINTS
+	fi; function set_model_epnf { 	: ;}  #disable auto endpoint fun
+	__sysmsgf "API URL / endpoint:" "$APIURL/${ENDPOINTS[EPN]}"
+fi
 
 #load stdin
 if [[ -n $TERMUX_VERSION ]]
@@ -2888,6 +2897,8 @@ else
 						((OPTK)) && var= || var="-p${VCOL}"
 						IFS= vared -c -e -h ${var} REPLY
 					else
+						[[ $REPLY != *$'\n'* ]] || ((OPTCTRD)) || {
+						  OPTCTRD=2; __cmdmsgf 'Prompter <CTRL-D>' 'one-shot'; }
 						IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$REPLY" REPLY
 					fi </dev/tty
 					((OPTCTRD)) && REPLY=${REPLY%%*($'\r')}
@@ -3115,7 +3126,7 @@ fi
 # Gpt-4 model only. .png, .jpeg, .jpg, and non-animated .gif.
 # May upload multiple images at once, max 20MB per image.
 #<https://help.openai.com/en/articles/8400551>
-# Voice-Out Limits and Formats
+# Voice-Out Limits and Formats: Juniper, Sky, Cove, Ember, Breeze.
 #<https://help.openai.com/en/articles/8400625>
 
 # vim=syntax sync minlines=3200
