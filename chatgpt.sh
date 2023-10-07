@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.20  oct/2023  by mountaineerbr  GPL+3
+# v0.18.21  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -522,7 +522,7 @@ function promptf
 	fi & pid=$! sig="INT"  #catch <CTRL-C>
 	[[ -z $ZSH_VERSION ]] || [[ $- != *i* ]] || __clr_lineupf 10
 	
-	trap "kill -- -$pid; trap '-' $sig; echo >&2; return 2;" $sig
+	trap "kill -- ${ZSH_VERSION:+-}$pid; trap '-' $sig; echo >&2; return 199;" $sig
 	wait $pid; trap '-' $sig; echo >&2;
 
 	if ((OPTCLIP)) || [[ ! -t 1 ]]
@@ -1605,7 +1605,7 @@ function rec_killf
 {
 	typeset pid termux
 	pid=$1 termux=$2
-	((termux)) && termux-microphone-record -q >&2 || kill -INT -- -$pid;
+	((termux)) && termux-microphone-record -q >&2 || kill -INT -- ${ZSH_VERSION:+-}$pid;
 }
 
 #set whisper language
