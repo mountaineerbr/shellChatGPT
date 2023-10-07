@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.18.18 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.18.21 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.18.18 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.18.21 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2023</p>
 </header>
@@ -293,6 +293,9 @@ queries). Useful for rebuilding history context independently from the
 original model used to generate responses.</p>
 <p>Stdin is supported when there is no positional arguments left after
 option parsing. Stdin input sets a single PROMPT.</p>
+<p>While <em>cURL</em> is in the middle of transmitting a request, or
+receiving a response, &lt;<em>CTRL-C</em>&gt; may be pressed once to
+stop the call.</p>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh</em>”.</p>
 <p>A personal (free) OpenAI API is required, set it with

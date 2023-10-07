@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.18.18 | General Commands Manual
+% CHATGPT.SH(1) v0.18.21 | General Commands Manual
 % mountaineerbr
 % October 2023
 
@@ -117,6 +117,9 @@ model used to generate responses.
 
 Stdin is supported when there is no positional arguments left
 after option parsing. Stdin input sets a single PROMPT.
+
+While _cURL_ is in the middle of transmitting a request, or receiving
+a response, \<_CTRL-C_\> may be pressed once to stop the call.
 
 User configuration is kept at "_~/.chatgpt.conf_".
 Script cache is kept at "_~/.cache/chatgptsh_".
