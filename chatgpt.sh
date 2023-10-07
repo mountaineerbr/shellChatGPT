@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.18  oct/2023  by mountaineerbr  GPL+3
+# v0.18.19  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
-then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL NO_MONITOR NO_NOTIFY
+then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 fi
 
@@ -890,10 +890,10 @@ function get_tiktokenf
 {
 	typeset REPLY m
 	kill -0 $COPROC_PID 2>/dev/null || return
-	while IFS= read -r <&"${COPROC[0]}"
+	while IFS= read -r
 		((!${#REPLY}))
 	do 	((++m)); ((m>800)) && break
-	done
+	done <&"${COPROC[0]}"
 	if ((!${#REPLY}))
 	then  	! __warmsgf 'Err:' 'get_tiktokenf()'
 	else 	printf '%s\n' "$REPLY"
@@ -1247,8 +1247,8 @@ function cmd_runf
 			[[ -n $ZSH_VERSION ]] ||
 			__cmdmsgf 'Prompter <CTRL-D>' $(_onoff $OPTCTRD)
 			((OPTCTRD)) && {
-				__warmsgf 'TIP:' ' * <CTRL-V> + <CTRL-J> for newline * '
-				[[ -n $ZSH_VERSION ]] && __warmsgf 'TIP:' ' * <ALT-ENTER> for newline * '
+				__warmsgf 'TIP:' '* <CTRL-V> + <CTRL-J> for newline * '
+				[[ -n $ZSH_VERSION ]] && __warmsgf 'TIP:' '* <ALT-ENTER> for newline * '
 			}
 			;;
 		-U)
@@ -1258,14 +1258,14 @@ function cmd_runf
 		cat*)
 			if [[ $* = cat*[!$IFS]* ]]
 			then 	cmd_runf /sh "${@}"
-			else 	printf '%s\n' ' * Press <CTRL-D> to flush * ' >&2
+			else 	printf '%s\n' '* Press <CTRL-D> to flush * ' >&2
 				STDERR=/dev/null  cmd_runf /sh cat
 			fi ;skip=1
 			;;
 		[/!]sh*)
 			if [[ -n $ZSH_VERSION ]]
-			then 	env zsh -i
-			else 	env bash -i
+			then 	zsh -i
+			else 	bash -i
 			fi ;printf '\n%s' Prompt: >&2
 			EDIT=1 REPLY=;
 			;;
@@ -1274,8 +1274,8 @@ function cmd_runf
 			[[ -n $* ]] || set --  ;skip=1
 			while :
 			do 	REPLY=$( if [[ -n $ZSH_VERSION ]]
-				then 	env zsh -f ${@:+-c} "${@}"
-				else 	env bash --norc --noprofile ${@:+-c} "${@}"
+				then 	zsh -f ${@:+-c} "${@}"
+				else 	bash --norc --noprofile ${@:+-c} "${@}"
 				fi </dev/tty | tee $STDERR )  ;echo >&2
 				#abort on empty
 				[[ $REPLY = *([$IFS]) ]] && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
@@ -1314,7 +1314,7 @@ function cmd_runf
 			;;
 	esac ;echo >&2
 	if ((OPTX)) && ((!(REGEN+skip) )) 
-	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press ENTER to CONTINUE * ' >&2
+	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" '* Press ENTER to CONTINUE * ' >&2
 		__read_charf >/dev/null
 	fi ;return 0
 }
@@ -1554,11 +1554,11 @@ function start_compf {     START=$(escapef "$(unescapef "${*:-$START}")")   STAR
 function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
-	then 	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}" ' * Press ENTER to START record * ' >&2
+	then 	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}" '* Press ENTER to START record * ' >&2
 		case "$(__read_charf)" in [AaNnQq]|$'\e') 	return 201;; esac
 		__clr_lineupf 33  #!#
 	fi
-	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}\\a\\n\\n" ' * Press ENTER to  STOP record * ' >&2
+	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}\\a\\n\\n" '* Press ENTER to  STOP record * ' >&2
 }
 
 #record mic
@@ -2033,7 +2033,7 @@ function custom_prf
 		elif [[ -n $ZSH_VERSION ]]
 		then 	IFS= vared -c -e -h INSTRUCTION
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
-			|| { typeset OPTCTRD=2; __warmsgf $'\n''TIP:' ' * <CTRL-D> to flush input * ' ;}
+			|| { typeset OPTCTRD=2; __warmsgf $'\n''TIP:' '* <CTRL-D> to flush input * ' ;}
 			IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION
 			INSTRUCTION=${INSTRUCTION%%*($'\r')}
 		fi </dev/tty
@@ -2523,7 +2523,7 @@ do
 		Z) 	((++OPTZZ))
 			if [[ -z $ZSH_VERSION ]]
 			then 	unset BASH_VERSION
-				env zsh -if -- "$0" "$@" ;exit
+				exec zsh -if -- "$0" "$@"; exit;
 			fi;;
 		\?) 	exit 1;;
 	esac ;OPTARG=
@@ -2787,11 +2787,11 @@ else
 
 	((OPTCTRD)) && {    echo >&2  #warnings and tips
 	    [[ -n $ZSH_VERSION ]] &&
-	    __warmsgf 'TIP:' ' * <ALT-ENTER> for newline * '
-	    __warmsgf 'TIP:' ' * <CTRL-V> + <CTRL-J> for newline * '
+	    __warmsgf 'TIP:' '* <ALT-ENTER> for newline * '
+	    __warmsgf 'TIP:' '* <CTRL-V> + <CTRL-J> for newline * '
 	} || {    ((CATPR)) && echo >&2 ;}
 	((OPTCTRD+CATPR)) &&
-	    __warmsgf 'TIP:' ' * <CTRL-D> to flush input * '
+	    __warmsgf 'TIP:' '* <CTRL-D> to flush input * '
 	echo >&2  #!#
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
@@ -2809,7 +2809,7 @@ else
 			fi
 		else 	history -c; history -r;  #set -o history;
 		fi
-		REPLY_OLD=$(trim_leadf "$(fc -ln -1)" "*([$IFS])")
+		REPLY_OLD=$(trim_leadf "$(fc -ln -1 2>/dev/null)" "*([$IFS])")
 		shell_histf "$*"
 	fi
 	cmd_runf "$*" && set --
