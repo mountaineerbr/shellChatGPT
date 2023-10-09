@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.23  oct/2023  by mountaineerbr  GPL+3
+# v0.18.24  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -470,7 +470,8 @@ function __promptf
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
-		-d "$BLOCK"
+		-d "$BLOCK" \
+	&& { 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf ;}
 }
 
 function _promptf
@@ -501,7 +502,7 @@ function _promptf
 	else
 		((OPTV>1)) && set -- -s "$@"
 		set -- -\# "$@" -L -o "$FILE"
-		__promptf "$@" && { 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf ;}
+		__promptf "$@"
 	fi
 }
 
@@ -730,7 +731,8 @@ function prompt_audiof
 		-F model="$MOD" \
 		-F temperature="$OPTT" \
 		-o "$FILE" \
-		"${@:2}"
+		"${@:2}" \
+	&& { 	[[ \ ${OPTV:+-s}\  = *\ -s\ * ]] || __clr_lineupf ;}
 }
 
 function list_modelsf
@@ -2860,14 +2862,14 @@ else
 
 		#defaults prompter
 		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ "$*" = $SPC ]]
-		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"; W="VOICE "
+		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
 			B=$(_unescapef "${Q:0:320}") B=${B##*$'\n'} B=${B//?/\\b}  #backspaces
 
-			while ((SKIP)) && echo >&2 ||
-				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}${W}${W//?/\\b}}${NC}" >&2
+			while ((SKIP)) ||
+				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE:}${NC}" >&2
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
 			do
-				((!SKIP)) && [[ -n $ZSH_VERSION ]] && echo >&2
+				{ 	((SKIP+OPTW)) || [[ -n $ZSH_VERSION ]] ;} && echo >&2
 				if ((OPTW)) && ((!EDIT))
 				then 	#auto sleep 3-6 words/sec
 					((OPTV>1)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))
@@ -2947,7 +2949,7 @@ else
 					set --
 				fi ;set -- "$REPLY"
 				((OPTCTRD==1)) || unset OPTCTRD
-				unset WSKIP SKIP EDIT B Q W i
+				unset WSKIP SKIP EDIT B Q i
 				break
 			done
 		fi
