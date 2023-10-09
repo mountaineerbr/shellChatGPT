@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.19  oct/2023  by mountaineerbr  GPL+3
+# v0.19.1  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -855,8 +855,8 @@ function push_tohistf
 {
 	typeset string token time
 	string=$1; ((${#string})) || return; unset CKSUM_OLD
-	token=$2; ((token>0)) || {  __printbf '(tiktoken)';
-		start_tiktokenf;
+	token=$2; ((token>0)) || {
+		start_tiktokenf;    __printbf '(tiktoken)';
 		token=$(__tiktokenf "${string}");
 		((token+=TKN_ADJ)); __printbf '          '; };
 	time=${3:-$(date -Iseconds 2>/dev/null||date +"%Y-%m-%dT%H:%M:%S%z")}
