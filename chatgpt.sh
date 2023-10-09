@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.22  oct/2023  by mountaineerbr  GPL+3
+# v0.18.23  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -556,6 +556,7 @@ function __spinf
   printf -- "${SPIN_CHARS[SPIN_INDEX]}" >&2
   ((++SPIN_INDEX)); ((SPIN_INDEX%=4))
 }
+function __printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
 
 #trim leading spaces
 #usage: trim_leadf [string] [glob]
@@ -830,7 +831,7 @@ function set_histf
 		else 	break
 		fi
 	done < <(tac -- "$FILECHAT")
-	printf ' \b' >&2  #__spinf() end
+	__printbf ' ' #__spinf() end
 	((MAX_PREV+=3)) # chat cmpls, every reply is primed with <|start|>assistant<|message|>
 	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns 
 
@@ -852,10 +853,10 @@ function push_tohistf
 {
 	typeset string token time
 	string=$1; ((${#string})) || return; unset CKSUM_OLD
-	token=$2; ((token>0)) || {
+	token=$2; ((token>0)) || {  __printbf '(tiktoken)';
 		start_tiktokenf;
 		token=$(__tiktokenf "${string}");
-		((token+=TKN_ADJ)); };
+		((token+=TKN_ADJ)); __printbf '          '; };
 	time=${3:-$(date -Iseconds 2>/dev/null||date +"%Y-%m-%dT%H:%M:%S%z")}
 	printf '%.22s\t%d\t"%s"\n' "$time" "$token" "$string" >> "$FILECHAT"
 }
@@ -879,9 +880,11 @@ function prev_tohistf
 #usage: token_prevf [string]
 function token_prevf
 {
+	__printbf '(tiktoken)'
 	start_tiktokenf
 	TKN_PREV=$(__tiktokenf "${*}")
 	((TKN_PREV+=TKN_ADJ))
+	__printbf '          '
 }
 
 #send to tiktoken coproc
@@ -926,8 +929,7 @@ function start_tiktokenf
 function __tiktokenf
 {
 	if ((OPTTIK)) && kill -0 $COPROC_PID 2>/dev/null
-	then 	send_tiktokenf "${*}" &&
-		get_tiktokenf
+	then 	send_tiktokenf "${*}" && get_tiktokenf
 	else 	false
 	fi; ((!$?)) || _tiktokenf "$@"
 }
@@ -957,8 +959,7 @@ function _tiktokenf
 #usage: tiktokenf [model|encoding] [text|-]
 function tiktokenf
 {
-	python ${HOPTTIK:+-u} -c "
-import sys
+	python -c "import sys
 try:
     import tiktoken
 except ImportError as e:
@@ -1001,7 +1002,7 @@ else:
             text = sys.stdin.readline().rstrip(\"\\n\")
             text = text.replace(\"\\\\\\\\\", \"&\\f\\f&\").replace(\"\\\\n\", \"\\n\").replace(\"\\\\t\", \"\\t\").replace(\"\\\\\\\"\", \"\\\"\").replace(\"&\\f\\f&\", \"\\\\\")
             encoded_text = enc.encode_ordinary(text)
-            print(len(encoded_text))
+            print(len(encoded_text), flush=True)
     except (KeyboardInterrupt, BrokenPipeError, SystemExit):  #BaseException:
         exit()" "${MOD:-davinci}" "${@:-}"
 }
@@ -1226,7 +1227,7 @@ function cmd_runf
 			;;
 		i|info)
 			echo >&2
-			printf "${NC}${BWHITE}%-12s${NC}: %-5s\\n" \
+			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
 			model-name   "${MOD:-?}" \
 			model-max    "${MODMAX:-?}" \
 			resp-max     "${OPTMAX:-?}" \
@@ -1634,7 +1635,7 @@ function whisperf
 	then 	set -- "${@:1:1}" "${@:3}"
 	fi
 	
-	if [[ ! -e $1 && ! -e ${@:${#}} ]] && ((!MTURN))
+	if { 	((!$#)) || [[ ! -e $1 && ! -e ${@:${#}} ]] ;} && ((!MTURN))
 	then 	printf "${PURPLE}%s ${NC}" 'Record mic input? [Y/n]' >&2
 		case "$(__read_charf)" in
 			[AaNnQq]|$'\e') 	:;;
@@ -1646,9 +1647,9 @@ function whisperf
 	
 	if [[ -e $1 && $1 = *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
 	then 	file="$1"; shift;
-	elif [[ -e ${@:${#}} && ${@:${#}} = *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
+	elif (($#)) && [[ -e ${@:${#}} && ${@:${#}} = *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
 	then 	file="${@:${#}}"; set -- "${@:1:$((${#}-1))}";
-	else 	printf "${BRED}Err: %s ${NC}-- %s\\n" 'Unknown audio format' "$1" >&2
+	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "$1" >&2
 		return 1
 	fi ;[[ -e $1 ]] && shift  #get rid of eventual second filename
 	
@@ -1799,7 +1800,7 @@ function img_convf
 {
 	if ((!OPTV))
 	then 	[[ $ARGS = *-transparent* ]] &&
-		printf "${BWHITE}%-12s ${NC}-- %s\\n" "Transparent colour" "${OPT_AT:-black}" "Fuzz" "${OPT_AT_PC:-2}%" >&2
+		printf "${BWHITE}%-12s --${NC} %s\\n" "Transparent colour" "${OPT_AT:-black}" "Fuzz" "${OPT_AT_PC:-2}%" >&2
 		__sysmsgf 'Edit with ImageMagick?' '[Y/n] ' ''
 		case "$(__read_charf)" in [AaNnQq]|$'\e') 	return 2;; esac
 	fi
@@ -2268,7 +2269,7 @@ done
 	done < <( 	tac -- "$file" && {
 			((OPTHH+OPTPRINT)) || __warmsgf '(end of hist file)' ;}
 			echo BREAK;
-		) ;printf ' \b' >&2  #end __spinf()
+		); __printbf ' '
 	[[ -n ${buff} ]] && printf '%s\n' "$buff"
 }
 #copy session to another session file, print destination filename
@@ -2859,11 +2860,11 @@ else
 
 		#defaults prompter
 		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ "$*" = $SPC ]]
-		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
+		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"; W="VOICE "
 			B=$(_unescapef "${Q:0:320}") B=${B##*$'\n'} B=${B//?/\\b}  #backspaces
 
 			while ((SKIP)) && echo >&2 ||
-				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE \\b\\b\\b\\b\\b\\b}${NC}" >&2
+				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}${W}${W//?/\\b}}${NC}" >&2
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
 			do
 				((!SKIP)) && [[ -n $ZSH_VERSION ]] && echo >&2
@@ -2946,7 +2947,7 @@ else
 					set --
 				fi ;set -- "$REPLY"
 				((OPTCTRD==1)) || unset OPTCTRD
-				unset WSKIP SKIP EDIT B Q i
+				unset WSKIP SKIP EDIT B Q W i
 				break
 			done
 		fi
