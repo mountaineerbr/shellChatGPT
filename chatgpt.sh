@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.18.24  oct/2023  by mountaineerbr  GPL+3
+# v0.19  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -732,7 +732,7 @@ function prompt_audiof
 		-F temperature="$OPTT" \
 		-o "$FILE" \
 		"${@:2}" \
-	&& { 	[[ \ ${OPTV:+-s}\  = *\ -s\ * ]] || __clr_lineupf ;}
+	&& { 	[[ \ ${OPTV:+-s}\  = *\ -s\ * ]] || __clr_lineupf; ((MTURN)) || echo >&2 ;}
 }
 
 function list_modelsf
