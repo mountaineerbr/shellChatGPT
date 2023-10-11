@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2023
-title: CHATGPT.SH(1) v0.19 \| General Commands Manual
+title: CHATGPT.SH(1) v0.19.2 \| General Commands Manual
 ---
 
 ### NAME
@@ -46,6 +46,13 @@ Set `option -cc` to start the chat mode via **native chat completions**
 and use *gpt-3.5+ models*.
 
 Set `option -C` to **resume** (continue from) last history session.
+
+Set `option -q` for **insert mode**. The flag “*\[insert\]*” must be
+present in the middle of the input prompt. Insert mode works completing
+between the end of the text preceding the flag, and ends completion with
+the succeeding text after the flag. Insert mode works with models
+`davinci`, `text-davinci-002`, `text-davinci-003`, and the newer
+`gpt-3.5-turbo-instruct`.
 
 Positional arguments are read as a single **PROMPT**. Model
 **INSTRUCTION** is usually optional and can be set with `option -S`.
@@ -487,10 +494,6 @@ Set your personal (free) OpenAI API key.
 **REC_CMD**  
 Audio recording command (with `options -ccw` and `-Ww`), e.g. *sox*.
 
-**SPEECHTOTEXT_CMD**  
-Speech to text command (with `options -ccw`),
-e.g. *termux-speech-to-text*.
-
 **VISUAL**
 
 **EDITOR**  
@@ -651,11 +654,11 @@ Create variations of a given image.
 **-i** \[*PNG*\] \[*MASK*\] \[*PROMPT*\]  
 Edit image with mask and prompt (required).
 
-**-q**, **--insert** *(deprecated)*  
+**-q**, **--insert** <!-- _(deprecated)_ -->  
 Insert text rather than completing only.
 
 Use “*\[insert\]*” to indicate where the language model should insert
-text (only with text cmpls models).
+text (only with some models of text cmpls).
 
 **-S** `.`\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]
 

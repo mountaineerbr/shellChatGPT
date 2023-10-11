@@ -15,6 +15,7 @@ Chat completions with streaming.
 - Manage _sessions_, _continue_ from last session, _print out_ session
 - Custom prompts, easily create prompts and re-use them!
 - Integration with [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts) and [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+- Insert mode of text completions <!-- _(deprecated)_ -->
 - Fast and accurately count chat tokens with _tiktoken_ (requires python)
 - Personalise colour scheme
 - _Generate images_ from text input
@@ -25,7 +26,6 @@ Chat completions with streaming.
 - Record prompt voice, hear the answer back from the AI (pipe to voice synthesiser)
 - Choose amongst all available models
 - Lots of command line options
-<!-- - Insert mode of text completions _(deprecated)_ -->
 - Converts response base64 JSON data to PNG image locally
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users).
 
@@ -112,11 +112,6 @@ Chat in Portuguese with voice in and out (pipe output to voice synthesiser):
     chatgpt.sh -ccw pt | termux-tts-speak -l pt -n br
 
 
-Use Android native speech-to-text system:
-    
-    SPEECHTOTEXT_CMD=termux-speech-to-text  chatgpt.sh -ccw | termux-tts-speak
-
-
 **TIP**: Set _-vv_ to have auto sleep for reading time of last response,
 and less verbose in voice input chat!
 
@@ -138,18 +133,20 @@ _For better results,_ ***set an instruction/system prompt***:
     chatgpt.sh -d -S'You are an AI assistant.'  "List biggest cities in the world."
 
 
-### Insert Mode of Text Completions  _(deprecated)_
+### Insert Mode of Text Completions  <!-- _(deprecated)_ -->
 
 Set `option -q` to enable insert mode and add the
 string `[insert]` where the model should insert text:
 
     chatgpt.sh -q 'It was raining when [insert] tomorrow.'
 
-**OBS:** [Insert mode](https://openai.com/blog/gpt-3-edit-insert)
-works with `davinci`, `text-davinci-002`, and `text-davinci-003`.
 
-**OBS2:** recent tests suggest this endpoint may be deprecating
-on OpenAI side.
+**NOTE:** This example works with _no intruction_ prompt set!
+An instruction prompt in this mode may interferre with insert completions.
+
+**NOTE:** [Insert mode](https://openai.com/blog/gpt-3-edit-insert)
+works with models `davinci`, `text-davinci-002`, `text-davinci-003`,
+and the newer `gpt-3.5-turbo-instruct`.
 
 
 ### Text Edits  _(deprecated)_

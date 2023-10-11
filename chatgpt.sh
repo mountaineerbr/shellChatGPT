@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.19.1  oct/2023  by mountaineerbr  GPL+3
+# v0.19.2  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -44,8 +44,6 @@ OPTS=512x512
 OPTI_FMT=b64_json  #url
 # Recorder command (with -ccw and -Ww), e.g. sox
 #REC_CMD=""
-# Speech to text command (with -ccw), e.g. termux-speech-to-text
-#SPEECHTOTEXT_CMD=""
 # Set python tiktoken to count tokens
 #OPTTIK=
 # Inject restart text
@@ -194,10 +192,6 @@ Environment
 
 	REC_CMD 	Audio recording command (with -ccw and -Ww),
 			e.g. sox.
-
-	SPEECHTOTEXT_CMD
-			Speech to text command (with -ccw),
-			e.g. termux-speech-to-text.
 
 	VISUAL
 	EDITOR 		Text editor for external prompt editing.
@@ -2662,7 +2656,6 @@ then 	function jq { 	false ;}
 	function unescapef { 	_unescapef "$@" ;}
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
-command -v ${SPEECHTOTEXT_CMD%% *} >/dev/null 2>&1 || unset SPEECHTOTEXT_CMD
 
 if ((OPTHH))  #edit history/pretty print last session
 then
@@ -2875,9 +2868,7 @@ else
 					((OPTV>1)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))
 					
 					record_confirmf || continue
-					if [[ -n ${SPEECHTOTEXT_CMD} ]]
-					then 	REPLY=$( ${SPEECHTOTEXT_CMD} "${INPUT_ORIG[@]}" ) || continue
-					elif recordf "$FILEINW"
+					if recordf "$FILEINW"
 					then 	REPLY=$(
 						MOD="$MOD_AUDIO" OPTT=0 JQCOL= JQCOL2=
 						set_model_epnf "$MOD"

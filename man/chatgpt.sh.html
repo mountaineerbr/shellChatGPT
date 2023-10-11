@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.19 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.19.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.19 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.19.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2023</p>
 </header>
@@ -224,6 +224,13 @@ response.</p>
 chat completions</strong> and use <em>gpt-3.5+ models</em>.</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session.</p>
+<p>Set <code>option -q</code> for <strong>insert mode</strong>. The flag
+“<em>[insert]</em>” must be present in the middle of the input prompt.
+Insert mode works completing between the end of the text preceding the
+flag, and ends completion with the succeeding text after the flag.
+Insert mode works with models <code>davinci</code>,
+<code>text-davinci-002</code>, <code>text-davinci-003</code>, and the
+newer <code>gpt-3.5-turbo-instruct</code>.</p>
 <p>Positional arguments are read as a single <strong>PROMPT</strong>.
 Model <strong>INSTRUCTION</strong> is usually optional and can be set
 with <code>option -S</code>.</p>
@@ -842,11 +849,6 @@ instead.</p>
 <p>Audio recording command (with <code>options -ccw</code> and
 <code>-Ww</code>), e.g. <em>sox</em>.</p>
 </dd>
-<dt><strong>SPEECHTOTEXT_CMD</strong></dt>
-<dd>
-<p>Speech to text command (with <code>options -ccw</code>),
-e.g. <em>termux-speech-to-text</em>.</p>
-</dd>
 </dl>
 <p><strong>VISUAL</strong></p>
 <dl>
@@ -1046,11 +1048,11 @@ Def=<em>1</em>.</p>
 <p>Edit image with mask and prompt (required).</p>
 </dd>
 <dt><strong>-q</strong>, <strong>--insert</strong>
-<em>(deprecated)</em></dt>
+<!-- _(deprecated)_ --></dt>
 <dd>
 <p>Insert text rather than completing only.</p>
 <p>Use “<em>[insert]</em>” to indicate where the language model should
-insert text (only with text cmpls models).</p>
+insert text (only with some models of text cmpls).</p>
 </dd>
 </dl>
 <p><strong>-S</strong> <code>.</code>[<em>PROMPT_NAME</em>],
