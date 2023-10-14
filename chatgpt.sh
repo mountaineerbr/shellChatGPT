@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.19.2  oct/2023  by mountaineerbr  GPL+3
+# v0.19.3  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -516,7 +516,7 @@ function promptf
 		else 	prompt_printf
 		fi
 	fi & pid=$! sig="INT"  #catch <CTRL-C>
-	[[ -z $ZSH_VERSION ]] || [[ $- != *i* ]] || __clr_lineupf 10
+	[[ -z $ZSH_VERSION ]] || [[ $- != *m* ]] || __clr_lineupf 10
 	
 	trap "kill -- ${ZSH_VERSION:+-}$pid; trap '-' $sig; echo >&2; return 199;" $sig
 	wait $pid; trap '-' $sig; echo >&2;
@@ -910,13 +910,13 @@ function get_tiktokenf
 function start_tiktokenf
 {
 	if ((OPTTIK)) && ! kill -0 $COPROC_PID 2>/dev/null
-	then 	unset COPROC COPROC_PID; [[ $- != *i* ]] || echo >&2
+	then 	unset COPROC COPROC_PID; [[ $- != *m* ]] || echo >&2
 		coproc { 	PYTHONUNBUFFERED=1 HOPTTIK=1 tiktokenf ;}
 		((COPROC_PID)) || COPROC_PID=$!
 		if [[ -n $ZSH_VERSION ]]
 		then 	COPROC=(p p)  #set file descriptor names
 			#clear interactive zsh job control notification
-			[[ $- != *i* ]] || __clr_lineupf 10
+			[[ $- != *m* ]] || __clr_lineupf 10
 		fi
 	fi
 }
@@ -1356,6 +1356,7 @@ function _onoff
 #main plain text editor
 function __edf
 {
+	[[ -n $ZSH_VERSION ]] && setopt LOCAL_OPTIONS NO_MONITOR
 	${VISUAL:-${EDITOR:-vim}} "$1" </dev/tty >/dev/tty
 }
 
