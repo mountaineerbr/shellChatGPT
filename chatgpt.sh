@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.19.3  oct/2023  by mountaineerbr  GPL+3
+# v0.19.4  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -11,7 +11,7 @@ fi
 
 # DEFAULTS
 # Text cmpls model
-MOD="gpt-3.5-turbo-instruct"  #"text-davinci-003"
+MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
 MOD_CHAT="gpt-3.5-turbo"
 # Edits model  (deprecated)
@@ -473,10 +473,6 @@ function _promptf
 	typeset chunk str n
 	json_minif
 	
-	if ((OPTVV)) && ((!OPTII))
-	then 	block_printf || return
-	fi
-
 	if ((STREAM))
 	then 	set -- -s "$@" -S -L --no-buffer
 		__promptf "$@" | while IFS= read -r chunk
@@ -503,6 +499,10 @@ function _promptf
 function promptf
 {
 	typeset pid sig
+
+	if ((OPTVV)) && ((!OPTII))
+	then 	block_printf || return
+	fi
 
 	if ((STREAM))
 	then 	if ((RETRY>1))
@@ -590,6 +590,7 @@ function block_printf
 	if ((OPTVV>1))
 	then 	printf '%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"
 		printf '\n%s\n' '<CTRL-D> redo, <CTRL-C> exit, <ENTER> continue'
+		[[ -n $ZSH_VERSION ]] && setopt LOCAL_OPTIONS NO_MONITOR
 		(read </dev/tty) || return 200
 	else 	((STREAM)) && set -- -j
 		jq -r "$@" '.instruction//empty, .input//empty,
@@ -1088,7 +1089,7 @@ function cmd_runf
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
 		-h*|h*|help*|\?*)
-			skip=1
+			skip=1; [[ -n $ZSH_VERSION ]] && setopt LOCAL_OPTIONS NO_MONITOR
 			sed -n -e 's/^\t*//' -e '/^\s*------ /,/^\s*------ /p' <<<"$HELP" | less -S
 			;;
 		-H|H|history|hist)
@@ -1210,7 +1211,7 @@ function cmd_runf
 		-z|last)
 			lastjsonf >&2
 			;;
-		k|kill)
+		k|kill)  #kill hist entry
 			if map=$(grep -n -e '^\s*[^#]' "$FILECHAT")
 			then 	map=($(cut -d : -f 1 <<<"$map"))
 				set -- ${map[$((${#map[@]}-1))]}
