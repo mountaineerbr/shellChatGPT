@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.19.5  oct/2023  by mountaineerbr  GPL+3
+# v0.19.6  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
-then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
+then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL NO_MONITOR NO_NOTIFY HUP POSIX_TRAPS
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 fi
 
@@ -109,6 +109,8 @@ I_TYPE='[insert]'
 SPC="*([$IFS])"
 SPC1="*(\\\\[ntrvf]|[$IFS])"
 NL=$'\n'
+
+SIG_TRAP="INT HUP TERM EXIT"
 
 HELP="Name
 	${0##*/} -- Wrapper for ChatGPT / DALL-E / Whisper
@@ -504,7 +506,8 @@ function promptf
 	then 	block_printf || return
 	fi
 
-	if ((STREAM))
+	if [[ -n $ZSH_VERSION ]] && trap 'exit' INT
+		((STREAM))
 	then 	if ((RETRY>1))
 		then 	cat -- "$FILE"
 		else 	_promptf || exit
@@ -516,10 +519,12 @@ function promptf
 		else 	prompt_printf
 		fi
 	fi & pid=$! sig="INT"  #catch <CTRL-C>
-	[[ -z $ZSH_VERSION ]] || [[ $- != *m* ]] || __clr_lineupf 10
 	
-	trap "kill -- ${ZSH_VERSION:+-}$pid; trap '-' $sig; echo >&2; return 199;" $sig
-	wait $pid; trap '-' $sig; echo >&2;
+	trap "kill -- $pid;
+		trap 'coproc_killf' $sig;
+		echo >&2; return 130" $sig  #zsh = always return 128+2
+	wait $pid; echo >&2
+	trap 'coproc_killf' $sig
 
 	if ((OPTCLIP)) || [[ ! -t 1 ]]
 	then 	typeset out ;out=$(
@@ -854,7 +859,7 @@ function push_tohistf
 		token=$(__tiktokenf "${string}");
 		((token+=TKN_ADJ)); __printbf '          '; };
 	time=${3:-$(date -Iseconds 2>/dev/null||date +"%Y-%m-%dT%H:%M:%S%z")}
-	printf '%.22s\t%d\t"%s"\n' "$time" "$token" "$string" >> "$FILECHAT"
+	printf '%s%.22s\t%d\t"%s"\n' "$INT_RES" "$time" "$token" "$string" >> "$FILECHAT"
 }
 
 #record preview query input and response to hist file
@@ -910,15 +915,20 @@ function get_tiktokenf
 function start_tiktokenf
 {
 	if ((OPTTIK)) && ! kill -0 $COPROC_PID 2>/dev/null
-	then 	unset COPROC COPROC_PID; [[ $- != *m* ]] || echo >&2
+	then 	unset COPROC COPROC_PID
 		coproc { 	PYTHONUNBUFFERED=1 HOPTTIK=1 tiktokenf ;}
 		((COPROC_PID)) || COPROC_PID=$!
-		if [[ -n $ZSH_VERSION ]]
-		then 	COPROC=(p p)  #set file descriptor names
-			#clear interactive zsh job control notification
-			[[ $- != *m* ]] || __clr_lineupf 10
-		fi
+		trap 'coproc_killf' $SIG_TRAP
+		[[ -z $ZSH_VERSION ]] || COPROC=(p p)  #set file descriptor names
 	fi
+}
+
+function coproc_killf
+{
+	if ((COPROC_PID))
+	then 	kill -- $COPROC_PID 2>/dev/null
+		unset COPROC_PID
+	fi; exit  #exit script
 }
 
 #defaults tiktoken fun
@@ -1088,7 +1098,7 @@ function cmd_runf
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
 		-h*|h*|help*|\?*)
-			skip=1; [[ -n $ZSH_VERSION ]] && setopt LOCAL_OPTIONS NO_MONITOR
+			skip=1
 			sed -n -e 's/^\t*//' -e '/^\s*------ /,/^\s*------ /p' <<<"$HELP" | less -S
 			;;
 		-H|H|history|hist)
@@ -1192,10 +1202,9 @@ function cmd_runf
 			;;
 		-y|-Y|tiktoken|tik|no-tik)
 			send_tiktokenf '/END_TIKTOKEN/'
+			[[ -n $ZSH_VERSION ]] && unset COPROC_PID
 			((++OPTTIK)) ;((OPTTIK%=2))
 			__cmdmsgf 'Tiktoken' $(_onoff $OPTTIK)
-			#wait $COPROC_PID  #coproc exit #close off coproc input/output
-			[[ -n $ZSH_VERSION ]] && unset COPROC_PID
 			;;
 		-[wW]*|audio*|rec*)
 			OPTW=1 ;[[ $* = -W* ]] && OPTW=2
@@ -1356,7 +1365,6 @@ function _onoff
 #main plain text editor
 function __edf
 {
-	[[ -n $ZSH_VERSION ]] && setopt LOCAL_OPTIONS NO_MONITOR
 	${VISUAL:-${EDITOR:-vim}} "$1" </dev/tty >/dev/tty
 }
 
@@ -1570,7 +1578,7 @@ function record_confirmf
 #usage: recordf [filename]
 function recordf
 {
-	typeset termux pid sig REPLY
+	typeset termux pid REPLY
 
 	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
 
@@ -1593,10 +1601,10 @@ function recordf
 	fi >&2
 	pid=${pid:-$!}
 	
-	sig="INT HUP TERM EXIT"
-	trap "rec_killf $pid $termux; trap '-' $sig;" $sig
+	trap "rec_killf $pid $termux;
+		trap 'coproc_killf' $SIG_TRAP" $SIG_TRAP
 	read </dev/tty; rec_killf $pid $termux;
-	trap '-' $sig
+	trap 'coproc_killf' $SIG_TRAP
 	wait $pid
 }
 #avfoundation for macos: <https://apple.stackexchange.com/questions/326388/>
@@ -1604,7 +1612,7 @@ function rec_killf
 {
 	typeset pid termux
 	pid=$1 termux=$2
-	((termux)) && termux-microphone-record -q >&2 || kill -INT -- ${ZSH_VERSION:+-}$pid;
+	((termux)) && termux-microphone-record -q >&2 || kill -INT -- $pid 2>/dev/null;
 }
 
 #set whisper language
@@ -3031,12 +3039,12 @@ else
 		if ((RETRY==1))
 		then 	((OPTK)) || JQCOL2='def byellow: yellow;'
 		else 	unset JQCOL2
-		fi ;((OPTC)) && echo >&2
+		fi; ((OPTC)) && echo >&2
 
 		#request and response prompts
-		promptf  ;ret=$?
+		promptf; ret=$?
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2
-		((ret>160 || RETRY==1)) && { 	SKIP=1 EDIT=1 ;set -- ;continue ;}
+		((ret>126 || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue; }
 		REPLY_OLD="${REPLY:-$*}"
 
 		#record to hist file
@@ -3096,9 +3104,9 @@ else
 			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : TKN_PREV ))" "${tkn[2]}"
 			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || unset OPTC OPTRESUME OPTCMPL MTURN
 			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
-			CKSUM_OLD=$(cksumf "$FILECHAT") ;unset HIST_TIME ADJ_INPUT
+			CKSUM_OLD=$(cksumf "$FILECHAT"); unset HIST_TIME ADJ_INPUT
 		elif ((MTURN))
-		then 	BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD= PSKIP= JUMP=
+		then 	BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi
@@ -3106,7 +3114,7 @@ else
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 
 		((++MAIN_LOOP)) ;set --
-		unset INSTRUCTION TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES ESC Q
+		unset INSTRUCTION TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC Q
 		unset role rest tkn tkn_ans ans buff glob out var ret s n
 		((MTURN && !OPTEXIT)) || break
 	done
