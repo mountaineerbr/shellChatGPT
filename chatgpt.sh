@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.19.4  oct/2023  by mountaineerbr  GPL+3
+# v0.19.5  oct/2023  by mountaineerbr  GPL+3
 if [[ -n $ZSH_VERSION  ]]
 then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL MONITOR NO_NOTIFY
 else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
@@ -590,8 +590,7 @@ function block_printf
 	if ((OPTVV>1))
 	then 	printf '%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"
 		printf '\n%s\n' '<CTRL-D> redo, <CTRL-C> exit, <ENTER> continue'
-		[[ -n $ZSH_VERSION ]] && setopt LOCAL_OPTIONS NO_MONITOR
-		(read </dev/tty) || return 200
+		typeset REPLY; read </dev/tty || return 200
 	else 	((STREAM)) && set -- -j
 		jq -r "$@" '.instruction//empty, .input//empty,
 		.prompt//(.messages[]|.role+": "+.content)//empty' <<<"$BLOCK" | STREAM= foldf
@@ -604,8 +603,8 @@ function new_prompt_confirmf
 {
 	typeset REPLY
 
-	_sysmsgf 'Confirm?' '[Y]es, [n]o, [e]dit, te[x]t editor, [r]edo, or [a]bort ' ''
-	REPLY=$(__read_charf) ;__clr_lineupf 64 #!#
+	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${1:+, te[x]t editor}, [r]edo, or [a]bort " ''
+	REPLY=$(__read_charf); __clr_lineupf 64 #!#
 	case "${REPLY}" in
 		[AaQq]) 	return 201;;  #break
 		[Rr]) 	return 200;;          #redo
@@ -2920,11 +2919,11 @@ else
 					RETRY=1 BCYAN="${Color8}" VCOL="${Vcol8}"
 				elif [[ -n $REPLY ]]
 				then
-					((RETRY+OPTV)) || new_prompt_confirmf 
+					((RETRY+OPTV)) || new_prompt_confirmf 1
 					case $? in
 						201) 	break 2;;            #abort
 						200) 	WSKIP=1 ;continue;;  #redo
-						199) 	WSKIP=1 EDIT=1 ;continue;;   #edit
+						199) 	WSKIP=1 EDIT=1; continue;;   #edit
 						198) 	((OPTX)) || OPTX=2
 							set -- ;continue 2;; #text editor
 						0) 	:;;                  #yes
