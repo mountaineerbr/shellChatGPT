@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2023
-title: CHATGPT.SH(1) v0.19.2 \| General Commands Manual
+title: CHATGPT.SH(1) v0.20 \| General Commands Manual
 ---
 
 ### NAME
@@ -76,7 +76,7 @@ If a second *NUM* is given to this option, *maximum model capacity* will
 also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
 “`-M` *NUM-NUM*”.
 
-*Model capacity* (maximum model tokens) can be set intuitively with
+*Model capacity* (maximum model tokens) can be set more intuitively with
 `option` “`-N` *NUM*”, otherwise model capacity is set automatically for
 known models, or to *2048* tokens as fallback.
 
@@ -165,7 +165,7 @@ prompter.
 
 Type in a backslash “*\\*” as the last character of the input line to
 append a literal newline once and return to edition, or press
-\<*CTRL-V*\> *+* \<*CTRL-J*\>, or \<*ALT-ENTER*\> (Zsh).
+\<*CTRL-V*\> *+* \<*CTRL-J*\>.
 
 Language model **SKILLS** can activated, with specific prompts, see
 <https://platform.openai.com/examples>.
@@ -210,38 +210,39 @@ or “`/`”.
 | `!sh`  | `!shell` \[*CMD*\] | Run command, grab and edit output.                     |
 | `!!sh` | `!!shell`          | Open an interactive shell and exit.                    |
 
-| Script | Settings   |                                                       |
-|:-------|:-----------|-------------------------------------------------------|
-| `-g`   | `!stream`  | Toggle response streaming.                            |
-| `-l`   | `!models`  | List language model names.                            |
-| `-o`   | `!clip`    | Copy responses to clipboard.                          |
-| `-u`   | `!multi`   | Toggle multiline prompter, \<*CTRL-D*\> flush (Bash). |
-| `-U`   | `!cat`     | Toggle cat prompter, \<*CTRL-D*\> flush.              |
-| `-V`   | `!context` | Print context before request (see `option -HH`).      |
-| `-VV`  | `!debug`   | Dump raw request block and confirm.                   |
-| `-v`   | `!ver`     | Toggle verbose modes.                                 |
-| `-x`   | `!ed`      | Toggle text editor interface.                         |
-| `-xx`  | `!!ed`     | Single-shot text editor.                              |
-| `-y`   | `!tik`     | Toggle python tiktoken use.                           |
-| `!q`   | `!quit`    | Exit. Bye.                                            |
-| `!r`   | `!regen`   | Regenerate last response.                             |
-| `!?`   | `!help`    | Print a help snippet.                                 |
+| Script | Settings   |                                                  |
+|:-------|:-----------|--------------------------------------------------|
+| `-g`   | `!stream`  | Toggle response streaming.                       |
+| `-l`   | `!models`  | List language model names.                       |
+| `-o`   | `!clip`    | Copy responses to clipboard.                     |
+| `-u`   | `!multi`   | Toggle multiline prompter, \<*CTRL-D*\> flush.   |
+| `-U`   | `!cat`     | Toggle cat prompter, \<*CTRL-D*\> flush.         |
+| `-V`   | `!context` | Print context before request (see `option -HH`). |
+| `-VV`  | `!debug`   | Dump raw request block and confirm.              |
+| `-v`   | `!ver`     | Toggle verbose modes.                            |
+| `-x`   | `!ed`      | Toggle text editor interface.                    |
+| `-xx`  | `!!ed`     | Single-shot text editor.                         |
+| `-y`   | `!tik`     | Toggle python tiktoken use.                      |
+| `!q`   | `!quit`    | Exit. Bye.                                       |
+| `!r`   | `!regen`   | Regenerate last response.                        |
+| `!?`   | `!help`    | Print a help snippet.                            |
 
-| Model  | Settings             |                               |
-|:-------|:---------------------|-------------------------------|
-| `!NUM` | `!max` \[*NUM*\]     | Set maximum response tokens.  |
-| `-N`   | `!modmax` \[*NUM*\]  | Set model token capacity.     |
-| `-a`   | `!pre` \[*VAL*\]     | Set presence penalty.         |
-| `-A`   | `!freq` \[*VAL*\]    | Set frequency penalty.        |
-| `-b`   | `!best` \[*NUM*\]    | Set best-of n results.        |
-| `-m`   | `!mod` \[*MOD*\]     | Set model by name.            |
-| `-n`   | `!results` \[*NUM*\] | Set number of results.        |
-| `-p`   | `!top` \[*VAL*\]     | Set top_p.                    |
-| `-r`   | `!restart` \[*SEQ*\] | Set restart sequence.         |
-| `-R`   | `!start` \[*SEQ*\]   | Set start sequence.           |
-| `-s`   | `!stop` \[*SEQ*\]    | Set one stop sequence.        |
-| `-t`   | `!temp` \[*VAL*\]    | Set temperature.              |
-| `-w`   | `!rec`               | Start audio record chat mode. |
+| Model   | Settings                  |                                       |
+|:--------|:--------------------------|---------------------------------------|
+| `-Nill` | `!Nill` U                 | nset model max response (chat cmpls). |
+| `-M`    | `!NUM` `!max` \[*NUM*\] S | et maximum response tokens.           |
+| `-N`    | `!modmax` \[*NUM*\] S     | et model token capacity.              |
+| `-a`    | `!pre` \[*VAL*\] S        | et presence penalty.                  |
+| `-A`    | `!freq` \[*VAL*\] S       | et frequency penalty.                 |
+| `-b`    | `!best` \[*NUM*\] S       | et best-of n results.                 |
+| `-m`    | `!mod` \[*MOD*\] S        | et model by name.                     |
+| `-n`    | `!results` \[*NUM*\] S    | et number of results.                 |
+| `-p`    | `!top` \[*VAL*\] S        | et top_p.                             |
+| `-r`    | `!restart` \[*SEQ*\] S    | et restart sequence.                  |
+| `-R`    | `!start` \[*SEQ*\] S      | et start sequence.                    |
+| `-s`    | `!stop` \[*SEQ*\] S       | et one stop sequence.                 |
+| `-t`    | `!temp` \[*VAL*\] S       | et temperature.                       |
+| `-w`    | `!rec` S                  | tart audio record chat mode.          |
 
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|
@@ -521,9 +522,7 @@ Alternatively, raw escaped color sequences, such as *\e\[0;35m*, and
 
 Theme colours are named variables from `Colour1` to about `Colour11`,
 and may be set with colour-named variables or raw escape sequences
-(these must not change cursor position). Also, variables `$Vcol8`, and
-`$Vcol9` are set with special colour sequences, such as
-“*%B%F{cyan}%K{red}*” (only Zsh).
+(these must not change cursor position).
 
 ### BUGS AND LIMITS
 
@@ -571,6 +570,9 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 Set transparent colour of image mask. Def=*black*.
 
 Fuzz intensity can be set with \[VAL%\]. Def=*0%*.
+
+**-Nill**  
+Unset model max response (chat cmpls only).
 
 **-NUM**
 
@@ -745,7 +747,7 @@ Set log file. *FILEPATH* is required.
 Copy response to clipboard.
 
 **-u**, **--multi**  
-Toggle multiline prompter, \<*CTRL-D*\> flush (Bash).
+Toggle multiline prompter, \<*CTRL-D*\> flush.
 
 **-U**, **--cat**  
 Set cat prompter, \<*CTRL-D*\> flush.
@@ -775,6 +777,3 @@ Unset tiktoken use (cmpls, chat, python).
 
 **-z**, **--last**  
 Print last response JSON data.
-
-**-Z**  
-Run with Z-shell in interactive mode.

@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.19.2 | General Commands Manual
+% CHATGPT.SH(1) v0.20 | General Commands Manual
 % mountaineerbr
 % October 2023
 
@@ -72,7 +72,7 @@ If a second _NUM_ is given to this option, _maximum model capacity_
 will also be set. The option syntax takes the form of "`-`_NUM/NUM_",
 and "`-M` _NUM-NUM_".
 
-_Model capacity_ (maximum model tokens) can be set intuitively with
+_Model capacity_ (maximum model tokens) can be set more intuitively with
 `option` "`-N` _NUM_", otherwise model capacity is set automatically
 for known models, or to _2048_ tokens as fallback.
 
@@ -162,7 +162,7 @@ Alternatively, set `option -U` to set _cat command_ as prompter.
 
 Type in a backslash "_\\_" as the last character of the input line
 to append a literal newline once and return to edition,
-or press \<_CTRL-V_> _+_ \<_CTRL-J_>, or \<_ALT-ENTER_> (Zsh).
+or press \<_CTRL-V_> _+_ \<_CTRL-J_>.
 
 Language model **SKILLS** can activated, with specific prompts,
 see <https://platform.openai.com/examples>.
@@ -216,7 +216,7 @@ may be either "`!`", or "`/`".
       `-g`    `!stream`                Toggle response streaming.
       `-l`    `!models`                List language model names.
       `-o`    `!clip`                  Copy responses to clipboard.
-      `-u`    `!multi`                 Toggle multiline prompter, \<_CTRL-D_> flush (Bash).
+      `-u`    `!multi`                 Toggle multiline prompter, \<_CTRL-D_> flush.
       `-U`    `!cat`                   Toggle cat prompter, \<_CTRL-D_> flush.
       `-V`    `!context`               Print context before request (see `option -HH`).
      `-VV`    `!debug`                 Dump raw request block and confirm.
@@ -230,8 +230,9 @@ may be either "`!`", or "`/`".
   --------    ---------------------    -------------------------------------------------------
 
   Model       Settings
-  --------    ----------------------    --------------------------------------------
-    `!NUM`    `!max`       \[_NUM_]     Set maximum response tokens.
+  --------    -----------------------    --------------------------------------------
+   `-Nill`    `!Nill`                   Unset model max response (chat cmpls).
+      `-M`    `!NUM` `!max` \[_NUM_]    Set maximum response tokens.
       `-N`    `!modmax`    \[_NUM_]     Set model token capacity.
       `-a`    `!pre`       \[_VAL_]     Set presence penalty.
       `-A`    `!freq`      \[_VAL_]     Set frequency penalty.
@@ -244,7 +245,7 @@ may be either "`!`", or "`/`".
       `-s`    `!stop`      \[_SEQ_]     Set one stop sequence.
       `-t`    `!temp`      \[_VAL_]     Set temperature.
       `-w`    `!rec`                    Start audio record chat mode.
-  --------    ----------------------    --------------------------------------------
+  --------    -----------------------    --------------------------------------------
 
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
@@ -556,8 +557,6 @@ _\\e[0;35m_, and _\\e[1;36m_ may be set.
 Theme colours are named variables from `Colour1` to about `Colour11`,
 and may be set with colour-named variables or
 raw escape sequences (these must not change cursor position).
-Also, variables `$Vcol8`, and `$Vcol9` are set with special colour sequences,
-such as "_%B%F{cyan}%K{red}_" (only Zsh).
 
 
 ### BUGS AND LIMITS
@@ -612,6 +611,11 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 :      Set transparent colour of image mask. Def=_black_.
 
        Fuzz intensity can be set with [VAL%]. Def=_0%_.
+
+
+**-Nill**
+
+:     Unset model max response (chat cmpls only).
 
 
 **-NUM**
@@ -867,7 +871,7 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-u**, **\--multi**
 
-: Toggle multiline prompter, \<_CTRL-D_> flush (Bash).
+: Toggle multiline prompter, \<_CTRL-D_> flush.
 
 
 **-U**, **\--cat**
@@ -911,8 +915,4 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 : Print last response JSON data.
 
-
-**-Z**
-
-: Run with Z-shell in interactive mode.
 

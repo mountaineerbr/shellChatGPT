@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.19.2 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.20 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.19.2 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.20 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2023</p>
 </header>
@@ -251,10 +251,10 @@ defaults to 512 tokens.</p>
 capacity</em> will also be set. The option syntax takes the form of
 “<code>-</code><em>NUM/NUM</em>”, and “<code>-M</code>
 <em>NUM-NUM</em>”.</p>
-<p><em>Model capacity</em> (maximum model tokens) can be set intuitively
-with <code>option</code> “<code>-N</code> <em>NUM</em>”, otherwise model
-capacity is set automatically for known models, or to <em>2048</em>
-tokens as fallback.</p>
+<p><em>Model capacity</em> (maximum model tokens) can be set more
+intuitively with <code>option</code> “<code>-N</code> <em>NUM</em>”,
+otherwise model capacity is set automatically for known models, or to
+<em>2048</em> tokens as fallback.</p>
 <p>If a plain text file path is set as the first positional argument of
 the script, the file is loaded as text PROMPT (text cmpls, chat cmpls,
 and text/code edits).</p>
@@ -331,8 +331,7 @@ clipboard. Alternatively, set <code>option -U</code> to set <em>cat
 command</em> as prompter.</p>
 <p>Type in a backslash “<em>\</em>” as the last character of the input
 line to append a literal newline once and return to edition, or press
-&lt;<em>CTRL-V</em>&gt; <em>+</em> &lt;<em>CTRL-J</em>&gt;, or
-&lt;<em>ALT-ENTER</em>&gt; (Zsh).</p>
+&lt;<em>CTRL-V</em>&gt; <em>+</em> &lt;<em>CTRL-J</em>&gt;.</p>
 <p>Language model <strong>SKILLS</strong> can activated, with specific
 prompts, see <a href="https://platform.openai.com/examples"
 class="uri">https://platform.openai.com/examples</a>.</p>
@@ -428,8 +427,7 @@ prompt to set a new parameter. The command operator may be either
 <tr class="even">
 <td style="text-align: left;"><code>-u</code></td>
 <td style="text-align: left;"><code>!multi</code></td>
-<td>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush
-(Bash).</td>
+<td>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-U</code></td>
@@ -493,69 +491,77 @@ prompt to set a new parameter. The command operator may be either
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>!NUM</code></td>
-<td style="text-align: left;"><code>!max</code> [<em>NUM</em>]</td>
-<td>Set maximum response tokens.</td>
+<td style="text-align: left;"><code>-Nill</code></td>
+<td style="text-align: left;"><code>!Nill</code> U</td>
+<td>nset model max response (chat cmpls).</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>-M</code></td>
+<td style="text-align: left;"><code>!NUM</code> <code>!max</code>
+[<em>NUM</em>] S</td>
+<td>et maximum response tokens.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>-N</code></td>
-<td style="text-align: left;"><code>!modmax</code> [<em>NUM</em>]</td>
-<td>Set model token capacity.</td>
+<td style="text-align: left;"><code>!modmax</code> [<em>NUM</em>] S</td>
+<td>et model token capacity.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-a</code></td>
-<td style="text-align: left;"><code>!pre</code> [<em>VAL</em>]</td>
-<td>Set presence penalty.</td>
+<td style="text-align: left;"><code>!pre</code> [<em>VAL</em>] S</td>
+<td>et presence penalty.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-A</code></td>
-<td style="text-align: left;"><code>!freq</code> [<em>VAL</em>]</td>
-<td>Set frequency penalty.</td>
+<td style="text-align: left;"><code>!freq</code> [<em>VAL</em>] S</td>
+<td>et frequency penalty.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-b</code></td>
-<td style="text-align: left;"><code>!best</code> [<em>NUM</em>]</td>
-<td>Set best-of n results.</td>
+<td style="text-align: left;"><code>!best</code> [<em>NUM</em>] S</td>
+<td>et best-of n results.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-m</code></td>
-<td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
-<td>Set model by name.</td>
+<td style="text-align: left;"><code>!mod</code> [<em>MOD</em>] S</td>
+<td>et model by name.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-n</code></td>
-<td style="text-align: left;"><code>!results</code> [<em>NUM</em>]</td>
-<td>Set number of results.</td>
+<td style="text-align: left;"><code>!results</code> [<em>NUM</em>]
+S</td>
+<td>et number of results.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-p</code></td>
-<td style="text-align: left;"><code>!top</code> [<em>VAL</em>]</td>
-<td>Set top_p.</td>
+<td style="text-align: left;"><code>!top</code> [<em>VAL</em>] S</td>
+<td>et top_p.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-r</code></td>
-<td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]</td>
-<td>Set restart sequence.</td>
+<td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]
+S</td>
+<td>et restart sequence.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-R</code></td>
-<td style="text-align: left;"><code>!start</code> [<em>SEQ</em>]</td>
-<td>Set start sequence.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>-s</code></td>
-<td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>]</td>
-<td>Set one stop sequence.</td>
+<td style="text-align: left;"><code>!start</code> [<em>SEQ</em>] S</td>
+<td>et start sequence.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>-t</code></td>
-<td style="text-align: left;"><code>!temp</code> [<em>VAL</em>]</td>
-<td>Set temperature.</td>
+<td style="text-align: left;"><code>-s</code></td>
+<td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>] S</td>
+<td>et one stop sequence.</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>-t</code></td>
+<td style="text-align: left;"><code>!temp</code> [<em>VAL</em>] S</td>
+<td>et temperature.</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>-w</code></td>
-<td style="text-align: left;"><code>!rec</code></td>
-<td>Start audio record chat mode.</td>
+<td style="text-align: left;"><code>!rec</code> S</td>
+<td>tart audio record chat mode.</td>
 </tr>
 </tbody>
 </table>
@@ -874,10 +880,7 @@ and background colours can be set with <em>$On_Yellow</em>,
 <em>\e[0;35m</em>, and <em>\e[1;36m</em> may be set.</p>
 <p>Theme colours are named variables from <code>Colour1</code> to about
 <code>Colour11</code>, and may be set with colour-named variables or raw
-escape sequences (these must not change cursor position). Also,
-variables <code>$Vcol8</code>, and <code>$Vcol9</code> are set with
-special colour sequences, such as “<em>%B%F{cyan}%K{red}</em>” (only
-Zsh).</p>
+escape sequences (these must not change cursor position).</p>
 <h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
 <!-- NOT ANYMORE
 Input sequences _\\n_, and _\\t_ must be double escaped to be treated
@@ -919,6 +922,10 @@ optionally required.</p>
 <dd>
 <p>Set transparent colour of image mask. Def=<em>black</em>.</p>
 <p>Fuzz intensity can be set with [VAL%]. Def=<em>0%</em>.</p>
+</dd>
+<dt><strong>-Nill</strong></dt>
+<dd>
+<p>Unset model max response (chat cmpls only).</p>
 </dd>
 </dl>
 <p><strong>-NUM</strong></p>
@@ -1159,7 +1166,7 @@ and start sequences.</p>
 </dd>
 <dt><strong>-u</strong>, <strong>--multi</strong></dt>
 <dd>
-<p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush (Bash).</p>
+<p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
 </dd>
 <dt><strong>-U</strong>, <strong>--cat</strong></dt>
 <dd>
@@ -1198,10 +1205,6 @@ and start sequences.</p>
 <dt><strong>-z</strong>, <strong>--last</strong></dt>
 <dd>
 <p>Print last response JSON data.</p>
-</dd>
-<dt><strong>-Z</strong></dt>
-<dd>
-<p>Run with Z-shell in interactive mode.</p>
 </dd>
 </dl>
 </body>

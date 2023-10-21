@@ -40,7 +40,7 @@ Just download the stand-alone `chatgpt.sh` and make it executable or clone this 
 ### ✔️ Required packages
 
 - Free [OpenAI GPTChat key](https://platform.openai.com/account/api-keys)
-- Bash or Zsh <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
+- Bash <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
 - cURL, and JQ
 - Imagemagick (optional)
 - Base64 (optional)
@@ -364,6 +364,7 @@ To save and then edit the template configuration file, run:
 ```
 
 
+<!--
 ## 🐚 Shell Interpreters
 
 The script can be run with either Bash, or Zsh.
@@ -372,7 +373,6 @@ There should be equivalency of features under Bash, and Zsh.
 
 Zsh is faster than Bash in respect to some features.
 
-<!--
 Although it should be noted that I test the script under Ksh and Zsh,
 and it is almost never tested under Bash, but so far, Bash seems to be
 a little more polished than the other shells [AFAIK](https://github.com/mountaineerbr/shellChatGPT/discussions/13),

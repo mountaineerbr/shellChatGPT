@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.19.6  oct/2023  by mountaineerbr  GPL+3
-if [[ -n $ZSH_VERSION  ]]
-then 	set -o emacs; setopt NO_SH_GLOB KSH_GLOB KSH_ARRAYS SH_WORD_SPLIT GLOB_SUBST PROMPT_PERCENT NO_NOMATCH NO_POSIX_BUILTINS NO_SINGLE_LINE_ZLE PIPE_FAIL NO_MONITOR NO_NOTIFY HUP POSIX_TRAPS
-else 	set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
-fi
+# v0.20  oct/2023  by mountaineerbr  GPL+3
+set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
 #OPENAI_API_KEY=
@@ -96,7 +93,7 @@ FILEINW="${CACHEDIR%/}/whisper_in.mp3"
 FILEAWE="${CACHEDIR%/}/awesome-prompts.csv"
 FILEFIFO="${CACHEDIR%/}/fifo.buff"
 USRLOG="${OUTDIR%/}/${FILETXT##*/}"
-HISTFILE="${CACHEDIR%/}/history_${BASH_VERSION:+bash}${ZSH_VERSION:+zsh}"
+HISTFILE="${CACHEDIR%/}/history_bash"
 HISTCONTROL=erasedups:ignoredups
 HISTSIZE=512 SAVEHIST=512 HISTTIMEFORMAT='%F %T '
 
@@ -217,7 +214,7 @@ Chat Commands
        -g      !stream          Toggle response streaming.
        -l      !models          List language model names.
        -o      !clip            Copy responses to clipboard.
-       -u      !multi           Toggle multiline, ctrl-d flush (bash).
+       -u      !multi           Toggle multiline, ctrl-d flush.
        -U      !cat             Toggle cat prompter, ctrl-d flush.
        -V      !context         Print context before request (see -HH).
        -VV     !debug           Dump raw request block and confirm.
@@ -229,7 +226,8 @@ Chat Commands
        !r      !regen           Regenerate last response.
        !?      !help            Print this help snippet.
     --- Model Settings --------------------------------------------
-     !NUM      !max      [NUM]  Set max response tokens.
+       -Nill   !Nill            Unset model max response (chat cmpls).
+       -M      !NUM !max [NUM]  Set max response tokens.
        -N      !modmax   [NUM]  Set model token capacity.
        -a      !pre      [VAL]  Set presence penalty.
        -A      !freq     [VAL]  Set frequency penalty.
@@ -275,8 +273,7 @@ Chat Commands
 	the new empty prompt.
 
 	Type in a backslash \`\\' as the last character of the input line
-	to append a literal newline, or press <CTRL-V> + <CTRL-J>, or
-	<ALT-ENTER> (Zsh).
+	to append a literal newline, or press <CTRL-V> + <CTRL-J>.
 
 
 Options
@@ -284,6 +281,8 @@ Options
 	-@ [[VAL%]COLOUR], --alpha=[[VAL%]COLOUR]
 		Set transparent colour of image mask. Def=black.
 		Fuzz intensity can be set with [VAL%]. Def=0%.
+	-Nill
+	        Unset model max response (chat cmpls only).
 	-NUM
 	-M [NUM[/NUM]], --max=[NUM[-NUM]]
 		Set maximum number of \`response tokens'. Def=$OPTMAX.
@@ -390,7 +389,7 @@ Options
 	-o, --clipboard
 		Copy response to clipboard.
 	-u, --multi
-		Toggle multiline prompter, <CTRL-D> flush (Bash).
+		Toggle multiline prompter, <CTRL-D> flush.
 	-U, --cat
 		Set cat prompter, <CTRL-D> flush.
 	-v, --verbose
@@ -405,8 +404,7 @@ Options
 	-Y, --no-tik
 		Unset tiktoken use (cmpls, chat).
 	-z, --last
-		Print last response JSON data.
-	-Z 	Run with interactive Z-shell."
+		Print last response JSON data."
 
 ENDPOINTS=(
 	completions               #0
@@ -459,6 +457,23 @@ function set_model_epnf
 	esac
 }
 
+#set ``model capacity''
+function model_capf
+{
+	case "$1" in  #set model max tokens
+		davinci-002|babbage-002) 	MODMAX=16384;;
+		davinci|curie|babbage|ada) 	MODMAX=2049;;
+		code-davinci-00[2-9]) MODMAX=8001;;
+		gpt-4*32k*) 	MODMAX=32768;; 
+		gpt-4*) 	MODMAX=8192;;
+		*turbo*16k*) 	MODMAX=16384;;
+		*turbo*|*davinci*) 	MODMAX=4096;;
+		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
+		*embedding*|*search*) MODMAX=2046;;
+		*) 	MODMAX=2048;;
+	esac
+}
+
 #make cmpls request
 function __promptf
 {
@@ -506,8 +521,7 @@ function promptf
 	then 	block_printf || return
 	fi
 
-	if [[ -n $ZSH_VERSION ]] && trap 'exit' INT
-		((STREAM))
+	if ((STREAM))
 	then 	if ((RETRY>1))
 		then 	cat -- "$FILE"
 		else 	_promptf || exit
@@ -594,7 +608,7 @@ function block_printf
 {
 	if ((OPTVV>1))
 	then 	printf '%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"
-		printf '\n%s\n' '<CTRL-D> redo, <CTRL-C> exit, <ENTER> continue'
+		printf '\n%s\n' '<Ctrl-D> redo, <Ctrl-C> exit, <ENTER> continue'
 		typeset REPLY; read </dev/tty || return 200
 	else 	((STREAM)) && set -- -j
 		jq -r "$@" '.instruction//empty, .input//empty,
@@ -623,7 +637,7 @@ function new_prompt_confirmf
 function __read_charf
 {
 	typeset REPLY
-	read -n ${ZSH_VERSION:+-k} 1 "$@" </dev/tty
+	read -n 1 "$@" </dev/tty
 	printf '%.1s\n' "$REPLY"
 	[[ -z ${REPLY//[$IFS]} ]] || echo >&2
 }
@@ -756,7 +770,7 @@ function lastjsonf
 #set up context from history file ($HIST and $HIST_C)
 function set_histf
 {
-	typeset time token string max_prev q_type a_type role role_old rest a_append sub ind herr m n
+	typeset time token string max_prev q_type a_type role role_old rest a_append sub ind herr m
 	[[ -s $FILECHAT ]] || return; unset HIST HIST_C; 
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
@@ -768,7 +782,7 @@ function set_histf
 		IFS=$'\t' read -r time token string
 	do
 		[[ ${OPTHH##?}${time}${token} = *([$IFS])\#* ]] && continue
-		[[ ${time}${token} = *[Bb][Rr][Ee][Aa][Kk]* ]] && { 	((OPTZZHIST)) && continue; break ;}
+		[[ ${time}${token} = *[Bb][Rr][Ee][Aa][Kk]* ]] && break
 		[[ -z ${time}${token}${string} ]] && continue
 		if [[ -z $string ]]
 		then 	[[ -n $token ]] && string=$token token=$time time=
@@ -780,7 +794,7 @@ function set_histf
 		sub="${string:0:30}" sub="${sub##@("${q_type}"|"${a_type}"|":")}"
 		stringc="${sub}${string:30}"  #del lead seqs `\nQ: ' and `\nA:'
 
-		if ((OPTTIK || token<1)) && ((!OPTZZHIST))
+		if ((OPTTIK || token<1))
 		then 	((token<1 && OPTVV>1)) && __warmsgf "Warning:" "Zero/Neg token in history"
 			start_tiktokenf
 			if ((EPN==6))
@@ -821,12 +835,6 @@ function set_histf
 					;;
 			esac
 			
-			if ((OPTZZHIST))  #option -ZZ: entries for building shell cmd history
-			then 	[[ $role = assistant ]] && { 	((max_prev-=token)) ;continue ;}
-				[[ $'\n'"${HIST}"$'\n' = *$'\n'"${stringc}"$'\n'* ]] && continue
-				rest=$'\n' ;((++n)) ;((n<=${N_MAX:-20})) || max_prev=$MODMAX
-			fi
-
 			HIST="${rest}${stringc}${HIST}"
 			((EPN==6)) && HIST_C="$(fmt_ccf "${stringc}" "${role}")${HIST_C:+,}${HIST_C}"
 		else 	break
@@ -841,7 +849,7 @@ function set_histf
 		HIST="${stringc}${role_old:+\\n}\\n${HIST##"$stringc"?(\\n)}"
 	fi
 
-	#:|| #debug
+	#:||{  #debug
 	((!OPTC)) || [[ $HIST = "$stringc"*(\\n) ]] ||  #hist contains only one/system prompt?
 	HIST=$(trim_trailf "$HIST" "*(\\\\[ntrvf])")  #del multiple trailing nl
 	HIST=$(trim_leadf "$HIST" "?(\\\\[ntrvf]|$NL)?( )")  #del one leading nl+sp
@@ -892,8 +900,7 @@ function token_prevf
 function send_tiktokenf
 {
 	kill -0 $COPROC_PID 2>/dev/null || return
-	typeset q; [[ -n $ZSH_VERSION ]] && q='\\n' || q='\n'
-	printf '%s\n' "${1//$NL/$q}" >&"${COPROC[1]}"
+	printf '%s\n' "${1//$NL/\\n}" >&"${COPROC[1]}"
 }
 
 #get from tiktoken coproc
@@ -915,11 +922,8 @@ function get_tiktokenf
 function start_tiktokenf
 {
 	if ((OPTTIK)) && ! kill -0 $COPROC_PID 2>/dev/null
-	then 	unset COPROC COPROC_PID
-		coproc { 	PYTHONUNBUFFERED=1 HOPTTIK=1 tiktokenf ;}
-		((COPROC_PID)) || COPROC_PID=$!
+	then 	coproc { 	PYTHONUNBUFFERED=1 HOPTTIK=1 tiktokenf ;}
 		trap 'coproc_killf' $SIG_TRAP
-		[[ -z $ZSH_VERSION ]] || COPROC=(p p)  #set file descriptor names
 	fi
 }
 
@@ -927,7 +931,6 @@ function coproc_killf
 {
 	if ((COPROC_PID))
 	then 	kill -- $COPROC_PID 2>/dev/null
-		unset COPROC_PID
 	fi; exit  #exit script
 }
 
@@ -1032,11 +1035,13 @@ function set_maxtknf
 	set -- "${*:-$OPTMAX}"
 	set -- "${*##[+-]}" ;set -- "${*%%[+-]}"
 
-	if [[ $* = *[0-9][!0-9][0-9]* ]]
+	if [[ $* = ?([Nn])[OoIiUu][NnLl][EeLlFf] ]]  #Nill, null, none, inf
+	then 	OPTMAX_NILL=1
+	elif [[ $* = *[0-9][!0-9][0-9]* ]]
 	then 	OPTMAX="${*##${*%[!0-9]*}}" MODMAX="${*%%"$OPTMAX"}"
-		OPTMAX="${OPTMAX##[!0-9]}"
+		OPTMAX="${OPTMAX##[!0-9]}" OPTMAX_NILL=0
 	elif [[ -n ${*//[!0-9]} ]]
-	then 	OPTMAX="${*//[!0-9]}"
+	then 	OPTMAX="${*//[!0-9]}" OPTMAX_NILL=0
 	fi
 	if ((OPTMAX>MODMAX))
 	then 	buff="$MODMAX" MODMAX="$OPTMAX" OPTMAX="$buff" 
@@ -1055,6 +1060,10 @@ function cmd_runf
 	((${#1}<320)) || return $?
 
 	case "$*" in
+		?(-)?([Nn])[OoIiUu][NnLl][EeLlFf])  #Nill, null, none, inf
+			__cmdmsgf 'Max Response' "nill (chat cmpls) else $OPTMAX tkns"
+			set_maxtknf nill
+			;;
 		-[0-9]*|[0-9]*|-M*|[Mm]ax*|\
 		-N*|[Mm]odmax*)
 			if [[ $* = -N* ]] || [[ $* = -[Mm]odmax* ]]
@@ -1066,25 +1075,25 @@ function cmd_runf
 			fi
 			if ((HERR))
 			then 	unset HERR
-				_sysmsgf 'Context length:' 'error reset'
-			fi ;__cmdmsgf 'Max model / response' "$MODMAX / $OPTMAX tkns"
+				_sysmsgf 'Context Length:' 'error reset'
+			fi ;__cmdmsgf 'Max Response / Capacity' "$OPTMAX / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
 			set -- "${*//[!0-9.]}"
 			OPTA="${*:-$OPTA}"
 			fix_dotf OPTA
-			__cmdmsgf 'Presence penalty' "$OPTA"
+			__cmdmsgf 'Presence Penalty' "$OPTA"
 			;;
 		-A*|frequency*|freq*)
 			set -- "${*//[!0-9.]}"
 			OPTAA="${*:-$OPTAA}"
 			fix_dotf OPTAA
-			__cmdmsgf 'Frequency penalty' "$OPTAA"
+			__cmdmsgf 'Frequency Penalty' "$OPTAA"
 			;;
 		-b*|best[_-]of*|best*)
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
 			OPTB="${*:-$OPTB}"
-			__cmdmsgf 'Best_of' "$OPTB"
+			__cmdmsgf 'Best_Of' "$OPTB"
 			;;
 		-[Cc]|break|br|new)
 			break_sessionf
@@ -1133,10 +1142,11 @@ function cmd_runf
 			list_modelsf "${*##models*([$IFS])}"
 			;;
 		-m*|model*|mod*)
-			set -- "${*##@(-m|model|mod)}"
-			MOD="${*//[$IFS]}"  #by name
-			set_model_epnf "$MOD" ;__cmdmsgf 'Model' "$MOD"
+			set -- "${*##@(-m|model|mod)}"; MOD="${*//[$IFS]}"
+			set_model_epnf "$MOD"; model_capf "$MOD"
 			send_tiktokenf '/END_TIKTOKEN/'
+			__cmdmsgf 'Model Name' "$MOD"
+			__cmdmsgf 'Model Capacity' "$MODMAX"
 			;;
 		-n*|results*)
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
@@ -1147,7 +1157,7 @@ function cmd_runf
 			set -- "${*//[!0-9.]}"
 			OPTP="${*:-$OPTP}"
 			fix_dotf OPTP
-			__cmdmsgf 'Top P' "$OPTP"
+			__cmdmsgf 'Top_P' "$OPTP"
 			;;
 		-r*|restart*)
 			set -- "${*##@(-r|restart)$SPC}"
@@ -1177,7 +1187,7 @@ function cmd_runf
 			;;
 		-q|insert)
 			((++OPTSUFFIX)) ;((OPTSUFFIX%=2))
-			__cmdmsgf 'Insert mode' $(_onoff $OPTSUFFIX)
+			__cmdmsgf 'Insert Mode' $(_onoff $OPTSUFFIX)
 			;;
 		-v|verbose|ver)
 			((++OPTV)) ;((OPTV%=4))
@@ -1188,11 +1198,11 @@ function cmd_runf
 			;;
 		-V|context)
 			((OPTVV==1)) && unset OPTVV || OPTVV=1
-			__cmdmsgf 'Print request' $(_onoff $OPTVV)
+			__cmdmsgf 'Print Request' $(_onoff $OPTVV)
 			;;
 		-VV|debug)  #debug
 			((OPTVV==2)) && unset OPTVV || OPTVV=2
-			__cmdmsgf 'Debug request' $(_onoff $OPTVV)
+			__cmdmsgf 'Debug Request' $(_onoff $OPTVV)
 			;;
 		-xx|[/!]editor|[/!]ed|[/!]vim|[/!]vi)
 			((OPTX)) || OPTX=2; REPLY= skip=1
@@ -1202,7 +1212,6 @@ function cmd_runf
 			;;
 		-y|-Y|tiktoken|tik|no-tik)
 			send_tiktokenf '/END_TIKTOKEN/'
-			[[ -n $ZSH_VERSION ]] && unset COPROC_PID
 			((++OPTTIK)) ;((OPTTIK%=2))
 			__cmdmsgf 'Tiktoken' $(_onoff $OPTTIK)
 			;;
@@ -1234,8 +1243,8 @@ function cmd_runf
 			echo >&2
 			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
 			model-name   "${MOD:-?}" \
-			model-max    "${MODMAX:-?}" \
-			resp-max     "${OPTMAX:-?}" \
+			model-cap    "${MODMAX:-?}" \
+			response-max "${OPTMAX:-?}$( ((OPTMAX_NILL && EPN==6)) && printf %s ' - inf.' )" \
 			context-prev "${MAX_PREV:-?}" \
 			tiktoken     "${OPTTIK:-0}" \
 			temperature  "${OPTT:-0}" \
@@ -1249,20 +1258,17 @@ function cmd_runf
 			streaming    "${STREAM:-unset}" \
 			clipboard    "${OPTCLIP:-unset}" \
 			cat-prompter "${CATPR:-unset}" \
-			ctrld-prpter "${OPTCTRD:-unset} [bash]" \
+			ctrld-prpter "${OPTCTRD:-unset}" \
 			restart-seq  "\"$( ((OPTC)) && printf '%s' "${RESTART:-$Q_TYPE}" || printf '%s' "${RESTART:-unset}")\"" \
 			start-seq    "\"$( ((OPTC)) && printf '%s' "${START:-$A_TYPE}"   || printf '%s' "${START:-unset}")\"" \
 			stop-seqs    "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
-			hist-file    "${FILECHAT/"$HOME"/"~"}"  >&2
+			history-file "${FILECHAT/"$HOME"/"~"}"  >&2
+			printf '\033[1A' >&2  #one line up <https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html>
 			;;
 		-u|multi|multiline)
 			((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
-			[[ -n $ZSH_VERSION ]] ||
-			__cmdmsgf 'Prompter <CTRL-D>' $(_onoff $OPTCTRD)
-			((OPTCTRD)) && {
-				__warmsgf 'TIP:' '* <CTRL-V> + <CTRL-J> for newline * '
-				[[ -n $ZSH_VERSION ]] && __warmsgf 'TIP:' '* <ALT-ENTER> for newline * '
-			}
+			__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD)
+			((OPTCTRD)) && __warmsgf 'Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * '
 			;;
 		-U)
 			((++CATPR)) ;((CATPR%=2))
@@ -1271,25 +1277,20 @@ function cmd_runf
 		cat*)
 			if [[ $* = cat*[!$IFS]* ]]
 			then 	cmd_runf /sh "${@}"
-			else 	printf '%s\n' '* Press <CTRL-D> to flush * ' >&2
+			else 	printf '%s\n' '* Press <Ctrl-D> to flush * ' >&2
 				STDERR=/dev/null  cmd_runf /sh cat
 			fi ;skip=1
 			;;
 		[/!]sh*)
-			if [[ -n $ZSH_VERSION ]]
-			then 	zsh -i
-			else 	bash -i
-			fi ;printf '\n%s' Prompt: >&2
+			bash -i
+			printf '\n%s' Prompt: >&2
 			EDIT=1 REPLY=;
 			;;
 		shell*|sh*)
 			set -- "${*##sh?(ell)*([$IFS])}"
 			[[ -n $* ]] || set --  ;skip=1
 			while :
-			do 	REPLY=$( if [[ -n $ZSH_VERSION ]]
-				then 	zsh -f ${@:+-c} "${@}"
-				else 	bash --norc --noprofile ${@:+-c} "${@}"
-				fi </dev/tty | tee $STDERR )  ;echo >&2
+			do 	REPLY=$(bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR); echo >&2
 				#abort on empty
 				[[ $REPLY = *([$IFS]) ]] && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
 
@@ -1433,9 +1434,7 @@ function _escapef
 	fi
 }  #fallback
 #https://stackoverflow.com/questions/1251999/how-can-i-replace-each-newline-n-with-a-space-using-sed
-[[ -n $ZSH_VERSION ]] \
-&& function _unescapef { 	printf -- "${${*//\%/%%}//\\\"/\"}" ;} \
-|| function _unescapef { 	printf -- "${*//\%/%%}" ;}  #fallbacks
+function _unescapef { 	printf -- "${*//\%/%%}" ;}  #fallback
 
 function unescapef {
 	((${#1})) || return
@@ -1502,11 +1501,7 @@ function check_optrangef
 	typeset val min max prop ret
 	val="${1:-0}" min="${2:-0}" max="${3:-0}" prop="${4:-property}"
 
-	if [[ -n $ZSH_VERSION ]]
-	then 	ret=$(( (val < min) || (val > max) ))
-	else 	ret=$(bc <<<"($val < $min) || ($val > $max)") || function check_optrangef { : ;}  #no-`bc' systems
-	fi
-	
+	ret=$(bc <<<"($val < $min) || ($val > $max)") || function check_optrangef { : ;}  #no-`bc' systems
 	if [[ $val = *[!0-9.,+-]* ]] || ((ret))
 	then 	printf "${RED}Warning: Bad %s${NC}${BRED} -- %s  ${NC}${YELLOW}(%s - %s)${NC}\\n" "$prop" "$val" "$min" "$max" >&2
 		return 1
@@ -1526,6 +1521,7 @@ function set_optsf
 	      check_optrangef "$OPTBB" 0   5 'Logprobs'
 	    }
 	    check_optrangef "$OPTP"  0.0 1.0 'Top_p'
+	    ((!OPTMAX && OPTBB)) ||
 	    check_optrangef "$OPTMAX"  1 "$MODMAX" 'Response Max Tokens'
 	  }
 	  check_optrangef "$OPTT"  0.0 2.0 'Temperature'  #whisper max=1
@@ -1952,7 +1948,7 @@ function awesomef
 				done;
 			done <<<"${act_keys}"
 			printf '#? <enter> ' >&2
-			read -r ${BASH_VERSION:+-e} act </dev/tty
+			read -r -e act </dev/tty
 		fi ;set -- "$act"
 	done
 
@@ -1961,9 +1957,7 @@ function awesomef
 	if ((OPTX))  #edit chosen awesome prompt
 	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 		printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
-	elif [[ -n $ZSH_VERSION ]]
-	then 	vared -c -e -h INSTRUCTION
-	else 	read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION 
+	else 	read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION
 		INSTRUCTION=${INSTRUCTION%%*($'\r')}
 	fi </dev/tty
 	if [[ -z $INSTRUCTION ]]
@@ -2043,10 +2037,8 @@ function custom_prf
 		if ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
-		elif [[ -n $ZSH_VERSION ]]
-		then 	IFS= vared -c -e -h INSTRUCTION
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
-			|| { typeset OPTCTRD=2; __cmdmsgf $'\n''Prompter <CTRL-D>' 'one-shot' ;}
+			|| { typeset OPTCTRD=2; __cmdmsgf $'\n''Prompter <Ctrl-D>' 'one-shot' ;}
 			IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION
 			INSTRUCTION=${INSTRUCTION%%*($'\r')}
 		fi </dev/tty
@@ -2081,10 +2073,7 @@ function set_clipcmdf
 function shell_histf
 {
 	[[ ${*} != *([$IFS]) ]] || return
-	if [[ -n $ZSH_VERSION ]]
-	then 	print -s -- "$*"
-	else 	history -s -- "$*"
-	fi
+	history -s -- "$*"
 }
 #history file must start with a timestamp (# plus Unix timestamp) or else
 #the history command will still split on each line of a multi-line command
@@ -2159,7 +2148,7 @@ function session_name_choosef
 		fname="${fname/\~\//"$HOME"\/}"
 		
 		if [[ -d "$fname" ]]
-		then 	__warmsgf 'Err:' 'Is a directory'
+		then 	__warmsgf 'Err:' 'is a directory'
 			fname="${fname%%/}"
 		( 	cd "$fname" &&
 			ls -- "${fname}"/*.${sglob} ) >&2 2>/dev/null
@@ -2171,10 +2160,7 @@ function session_name_choosef
 		then 	[[ ${fname} = *.[Pp][Rr] ]] \
 			&& _sysmsgf 'New prompt file name <enter>:' \
 			|| _sysmsgf 'New session name <enter>:'
-			if [[ -n $ZSH_VERSION ]]
-			then 	vared -c -e fname
-			else 	read -r -e -i "$fname" fname
-			fi </dev/tty
+			read -r -e -i "$fname" fname </dev/tty
 		fi
 
 		if [[ -d "$fname" ]]
@@ -2252,10 +2238,7 @@ do 	__spinf 	#grep for user regex
 			  _sysmsgf "Is this the tail of the right session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
 			  case "$(__read_charf </dev/tty)" in
 			  	[]GgSsRr/?:\;]) 	__sysmsgf 'grep:' '<-opt> <regex> <enter>'
-					if [[ -n $ZSH_VERSION ]]
-					then 	vared -c -e -h search
-					else 	read -r -e -i "$search" search
-					fi </dev/tty
+					read -r -e -i "$search" search </dev/tty
 					continue
 					;;
 			  	[Nn]|$'\e') 	false
@@ -2410,7 +2393,7 @@ function session_sub_fifof
 
 #parse opts
 OPTMM=  #!#fix <=248c483
-optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:TouUvVxwWyYzZ0123456789@:/,:.:-:"
+optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:TouUvVxwWyYz0123456789@:/,:.:-:"
 while getopts "$optstring" opt
 do
 	if [[ $opt = - ]]  #long options
@@ -2420,18 +2403,19 @@ do
 			A:frequency-penalty     A:frequency  A:freq \
 			b:best-of   b:best      B:logprobs   c:chat \
 			C:resume    C:continue  C:cont       d:text \
-			e:edit      E:exit      f:no-conf  h:help \
-			H:hist      i:image     'j:synthesi[sz]e'  j:synth \
-			'J:synthesi[sz]e-voice' J:synth-voice  'k:no-colo*' \
+			e:edit      E:exit      f:no-conf    g:stream \
+			G:no-stream h:help      H:hist       i:image \
+			'j:synthesi[sz]e'  j:synth 'J:synthesi[sz]e-voice' \
+			J:synth-voice  'k:no-colo*' \
 			K:api-key   l:list-model   l:list-models \
 			L:log       m:model        m:mod \
-			n:results   o:clipboard    o:clip  p:top-p \
+			n:results   o:clipboard    o:clip    p:top-p \
 			p:top  q:insert  r:restart-sequence  r:restart \
 			R:start-sequence           R:start \
 			s:stop      S:instruction  t:temperature \
 			t:temp      T:tiktoken   u:multiline  u:multi  U:cat \
-			v:verbose   x:editor     X:media  w:transcribe  W:translate \
-			y:tik  Y:no-tik  z:last  g:stream  G:no-stream  #opt:long_name
+			v:verbose   x:editor     X:media  w:transcribe W:translate \
+			y:tik  Y:no-tik  z:last  #opt:long_name
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -2481,9 +2465,9 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1 EPN=2;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_EDIT MOD_AUDIO MODMAX INSTRUCTION OPTC OPTE OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM OPTEXIT APIURL APIURLBASE GPTCHATKEY
-			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV NC VCOL
-			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Nc Vcol8 Vcol9
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_EDIT MOD_AUDIO MODMAX INSTRUCTION OPTC OPTE OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM OPTEXIT APIURL APIURLBASE GPTCHATKEY
+			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV NC
+			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Nc
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
 		F) 	((++OPTFF));;
 		g) 	STREAM=1;;
@@ -2521,8 +2505,7 @@ do
 		t) 	OPTT="$OPTARG";;
 		T) 	((++OPTTIKTOKEN));;
 		u) 	((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
-			[[ -n $ZSH_VERSION ]] ||
-			__cmdmsgf 'Prompter <CTRL-D>' $(_onoff $OPTCTRD);;
+			__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD);;
 		U) 	CATPR=1;;
 		v) 	((++OPTV));;
 		V) 	((++OPTVV));;  #debug
@@ -2532,12 +2515,6 @@ do
 		y) 	OPTTIK=1;;
 		Y) 	OPTTIK= OPTYY=1;;
 		z) 	OPTZ=1;;
-		#run script with interactive zsh
-		Z) 	((++OPTZZ))
-			if [[ -z $ZSH_VERSION ]]
-			then 	unset BASH_VERSION
-				exec zsh -if -- "$0" "$@"; exit;
-			fi;;
 		\?) 	exit 1;;
 	esac ;OPTARG=
 done
@@ -2551,7 +2528,7 @@ unset LANGW MTURN MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB init 
   : "${PURPLE:=${Color5:=${Purple}}}" "${BPURPLE:=${Color6:=${BPurple}}}" "${ON_PURPLE:=${Color7:=${On_Purple}}}"
   : "${CYAN:=${Color8:=${Cyan}}}"     "${BCYAN:=${Color9:=${BCyan}}}"
   : "${WHITE:=${Color10:=${White}}}"  "${BWHITE:=${Color11:=${BWhite}}}"
-  : "${INV:=${Inv}}" "${NC:=${Nc}}" "${Vcol8:=%F{14}}" "${VCOL:=${Vcol9:=%B%F{14}}}" #zsh vared
+  : "${INV:=${Inv}}" "${NC:=${Nc}}"
   JQCOL="\
   def red:     \"${RED//\\e/\\u001b}\";     \
   def yellow:  \"${YELLOW//\\e/\\u001b}\";  \
@@ -2588,6 +2565,8 @@ then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url
 	unset STREAM
 fi
 
+[[ ${INSTRUCTION} != *([$IFS]) ]] || unset INSTRUCTION
+
 #map models
 [[ -n $OPTMARG ]] ||
 if ((OPTE))      #edits
@@ -2598,21 +2577,9 @@ elif ((OPTW)) && ((!MTURN))  #audio endpoint only
 then 	MOD="$MOD_AUDIO"
 fi
 
+#set ``model endpoint'' and ``model capacity''
 [[ -n $EPN ]] || set_model_epnf "$MOD"
-[[ ${INSTRUCTION} != *([$IFS]) ]] || unset INSTRUCTION
-
-#auto set ``model capacity''
-((MODMAX)) ||
-case "$MOD" in  #set model max tokens
-	davinci-002|babbage-002) 	MODMAX=16384;;
-	davinci|curie|babbage|ada) 	MODMAX=2049;;
-	code-davinci-00[2-9]) MODMAX=8001;;
-	gpt-4*32k*) 	MODMAX=32768;; 
-	gpt-4*) 	MODMAX=8192;;
-	*turbo*16k*) 	MODMAX=16384;;
-	*turbo*|*davinci*) 	MODMAX=4096;;
-	*) 	MODMAX=2048;;
-esac
+((MODMAX)) || model_capf "$MOD"
 
 #set ``max model / response tkns''
 [[ -n $OPTNN && -z $OPTMM ]] ||
@@ -2642,7 +2609,7 @@ edf "$@" && set -- "$(<"$FILETXT")"  #editor
 
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
-	then 	__sysmsgf "Max Model / Response:" "$MODMAX / $OPTMAX tokens"
+	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX / $MODMAX tkns"
      		if ((${#})) && [[ ! -f $1 ]]
 		then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 			__sysmsgf "Prompt:" "~$TKN_PREV tokens"
@@ -2715,11 +2682,11 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	|| __warmsgf "Warning:" "Not an embedding model -- $MOD"
 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM
 	[[ -f $1 ]] && set -- "$(<"$1")" "${@:2}"
-	((${#})) ||
-	if echo Input:; [[ -n $ZSH_VERSION ]]
-	then 	IFS= vared -c -e -h REPLY; set -- "$REPLY"; echo >&2;
-	else 	IFS= read -r -e ${OPTCTRD:+-d $'\04'} REPLY; set -- "$REPLY"; echo >&2;
-	fi </dev/tty
+	if ((!${#}))
+	then 	echo 'Input:' >&2
+		IFS= read -r -e ${OPTCTRD:+-d $'\04'} REPLY </dev/tty
+		set -- "$REPLY"; echo >&2;
+	fi
 	if [[ $MOD = *embed* ]]
 	then 	embedf "$@"
 	else 	moderationf "$@" &&
@@ -2799,36 +2766,21 @@ else
 	fi
 	[[ ${INSTRUCTION} != ?(:)*([$IFS]) ]] && _sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | foldf >&2
 	
-	# fix: bash: enable multiline cmd history  v0.18.0 aug/23
-	if ((OPTC+OPTCMPL+OPTRESUME)) && [[ -n $BASH_VERSION ]] && ((!DISABLE_BASH_FIX)) \
+	# fix: bash: enable multiline cmd history, v0.18.0 aug/23.
+	if ((OPTC+OPTCMPL+OPTRESUME)) && ((!DISABLE_BASH_FIX)) \
 		&& [[ $(sed -n 1p -- "$HISTFILE" 2>/dev/null )\#10 != \#[0-9]* ]]
 	then 	(echo >&2; set -xv; sed -i -e 's/^/#10\n/' "$HISTFILE")
 	fi
 
 	((OPTCTRD)) && {    echo >&2  #warnings and tips
-	    [[ -n $ZSH_VERSION ]] &&
-	    __warmsgf 'TIP:' '* <ALT-ENTER> for newline * '
-	    __warmsgf 'TIP:' '* <CTRL-V> + <CTRL-J> for newline * '
+	    __warmsgf 'Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * '
 	} || {    ((CATPR)) && echo >&2 ;}
 	((OPTCTRD+CATPR)) &&
-	    __warmsgf 'TIP:' '* <CTRL-D> to flush input * '
+	    __warmsgf 'Tip:' '* <Ctrl-D> to flush input * '
 	echo >&2  #!#
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
-	then 	if [[ -n $ZSH_VERSION ]]
-		then 	if [[ -o interactive ]] && ((OPTZZ<2))
-			then 	setopt HIST_FIND_NO_DUPS HIST_IGNORE_ALL_DUPS HIST_SAVE_NO_DUPS #EXTENDED_HISTORY
-				fc -RI
-			else 	#load history manually
-				EPN= OPTV= OPTC= RESTART= START= OPTTIK= \
-				MODMAX=8192 OPTZZHIST=1 N_MAX=40 set_histf
-				while IFS= read -r
-				do 	[[ ${REPLY} = *([$IFS]) ]] && continue
-					print -s -- "$(unescapef "$REPLY")"
-				done <<<"$HIST" ;unset HIST REPLY
-			fi
-		else 	history -c; history -r;  #set -o history;
-		fi
+	then 	history -c; history -r;  #set -o history;
 	  	[[ -s $HISTFILE ]] &&
 		REPLY_OLD=$(trim_leadf "$(fc -ln -1 | cut -c1-1000)" "*([$IFS])")
 		shell_histf "$*"
@@ -2871,7 +2823,7 @@ else
 				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE:}${NC}" >&2
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
 			do
-				{ 	((SKIP+OPTW)) || [[ -n $ZSH_VERSION ]] ;} && echo >&2
+				((SKIP+OPTW)) && echo >&2
 				if ((OPTW)) && ((!EDIT))
 				then 	#auto sleep 3-6 words/sec
 					((OPTV>1)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))
@@ -2895,13 +2847,9 @@ else
 					if ((CATPR)) && ((!EDIT))
 					then
 						REPLY=$(cat)
-					elif [[ -n $ZSH_VERSION ]]
-					then
-						((OPTK)) && var= || var="-p${VCOL}"
-						IFS= vared -c -e -h ${var} REPLY
 					else
 						[[ $REPLY != *$'\n'* ]] || ((OPTCTRD)) || {
-						  OPTCTRD=2; __cmdmsgf 'Prompter <CTRL-D>' 'one-shot'; }
+						  OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot'; }
 						IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$REPLY" REPLY
 					fi </dev/tty
 					((OPTCTRD)) && REPLY=${REPLY%%*($'\r')}
@@ -2924,7 +2872,7 @@ else
 					((RETRY)) && prev_tohistf "$REPLY_OLD"  #record previous reply
 					[[ $REPLY = /* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					REPLY="${REPLY%/*}" REPLY_OLD="$REPLY"
-					RETRY=1 BCYAN="${Color8}" VCOL="${Vcol8}"
+					RETRY=1 BCYAN="${Color8}"
 				elif [[ -n $REPLY ]]
 				then
 					((RETRY+OPTV)) || new_prompt_confirmf 1
@@ -2940,7 +2888,7 @@ else
 
 					if ((RETRY))
 					then 	if [[ "$REPLY" = "$REPLY_OLD" ]]
-						then 	RETRY=2 BCYAN="${Color9}" VCOL="${Vcol9}"
+						then 	RETRY=2 BCYAN="${Color9}"
 						else 	#record prev resp
 							prev_tohistf "$REPLY_OLD"
 						fi ;REPLY_OLD="$REPLY"
@@ -2970,11 +2918,9 @@ else
 		then
 			[[ -n $REPLY ]] || REPLY="${*}" #set buffer for EDIT
 
-			((RETRY==1)) ||
-			if shell_histf "$*"
-				[[ -n $ZSH_VERSION ]]
-			then 	fc -A  #zsh interactive
-			else 	history -a
+			if ((RETRY!=1))
+			then 	shell_histf "$*"
+				history -a
 			fi
 
 			#system/instruction?
@@ -3025,15 +2971,16 @@ else
 		set_optsf
 
 		if ((EPN==6))
-		then 	BLOCK="\"messages\": [${*%,}],"
+		then 	BLOCK="\"messages\": [${*%%,}],"
 		else 	BLOCK="\"prompt\": \"${*}\","
 		fi
-		BLOCK="{ $BLOCK $OPTSUFFIX_OPT
-			\"model\": \"$MOD\", $STREAM_OPT
-			\"temperature\": $OPTT, $OPTA_OPT $OPTAA_OPT $OPTP_OPT
-			\"max_tokens\": $OPTMAX, $OPTB_OPT $OPTBB_OPT $OPTSTOP
-			\"n\": $OPTN
-		}" #max_tokens is optional for ChatCompletion requests
+		BLOCK="{
+$BLOCK $OPTSUFFIX_OPT
+\"model\": \"$MOD\", \"temperature\": $OPTT,
+$( ((OPTMAX_NILL && EPN==6)) || echo "\"max_tokens\": $OPTMAX," )
+$STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT
+$OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
+}"
 
 		#response colours for jq
 		if ((RETRY==1))
@@ -3042,10 +2989,10 @@ else
 		fi; ((OPTC)) && echo >&2
 
 		#request and response prompts
-		promptf; ret=$?
+		promptf; ret_pr=$?
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2
-		((ret>126 || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue; }
-		REPLY_OLD="${REPLY:-$*}"
+		(( (ret_pr>120 && !STREAM) || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue; }
+		((ret_pr>120)) && INT_RES='#'; REPLY_OLD="${REPLY:-$*}"
 
 		#record to hist file
 		if 	if ((STREAM))  #no token information in response
@@ -3065,7 +3012,7 @@ else
 				done
 			fi
 			
-			if [[ -z "$ans" ]]
+			if [[ -z "$ans" ]] && ((ret_pr<120))
 			then 	jq 'if .error then . else empty end' "$FILE" >&2 || cat -- "$FILE" >&2
 				__warmsgf "(response empty)"
 				if ((HERR<=${HERR_DEF:=1}*5)) && ((MTURN+OPTRESUME)) \
@@ -3078,7 +3025,7 @@ else
 					then   ADJ_INPUT="${*:-$REPLY}"
 					  ((HERR+=HERR_DEF*2)) ;BAD_RES=1 PSKIP=1; set --
 					  __warmsgf "Adjusting context:" -$((HERR_DEF+HERR))%
-					 ((!OPTTIK)) && ((HERR<HERR_DEF*4)) && _sysmsgf 'TIP:' "Set \`option -y' to use Tiktoken!"
+					 ((!OPTTIK)) && ((HERR<HERR_DEF*4)) && _sysmsgf 'Tip:' "Set \`option -y' to use Tiktoken!"
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
 				fi
@@ -3115,7 +3062,7 @@ else
 
 		((++MAIN_LOOP)) ;set --
 		unset INSTRUCTION TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC Q
-		unset role rest tkn tkn_ans ans buff glob out var ret s n
+		unset role rest tkn tkn_ans ans buff glob out var ret_pr s n
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
