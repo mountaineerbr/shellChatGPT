@@ -208,7 +208,7 @@ Chat Commands
        !i      !info            Info on model and session settings.
        !j      !jump            Jump to request, append response primer.
       !!j     !!jump            Jump to request, no response priming.
-      !sh      !shell [CMD]     Run command, grab and edit output.
+      !sh      !shell    [CMD]  Run command, grab and edit output.
      !!sh     !!shell           Open an interactive shell and exit.
     --- Script Settings -------------------------------------------
        -g      !stream          Toggle response streaming.
@@ -254,7 +254,7 @@ Chat Commands
        !f      !fork     [DEST_HIST]
                                 Fork current session to destination.
        !k      !kill     [NUM]  Comment out n last entries in hist file.
-      !!k     !!kill     [NUM]  Dry-run of command !kill.
+      !!k     !!kill  [[0]NUM]  Dry-run of command !kill.
        !s      !session  [HIST_FILE]
                                 Change to, search for, or create hist file.
       !!s     !!session  [HIST_FILE]

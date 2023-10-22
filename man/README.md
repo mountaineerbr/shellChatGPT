@@ -255,7 +255,7 @@ or “`/`”.
 | `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                   |
 | `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.                       |
 | `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.              |
-| `!!k`   | `!!kill` \[*NUM*\]                     | Dry-run of command `!kill`.                                |
+| `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                                |
 | `!s`    | `!session` \[*HIST_FILE*\]             | Change to, search for, or create history file.             |
 | `!!s`   | `!!session` \[*HIST_FILE*\]            | Same as `!session`, break session.                         |
 

@@ -258,7 +258,7 @@ may be either "`!`", or "`/`".
       `!c`    `!copy` \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
       `!f`    `!fork`      \[_DEST_HIST_]              Fork current session to destination.
       `!k`    `!kill`      \[_NUM_]                    Comment out _n_ last entries in history file.
-     `!!k`    `!!kill`     \[_NUM_]                    Dry-run of command `!kill`.
+     `!!k`    `!!kill`     \[\[_0_]_NUM_]              Dry-run of command `!kill`.
       `!s`    `!session`   \[_HIST_FILE_]              Change to, search for, or create history file.
      `!!s`    `!!session`  \[_HIST_FILE_]              Same as `!session`, break session.
   --------    -------------------------------------    -----------------------------------------------------------
