@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.20 | General Commands Manual
+% CHATGPT.SH(1) v0.20.1 | General Commands Manual
 % mountaineerbr
 % October 2023
 
@@ -202,64 +202,65 @@ may be either "`!`", or "`/`".
 
 
   Misc        Commands
-  --------    ---------------------    -------------------------------------------------------
-      `-z`    `!last`                  Print last response json.
-      `!i`    `!info`                  Information on model and session settings.
-      `!j`    `!jump`                  Jump to request, append start seq primer (text cmpls).
-     `!!j`    `!!jump`                 Jump to request, no response priming.
-     `!sh`    `!shell` \[_CMD_]        Run command, grab and edit output.
-    `!!sh`    `!!shell`                Open an interactive shell and exit.
-  --------    ---------------------    -------------------------------------------------------
+  --------    -----------------------    -------------------------------------------------------
+      `-z`    `!last`                    Print last response json.
+      `!i`    `!info`                    Information on model and session settings.
+      `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
+     `!!j`    `!!jump`                   Jump to request, no response priming.
+     `!sh`    `!shell`     \[_CMD_]      Run command, grab and edit output.
+    `!!sh`    `!!shell`                  Open an interactive shell and exit.
+  --------    -----------------------    -------------------------------------------------------
 
   Script      Settings
-  --------    ---------------------    -------------------------------------------------------
-      `-g`    `!stream`                Toggle response streaming.
-      `-l`    `!models`                List language model names.
-      `-o`    `!clip`                  Copy responses to clipboard.
-      `-u`    `!multi`                 Toggle multiline prompter, \<_CTRL-D_> flush.
-      `-U`    `!cat`                   Toggle cat prompter, \<_CTRL-D_> flush.
-      `-V`    `!context`               Print context before request (see `option -HH`).
-     `-VV`    `!debug`                 Dump raw request block and confirm.
-      `-v`    `!ver`                   Toggle verbose modes.
-      `-x`    `!ed`                    Toggle text editor interface.
-     `-xx`    `!!ed`                   Single-shot text editor.
-      `-y`    `!tik`                   Toggle python tiktoken use.
-      `!q`    `!quit`                  Exit. Bye.
-      `!r`    `!regen`                 Regenerate last response.
-      `!?`    `!help`                  Print a help snippet.
-  --------    ---------------------    -------------------------------------------------------
+  --------    -----------------------    -------------------------------------------------------
+      `-g`    `!stream`                  Toggle response streaming.
+      `-l`    `!models`                  List language model names.
+      `-o`    `!clip`                    Copy responses to clipboard.
+      `-u`    `!multi`                   Toggle multiline prompter, \<_CTRL-D_> flush.
+      `-U`    `!cat`                     Toggle cat prompter, \<_CTRL-D_> flush.
+      `-V`    `!context`                 Print context before request (see `option -HH`).
+     `-VV`    `!debug`                   Dump raw request block and confirm.
+      `-v`    `!ver`                     Toggle verbose modes.
+      `-x`    `!ed`                      Toggle text editor interface.
+     `-xx`    `!!ed`                     Single-shot text editor.
+      `-y`    `!tik`                     Toggle python tiktoken use.
+      `!q`    `!quit`                    Exit. Bye.
+      `!r`    `!regen`                   Regenerate last response.
+      `!?`    `!help`                    Print a help snippet.
+  --------    -----------------------    -------------------------------------------------------
 
   Model       Settings
   --------    -----------------------    --------------------------------------------
-   `-Nill`    `!Nill`                   Unset model max response (chat cmpls).
-      `-M`    `!NUM` `!max` \[_NUM_]    Set maximum response tokens.
-      `-N`    `!modmax`    \[_NUM_]     Set model token capacity.
-      `-a`    `!pre`       \[_VAL_]     Set presence penalty.
-      `-A`    `!freq`      \[_VAL_]     Set frequency penalty.
-      `-b`    `!best`      \[_NUM_]     Set best-of n results.
-      `-m`    `!mod`       \[_MOD_]     Set model by name.
-      `-n`    `!results`   \[_NUM_]     Set number of results.
-      `-p`    `!top`       \[_VAL_]     Set top_p.
-      `-r`    `!restart`   \[_SEQ_]     Set restart sequence.
-      `-R`    `!start`     \[_SEQ_]     Set start sequence.
-      `-s`    `!stop`      \[_SEQ_]     Set one stop sequence.
-      `-t`    `!temp`      \[_VAL_]     Set temperature.
-      `-w`    `!rec`                    Start audio record chat mode.
+   `-Nill`    `!Nill`                    Unset model max response (chat cmpls).
+      `-M`    `!NUM` `!max` \[_NUM_]     Set maximum response tokens.
+      `-N`    `!modmax`    \[_NUM_]      Set model token capacity.
+      `-a`    `!pre`       \[_VAL_]      Set presence penalty.
+      `-A`    `!freq`      \[_VAL_]      Set frequency penalty.
+      `-b`    `!best`      \[_NUM_]      Set best-of n results.
+      `-m`    `!mod`       \[_MOD_]      Set model by name.
+      `-n`    `!results`   \[_NUM_]      Set number of results.
+      `-p`    `!top`       \[_VAL_]      Set top_p.
+      `-r`    `!restart`   \[_SEQ_]      Set restart sequence.
+      `-R`    `!start`     \[_SEQ_]      Set start sequence.
+      `-s`    `!stop`      \[_SEQ_]      Set one stop sequence.
+      `-t`    `!temp`      \[_VAL_]      Set temperature.
+      `-w`    `!rec`                     Start audio record chat mode.
   --------    -----------------------    --------------------------------------------
 
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
       `-`     `!list`                                  List history files (_tsv_).
-      `-`     `!sub` \[_REGEX_]                        Search sessions (for regex) and copy session to hist tail.
+      `-`     `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
       `-c`    `!new`                                   Start new session.
       `-H`    `!hist`                                  Edit history in editor.
      `-HH`    `!req`                                   Print context request immediately (see `option -V`).
-      `-L`    `!log` \[_FILEPATH_]                     Save to log file.
+      `-L`    `!log`       \[_FILEPATH_]               Save to log file.
       `!c`    `!copy` \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
-      `!f`    `!fork` \[_DEST_HIST_]                   Fork current session to destination.
-      `!k`    `!kill`                                  Comment out last entry in history file.
-      `!s`    `!session` \[_HIST_FILE_]                Change to, search for, or create history file.
-     `!!s`    `!!session` \[_HIST_FILE_]               Same as `!session`, break session.
+      `!f`    `!fork`      \[_DEST_HIST_]              Fork current session to destination.
+      `!k`    `!kill`      \[_NUM_]                    Comment out _n_ last entries in history file.
+     `!!k`    `!!kill`     \[_NUM_]                    Dry-run of command `!kill`.
+      `!s`    `!session`   \[_HIST_FILE_]              Change to, search for, or create history file.
+     `!!s`    `!!session`  \[_HIST_FILE_]              Same as `!session`, break session.
   --------    -------------------------------------    -----------------------------------------------------------
 
 

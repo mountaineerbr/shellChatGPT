@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.20 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.20.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.20 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.20.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2023</p>
 </header>
@@ -492,76 +492,74 @@ prompt to set a new parameter. The command operator may be either
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><code>-Nill</code></td>
-<td style="text-align: left;"><code>!Nill</code> U</td>
-<td>nset model max response (chat cmpls).</td>
+<td style="text-align: left;"><code>!Nill</code></td>
+<td>Unset model max response (chat cmpls).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-M</code></td>
 <td style="text-align: left;"><code>!NUM</code> <code>!max</code>
-[<em>NUM</em>] S</td>
-<td>et maximum response tokens.</td>
+[<em>NUM</em>]</td>
+<td>Set maximum response tokens.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-N</code></td>
-<td style="text-align: left;"><code>!modmax</code> [<em>NUM</em>] S</td>
-<td>et model token capacity.</td>
+<td style="text-align: left;"><code>!modmax</code> [<em>NUM</em>]</td>
+<td>Set model token capacity.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-a</code></td>
-<td style="text-align: left;"><code>!pre</code> [<em>VAL</em>] S</td>
-<td>et presence penalty.</td>
+<td style="text-align: left;"><code>!pre</code> [<em>VAL</em>]</td>
+<td>Set presence penalty.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-A</code></td>
-<td style="text-align: left;"><code>!freq</code> [<em>VAL</em>] S</td>
-<td>et frequency penalty.</td>
+<td style="text-align: left;"><code>!freq</code> [<em>VAL</em>]</td>
+<td>Set frequency penalty.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-b</code></td>
-<td style="text-align: left;"><code>!best</code> [<em>NUM</em>] S</td>
-<td>et best-of n results.</td>
+<td style="text-align: left;"><code>!best</code> [<em>NUM</em>]</td>
+<td>Set best-of n results.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-m</code></td>
-<td style="text-align: left;"><code>!mod</code> [<em>MOD</em>] S</td>
-<td>et model by name.</td>
+<td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
+<td>Set model by name.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-n</code></td>
-<td style="text-align: left;"><code>!results</code> [<em>NUM</em>]
-S</td>
-<td>et number of results.</td>
+<td style="text-align: left;"><code>!results</code> [<em>NUM</em>]</td>
+<td>Set number of results.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-p</code></td>
-<td style="text-align: left;"><code>!top</code> [<em>VAL</em>] S</td>
-<td>et top_p.</td>
+<td style="text-align: left;"><code>!top</code> [<em>VAL</em>]</td>
+<td>Set top_p.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-r</code></td>
-<td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]
-S</td>
-<td>et restart sequence.</td>
+<td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]</td>
+<td>Set restart sequence.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-R</code></td>
-<td style="text-align: left;"><code>!start</code> [<em>SEQ</em>] S</td>
-<td>et start sequence.</td>
+<td style="text-align: left;"><code>!start</code> [<em>SEQ</em>]</td>
+<td>Set start sequence.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-s</code></td>
-<td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>] S</td>
-<td>et one stop sequence.</td>
+<td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>]</td>
+<td>Set one stop sequence.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-t</code></td>
-<td style="text-align: left;"><code>!temp</code> [<em>VAL</em>] S</td>
-<td>et temperature.</td>
+<td style="text-align: left;"><code>!temp</code> [<em>VAL</em>]</td>
+<td>Set temperature.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-w</code></td>
-<td style="text-align: left;"><code>!rec</code> S</td>
-<td>tart audio record chat mode.</td>
+<td style="text-align: left;"><code>!rec</code></td>
+<td>Start audio record chat mode.</td>
 </tr>
 </tbody>
 </table>
@@ -618,16 +616,21 @@ S</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!k</code></td>
-<td style="text-align: left;"><code>!kill</code></td>
-<td>Comment out last entry in history file.</td>
+<td style="text-align: left;"><code>!kill</code> [<em>NUM</em>]</td>
+<td>Comment out <em>n</em> last entries in history file.</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>!!k</code></td>
+<td style="text-align: left;"><code>!!kill</code> [<em>NUM</em>]</td>
+<td>Dry-run of command <code>!kill</code>.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!s</code></td>
 <td style="text-align: left;"><code>!session</code>
 [<em>HIST_FILE</em>]</td>
 <td>Change to, search for, or create history file.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!s</code></td>
 <td style="text-align: left;"><code>!!session</code>
 [<em>HIST_FILE</em>]</td>

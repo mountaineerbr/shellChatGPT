@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20  oct/2023  by mountaineerbr  GPL+3
+# v0.20.1  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
@@ -253,7 +253,8 @@ Chat Commands
                                 Copy session from source to destination.
        !f      !fork     [DEST_HIST]
                                 Fork current session to destination.
-       !k      !kill            Comment out last entry in history file.
+       !k      !kill     [NUM]  Comment out n last entries in hist file.
+      !!k     !!kill     [NUM]  Dry-run of command !kill.
        !s      !session  [HIST_FILE]
                                 Change to, search for, or create hist file.
       !!s     !!session  [HIST_FILE]
@@ -1051,7 +1052,7 @@ function set_maxtknf
 #check input and run a chat command
 function cmd_runf
 {
-	typeset var wc args skip map
+	typeset var wc args skip n
 	[[ ${*} = *([$IFS:])[/!-]* ]] || return $?
 	printf "${NC}" >&2
 
@@ -1228,14 +1229,23 @@ function cmd_runf
 		-z|last)
 			lastjsonf >&2
 			;;
-		k|kill)  #kill hist entry
-			if map=$(grep -n -e '^\s*[^#]' "$FILECHAT")
-			then 	map=($(cut -d : -f 1 <<<"$map"))
-				set -- ${map[$((${#map[@]}-1))]}
-				if sed -i -e "${1} s/^/#/" "$FILECHAT"
-				then 	var=$(sed -n -e "${1} s/\\t/ /gp" "$FILECHAT")
-					printf "Commented out line %d: %.60s%s\\n" \
-					"${1}" "${var}" "$( ((${#var}>60)) && echo ' [...]')" >&2
+		[/!]k*|k*)  #kill num hist entries
+			typeset IFS dry; IFS=$'\n';
+			[[ ${n:=${*//[!0-9]}} = 0* || $* = [/!]* ]] \
+			&& n=${n##*([/!0])} dry=4; ((n>0)) || n=1
+			if var=($(grep -n -e '^\s*[^#]' "$FILECHAT" \
+				| tail -n $n | cut -c 1-160 | sed -e 's/\s/ /g'))
+			then
+				((n<${#var[@]})) || n=${#var[@]}
+				wc=$((COLUMNS>50 ? COLUMNS-6+dry : 60))
+				printf "kill${dry:+\\b\\b\\b\\b}:%.${wc}s\\n" "${var[@]}" >&2
+				if ((!dry))
+				then
+					set --
+					for ((n=n;n>0;n--))
+					do 	set -- -e "${var[${#var[@]}-n]%%:*} s/^/#/" "$@"
+					done
+					sed -i "$@" "$FILECHAT"
 				fi
 			fi
 			;;
@@ -2363,7 +2373,7 @@ function session_mainf
 		_cmdmsgf 'Session' "$msg ${break:+ + session break}"
 
 		#break session?
-		((!MTURN && OPTRESUME)) || {
+		((OPTRESUME==1)) || {
 		  [[ -f "$file" ]] &&
 		    if ((break))  || {
 		    	_sysmsgf 'Break session?' '[N/ys] ' ''
@@ -3061,7 +3071,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 
 		((++MAIN_LOOP)) ;set --
-		unset INSTRUCTION TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC Q
+		unset INSTRUCTION OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC Q
 		unset role rest tkn tkn_ans ans buff glob out var ret_pr s n
 		((MTURN && !OPTEXIT)) || break
 	done
@@ -3071,12 +3081,7 @@ fi
 # - Debug command performance by line in Bash:
 #   set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: '
 # - <https://help.openai.com/en/articles/6654000>
-
-# GPT-4 Image Upload
-# Gpt-4 model only. .png, .jpeg, .jpg, and non-animated .gif.
-# May upload multiple images at once, max 20MB per image.
-#<https://help.openai.com/en/articles/8400551>
-# Voice-Out Limits and Formats: Juniper, Sky, Cove, Ember, Breeze.
-#<https://help.openai.com/en/articles/8400625>
+# - <https://help.openai.com/en/articles/8400551> gpt-4 image uplod
+# - <https://help.openai.com/en/articles/8400625> text-to-audio
 
 # vim=syntax sync minlines=3200
