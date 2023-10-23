@@ -267,22 +267,23 @@ E.g.: “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”, and “`/s`
 The script uses a *TSV file* to record entries, which is kept at the
 script cache directory. A new history file can be created, or an
 existing one changed to with command “`/session` \[*HIST_FILE*\]”, in
-which *HIST_FILE* is the file name of, or path to, a history file.
+which *HIST_FILE* is the file name of (with or without the *.tsv*
+extension), or path to, a history file.
 
 When the first postional argument to the script is the command operator
 forward slash followed by a history file name, the command `/session` is
 assumed.
 
 A history file can contain many sessions. The last one (the tail
-session) is always read if the resume `option -C` is set. To continue a
-previous session than the tail session of history file, run chat command
-“`/copy` \[*SRC_HIST_FILE*\] \[*DEST_HIST_FILE*\]”.
+session) is always read if the resume `option -C` is set.
 
-It is also possible to copy a session of a history file to another one.
-
-If “`/copy` *current*” is run, select a session to copy to the tail of
-the current history file (or another history file) and resume. This is
+If “`/copy` *current*” is run, a selector is shown to choose and copy a
+session to the tail of the current history file, and resume it. This is
 equivalent to running “`/fork`”.
+
+It is also possible to copy sessions of a history file to another file
+when a second argument is given to the command with the history file
+name, such as “`/copy` \[*SRC_HIST_FILE*\] \[*DEST_HIST_FILE*\]”.
 
 In order to change the chat context at run time, the history file may be
 edited with the “`/hist`” command (also for context injection). Delete

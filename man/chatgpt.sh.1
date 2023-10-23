@@ -638,7 +638,8 @@ The script uses a \f[I]TSV file\f[R] to record entries, which is kept at
 the script cache directory.
 A new history file can be created, or an existing one changed to with
 command \[lq]\f[CR]/session\f[R] [\f[I]HIST_FILE\f[R]]\[rq], in which
-\f[I]HIST_FILE\f[R] is the file name of, or path to, a history file.
+\f[I]HIST_FILE\f[R] is the file name of (with or without the
+\f[I].tsv\f[R] extension), or path to, a history file.
 .PP
 When the first postional argument to the script is the command operator
 forward slash followed by a history file name, the command
@@ -647,16 +648,16 @@ forward slash followed by a history file name, the command
 A history file can contain many sessions.
 The last one (the tail session) is always read if the resume
 \f[CR]option -C\f[R] is set.
-To continue a previous session than the tail session of history file,
-run chat command \[lq]\f[CR]/copy\f[R] [\f[I]SRC_HIST_FILE\f[R]]
-[\f[I]DEST_HIST_FILE\f[R]]\[rq].
 .PP
-It is also possible to copy a session of a history file to another one.
-.PP
-If \[lq]\f[CR]/copy\f[R] \f[I]current\f[R]\[rq] is run, select a session
-to copy to the tail of the current history file (or another history
-file) and resume.
+If \[lq]\f[CR]/copy\f[R] \f[I]current\f[R]\[rq] is run, a selector is
+shown to choose and copy a session to the tail of the current history
+file, and resume it.
 This is equivalent to running \[lq]\f[CR]/fork\f[R]\[rq].
+.PP
+It is also possible to copy sessions of a history file to another file
+when a second argument is given to the command with the history file
+name, such as \[lq]\f[CR]/copy\f[R] [\f[I]SRC_HIST_FILE\f[R]]
+[\f[I]DEST_HIST_FILE\f[R]]\[rq].
 .PP
 In order to change the chat context at run time, the history file may be
 edited with the \[lq]\f[CR]/hist\f[R]\[rq] command (also for context
