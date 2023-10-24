@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.3  oct/2023  by mountaineerbr  GPL+3
+# v0.20.4  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
@@ -1663,7 +1663,7 @@ function whisperf
 	then 	file="$1"; shift;
 	elif (($#)) && [[ -e ${@:${#}} && ${@:${#}} = *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
 	then 	file="${@:${#}}"; set -- "${@:1:$((${#}-1))}";
-	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "$1" >&2
+	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "${1:-nill}" >&2
 		return 1
 	fi ;[[ -e $1 ]] && shift  #get rid of eventual second filename
 	
