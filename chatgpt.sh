@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.1  oct/2023  by mountaineerbr  GPL+3
+# v0.20.2  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
@@ -609,7 +609,7 @@ function block_printf
 {
 	if ((OPTVV>1))
 	then 	printf '%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"
-		printf '\n%s\n' '<Ctrl-D> redo, <Ctrl-C> exit, <ENTER> continue'
+		printf '\n%s\n' '<Ctrl-D> redo, <Ctrl-C> exit, <Enter> continue'
 		typeset REPLY; read </dev/tty || return 200
 	else 	((STREAM)) && set -- -j
 		jq -r "$@" '.instruction//empty, .input//empty,
@@ -1041,7 +1041,7 @@ function set_maxtknf
 	elif [[ $* = *[0-9][!0-9][0-9]* ]]
 	then 	OPTMAX="${*##${*%[!0-9]*}}" MODMAX="${*%%"$OPTMAX"}"
 		OPTMAX="${OPTMAX##[!0-9]}" OPTMAX_NILL=0
-	elif [[ -n ${*//[!0-9]} ]]
+	elif [[ $* = *[0-9]* ]]
 	then 	OPTMAX="${*//[!0-9]}" OPTMAX_NILL=0
 	fi
 	if ((OPTMAX>MODMAX))
@@ -1338,7 +1338,7 @@ function cmd_runf
 			;;
 	esac ;echo >&2
 	if ((OPTX)) && ((!(REGEN+skip) )) 
-	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" '* Press ENTER to CONTINUE * ' >&2
+	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" '* Press Enter to Continue * ' >&2
 		__read_charf >/dev/null
 	fi ;return 0
 }
@@ -1573,7 +1573,7 @@ function start_compf {     START=$(escapef "$(unescapef "${*:-$START}")")   STAR
 function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
-	then 	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}" '* Press ENTER to START record * ' >&2
+	then 	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}" '* Press Enter to Start record * ' >&2
 		case "$(__read_charf)" in [AaNnQq]|$'\e') 	return 201;; esac
 		__clr_lineupf 33  #!#
 	fi
@@ -2716,7 +2716,7 @@ then 	__sysmsgf 'Text Edits'
 	editf "$@"
 else
 	#custom / awesome prompts
-	if [[ $INSTRUCTION = [/%.,]* ]] && ((!OPTW))
+	if [[ $INSTRUCTION = [/%.,]* ]]  #&& ((!OPTW))
 	then 	if [[ $INSTRUCTION = [/%]* ]]
 		then 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
 			awesomef || exit
