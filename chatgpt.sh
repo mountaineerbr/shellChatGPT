@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.2  oct/2023  by mountaineerbr  GPL+3
+# v0.20.3  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
@@ -86,6 +86,7 @@ CONFFILE="${CHATGPTRC:-$HOME/.chatgpt.conf}"
 # Set file paths
 FILE="${CACHEDIR%/}/chatgpt.json"
 FILECHAT="${FILECHAT:-${CACHEDIR%/}/chatgpt.tsv}"
+FILEWHISPER="${FILECHAT%/*}/whisper.json"
 FILETXT="${CACHEDIR%/}/chatgpt.txt"
 FILEOUT="${OUTDIR%/}/dalle_out.png"
 FILEIN="${CACHEDIR%/}/dalle_in.png"
@@ -745,8 +746,10 @@ function prompt_audiof
 		-F model="$MOD" \
 		-F temperature="$OPTT" \
 		-o "$FILE" \
-		"${@:2}" \
-	&& { 	[[ \ ${OPTV:+-s}\  = *\ -s\ * ]] || __clr_lineupf; ((MTURN)) || echo >&2 ;}
+		"${@:2}" && {
+	  [[ \ ${OPTV:+-s}\  = *\ -s\ * ]] || __clr_lineupf; ((MTURN)) || echo >&2
+	  if [[ -d $CACHEDIR ]]; then 	printf '%s\n\n' "$(<"$FILE")" >> "$FILEWHISPER"; fi
+	}
 }
 
 function list_modelsf
@@ -2716,7 +2719,7 @@ then 	__sysmsgf 'Text Edits'
 	editf "$@"
 else
 	#custom / awesome prompts
-	if [[ $INSTRUCTION = [/%.,]* ]]  #&& ((!OPTW))
+	if [[ $INSTRUCTION = [/%.,]* ]]
 	then 	if [[ $INSTRUCTION = [/%]* ]]
 		then 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
 			awesomef || exit
@@ -2731,7 +2734,8 @@ else
 
 	#text/chat completions
 	[[ -f $1 ]] && set -- "$(<"$1")" "${@:2}"  #load file (1st arg)
-	((OPTW)) && { 	INPUT_ORIG=("$@") ;unset OPTX ;set -- ;}  #whisper input
+	INPUT_ORIG=("$@")
+	((OPTW)) && { 	unset OPTX ;set -- ;}  #whisper input
 	if ((OPTC))
 	then 	__sysmsgf 'Chat Completions'
 		#chatbot must sound like a human, shouldnt be lobotomised
