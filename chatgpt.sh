@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.4  oct/2023  by mountaineerbr  GPL+3
+# v0.20.5  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
@@ -625,7 +625,7 @@ function new_prompt_confirmf
 	typeset REPLY
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${1:+, te[x]t editor}, [r]edo, or [a]bort " ''
-	REPLY=$(__read_charf); __clr_lineupf 64 #!#
+	REPLY=$(__read_charf); __clr_lineupf $((8+40${1:++15}+1)) #!#
 	case "${REPLY}" in
 		[AaQq]) 	return 201;;  #break
 		[Rr]) 	return 200;;          #redo
@@ -1316,7 +1316,7 @@ function cmd_runf
 					[!Ss]|'') 	SKIP=1 EDIT=1;
 							printf '\n%s\n' '---' >&2; break;;  #yes
 				esac ;set --
-			done ;__clr_lineupf 61 #!#
+			done ;__clr_lineupf $((12+55+1)) #!#
 			((${#args[@]})) && shell_histf "!${args[*]}"
 			;;
 		[/!]session*|session*|list*|copy*|fork*|sub|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *)
