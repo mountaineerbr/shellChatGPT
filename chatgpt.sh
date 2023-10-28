@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.5  oct/2023  by mountaineerbr  GPL+3
+# v0.20.6  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
@@ -1324,7 +1324,7 @@ function cmd_runf
 			session_mainf /"${args[@]}"
 			;;
 		r|regenerate|regen|[$IFS]|[/!]|'')  #regenerate last response
-			REGEN=1 SKIP=1 EDIT=1 REPLY=
+			REGEN=1 SKIP=1 PSKIP=1 EDIT=1 REPLY=
 			if ((!BAD_RES)) && [[ -f "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
 			then 	# comment out two lines from tail
