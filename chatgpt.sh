@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.7  oct/2023  by mountaineerbr  GPL+3
+# v0.20.8  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
@@ -229,7 +229,7 @@ Chat Commands
        !r      !regen           Regenerate last response.
        !?      !help            Print this help snippet.
     --- Model Settings --------------------------------------------
-      -Nill    !Nill            Unset model max response (chat cmpls).
+      -Nill    !Nill            Toggle model max response (chat cmpls).
        -M      !NUM !max [NUM]  Set max response tokens.
        -N      !modmax   [NUM]  Set model token capacity.
        -a      !pre      [VAL]  Set presence penalty.
@@ -429,7 +429,7 @@ ENDPOINTS=(
 #set model endpoint based on its name
 function set_model_epnf
 {
-	unset OPTE OPTEMBED TKN_ADJ
+	unset OPTE OPTEMBED TKN_ADJ EPN6
 	case "$1" in
 		*whisper*) 		((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	case "$1" in
@@ -443,7 +443,7 @@ function set_model_epnf
 					*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		gpt-4*|gpt-3.5*|gpt-*|*turbo*) 		EPN=6 OPTB= OPTBB=
+		gpt-4*|gpt-3.5*|gpt-*|*turbo*) 		EPN=6 EPN6=6  OPTB= OPTBB=
 				((OPTC)) && OPTC=2
 				#set token adjustment per message
 				case "$MOD" in
@@ -633,8 +633,8 @@ function new_prompt_confirmf
 		[AaQq]) 	return 201;;  #break
 		[Rr]) 	return 200;;          #redo
 		[Ee]) 	return 199;;          #edit
-		[VvXx]) 	return 198;;  #text editor one-shot
-		[UuMm]) 	return 197;;  #multiline one-shot
+		[VvXx]) 	return 198;;  #text editor
+		[UuMm]) 	return 197;;  #multiline
 		[Nn]|$'\e') 	unset REC_OUT ;return 1;;  #no
 	esac  #yes
 }
@@ -1047,7 +1047,7 @@ function set_maxtknf
 
 	case "$*" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
-			OPTMAX_NILL=1;;
+			((OPTMAX_NILL)) && unset OPTMAX_NILL || OPTMAX_NILL=1;;
 		*[0-9][!0-9][0-9]*)
 			OPTMAX="${*##${*%[!0-9]*}}" MODMAX="${*%%"$OPTMAX"}"
 			OPTMAX="${OPTMAX##[!0-9]}" OPTMAX_NILL= ;;
@@ -1073,7 +1073,7 @@ function cmd_runf
 	case "$*" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
 			set_maxtknf nill
-			__cmdmsgf 'Max Response' "$OPTMAX${OPTMAX_NILL:+ - inf.} tkns"
+			__cmdmsgf 'Max Response' "$OPTMAX${EPN6:+${OPTMAX_NILL:+ - inf.}} tkns"
 			;;
 		-[0-9]*|[0-9]*|-M*|[Mm]ax*|\
 		-N*|[Mm]odmax*)
@@ -1087,7 +1087,7 @@ function cmd_runf
 			if ((HERR))
 			then 	unset HERR
 				_sysmsgf 'Context Length:' 'error reset'
-			fi ;__cmdmsgf 'Max Response / Capacity' "$OPTMAX${OPTMAX_NILL:+ - inf.} / $MODMAX tkns"
+			fi ;__cmdmsgf 'Max Response / Capacity' "$OPTMAX${EPN6:+${OPTMAX_NILL:+ - inf.}} / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
 			set -- "${*//[!0-9.]}"
@@ -1157,7 +1157,7 @@ function cmd_runf
 			set_model_epnf "$MOD"; model_capf "$MOD"
 			send_tiktokenf '/END_TIKTOKEN/'
 			__cmdmsgf 'Model Name' "$MOD"
-			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+ - inf.} / $MODMAX tkns"
+			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${EPN6:+${OPTMAX_NILL:+ - inf.}} / $MODMAX tkns"
 			;;
 		-n*|results*)
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
@@ -1265,7 +1265,7 @@ function cmd_runf
 			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
 			model-name   "${MOD:-?}" \
 			model-cap    "${MODMAX:-?}" \
-			response-max "${OPTMAX:-?}${OPTMAX_NILL:+ - inf.}" \
+			response-max "${OPTMAX:-?}${EPN6:+${OPTMAX_NILL:+ - inf.}}" \
 			context-prev "${MAX_PREV:-?}" \
 			tiktoken     "${OPTTIK:-0}" \
 			temperature  "${OPTT:-0}" \
@@ -2640,7 +2640,7 @@ edf "$@" && set -- "$(<"$FILETXT")"  #editor
 
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
-	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+ - inf.} / $MODMAX tkns"
+	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${EPN6:+${OPTMAX_NILL:+ - inf.}} / $MODMAX tkns"
      		if ((${#})) && [[ ! -f $1 ]]
 		then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 			__sysmsgf "Prompt:" "~$TKN_PREV tokens"
@@ -2838,7 +2838,7 @@ else
 				case $? in
 					201) 	break 2;;  #abort
 					200) 	continue 2;;  #redo
-					19[89]) 	edf "${REPLY:-$*}" || break 2;;  #edit
+					19[789]) 	edf "${REPLY:-$*}" || break 2;;  #edit
 					0) 	set -- "$REPLY" ; break;;  #yes
 					*) 	set -- ; break;;  #no
 				esac

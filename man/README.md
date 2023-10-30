@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2023
-title: CHATGPT.SH(1) v0.20.7 \| General Commands Manual
+title: CHATGPT.SH(1) v0.20.8 \| General Commands Manual
 ---
 
 ### NAME
@@ -229,22 +229,22 @@ or “`/`”.
 | `!r`   | `!regen`          | Regenerate last response.                                 |
 | `!?`   | `!help`           | Print a help snippet.                                     |
 
-| Model   | Settings                |                                        |
-|:--------|:------------------------|----------------------------------------|
-| `-Nill` | `!Nill`                 | Unset model max response (chat cmpls). |
-| `-M`    | `!NUM` `!max` \[*NUM*\] | Set maximum response tokens.           |
-| `-N`    | `!modmax` \[*NUM*\]     | Set model token capacity.              |
-| `-a`    | `!pre` \[*VAL*\]        | Set presence penalty.                  |
-| `-A`    | `!freq` \[*VAL*\]       | Set frequency penalty.                 |
-| `-b`    | `!best` \[*NUM*\]       | Set best-of n results.                 |
-| `-m`    | `!mod` \[*MOD*\]        | Set model by name.                     |
-| `-n`    | `!results` \[*NUM*\]    | Set number of results.                 |
-| `-p`    | `!top` \[*VAL*\]        | Set top_p.                             |
-| `-r`    | `!restart` \[*SEQ*\]    | Set restart sequence.                  |
-| `-R`    | `!start` \[*SEQ*\]      | Set start sequence.                    |
-| `-s`    | `!stop` \[*SEQ*\]       | Set one stop sequence.                 |
-| `-t`    | `!temp` \[*VAL*\]       | Set temperature.                       |
-| `-w`    | `!rec`                  | Start audio record chat mode.          |
+| Model   | Settings                |                                         |
+|:--------|:------------------------|-----------------------------------------|
+| `-Nill` | `!Nill`                 | Toggle model max response (chat cmpls). |
+| `-M`    | `!NUM` `!max` \[*NUM*\] | Set maximum response tokens.            |
+| `-N`    | `!modmax` \[*NUM*\]     | Set model token capacity.               |
+| `-a`    | `!pre` \[*VAL*\]        | Set presence penalty.                   |
+| `-A`    | `!freq` \[*VAL*\]       | Set frequency penalty.                  |
+| `-b`    | `!best` \[*NUM*\]       | Set best-of n results.                  |
+| `-m`    | `!mod` \[*MOD*\]        | Set model by name.                      |
+| `-n`    | `!results` \[*NUM*\]    | Set number of results.                  |
+| `-p`    | `!top` \[*VAL*\]        | Set top_p.                              |
+| `-r`    | `!restart` \[*SEQ*\]    | Set restart sequence.                   |
+| `-R`    | `!start` \[*SEQ*\]      | Set start sequence.                     |
+| `-s`    | `!stop` \[*SEQ*\]       | Set one stop sequence.                  |
+| `-t`    | `!temp` \[*VAL*\]       | Set temperature.                        |
+| `-w`    | `!rec`                  | Start audio record chat mode.           |
 
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|

@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.20.7 | General Commands Manual
+CHATGPT.SH(1) v0.20.8 | General Commands Manual
 mountaineerbr
 October 2023
 
@@ -219,8 +219,8 @@ or “/”.
   !?       !help             Print a help snippet.
 
   Model   Settings          
-  ------- ----------------- ----------------------------------------
-  -Nill   !Nill             Unset model max response (chat cmpls).
+  ------- ----------------- -----------------------------------------
+  -Nill   !Nill             Toggle model max response (chat cmpls).
   -M      !NUM !max [NUM]   Set maximum response tokens.
   -N      !modmax [NUM]     Set model token capacity.
   -a      !pre [VAL]        Set presence penalty.
