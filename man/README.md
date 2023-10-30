@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2023
-title: CHATGPT.SH(1) v0.20.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.20.7 \| General Commands Manual
 ---
 
 ### NAME
@@ -210,22 +210,24 @@ or “`/`”.
 | `!sh`  | `!shell` \[*CMD*\] | Run command, grab and edit output.                     |
 | `!!sh` | `!!shell`          | Open an interactive shell and exit.                    |
 
-| Script | Settings   |                                                  |
-|:-------|:-----------|--------------------------------------------------|
-| `-g`   | `!stream`  | Toggle response streaming.                       |
-| `-l`   | `!models`  | List language model names.                       |
-| `-o`   | `!clip`    | Copy responses to clipboard.                     |
-| `-u`   | `!multi`   | Toggle multiline prompter, \<*CTRL-D*\> flush.   |
-| `-U`   | `!cat`     | Toggle cat prompter, \<*CTRL-D*\> flush.         |
-| `-V`   | `!context` | Print context before request (see `option -HH`). |
-| `-VV`  | `!debug`   | Dump raw request block and confirm.              |
-| `-v`   | `!ver`     | Toggle verbose modes.                            |
-| `-x`   | `!ed`      | Toggle text editor interface.                    |
-| `-xx`  | `!!ed`     | Single-shot text editor.                         |
-| `-y`   | `!tik`     | Toggle python tiktoken use.                      |
-| `!q`   | `!quit`    | Exit. Bye.                                       |
-| `!r`   | `!regen`   | Regenerate last response.                        |
-| `!?`   | `!help`    | Print a help snippet.                            |
+| Script | Settings and UX   |                                                           |
+|:-------|:------------------|-----------------------------------------------------------|
+| `-g`   | `!stream`         | Toggle response streaming.                                |
+| `-l`   | `!models`         | List language model names.                                |
+| `-o`   | `!clip`           | Copy responses to clipboard.                              |
+| `-u`   | `!multi`          | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
+| `-uu`  | `!!multi`         | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
+| `-U`   | `-UU`             | Toggle cat prompter. or set one-shot. \<*CTRL-D*\> flush. |
+| `-`    | `!cat` \[*FILE*\] | Cat prompter as one-shot, or cat file.                    |
+| `-V`   | `!context`        | Print context before request (see `option -HH`).          |
+| `-VV`  | `!debug`          | Dump raw request block and confirm.                       |
+| `-v`   | `!ver`            | Toggle verbose modes.                                     |
+| `-x`   | `!ed`             | Toggle text editor interface.                             |
+| `-xx`  | `!!ed`            | Single-shot text editor.                                  |
+| `-y`   | `!tik`            | Toggle python tiktoken use.                               |
+| `!q`   | `!quit`           | Exit. Bye.                                                |
+| `!r`   | `!regen`          | Regenerate last response.                                 |
+| `!?`   | `!help`           | Print a help snippet.                                     |
 
 | Model   | Settings                |                                        |
 |:--------|:------------------------|----------------------------------------|

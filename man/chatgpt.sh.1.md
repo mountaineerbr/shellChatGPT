@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.20.1 | General Commands Manual
+% CHATGPT.SH(1) v0.20.7 | General Commands Manual
 % mountaineerbr
 % October 2023
 
@@ -211,13 +211,15 @@ may be either "`!`", or "`/`".
     `!!sh`    `!!shell`                  Open an interactive shell and exit.
   --------    -----------------------    -------------------------------------------------------
 
-  Script      Settings
-  --------    -----------------------    -------------------------------------------------------
+  Script      Settings and UX
+  --------    -----------------------    ----------------------------------------------------------
       `-g`    `!stream`                  Toggle response streaming.
       `-l`    `!models`                  List language model names.
       `-o`    `!clip`                    Copy responses to clipboard.
-      `-u`    `!multi`                   Toggle multiline prompter, \<_CTRL-D_> flush.
-      `-U`    `!cat`                     Toggle cat prompter, \<_CTRL-D_> flush.
+      `-u`    `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
+     `-uu`    `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
+      `-U`    `-UU`                      Toggle cat prompter. or set one-shot. \<_CTRL-D_> flush.
+       `-`    `!cat`       \[_FILE_]     Cat prompter as one-shot, or cat file.
       `-V`    `!context`                 Print context before request (see `option -HH`).
      `-VV`    `!debug`                   Dump raw request block and confirm.
       `-v`    `!ver`                     Toggle verbose modes.
@@ -227,7 +229,7 @@ may be either "`!`", or "`/`".
       `!q`    `!quit`                    Exit. Bye.
       `!r`    `!regen`                   Regenerate last response.
       `!?`    `!help`                    Print a help snippet.
-  --------    -----------------------    -------------------------------------------------------
+  --------    -----------------------    ----------------------------------------------------------
 
   Model       Settings
   --------    -----------------------    --------------------------------------------
@@ -249,8 +251,8 @@ may be either "`!`", or "`/`".
 
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
-      `-`     `!list`                                  List history files (_tsv_).
-      `-`     `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
+       `-`    `!list`                                  List history files (_tsv_).
+       `-`    `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
       `-c`    `!new`                                   Start new session.
       `-H`    `!hist`                                  Edit history in editor.
      `-HH`    `!req`                                   Print context request immediately (see `option -V`).

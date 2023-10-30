@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.6  oct/2023  by mountaineerbr  GPL+3
+# v0.20.7  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 
 # OpenAI API key
@@ -211,12 +211,14 @@ Chat Commands
       !!j     !!jump            Jump to request, no response priming.
       !sh      !shell    [CMD]  Run command, grab and edit output.
      !!sh     !!shell           Open an interactive shell and exit.
-    --- Script Settings -------------------------------------------
+    --- Script Settings and UX ------------------------------------
        -g      !stream          Toggle response streaming.
        -l      !models          List language model names.
        -o      !clip            Copy responses to clipboard.
        -u      !multi           Toggle multiline, ctrl-d flush.
-       -U      !cat             Toggle cat prompter, ctrl-d flush.
+       -uu    !!multi           Multiline, one-shot, ctrl-d flush.
+       -U      -UU              Toggle cat prompter, or set one-shot.
+        -      !cat      [FILE] Cat prompter (once, ctrd-d), or cat file.
        -V      !context         Print context before request (see -HH).
        -VV     !debug           Dump raw request block and confirm.
        -v      !ver             Toggle verbose modes.
@@ -227,7 +229,7 @@ Chat Commands
        !r      !regen           Regenerate last response.
        !?      !help            Print this help snippet.
     --- Model Settings --------------------------------------------
-       -Nill   !Nill            Unset model max response (chat cmpls).
+      -Nill    !Nill            Unset model max response (chat cmpls).
        -M      !NUM !max [NUM]  Set max response tokens.
        -N      !modmax   [NUM]  Set model token capacity.
        -a      !pre      [VAL]  Set presence penalty.
@@ -622,15 +624,17 @@ function block_printf
 #prompt confirmation prompter
 function new_prompt_confirmf
 {
-	typeset REPLY
+	typeset REPLY extra
+	(($#)) && extra=", te[x]t editor, m[u]ltiline"
 
-	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${1:+, te[x]t editor}, [r]edo, or [a]bort " ''
-	REPLY=$(__read_charf); __clr_lineupf $((8+40${1:++15}+1)) #!#
+	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
+	REPLY=$(__read_charf); __clr_lineupf $((8+40+1+${#extra})) #!#
 	case "${REPLY}" in
 		[AaQq]) 	return 201;;  #break
 		[Rr]) 	return 200;;          #redo
 		[Ee]) 	return 199;;          #edit
-		[VvXx]) 	return 198;;  #text editor
+		[VvXx]) 	return 198;;  #text editor one-shot
+		[UuMm]) 	return 197;;  #multiline one-shot
 		[Nn]|$'\e') 	unset REC_OUT ;return 1;;  #no
 	esac  #yes
 }
@@ -1033,20 +1037,23 @@ function set_sizef
 	esac ;return 0
 }
 
+# Nill, null, none, inf; Nil, nul; -N---, --- (chat);
+GLOB_NILL='?([Nn])[OoIiUu][NnLl][EeLlFf]' GLOB_NILL2='?([Nn])[IiUu][Ll]' GLOB_NILL3='?([Nn])-*(-)'
 function set_maxtknf
 {
 	typeset buff
 	set -- "${*:-$OPTMAX}"
 	set -- "${*##[+-]}" ;set -- "${*%%[+-]}"
 
-	if [[ $* = ?([Nn])[OoIiUu][NnLl][EeLlFf] ]]  #Nill, null, none, inf
-	then 	OPTMAX_NILL=1
-	elif [[ $* = *[0-9][!0-9][0-9]* ]]
-	then 	OPTMAX="${*##${*%[!0-9]*}}" MODMAX="${*%%"$OPTMAX"}"
-		OPTMAX="${OPTMAX##[!0-9]}" OPTMAX_NILL=0
-	elif [[ $* = *[0-9]* ]]
-	then 	OPTMAX="${*//[!0-9]}" OPTMAX_NILL=0
-	fi
+	case "$*" in
+		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
+			OPTMAX_NILL=1;;
+		*[0-9][!0-9][0-9]*)
+			OPTMAX="${*##${*%[!0-9]*}}" MODMAX="${*%%"$OPTMAX"}"
+			OPTMAX="${OPTMAX##[!0-9]}" OPTMAX_NILL= ;;
+		*[0-9]*)
+			OPTMAX="${*//[!0-9]}" OPTMAX_NILL= ;;
+	esac
 	if ((OPTMAX>MODMAX))
 	then 	buff="$MODMAX" MODMAX="$OPTMAX" OPTMAX="$buff" 
 	fi
@@ -1064,9 +1071,9 @@ function cmd_runf
 	((${#1}<320)) || return $?
 
 	case "$*" in
-		?(-)?([Nn])[OoIiUu][NnLl][EeLlFf])  #Nill, null, none, inf
-			__cmdmsgf 'Max Response' "nill (chat cmpls) else $OPTMAX tkns"
+		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
 			set_maxtknf nill
+			__cmdmsgf 'Max Response' "$OPTMAX${OPTMAX_NILL:+ - inf.} tkns"
 			;;
 		-[0-9]*|[0-9]*|-M*|[Mm]ax*|\
 		-N*|[Mm]odmax*)
@@ -1080,7 +1087,7 @@ function cmd_runf
 			if ((HERR))
 			then 	unset HERR
 				_sysmsgf 'Context Length:' 'error reset'
-			fi ;__cmdmsgf 'Max Response / Capacity' "$OPTMAX / $MODMAX tkns"
+			fi ;__cmdmsgf 'Max Response / Capacity' "$OPTMAX${OPTMAX_NILL:+ - inf.} / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
 			set -- "${*//[!0-9.]}"
@@ -1150,7 +1157,7 @@ function cmd_runf
 			set_model_epnf "$MOD"; model_capf "$MOD"
 			send_tiktokenf '/END_TIKTOKEN/'
 			__cmdmsgf 'Model Name' "$MOD"
-			__cmdmsgf 'Model Capacity' "$MODMAX"
+			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+ - inf.} / $MODMAX tkns"
 			;;
 		-n*|results*)
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
@@ -1209,6 +1216,7 @@ function cmd_runf
 			__cmdmsgf 'Debug Request' $(_onoff $OPTVV)
 			;;
 		-xx|[/!]editor|[/!]ed|[/!]vim|[/!]vi)
+			((!OPTX)) && __cmdmsgf 'Text Editor' 'one-shot'
 			((OPTX)) || OPTX=2; REPLY= skip=1
 			;;
 		-x|editor|ed|vim|vi)
@@ -1257,7 +1265,7 @@ function cmd_runf
 			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
 			model-name   "${MOD:-?}" \
 			model-cap    "${MODMAX:-?}" \
-			response-max "${OPTMAX:-?}$( ((OPTMAX_NILL && EPN==6)) && printf %s ' - inf.' )" \
+			response-max "${OPTMAX:-?}${OPTMAX_NILL:+ - inf.}" \
 			context-prev "${MAX_PREV:-?}" \
 			tiktoken     "${OPTTIK:-0}" \
 			temperature  "${OPTT:-0}" \
@@ -1270,24 +1278,34 @@ function cmd_runf
 			insert-mode  "${OPTSUFFIX:-unset}" \
 			streaming    "${STREAM:-unset}" \
 			clipboard    "${OPTCLIP:-unset}" \
-			cat-prompter "${CATPR:-unset}" \
 			ctrld-prpter "${OPTCTRD:-unset}" \
+			cat-prompter "${CATPR:-unset}" \
 			restart-seq  "\"$( ((OPTC)) && printf '%s' "${RESTART:-$Q_TYPE}" || printf '%s' "${RESTART:-unset}")\"" \
 			start-seq    "\"$( ((OPTC)) && printf '%s' "${START:-$A_TYPE}"   || printf '%s' "${START:-unset}")\"" \
 			stop-seqs    "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
 			history-file "${FILECHAT/"$HOME"/"~"}"  >&2
 			printf '\033[1A' >&2  #one line up <https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html>
 			;;
-		-u|multi|multiline)
-			((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
-			__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD)
-			((OPTCTRD)) && __warmsgf 'Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * '
+		-u|multi|multiline|-uu*(u)|[/!]multi|[/!]multiline)
+			case "$*" in
+				-uu*|[/!]multi|[/!]multiline)
+					((OPTCTRD)) || OPTCTRD=2;
+					((OPTCTRD==2)) && __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot';;
+				*) 	((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
+					__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD)
+					((OPTCTRD)) && __warmsgf 'Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * ';;
+			esac
 			;;
-		-U)
-			((++CATPR)) ;((CATPR%=2))
-			__cmdmsgf 'Cat Prompter' $(_onoff $CATPR)
+		-U|-UU*(U))
+			case "$*" in
+				-UU*) 	((CATPR)) || CATPR=2;
+					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot";;
+				*) 	((++CATPR)) ;((CATPR%=2))
+					__cmdmsgf 'Cat Prompter' $(_onoff $CATPR);;
+			esac
 			;;
-		cat*)
+		cat*|[/!-]cat*)
+			set -- "${*##[/!-]}"
 			if [[ $* = cat*[!$IFS]* ]]
 			then 	cmd_runf /sh "${@}"
 			else 	printf '%s\n' '* Press <Ctrl-D> to flush * ' >&2
@@ -2622,7 +2640,7 @@ edf "$@" && set -- "$(<"$FILETXT")"  #editor
 
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
-	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX / $MODMAX tkns"
+	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+ - inf.} / $MODMAX tkns"
      		if ((${#})) && [[ ! -f $1 ]]
 		then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 			__sysmsgf "Prompt:" "~$TKN_PREV tokens"
@@ -2789,8 +2807,7 @@ else
 	((OPTCTRD)) && {    echo >&2  #warnings and tips
 	    __warmsgf 'Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * '
 	} || {    ((CATPR)) && echo >&2 ;}
-	((OPTCTRD+CATPR)) &&
-	    __warmsgf 'Tip:' '* <Ctrl-D> to flush input * '
+	((OPTCTRD+CATPR)) && __warmsgf 'Tip:' '* <Ctrl-D> to flush input * '
 	echo >&2  #!#
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
@@ -2863,10 +2880,10 @@ else
 						REPLY=$(cat)
 					else
 						[[ $REPLY != *$'\n'* ]] || ((OPTCTRD)) || {
-						  OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot'; }
+						  OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot' ;}
 						IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$REPLY" REPLY
 					fi </dev/tty
-					((OPTCTRD)) && REPLY=${REPLY%%*($'\r')}
+					((OPTCTRD+CATPR)) && { REPLY=${REPLY%%*($'\r')}; echo >&2 ;}
 				fi ;printf "${NC}" >&2
 				
 				if [[ $REPLY = *\\ ]]
@@ -2876,6 +2893,7 @@ else
 					set -- ;continue
 				elif [[ $REPLY = /cat*([$IFS]) ]]
 				then 	((CATPR)) || CATPR=2 ;REPLY= SKIP=1
+					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"
 					set -- ;continue
 				elif cmd_runf "$REPLY"
 				then 	shell_histf "$REPLY"
@@ -2895,7 +2913,11 @@ else
 						200) 	WSKIP=1 ;continue;;  #redo
 						199) 	WSKIP=1 EDIT=1; continue;;   #edit
 						198) 	((OPTX)) || OPTX=2
-							set -- ;continue 2;; #text editor
+							((OPTX==2)) && printf '\n%s\n' '--- text editor one-shot ---' >&2
+							set -- ;continue 2;; #text editor one-shot
+						197) 	EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
+							((OPTCTRD==2)) && printf '\n%s\n' '--- prompter <ctr-d> one-shot ---' >&2
+							REPLY="$REPLY"$'\n'; set -- ;continue;; #multiline one-shot
 						0) 	:;;                  #yes
 						*) 	unset REPLY; set -- ;break;; #no
 					esac
@@ -2911,6 +2933,7 @@ else
 					set --
 				fi ;set -- "$REPLY"
 				((OPTCTRD==1)) || unset OPTCTRD
+				((CATPR==1)) || unset CATPR
 				unset WSKIP SKIP EDIT B Q i
 				break
 			done
