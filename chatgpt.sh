@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.8  oct/2023  by mountaineerbr  GPL+3
+# v0.20.9  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
+export COLUMNS 
 
 # OpenAI API key
 #OPENAI_API_KEY=
@@ -1073,7 +1074,7 @@ function cmd_runf
 	case "$*" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
 			set_maxtknf nill
-			__cmdmsgf 'Max Response' "$OPTMAX${EPN6:+${OPTMAX_NILL:+ - inf.}} tkns"
+			__cmdmsgf 'Max Response' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} tkns"
 			;;
 		-[0-9]*|[0-9]*|-M*|[Mm]ax*|\
 		-N*|[Mm]odmax*)
@@ -1087,7 +1088,7 @@ function cmd_runf
 			if ((HERR))
 			then 	unset HERR
 				_sysmsgf 'Context Length:' 'error reset'
-			fi ;__cmdmsgf 'Max Response / Capacity' "$OPTMAX${EPN6:+${OPTMAX_NILL:+ - inf.}} / $MODMAX tkns"
+			fi ;__cmdmsgf 'Max Response / Capacity' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
 			set -- "${*//[!0-9.]}"
@@ -1157,7 +1158,7 @@ function cmd_runf
 			set_model_epnf "$MOD"; model_capf "$MOD"
 			send_tiktokenf '/END_TIKTOKEN/'
 			__cmdmsgf 'Model Name' "$MOD"
-			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${EPN6:+${OPTMAX_NILL:+ - inf.}} / $MODMAX tkns"
+			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 			;;
 		-n*|results*)
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
@@ -1265,7 +1266,7 @@ function cmd_runf
 			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
 			model-name   "${MOD:-?}" \
 			model-cap    "${MODMAX:-?}" \
-			response-max "${OPTMAX:-?}${EPN6:+${OPTMAX_NILL:+ - inf.}}" \
+			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
 			context-prev "${MAX_PREV:-?}" \
 			tiktoken     "${OPTTIK:-0}" \
 			temperature  "${OPTT:-0}" \
@@ -2640,7 +2641,7 @@ edf "$@" && set -- "$(<"$FILETXT")"  #editor
 
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
-	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${EPN6:+${OPTMAX_NILL:+ - inf.}} / $MODMAX tkns"
+	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
      		if ((${#})) && [[ ! -f $1 ]]
 		then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 			__sysmsgf "Prompt:" "~$TKN_PREV tokens"
