@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.9  oct/2023  by mountaineerbr  GPL+3
+# v0.20.10  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
-export COLUMNS 
+export COLUMNS
 
 # OpenAI API key
 #OPENAI_API_KEY=
@@ -495,6 +495,7 @@ function _promptf
 	typeset chunk str n
 	json_minif
 	
+	printf 'X\b' >&2
 	if ((STREAM))
 	then 	set -- -s "$@" -S -L --no-buffer
 		__promptf "$@" | while IFS= read -r chunk
@@ -540,10 +541,11 @@ function promptf
 	fi & pid=$! sig="INT"  #catch <CTRL-C>
 	
 	trap "kill -- $pid;
-		trap 'coproc_killf' $sig;
-		echo >&2; return 130" $sig  #zsh = always return 128+2
-	wait $pid; echo >&2
-	trap 'coproc_killf' $sig
+	      trap 'coproc_killf' $sig;
+	      echo >&2; return 130" $sig;
+	
+	wait $pid; echo >&2;
+	trap 'coproc_killf' $sig;
 
 	if ((OPTCLIP)) || [[ ! -t 1 ]]
 	then 	typeset out ;out=$(
@@ -919,7 +921,8 @@ function get_tiktokenf
 	kill -0 $COPROC_PID 2>/dev/null || return
 	while IFS= read -r
 		((!${#REPLY}))
-	do 	((++m)); ((m>800)) && break
+	do 	((++m)); ((m>128)) && break
+		((m%32)) || sleep 0.1s
 	done <&"${COPROC[0]}"
 	if ((!${#REPLY}))
 	then  	! __warmsgf 'Err:' 'get_tiktokenf()'
@@ -931,7 +934,7 @@ function get_tiktokenf
 function start_tiktokenf
 {
 	if ((OPTTIK)) && ! kill -0 $COPROC_PID 2>/dev/null
-	then 	coproc { 	PYTHONUNBUFFERED=1 HOPTTIK=1 tiktokenf ;}
+	then 	trap '' INT; coproc { 	PYTHONUNBUFFERED=1 HOPTTIK=1 tiktokenf ;}
 		trap 'coproc_killf' $SIG_TRAP
 	fi
 }
@@ -939,7 +942,7 @@ function start_tiktokenf
 function coproc_killf
 {
 	if ((COPROC_PID))
-	then 	kill -- $COPROC_PID 2>/dev/null
+	then 	kill -- $COPROC_PID 2>/dev/null  #SIGTERM
 	fi; exit  #exit script
 }
 
@@ -3027,10 +3030,10 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 		fi; ((OPTC)) && echo >&2
 
 		#request and response prompts
-		promptf; ret_pr=$?
-		((STREAM)) && ((MTURN || EPN==6)) && echo >&2
-		(( (ret_pr>120 && !STREAM) || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue; }
-		((ret_pr>120)) && INT_RES='#'; REPLY_OLD="${REPLY:-$*}"
+		promptf; RET_PRF=$?;
+		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
+		(( (RET_PRF>120 && !STREAM) || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue ;}
+		((RET_PRF>120)) && INT_RES='#'; REPLY_OLD="${REPLY:-$*}";
 
 		#record to hist file
 		if 	if ((STREAM))  #no token information in response
@@ -3050,7 +3053,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 				done
 			fi
 			
-			if [[ -z "$ans" ]] && ((ret_pr<120))
+			if [[ -z "$ans" ]] && ((RET_PRF<120))
 			then 	jq 'if .error then . else empty end' "$FILE" >&2 || cat -- "$FILE" >&2
 				__warmsgf "(response empty)"
 				if ((HERR<=${HERR_DEF:=1}*5)) && ((MTURN+OPTRESUME)) \
@@ -3099,8 +3102,8 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 
 		((++MAIN_LOOP)) ;set --
-		unset INSTRUCTION OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC Q
-		unset role rest tkn tkn_ans ans buff glob out var ret_pr s n
+		unset INSTRUCTION OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC RET_PRF Q
+		unset role rest tkn tkn_ans ans buff glob out var s n
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
