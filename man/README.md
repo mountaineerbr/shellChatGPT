@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: October 2023
-title: CHATGPT.SH(1) v0.20.12 \| General Commands Manual
+date: November 2023
+title: CHATGPT.SH(1) v0.20.14 \| General Commands Manual
 ---
 
 ### NAME
@@ -202,14 +202,14 @@ While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “`!`”,
 or “`/`”.
 
-| Misc   | Commands           |                                                        |
-|:-------|:-------------------|--------------------------------------------------------|
-| `-z`   | `!last`            | Print last response json.                              |
-| `!i`   | `!info`            | Information on model and session settings.             |
-| `!j`   | `!jump`            | Jump to request, append start seq primer (text cmpls). |
-| `!!j`  | `!!jump`           | Jump to request, no response priming.                  |
-| `!sh`  | `!shell` \[*CMD*\] | Run command, grab and edit output.                     |
-| `!!sh` | `!!shell`          | Open an interactive shell and exit.                    |
+| Misc   | Commands            |                                                        |
+|:-------|:--------------------|--------------------------------------------------------|
+| `-z`   | `!last`             | Print last response json.                              |
+| `!i`   | `!info`             | Information on model and session settings.             |
+| `!j`   | `!jump`             | Jump to request, append start seq primer (text cmpls). |
+| `!!j`  | `!!jump`            | Jump to request, no response priming.                  |
+| `!sh`  | `!shell` \[*CMD*\]  | Run shell, or *command*, and edit output.              |
+| `!!sh` | `!!shell` \[*CMD*\] | Run interactive shell (with *command*) and exit.       |
 
 | Script | Settings and UX   |                                                           |
 |:-------|:------------------|-----------------------------------------------------------|

@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.20.12 | General Commands Manual
+% CHATGPT.SH(1) v0.20.14 | General Commands Manual
 % mountaineerbr
-% October 2023
+% November 2023
 
 
 ### NAME
@@ -208,8 +208,8 @@ may be either "`!`", or "`/`".
       `!i`    `!info`                    Information on model and session settings.
       `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
      `!!j`    `!!jump`                   Jump to request, no response priming.
-     `!sh`    `!shell`     \[_CMD_]      Run command, grab and edit output.
-    `!!sh`    `!!shell`                  Open an interactive shell and exit.
+     `!sh`    `!shell`     \[_CMD_]      Run shell, or _command_, and edit output.
+    `!!sh`    `!!shell`    \[_CMD_]      Run interactive shell (with _command_) and exit.
   --------    -----------------------    -------------------------------------------------------
 
   Script      Settings and UX

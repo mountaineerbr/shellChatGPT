@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.13  oct/2023  by mountaineerbr  GPL+3
+# v0.20.14  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 export COLUMNS
 
@@ -210,8 +210,8 @@ Chat Commands
        !i      !info            Info on model and session settings.
        !j      !jump            Jump to request, append response primer.
       !!j     !!jump            Jump to request, no response priming.
-      !sh      !shell    [CMD]  Run command, grab and edit output.
-     !!sh     !!shell           Open an interactive shell and exit.
+      !sh      !shell    [CMD]  Run shell, or command, and edit output.
+     !!sh     !!shell    [CMD]  Run interactive shell (w/ cmd) and exit.
     --- Script Settings and UX ------------------------------------
        -g      !stream          Toggle response streaming.
        -l      !models          List language model names.
@@ -498,7 +498,7 @@ function _promptf
 	
 	printf '✘\b' >&2
 	if ((STREAM))
-	then 	set -- -s "$@" -S -L --no-buffer
+	then 	set -- -s "$@" -S -L --no-buffer; : >"$FILE"  #clear buffer asap
 		__promptf "$@" | while IFS= read -r chunk
 		do 	chunk=${chunk##*([$' \t'])[Dd][Aa][Tt][Aa]:*([$' \t'])}
 			[[ $chunk = *([$IFS]) ]] && continue
@@ -508,8 +508,7 @@ function _promptf
 					str='text":"'
 					chunk="${chunk/${str}+${SPC1##\*}/$str}"
 					[[ $chunk = *"${str}"\",* ]] && continue
-				}
-				((++n)) ;: >"$FILE"
+				}; ((++n));
 			fi
 			tee -a "$FILE" <<<"$chunk"
 		done
@@ -794,7 +793,7 @@ function lastjsonf
 #set up context from history file ($HIST and $HIST_C)
 function set_histf
 {
-	typeset time token string max_prev q_type a_type role role_old rest a_append sub ind herr m
+	typeset time token string max_prev q_type a_type role role_old rest a_append com sub ind herr m
 	[[ -s $FILECHAT ]] || return; unset HIST HIST_C; 
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
@@ -805,7 +804,7 @@ function set_histf
 	while __spinf
 		IFS=$'\t' read -r time token string
 	do
-		[[ ${OPTHH##?}${time}${token} = *([$IFS])\#* ]] && continue
+		[[ ${time}${token} = *([$IFS])\#* ]] && { ((OPTHH>2)) && com=1 || continue ;}
 		[[ ${time}${token} = *[Bb][Rr][Ee][Aa][Kk]* ]] && break
 		[[ -z ${time}${token}${string} ]] && continue
 		if [[ -z $string ]]
@@ -832,7 +831,7 @@ function set_histf
 		if (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX))
 		then
 			((max_prev+=token)); ((MAIN_LOOP)) || ((TOTAL_OLD+=token))
-			MAX_PREV=$((max_prev+TKN_PREV))  HIST_TIME="${time}"
+			MAX_PREV=$((max_prev+TKN_PREV))  HIST_TIME="${time###}"
 
 			#:|| #debug
 			if ((OPTC))
@@ -858,6 +857,9 @@ function set_histf
 					fi
 					;;
 			esac
+			
+			#print commented out lines with $OPTHH>2
+			((com)) && stringc=$(sed 's/\\n/\\n# /g' <<<"${rest}${stringc}") rest= com=
 			
 			HIST="${rest}${stringc}${HIST}"
 			((EPN==6)) && HIST_C="$(fmt_ccf "${stringc}" "${role}")${HIST_C:+,}${HIST_C}"
@@ -1167,7 +1169,7 @@ function cmd_runf
 			_cmdmsgf $'\nLog file' "<${USRLOG}>"
 			;;
 		models*)
-			list_modelsf "${*##models*([$IFS])}"
+			list_modelsf "${*##models*([$IFS])}" | less >&2
 			;;
 		-m*|model*|mod*)
 			set -- "${*##@(-m|model|mod)}"; set -- "${1//[$IFS]}"
@@ -1334,13 +1336,15 @@ function cmd_runf
 			fi ;skip=1
 			;;
 		[/!]sh*)
-			bash -i
-			printf '\n%s' Prompt: >&2
-			EDIT=1 REPLY=;
+			set -- "${*##[/!]sh?(ell)*([$IFS])}"
+			if [[ -n $1 ]]
+			then 	bash -i -c "${1%%;}; exit"
+			else 	bash -i
+			fi </dev/tty;
 			;;
 		shell*|sh*)
 			set -- "${*##sh?(ell)*([$IFS])}"
-			[[ -n $* ]] || set --  ;skip=1
+			[[ -n $* ]] || set --; skip=1
 			while :
 			do 	REPLY=$(bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR); echo >&2
 				#abort on empty
@@ -1349,8 +1353,8 @@ function cmd_runf
 				_sysmsgf 'Edit buffer?' '[Y]es, [n]o, [e]dit, te[x]t editor, [s]hell, or [r]edo ' ''
 				case "$(__read_charf)" in
 					[AaQqRr]) 	SKIP=1 EDIT=1 REPLY="!${args[*]}"; break;;  #abort, redo
-					[Ee]) 		SKIP=1 EDIT=1; break;; #yes, read / vared
-					[VvXx]) 	((OPTX)) || OPTX=2 ;break;; #yes, text editor
+					[Ee]) 		SKIP=1 EDIT=1; break;; #yes, read cmd
+					[VvXx]) 	SKIP=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
 					[NnQq]|$'\e') 	SKIP=1 PSKIP=1; break;;  #no need to edit
 					[!Ss]|'') 	SKIP=1 EDIT=1;
 							printf '\n%s\n' '---' >&2; break;;  #yes
@@ -2075,7 +2079,7 @@ function custom_prf
 
 	FILECHAT="${filechat%/*}/${file##*/}"
 	FILECHAT="${FILECHAT%%.[Pp][Rr]}.tsv"
-	if ((OPTHH))
+	if ((OPTHH && OPTHH<=4))
 	then 	session_sub_fifof "$FILECHAT"
 		return
 	fi
@@ -2388,7 +2392,7 @@ function session_mainf
 	done
 
 	#print hist option
-	if ((OPTHH))
+	if ((OPTHH && OPTHH<=4))
 	then 	session_sub_fifof "$name"
 		return
 	#copy/fork session to destination
@@ -2688,11 +2692,20 @@ command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 
 if ((OPTHH))  #edit history/pretty print last session
 then
-	[[ $INSTRUCTION = [.,]* ]] && custom_prf
-	((${#})) && session_mainf "/${1##/}" "${@:2}"
+	[[ $INSTRUCTION = [.,]* ]] && OPTRESUME=1 custom_prf
+	((${#})) && OPTRESUME=1 session_mainf "/${1##/}" "${@:2}"
 	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
-	if ((OPTHH>1))
-	then 	((OPTHH>2)) && OPTHH=3000
+
+	if ((OPTHH>4))
+	then
+		cmd=(cat) var='';
+		((OPTHH>5)) && cmd=(perl -n -e 'print unless /^\s*#/') var='Deep ';
+		
+		"${cmd[@]}" -- "$FILECHAT" | perl -0777 -p -e "s/BREAK\s*\n\N*\n\s*SESSION\s*//g" &&
+			_sysmsgf 'Tip:' 'diff output and replace the history file manually.' &&
+			__cmdmsgf "Hist ${var}Clean" "$FILECHAT"
+	elif ((OPTHH>1))
+	then
 		((OPTC || EPN==6)) && OPTC=2
 		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1
 		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
@@ -2916,11 +2929,13 @@ else
 				elif [[ $REPLY = /cat*([$IFS]) ]]
 				then 	((CATPR)) || CATPR=2 ;REPLY= SKIP=1
 					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"
-					set -- ;continue
+					set -- ;continue  #A#
 				elif cmd_runf "$REPLY"
 				then 	shell_histf "$REPLY"
-					((REGEN)) && REPLY="${REPLY_OLD:-$REPLY}"
-					SKIP=1 ;set -- ;continue 2
+					if ((REGEN))
+					then 	REPLY="${REPLY_OLD:-$REPLY}"
+					else 	((SKIP)) || REPLY=
+					fi; set --; continue 2
 				elif [[ ${REPLY} = */*([$IFS]) ]] && ((!OPTW)) #preview / regen cmds
 				then
 					((RETRY)) && prev_tohistf "$REPLY_OLD"  #record previous reply
@@ -2939,7 +2954,7 @@ else
 							set -- ;continue 2;; #text editor one-shot
 						197) 	EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
 							((OPTCTRD==2)) && printf '\n%s\n' '--- prompter <ctr-d> one-shot ---' >&2
-							REPLY="$REPLY"$'\n'; set -- ;continue;; #multiline one-shot
+							REPLY="$REPLY"$'\n'; set -- ;continue;; #multiline one-shot  #A#
 						0) 	:;;                  #yes
 						*) 	unset REPLY; set -- ;break;; #no
 					esac
@@ -3050,7 +3065,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 		#request and response prompts
 		promptf; RET_PRF=$?;
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
-		(( (RET_PRF>120 && !STREAM) || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue ;}
+		(( (RET_PRF>120 && !STREAM) || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B#
 		((RET_PRF>120)) && INT_RES='#'; REPLY_OLD="${REPLY:-$*}";
 
 		#record to hist file
@@ -3116,6 +3131,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi
+		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
 		((OPTW)) && { 	SLEEP_WORDS=$(wc -w <<<"${ans}") ;((STREAM)) && ((SLEEP_WORDS=(SLEEP_WORDS*2)/3)) ;((++SLEEP_WORDS)) ;}
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 
