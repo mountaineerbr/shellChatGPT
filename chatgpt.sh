@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.14  nov/2023  by mountaineerbr  GPL+3
+# v0.20.15  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 export COLUMNS
 
@@ -9,7 +9,7 @@ export COLUMNS
 
 # DEFAULTS
 # Text cmpls model
-MOD="gpt-3.5-turbo-instruct"
+MOD="davinci"
 # Chat cmpls model
 MOD_CHAT="gpt-3.5-turbo"
 # Edits model  (deprecated)
@@ -2697,7 +2697,7 @@ then
 	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
 
 	if ((OPTHH>4))
-	then
+	then  #clean history file: remove sessions with only one message, and commented out lines.
 		cmd=(cat) var='';
 		((OPTHH>5)) && cmd=(perl -n -e 'print unless /^\s*#/') var='Deep ';
 		

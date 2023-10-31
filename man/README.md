@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.20.14 \| General Commands Manual
+title: CHATGPT.SH(1) v0.20.15 \| General Commands Manual
 ---
 
 ### NAME
@@ -602,8 +602,7 @@ Set best of, must be greater than `option -n` (cmpls). Def=*1*.
 Request log probabilities, also see -z (cmpls, 0 - 5),
 
 **-m** \[*MODEL*\], **--model**=\[*MODEL*\]  
-Set language *MODEL* name. Def=*gpt-3.5-turbo-instruct*,
-*gpt-3.5-turbo*.
+Set language *MODEL* name. Def=*davinci*, *gpt-3.5-turbo*.
 
 Set *MODEL* name as “*.*” to pick from the list.
 
