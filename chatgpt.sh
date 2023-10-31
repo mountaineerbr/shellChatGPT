@@ -303,8 +303,8 @@ Options
 	-B [NUM], --logprobs=[NUM]
 		Request log probabilities, see -z (cmpls, 0 - 5),
 	-m [MOD], --model=[MOD]
-		Set language MODEL name, or set it with one character
-		to pick from list. Def=$MOD, $MOD_CHAT.
+		Set language MODEL name, or set it as \`.' to pick
+		from the list. Def=$MOD, $MOD_CHAT.
 	-n [NUM], --results=[NUM]
 		Set number of results. Def=$OPTN.
 	-p [VAL], --top-p=[VAL]

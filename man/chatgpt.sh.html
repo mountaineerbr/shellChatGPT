@@ -243,9 +243,8 @@ command operator and a history file name, the command
 “<code>/session</code> [<em>HIST_NAME</em>]” is assumed. This wil change
 to or create a new history file (with <code>options -ccCdHH</code>).</p>
 <p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
-<em>MODEL</em> as its name, or set it with a single character to pick
-from the model list. List available models with
-<code>option -l</code>.</p>
+<em>MODEL</em> as its name, or set it as “<em>.</em>” to pick from the
+model list. List available models with <code>option -l</code>.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
 defaults to 512 tokens.</p>
@@ -985,7 +984,7 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Set language <em>MODEL</em> name.
 Def=<em>gpt-3.5-turbo-instruct</em>, <em>gpt-3.5-turbo</em>.</p>
-<p>Set <em>MODEL</em> name as one character to pick from list.</p>
+<p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
 </dd>
 <dt><strong>-n</strong> [<em>NUM</em>],
 <strong>--results</strong>=[<em>NUM</em>]</dt>

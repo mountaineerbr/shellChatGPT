@@ -63,7 +63,7 @@ command "`/session` \[_HIST_NAME_]" is assumed. This wil
 change to or create a new history file (with `options -ccCdHH`).
 
 Set model with "`-m` \[_MODEL_]", with _MODEL_ as its name,
-or set it with a single character to pick from the model list.
+or set it as "_._" to pick from the model list.
 List available models with `option -l`.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
@@ -661,7 +661,7 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 :     Set language _MODEL_ name. Def=_gpt-3.5-turbo-instruct_, _gpt-3.5-turbo_.
 
-      Set _MODEL_ name as one character to pick from list.
+      Set _MODEL_ name as "_._" to pick from the list.
 
 
 **-n** \[_NUM_], **\--results**=\[_NUM_]

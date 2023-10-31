@@ -67,8 +67,8 @@ operator and a history file name, the command “`/session`
 file (with `options -ccCdHH`).
 
 Set model with “`-m` \[*MODEL*\]”, with *MODEL* as its name, or set it
-with a single character to pick from the model list. List available
-models with `option -l`.
+as “*.*” to pick from the model list. List available models with
+`option -l`.
 
 Set *maximum response tokens* with `option` “`-`*NUM*” or “`-M` *NUM*”.
 This defaults to 512 tokens.
@@ -605,7 +605,7 @@ Request log probabilities, also see -z (cmpls, 0 - 5),
 Set language *MODEL* name. Def=*gpt-3.5-turbo-instruct*,
 *gpt-3.5-turbo*.
 
-Set *MODEL* name as one character to pick from list.
+Set *MODEL* name as “*.*” to pick from the list.
 
 **-n** \[*NUM*\], **--results**=\[*NUM*\]  
 Set number of results. Def=*1*.
