@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.20.11 | General Commands Manual
+% CHATGPT.SH(1) v0.20.12 | General Commands Manual
 % mountaineerbr
 % October 2023
 
@@ -62,7 +62,8 @@ command operator and a history file name, the
 command "`/session` \[_HIST_NAME_]" is assumed. This wil
 change to or create a new history file (with `options -ccCdHH`).
 
-Set model with "`-m` \[_NAME_]" (full model name).
+Set model with "`-m` \[_MODEL_]", with _MODEL_ as its name,
+or set it with a single character to pick from the model list.
 List available models with `option -l`.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
@@ -239,7 +240,7 @@ may be either "`!`", or "`/`".
       `-a`    `!pre`       \[_VAL_]      Set presence penalty.
       `-A`    `!freq`      \[_VAL_]      Set frequency penalty.
       `-b`    `!best`      \[_NUM_]      Set best-of n results.
-      `-m`    `!mod`       \[_MOD_]      Set model by name.
+      `-m`    `!mod`       \[_MOD_]      Set model by name, empty to pick from list.
       `-n`    `!results`   \[_NUM_]      Set number of results.
       `-p`    `!top`       \[_VAL_]      Set top_p.
       `-r`    `!restart`   \[_SEQ_]      Set restart sequence.
@@ -619,7 +620,7 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-Nill**
 
-:     Unset model max response (chat cmpls only).
+: Unset model max response (chat cmpls only).
 
 
 **-NUM**
@@ -633,7 +634,7 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-N** \[_NUM_], **\--modmax**=\[_NUM_]
 
-:     Set _model capacity_ tokens. Def=_auto_, fallback=_2048_.
+: Set _model capacity_ tokens. Def=_auto_, fallback=_2048_.
 
 
 **-a** \[_VAL_], **\--presence-penalty**=\[_VAL_]
@@ -656,9 +657,11 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Request log probabilities, also see -z (cmpls, 0 - 5),
 
 
-**-m** \[_MOD_], **\--model**=\[_MOD_]
+**-m** \[_MODEL_], **\--model**=\[_MODEL_]
 
-: Set language MODEL name.
+:     Set language _MODEL_ name. Def=_gpt-3.5-turbo-instruct_, _gpt-3.5-turbo_.
+
+      Set _MODEL_ name as one character to pick from list.
 
 
 **-n** \[_NUM_], **\--results**=\[_NUM_]
@@ -858,7 +861,7 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Set OpenAI API key.
 
 
-**-l** \[_MOD_], **\--list-models**
+**-l** \[_MODEL_], **\--list-models**
 
 : List models or print details of _MODEL_.
 

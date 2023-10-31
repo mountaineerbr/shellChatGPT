@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.20.11 | General Commands Manual
+CHATGPT.SH(1) v0.20.12 | General Commands Manual
 mountaineerbr
 October 2023
 
@@ -59,7 +59,8 @@ operator and a history file name, the command “/session [HIST_NAME]” is
 assumed. This wil change to or create a new history file (with
 options -ccCdHH).
 
-Set model with “-m [NAME]” (full model name). List available models with
+Set model with “-m [MODEL]”, with MODEL as its name, or set it with a
+single character to pick from the model list. List available models with
 option -l.
 
 Set maximum response tokens with option “-NUM” or “-M NUM”. This
@@ -219,14 +220,14 @@ or “/”.
   !?       !help             Print a help snippet.
 
   Model   Settings          
-  ------- ----------------- -----------------------------------------
+  ------- ----------------- ---------------------------------------------
   -Nill   !Nill             Toggle model max response (chat cmpls).
   -M      !NUM !max [NUM]   Set maximum response tokens.
   -N      !modmax [NUM]     Set model token capacity.
   -a      !pre [VAL]        Set presence penalty.
   -A      !freq [VAL]       Set frequency penalty.
   -b      !best [NUM]       Set best-of n results.
-  -m      !mod [MOD]        Set model by name.
+  -m      !mod [MOD]        Set model by name, empty to pick from list.
   -n      !results [NUM]    Set number of results.
   -p      !top [VAL]        Set top_p.
   -r      !restart [SEQ]    Set restart sequence.
@@ -580,9 +581,11 @@ Model Settings
 
     Request log probabilities, also see -z (cmpls, 0 - 5),
 
--m [MOD], --model=[MOD]
+-m [MODEL], --model=[MODEL]
 
-    Set language MODEL name.
+    Set language MODEL name. Def=gpt-3.5-turbo-instruct, gpt-3.5-turbo.
+
+    Set MODEL name as one character to pick from list.
 
 -n [NUM], --results=[NUM]
 
@@ -754,7 +757,7 @@ Script Settings
 
     Set OpenAI API key.
 
--l [MOD], --list-models
+-l [MODEL], --list-models
 
     List models or print details of MODEL.
 

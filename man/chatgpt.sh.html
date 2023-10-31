@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.20.11 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.20.12 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.20.11 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.20.12 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2023</p>
 </header>
@@ -242,8 +242,10 @@ INSTRUCTION, if none set, and the following ones as
 command operator and a history file name, the command
 “<code>/session</code> [<em>HIST_NAME</em>]” is assumed. This wil change
 to or create a new history file (with <code>options -ccCdHH</code>).</p>
-<p>Set model with “<code>-m</code> [<em>NAME</em>]” (full model name).
-List available models with <code>option -l</code>.</p>
+<p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
+<em>MODEL</em> as its name, or set it with a single character to pick
+from the model list. List available models with
+<code>option -l</code>.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
 defaults to 512 tokens.</p>
@@ -535,7 +537,7 @@ flush.</td>
 <tr class="odd">
 <td style="text-align: left;"><code>-m</code></td>
 <td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
-<td>Set model by name.</td>
+<td>Set model by name, empty to pick from list.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-n</code></td>
@@ -978,10 +980,12 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Request log probabilities, also see -z (cmpls, 0 - 5),</p>
 </dd>
-<dt><strong>-m</strong> [<em>MOD</em>],
-<strong>--model</strong>=[<em>MOD</em>]</dt>
+<dt><strong>-m</strong> [<em>MODEL</em>],
+<strong>--model</strong>=[<em>MODEL</em>]</dt>
 <dd>
-<p>Set language MODEL name.</p>
+<p>Set language <em>MODEL</em> name.
+Def=<em>gpt-3.5-turbo-instruct</em>, <em>gpt-3.5-turbo</em>.</p>
+<p>Set <em>MODEL</em> name as one character to pick from list.</p>
 </dd>
 <dt><strong>-n</strong> [<em>NUM</em>],
 <strong>--results</strong>=[<em>NUM</em>]</dt>
@@ -1165,7 +1169,7 @@ and start sequences.</p>
 <dd>
 <p>Set OpenAI API key.</p>
 </dd>
-<dt><strong>-l</strong> [<em>MOD</em>],
+<dt><strong>-l</strong> [<em>MODEL</em>],
 <strong>--list-models</strong></dt>
 <dd>
 <p>List models or print details of <em>MODEL</em>.</p>

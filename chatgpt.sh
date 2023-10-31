@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.11  oct/2023  by mountaineerbr  GPL+3
+# v0.20.12  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 export COLUMNS
 
@@ -236,7 +236,7 @@ Chat Commands
        -a      !pre      [VAL]  Set presence penalty.
        -A      !freq     [VAL]  Set frequency penalty.
        -b      !best     [NUM]  Set best-of n results.
-       -m      !mod      [MOD]  Set model by name.
+       -m      !mod      [MOD]  Set model by name, or pick from list.
        -n      !results  [NUM]  Set number of results.
        -p      !top      [VAL]  Set top_p.
        -r      !restart  [SEQ]  Set restart sequence.
@@ -303,7 +303,8 @@ Options
 	-B [NUM], --logprobs=[NUM]
 		Request log probabilities, see -z (cmpls, 0 - 5),
 	-m [MOD], --model=[MOD]
-		Set language MODEL name.
+		Set language MODEL name, or set it with one character
+		to pick from list. Def=$MOD, $MOD_CHAT.
 	-n [NUM], --results=[NUM]
 		Set number of results. Def=$OPTN.
 	-p [VAL], --top-p=[VAL]
@@ -760,7 +761,7 @@ function prompt_audiof
 
 function list_modelsf
 {
-	curl "$APIURL/models${1:+/}${1}" \
+	curl -L "$APIURL/models${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-o "$FILE"
 
@@ -768,6 +769,19 @@ function list_modelsf
 	then  	jq . "$FILE" || cat -- "$FILE"
 	else 	jq -r '.data[].id' "$FILE" | sort
 	fi && printf '%s\n' moderation  #text-moderation-latest text-moderation-stable
+}
+
+function pick_modelf
+{
+	typeset REPLY mod
+	((${#MOD_LIST[@]})) || MOD_LIST=($(list_modelsf | grep "${@:--e.}")) #|| return
+	while ! ((REPLY && REPLY <= ${#MOD_LIST[@]}))
+	do 	echo $'\nPick a model:' >&2;
+		select mod in ${MOD_LIST[@]}
+		do 	break;
+		done;
+		[[ ${MOD_LIST[*]} = *" $REPLY "* ]] && mod=$REPLY && break;
+	done; MOD=${mod:-$MOD};
 }
 
 function lastjsonf
@@ -1156,7 +1170,11 @@ function cmd_runf
 			list_modelsf "${*##models*([$IFS])}"
 			;;
 		-m*|model*|mod*)
-			set -- "${*##@(-m|model|mod)}"; MOD="${*//[$IFS]}"
+			set -- "${*##@(-m|model|mod)}"; set -- "${1//[$IFS]}"
+			if ((${#1}<3))
+			then 	pick_modelf -v -e moderation -e search -e similarity -e embedding -e whisper
+			else 	MOD=${1:-$MOD};
+			fi
 			set_model_epnf "$MOD"; model_capf "$MOD"
 			send_tiktokenf '/END_TIKTOKEN/'
 			__cmdmsgf 'Model Name' "$MOD"
@@ -2610,6 +2628,7 @@ then 	MOD="$MOD_CHAT"
 elif ((OPTW)) && ((!MTURN))  #audio endpoint only
 then 	MOD="$MOD_AUDIO"
 fi
+((${#MOD}<3)) && pick_modelf 
 
 #set ``model endpoint'' and ``model capacity''
 [[ -n $EPN ]] || set_model_epnf "$MOD"
