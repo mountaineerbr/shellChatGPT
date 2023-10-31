@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.10  oct/2023  by mountaineerbr  GPL+3
+# v0.20.11  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 export COLUMNS
 
@@ -495,7 +495,7 @@ function _promptf
 	typeset chunk str n
 	json_minif
 	
-	printf 'X\b' >&2
+	printf '✘\b' >&2
 	if ((STREAM))
 	then 	set -- -s "$@" -S -L --no-buffer
 		__promptf "$@" | while IFS= read -r chunk
@@ -571,11 +571,10 @@ function __clr_lineupf
 
 # spin.bash -- provide a `spinning wheel' to show progress
 #  Copyright 1997 Chester Ramey (adapted)
-BS=$'\b' SPIN_CHARS=("|${BS}" "\\${BS}" "-${BS}" "/${BS}")
+SPIN_CHARS=(\| \\ - /)
 function __spinf
-{
-  printf -- "${SPIN_CHARS[SPIN_INDEX]}" >&2
-  ((++SPIN_INDEX)); ((SPIN_INDEX%=4))
+{ 	printf '%s\b' "${SPIN_CHARS[SPIN_INDEX]}" >&2
+	((++SPIN_INDEX)); ((SPIN_INDEX%=${#SPIN_CHARS[@]}))
 }
 function __printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
 
@@ -1115,7 +1114,7 @@ function cmd_runf
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  push_tohistf "$(escapef ":${INSTRUCTION_OLD:-$INSTRUCTION}")"
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
-			} ;unset CKSUM CKSUM_OLD ;skip=1
+			} ;unset CKSUM_OLD ;skip=1
 			;;
 		-g|-G|stream|no-stream)
 			((++STREAM)) ;((STREAM%=2))
@@ -1127,7 +1126,7 @@ function cmd_runf
 			;;
 		-H|H|history|hist)
 			__edf "$FILECHAT"
-			unset CKSUM CKSUM_OLD ;skip=1
+			unset CKSUM_OLD ;skip=1
 			;;
 		-HH|HH|request|req)
 			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" set_histf
@@ -1352,7 +1351,7 @@ function cmd_runf
 			then 	# comment out two lines from tail
 				wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
 				&& sed -i -e "$((wc-1)),${wc} s/^/#/" "$FILECHAT"
-				unset CKSUM CKSUM_OLD
+				unset CKSUM_OLD
 			fi
 			;;
 		q|quit|exit|bye)
@@ -2304,7 +2303,7 @@ function session_copyf
 
 	_sysmsgf 'Source hist file: ' '' ''
 	if ((${#}==1)) && [[ "$1" != [Cc]urrent && "$1" != . ]]
-	then 	src=current; echo "${src:-err}" >&2
+	then 	src=${FILECHAT}; echo "${src:-err}" >&2
 	else 	src="$(session_globf "${@:1:1}" || session_name_choosef "${@:1:1}")"; echo "${src:-err}" >&2
 		[[ $src != abort ]] || return
 		set -- "${@:2:1}"
@@ -2545,8 +2544,8 @@ do
 		v) 	((++OPTV));;
 		V) 	((++OPTVV));;  #debug
 		x) 	OPTX=1;;
-		w) 	((++OPTW));;
-		W) 	((OPTW)) || OPTW=1 ;((++OPTWW));;
+		w) 	((++OPTW)); WSKIP=1;;
+		W) 	((OPTW)) || OPTW=1 ;((++OPTWW)); WSKIP=1;;
 		y) 	OPTTIK=1;;
 		Y) 	OPTTIK= OPTYY=1;;
 		z) 	OPTZ=1;;
@@ -2825,9 +2824,9 @@ else
 	#load stdin again?
 	((${#})) || [[ -t 0 ]] || set -- "$(<$STDIN)"
 
-	WSKIP=1
 	while :
-	do 	((REGEN)) && { 	set -- "${REPLY_OLD:-$*}" ;unset REGEN ;}
+	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
+		((REGEN)) && { 	set -- "${REPLY_OLD:-$*}" ;unset REGEN ;}
 		((OPTAWE)) || {  #awesome 1st pass skip
 
 		#prompter pass-through
@@ -3092,7 +3091,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : TKN_PREV ))" "${tkn[2]}"
 			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || unset OPTC OPTRESUME OPTCMPL MTURN
 			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
-			CKSUM_OLD=$(cksumf "$FILECHAT"); unset HIST_TIME ADJ_INPUT
+			unset HIST_TIME ADJ_INPUT
 		elif ((MTURN))
 		then 	BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES
 			((OPTX)) && __read_charf >/dev/null
