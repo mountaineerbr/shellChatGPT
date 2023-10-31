@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.12  oct/2023  by mountaineerbr  GPL+3
+# v0.20.13  oct/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 export COLUMNS
 
@@ -779,8 +779,8 @@ function pick_modelf
 	do 	echo $'\nPick a model:' >&2;
 		select mod in ${MOD_LIST[@]}
 		do 	break;
-		done;
-		[[ ${MOD_LIST[*]} = *" $REPLY "* ]] && mod=$REPLY && break;
+		done; REPLY=${REPLY//[$' \t\b\r']}
+		[[ \ ${MOD_LIST[*]}\  = *\ "$REPLY"\ * ]] && mod=$REPLY && break;
 	done; MOD=${mod:-$MOD};
 }
 
