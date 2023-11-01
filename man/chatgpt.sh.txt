@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.20.16 | General Commands Manual
+CHATGPT.SH(1) v0.20.17 | General Commands Manual
 mountaineerbr
 November 2023
 
@@ -104,6 +104,9 @@ segment. The prompt should match the audio language.
 
 Option -W translates audio stream to English text. A PROMPT in English
 may be set to guide the model as the second positional argument.
+
+Set these options twice, e.g. -ww, and -WW, to have phrase-level
+timestamps.
 
 Combine -wW with -cc to start chat with voice input (Whisper) support.
 Output may be piped to a voice synthesiser to have a full voice in and
@@ -233,12 +236,14 @@ or “/”.
   -R      !start [SEQ]      Set start sequence.
   -s      !stop [SEQ]       Set one stop sequence.
   -t      !temp [VAL]       Set temperature.
-  -w      !rec              Start audio record chat mode.
+  -w      !rec [ARGS]       Toggle voice chat mode (whisper),
+                            optionally set arguments to whisper.
 
   Session   Management                     
   --------- ------------------------------ ------------------------------------------------------------
-  -         !list                          List history files (tsv).
-  -         !sub [REGEX]                   Search sessions (for regex) and copy session to hist tail.
+  !ls       !list [GLOB]                   List History files with name glob,
+                                           Prompts “pr”, or All “.”.
+  !grep     !sub [REGEX]                   Search sessions (for regex) and copy session to hist tail.
   -c        !new                           Start new session.
   -H        !hist                          Edit history in editor.
   -HH       !req                           Print context request immediately (see option -V).
@@ -668,7 +673,7 @@ Script Modes
     Use “[insert]” to indicate where the language model should insert
     text (only with some models of text cmpls).
 
--S .[PROMPT_NAME], -,[PROMPT_NAME]
+-S .[PROMPT_NAME][.], -,[PROMPT_NAME][.]
 
 -S ,[PROMPT_NAME], -,[PROMPT_NAME]
 

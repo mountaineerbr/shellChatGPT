@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.16  nov/2023  by mountaineerbr  GPL+3
-set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
-export COLUMNS
+# v0.20.17  nov/2023  by mountaineerbr  GPL+3
+set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
 #OPENAI_API_KEY=
@@ -156,7 +155,8 @@ Description
 	to or create a new history file is assumed (with options -ccCdHH).
 
 	Option -i generates or edits images. Option -w transcribes audio
-	and option -W translates audio to English.
+	and option -W translates audio to English text. Set these options
+	twice to have phrase-level timestamps, e.g. -ww, and -WW.
 
 	Option -y sets python tiktoken instead of the default script hack
 	to preview token count. Set this option for accurate history
@@ -219,7 +219,7 @@ Chat Commands
        -u      !multi           Toggle multiline, ctrl-d flush.
        -uu    !!multi           Multiline, one-shot, ctrl-d flush.
        -U      -UU              Toggle cat prompter, or set one-shot.
-        -      !cat      [FILE] Cat prompter (once, ctrd-d), or cat file.
+        -      !cat     [FILE]  Cat prompter (once, ctrd-d), or cat file.
        -V      !context         Print context before request (see -HH).
        -VV     !debug           Dump raw request block and confirm.
        -v      !ver             Toggle verbose modes.
@@ -243,25 +243,24 @@ Chat Commands
        -R      !start    [SEQ]  Set start sequence.
        -s      !stop     [SEQ]  Set one stop sequence.
        -t      !temp     [VAL]  Set temperature.
-       -w      !rec             Start audio record chat mode.
+       -w      !rec     [ARGS]  Toggle voice chat mode (whisper).
     --- Session Management ----------------------------------------
-        -      !list            List history files (tsv).
-        -      !sub      [REGEX]
-	                        Search sessions and copy to tail.
+      !ls      !list    [GLOB]  List History files with name glob,
+                                Prompts \`pr', or All \`.'.
+      !grep    !sub    [REGEX]  Search sessions and copy to tail.
        -c      !new             Start new session (session break).
        -H      !hist            Edit raw history file in editor.
       -HH      !req             Print context request now (see -V).
-       -L      !log      [FILEPATH]
-                                Save to log file (pretty-print).
-       !c      !copy     [SRC_HIST] [DEST_HIST]
+       -L      !log  [FILEPATH] Save to log file (pretty-print).
+       !c      !copy [SRC_HIST] [DEST_HIST]
                                 Copy session from source to destination.
-       !f      !fork     [DEST_HIST]
+       !f      !fork [DEST_HIST]
                                 Fork current session to destination.
        !k      !kill     [NUM]  Comment out n last entries in hist file.
       !!k     !!kill  [[0]NUM]  Dry-run of command !kill.
-       !s      !session  [HIST_FILE]
+       !s      !session [HIST_FILE]
                                 Change to, search for, or create hist file.
-      !!s     !!session  [HIST_FILE]
+      !!s     !!session [HIST_FILE]
                                 Same as !session, break session.
     ------    ----------    ---------------------------------------
 	
@@ -346,7 +345,7 @@ Options
 	-q, --insert  (deprecated)
 		Insert text rather than completing only. Use \`[insert]'
 		to indicate where the model should insert text (cmpls).
-	-S .[PROMPT_NAME], -.[PROMPT_NAME]
+	-S .[PROMPT_NAME][.], -.[PROMPT_NAME][.]
 	-S ,[PROMPT_NAME], -,[PROMPT_NAME]
 		Load, search for, or create custom prompt.
 		Set \`..[prompt]' to silently load prompt.
@@ -628,17 +627,19 @@ function block_printf
 function new_prompt_confirmf
 {
 	typeset REPLY extra
-	(($#)) && extra=", te[x]t editor, m[u]ltiline"
+	((${#1})) && extra=", te[x]t editor, m[u]ltiline"
+	((${#2})) && ((OPTW)) && extra="${extra}, [w]hisper_off"
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
 	REPLY=$(__read_charf); __clr_lineupf $((8+40+1+${#extra})) #!#
 	case "${REPLY}" in
 		[AaQq]) 	return 201;;  #break
-		[Rr]) 	return 200;;          #redo
-		[Ee]) 	return 199;;          #edit
+		[Rr]) 		return 200;;  #redo
+		[Ee]|$'\e') 	return 199;;  #edit
 		[VvXx]) 	return 198;;  #text editor
 		[UuMm]) 	return 197;;  #multiline
-		[Nn]|$'\e') 	unset REC_OUT ;return 1;;  #no
+		[Ww]) 		return 196;;  #whisper_off
+		[NnOo]) 	unset REC_OUT ;return 1;;  #no
 	esac  #yes
 }
 
@@ -1251,15 +1252,21 @@ function cmd_runf
 			((++OPTTIK)) ;((OPTTIK%=2))
 			__cmdmsgf 'Tiktoken' $(_onoff $OPTTIK)
 			;;
-		-[wW]*|audio*|rec*)
-			OPTW=1 ;[[ $* = -W* ]] && OPTW=2
-			set -- "${*##@(-[wW][wW]|-[wW]|audio|rec)$SPC}"
+		-w*|-W*|[Ww]*|audio*|rec*|whisper*)
+			((OPTW)) && OPTW= || {
+			  OPTW=1 ;[[ $* = -W* ]] && OPTW=2
+			  set -- "${*##@(-[wW][wW]|-[wW]|[Ww]|audio|rec|whisper)$SPC}"
 
-			var="${*##*([$IFS])}"
-			[[ $var = [a-z][a-z][$IFS]*[[:graph:]]* ]] \
-			&& set -- "${var:0:2}" "${var:3}" ;unset var
+			  var="${*##*([$IFS])}"
+			  [[ $var = [a-z][a-z][$IFS]*[[:graph:]]* ]] \
+			  && set -- "${var:0:2}" "${var:3}"
+			  for var
+			  do 	((${#var})) || shift; break;
+			  done
 
-			INPUT_ORIG=("${@:-${INPUT_ORIG[@]}}") skip=1
+			  INPUT_ORIG=("${@:-${INPUT_ORIG[@]}}") skip=1
+			}; __cmdmsgf 'Whisper Chat' $(_onoff $OPTW)
+			((OPTW)) && __cmdmsgf "Whisper Args #${#INPUT_ORIG[@]}" "${INPUT_ORIG[*]}"
 			;;
 		-z|last)
 			lastjsonf >&2
@@ -1332,7 +1339,7 @@ function cmd_runf
 			set -- "${*##[/!-]}"
 			if [[ $* = cat*[!$IFS]* ]]
 			then 	cmd_runf /sh "${@}"
-			else 	printf '%s\n' '* Press <Ctrl-D> to flush * ' >&2
+			else 	printf '%s\n' ' * Press <Ctrl-D> to flush * ' >&2
 				STDERR=/dev/null  cmd_runf /sh cat
 			fi ;skip=1
 			;;
@@ -1354,16 +1361,16 @@ function cmd_runf
 				_sysmsgf 'Edit buffer?' '[Y]es, [n]o, [e]dit, te[x]t editor, [s]hell, or [r]edo ' ''
 				case "$(__read_charf)" in
 					[AaQqRr]) 	SKIP=1 EDIT=1 REPLY="!${args[*]}"; break;;  #abort, redo
-					[Ee]) 		SKIP=1 EDIT=1; break;; #yes, read cmd
+					[Ee]|$'\e') 	SKIP=1 EDIT=1; break;; #yes, bash `read`
 					[VvXx]) 	SKIP=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
-					[NnQq]|$'\e') 	SKIP=1 PSKIP=1; break;;  #no need to edit
+					[NnOo]) 	SKIP=1 PSKIP=1; break;;  #no need to edit
 					[!Ss]|'') 	SKIP=1 EDIT=1;
 							printf '\n%s\n' '---' >&2; break;;  #yes
 				esac ;set --
 			done ;__clr_lineupf $((12+55+1)) #!#
 			((${#args[@]})) && shell_histf "!${args[*]}"
 			;;
-		[/!]session*|session*|list*|copy*|fork*|sub|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *)
+		[/!]session*|session*|list*|copy*|fork*|sub|grep|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
 			echo Session and History >&2
 			session_mainf /"${args[@]}"
 			;;
@@ -1385,7 +1392,7 @@ function cmd_runf
 			;;
 	esac ;echo >&2
 	if ((OPTX)) && ((!(REGEN+skip) )) 
-	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" '* Press Enter to Continue * ' >&2
+	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2
 		__read_charf >/dev/null
 	fi ;return 0
 }
@@ -1458,8 +1465,8 @@ function edf
 		case "$(__read_charf ;echo >&2)" in
 			[AaQq]) return 201;;       #abort
 			[CcNn]) break;;            #continue
-			[Rr]|$'\e')  return 200;;  #redo
-			[Ee]|*) __edf "$FILETXT";; #edit
+			[Rr])  return 200;;  #redo
+			[Ee]|$'\e'|*) __edf "$FILETXT";; #edit
 		esac
 	done
 	
@@ -1620,18 +1627,18 @@ function start_compf {     START=$(escapef "$(unescapef "${*:-$START}")")   STAR
 function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
-	then 	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}" '* Press Enter to Start record * ' >&2
-		case "$(__read_charf)" in [AaNnQq]|$'\e') 	return 201;; esac
+	then 	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}" ' * Press Enter to Start record * ' >&2
+		case "$(__read_charf)" in [Ww]|$'\e') 	return 202;; [AaNnQq]) 	return 201;; esac
 		__clr_lineupf 33  #!#
 	fi
-	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}\\a\\n\\n" '* Press ENTER to  STOP record * ' >&2
+	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}\\a\\n\\n" ' * Press ENTER to  STOP record * ' >&2
 }
 
 #record mic
 #usage: recordf [filename]
 function recordf
 {
-	typeset termux pid REPLY
+	typeset termux pid ret REPLY
 
 	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
 
@@ -1656,9 +1663,10 @@ function recordf
 	
 	trap "rec_killf $pid $termux;
 		trap 'coproc_killf' $SIG_TRAP" $SIG_TRAP
-	read </dev/tty; rec_killf $pid $termux;
+	case "$(__read_charf)" in [Ww]|$'\e') 	ret=2;; esac
+	rec_killf $pid $termux
 	trap 'coproc_killf' $SIG_TRAP
-	wait $pid
+	wait $pid; return $ret
 }
 #avfoundation for macos: <https://apple.stackexchange.com/questions/326388/>
 function rec_killf
@@ -2068,11 +2076,10 @@ function custom_prf
 	fi
 	((list)) && exit
 
-	if [[ $file = [Cc]urrent || "$file" = . ]]
-	then 	file="${FILECHAT}"
-	elif [[ $file = [Aa]bort ]]
-	then 	return 2
-	fi
+	case "$file" in
+		[Cc]urrent|.) 	file="${FILECHAT}";;
+		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 2;;
+	esac
 	if [[ -f "$file" ]]
 	then 	msg=${msg:-LOAD}    INSTRUCTION=$(<"$file")
 	else 	msg=${msg:-CREATE}  INSTRUCTION=  template=1 new=1
@@ -2154,8 +2161,10 @@ function session_globf
 	typeset REPLY file glob sglob ok
 	sglob="${SGLOB:-[Tt][Ss][Vv]}"
 	[[ ! -f "$1" ]] || return
-	[[ "$1" != [Nn]ew ]] || return
-	[[ "$1" = [Cc]urrent || "$1" = . ]] && set -- "${FILECHAT##*/}" "${@:2}"
+	case "$1" in
+		[Nn]ew) 	return 2;;
+		[Cc]urrent|.) 	set -- "${FILECHAT##*/}" "${@:2}";;
+	esac
 
 	cd -- "${CACHEDIR}"
 	glob="${1%%.${sglob}}" glob="${glob##*/}"
@@ -2181,7 +2190,7 @@ function session_globf
 		[Nn]ew) session_name_choosef
 			return
 			;;
-		[Aa]bort)
+		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit)
 			printf 'abort'
 			return
 			;;
@@ -2199,6 +2208,7 @@ function session_name_choosef
 {
 	typeset fname new print_name sglob
 	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}"
+	case "$fname" in [Nn]ew|*[N]ew.???) 	set --; fname=;; esac
 	while
 		fname="${fname%%\/}"
 		fname="${fname%%.${sglob}}"
@@ -2234,13 +2244,14 @@ function session_name_choosef
 			new=" new"
 		fi
 
-		if [[ $fname = $FILECHAT ]]
+		if [[ $fname = "$FILECHAT" ]]
 		then 	print_name=current
 		else 	print_name="${fname/"$HOME"/"~"}"
 		fi
 		if [[ ! -e $fname ]]
-		then 	_sysmsgf "Confirm${new}? [Y/n]:" "${print_name} " '' ''
-			case "$(__read_charf)" in [NnQqAa]|$'\e') 	:;; *) 	false;; esac
+		then 	case "$fname" in *[N]ew.???) 	:;; *[Aa]bort.???|*[Cc]ancel.???|*[Ee]xit.???|*[Qq]uit.???) 	echo abort; return 2;; esac
+			_sysmsgf "Confirm${new}? [Y]es/[n]o/[a]bort:" "${print_name} " '' ''
+			case "$(__read_charf)" in [AaQq]|$'\e') return 201;; [NnOo]) 	:;; *) 	false;; esac
 		else 	false
 		fi
 	do 	unset fname new print_name
@@ -2293,12 +2304,12 @@ do 	__spinf 	#grep for user regex
 			  ((OPTPRINT)) && break 2
 			  ((${search:+1})) && _sysmsgf "Is this the right session?" '[Y/n/a] ' '' ||
 			  _sysmsgf "Is this the tail of the right session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
-			  case "$(__read_charf </dev/tty)" in
+			  case "$(__read_charf)" in
 			  	[]GgSsRr/?:\;]) 	__sysmsgf 'grep:' '<-opt> <regex> <enter>'
 					read -r -e -i "$search" search </dev/tty
 					continue
 					;;
-			  	[Nn]|$'\e') 	false
+			  	[NnOo]|$'\e') 	false
 					;;
 				[AaQq]) 	return 1
 					;;
@@ -2328,12 +2339,11 @@ function session_copyf
 	if ((${#}==1)) && [[ "$1" != [Cc]urrent && "$1" != . ]]
 	then 	src=${FILECHAT}; echo "${src:-err}" >&2
 	else 	src="$(session_globf "${@:1:1}" || session_name_choosef "${@:1:1}")"; echo "${src:-err}" >&2
-		[[ $src != abort ]] || return
 		set -- "${@:2:1}"
-	fi
+	fi; case "$src" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 2;; esac
 	_sysmsgf 'Destination hist file: ' '' ''
 	dest="$(session_globf "$@" || session_name_choosef "$@")"; echo "${dest:-err}" >&2
-	dest="${dest:-$FILECHAT}" 
+	dest="${dest:-$FILECHAT}"; case "$dest" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 2;; esac
 
 	buff=$(session_sub_printf "$src") \
 	&& if [[ -f "$dest" ]] ;then 	[[ "$(<"$dest")" != *"${buff}" ]] || return 0 ;fi \
@@ -2351,9 +2361,19 @@ function session_mainf
 
 	case "${name}" in
 		#list hist files: /list
-		list*)
-			_cmdmsgf 'Session' 'list files'
-			session_listf "${name##list*([$IFS])}"
+		list*|ls*)
+			name="${name##@(list|ls)*([$IFS])}"
+			case "$name" in
+				[Pp][Rr]|[Pp]rompt|[Pp]rompts)
+					typeset SGLOB='[Pp][Rr]' name= msg=Prompts;;
+				[Aa]ll|[Ee]verything|[Aa]nything|[*?.])
+					typeset SGLOB='*' name= msg=All;;
+				[Tt][Ss][Vv]|[Ss]ession|[Ss]essions|*)
+					name= msg=Sessions;;
+			esac
+			_cmdmsgf "$msg Files" 'list'$'\n'
+			session_listf "$name"
+			printf '\nPress any key ' >&2
 			__read_charf >/dev/null </dev/tty ;return
 			;;
 		#fork current session to [dest_hist]: /fork
@@ -2364,8 +2384,8 @@ function session_mainf
 			set -- current "${1/\~\//"$HOME"\/}"
 			;;
 		#search for and copy session to tail: /sub [regex]
-		sub*) 	set -- current current
-			REGEX="${name##sub*([$IFS])}" optsession=3
+		sub*|grep*) 	set -- current current
+			REGEX="${name##@(sub|grep)*([$IFS])}" optsession=3
 			unset name
 			;;
 		#copy session from hist option: /copy
@@ -2383,7 +2403,7 @@ function session_mainf
 			fi;;
 	esac
 	
-	name="${name##@(session|sub|[Ss])*([$IFS])}"
+	name="${name##@(session|sub|grep|[Ss])*([$IFS])}"
 	name="${name/\~\//"$HOME"\/}"
 
 	#del unused positional args
@@ -2411,11 +2431,10 @@ function session_mainf
 			file=$(session_name_choosef "${name}")
 		fi
 
-		if [[ $file = [Cc]urrent || "$file" = . ]]
-		then 	file="${FILECHAT}"
-		elif [[ $file = [Aa]bort ]]
-		then 	return 2
-		fi
+		case "$file" in
+			[Cc]urrent|.) 	file="${FILECHAT}";;
+			[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 2;;
+		esac
 		[[ -f "$file" ]] && msg=change || msg=create
 		_cmdmsgf 'Session' "$msg ${break:+ + session break}"
 
@@ -2424,7 +2443,7 @@ function session_mainf
 		  [[ -f "$file" ]] &&
 		    if ((break))  || {
 		    	_sysmsgf 'Break session?' '[N/ys] ' ''
-		    	case "$(__read_charf)" in [YySs]|$'\e') 	:;; *) 	false ;;esac
+		    	case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
 		    }
 		    then 	FILECHAT="$file" cmd_runf /break
 		    else 	#print snippet of tail session
@@ -2840,10 +2859,9 @@ else
 	then 	(echo >&2; set -xv; sed -i -e 's/^/#10\n/' "$HISTFILE")
 	fi
 
-	((OPTCTRD)) && {    echo >&2  #warnings and tips
-	    __warmsgf 'Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * '
-	} || {    ((CATPR)) && echo >&2 ;}
-	((OPTCTRD+CATPR)) && __warmsgf 'Tip:' '* <Ctrl-D> to flush input * '
+	#warnings and tips
+	((OPTCTRD)) && __warmsgf $'\n''Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * '
+	((OPTCTRD+CATPR)) && __warmsgf $'\n''Tip:' '* <Ctrl-D> to flush input * '
 	echo >&2  #!#
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
@@ -2874,7 +2892,7 @@ else
 				case $? in
 					201) 	break 2;;  #abort
 					200) 	continue 2;;  #redo
-					19[789]) 	edf "${REPLY:-$*}" || break 2;;  #edit
+					19[6789]) 	edf "${REPLY:-$*}" || break 2;;  #edit
 					0) 	set -- "$REPLY" ; break;;  #yes
 					*) 	set -- ; break;;  #no
 				esac
@@ -2895,14 +2913,14 @@ else
 				then 	#auto sleep 3-6 words/sec
 					((OPTV>1)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))
 					
-					record_confirmf || continue
+					record_confirmf || case $? in 202) 	OPTW=;& *) 	REPLY=; continue 2;; esac
 					if recordf "$FILEINW"
 					then 	REPLY=$(
 						MOD="$MOD_AUDIO" OPTT=0 JQCOL= JQCOL2=
 						set_model_epnf "$MOD"
 						whisperf "$FILEINW" "${INPUT_ORIG[@]}"
 					)
-					else 	unset OPTW
+					else 	echo record abort >&2; unset OPTW
 					fi ;printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2
 				else
 					if ((OPTCMPL)) && ((MAIN_LOOP || OPTCMPL==1)) \
@@ -2945,7 +2963,7 @@ else
 					RETRY=1 BCYAN="${Color8}"
 				elif [[ -n $REPLY ]]
 				then
-					((RETRY+OPTV)) || new_prompt_confirmf 1
+					((RETRY+OPTV)) || new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;            #abort
 						200) 	WSKIP=1 ;continue;;  #redo
@@ -2956,6 +2974,7 @@ else
 						197) 	EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
 							((OPTCTRD==2)) && printf '\n%s\n' '--- prompter <ctr-d> one-shot ---' >&2
 							REPLY="$REPLY"$'\n'; set -- ;continue;; #multiline one-shot  #A#
+						196) 	WSKIP=1 EDIT=1 OPTW=; continue 2;;   #whisper off
 						0) 	:;;                  #yes
 						*) 	unset REPLY; set -- ;break;; #no
 					esac
@@ -3112,7 +3131,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 				'Err: History file modified'$'\n' 'Fork session? [Y]es/[n]o/[i]gnore all ' ''
 				case "$(__read_charf ;echo >&2)" in
 					[IiGg]) 	unset CKSUM CKSUM_OLD ;function cksumf { 	: ;};;
-					[QqNnAa]|$'\e') :;;
+					[AaNnOoQq]|$'\e') :;;
 					*) 		session_mainf /copy "$FILECHAT" || break;;
 				esac
 			fi

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.20.16 \| General Commands Manual
+title: CHATGPT.SH(1) v0.20.17 \| General Commands Manual
 ---
 
 ### NAME
@@ -115,6 +115,9 @@ match the audio language.
 
 `Option -W` **translates audio** stream to **English text**. A PROMPT in
 English may be set to guide the model as the second positional argument.
+
+Set these options twice, e.g. `-ww`, and `-WW`, to have phrase-level
+timestamps.
 
 Combine `-wW` **with** `-cc` to start **chat with voice input**
 (Whisper) support. Output may be piped to a voice synthesiser to have a
@@ -245,12 +248,14 @@ or “`/`”.
 | `-R`    | `!start` \[*SEQ*\]      | Set start sequence.                         |
 | `-s`    | `!stop` \[*SEQ*\]       | Set one stop sequence.                      |
 | `-t`    | `!temp` \[*VAL*\]       | Set temperature.                            |
-| `-w`    | `!rec`                  | Start audio record chat mode.               |
+| `-w`    | `!rec` \[*ARGS*\]       | Toggle voice chat mode (whisper),           |
+|         |                         | optionally set arguments to whisper.        |
 
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|
-| `-`     | `!list`                                | List history files (*tsv*).                                |
-| `-`     | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail. |
+| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*,                     |
+|         |                                        | Prompts “*pr*”, or All “*.*”.                              |
+| `!grep` | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail. |
 | `-c`    | `!new`                                 | Start new session.                                         |
 | `-H`    | `!hist`                                | Edit history in editor.                                    |
 | `-HH`   | `!req`                                 | Print context request immediately (see `option -V`).       |
@@ -669,9 +674,9 @@ Insert text rather than completing only.
 Use “*\[insert\]*” to indicate where the language model should insert
 text (only with some models of text cmpls).
 
-**-S** `.`\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]
+**-S** **.**\[*PROMPT_NAME*\]\[**.**\], **-,**\[*PROMPT_NAME*\]\[**.**\]
 
-**-S** `,`\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]  
+**-S** **,**\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]  
 Load, search for, or create custom prompt.
 
 Set `..`\[*PROMPT*\] to silently load prompt.
@@ -680,13 +685,13 @@ Set `.`*?*, or `.`*list* to list prompt template files.
 
 Set `,`\[*PROMPT*\] to edit a prompt file.
 
-**-S** `/`\[*AWESOME_PROMPT_NAME*\]
+**-S** **/**\[*AWESOME_PROMPT_NAME*\]
 
-**-S** `%`\[*AWESOME_PROMPT_NAME_ZH*\]  
+**-S** **%**\[*AWESOME_PROMPT_NAME_ZH*\]  
 Set or search for an *awesome-chatgpt-prompt(-zh)*. *Davinci* and
 *gpt3.5+* models.
 
-Set `//` or `%%` instead to refresh cache.
+Set **//** or **%%** instead to refresh cache.
 
 **-T**, **--tiktoken**
 

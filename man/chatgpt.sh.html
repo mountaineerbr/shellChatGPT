@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.20.16 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.20.17 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.20.16 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.20.17 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -290,6 +290,8 @@ prompt should match the audio language.</p>
 <p><code>Option -W</code> <strong>translates audio</strong> stream to
 <strong>English text</strong>. A PROMPT in English may be set to guide
 the model as the second positional argument.</p>
+<p>Set these options twice, e.g. <code>-ww</code>, and <code>-WW</code>,
+to have phrase-level timestamps.</p>
 <p>Combine <code>-wW</code> <strong>with</strong> <code>-cc</code> to
 start <strong>chat with voice input</strong> (Whisper) support. Output
 may be piped to a voice synthesiser to have a full voice in and out
@@ -570,8 +572,13 @@ flush.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-w</code></td>
-<td style="text-align: left;"><code>!rec</code></td>
-<td>Start audio record chat mode.</td>
+<td style="text-align: left;"><code>!rec</code> [<em>ARGS</em>]</td>
+<td>Toggle voice chat mode (whisper),</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td>optionally set arguments to whisper.</td>
 </tr>
 </tbody>
 </table>
@@ -585,65 +592,70 @@ flush.</td>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>-</code></td>
-<td style="text-align: left;"><code>!list</code></td>
-<td>List history files (<em>tsv</em>).</td>
+<td style="text-align: left;"><code>!ls</code></td>
+<td style="text-align: left;"><code>!list</code> [<em>GLOB</em>]</td>
+<td>List History files with <em>name</em> <em>glob</em>,</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>-</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td>Prompts “<em>pr</em>”, or All “<em>.</em>”.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
 <td>Search sessions (for regex) and copy session to hist tail.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-c</code></td>
 <td style="text-align: left;"><code>!new</code></td>
 <td>Start new session.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-H</code></td>
 <td style="text-align: left;"><code>!hist</code></td>
 <td>Edit history in editor.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-HH</code></td>
 <td style="text-align: left;"><code>!req</code></td>
 <td>Print context request immediately (see <code>option -V</code>).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-L</code></td>
 <td style="text-align: left;"><code>!log</code> [<em>FILEPATH</em>]</td>
 <td>Save to log file.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!c</code></td>
 <td style="text-align: left;"><code>!copy</code> [<em>SRC_HIST</em>]
 [<em>DEST_HIST</em>]</td>
 <td>Copy session from source to destination.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!f</code></td>
 <td style="text-align: left;"><code>!fork</code>
 [<em>DEST_HIST</em>]</td>
 <td>Fork current session to destination.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!k</code></td>
 <td style="text-align: left;"><code>!kill</code> [<em>NUM</em>]</td>
 <td>Comment out <em>n</em> last entries in history file.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!k</code></td>
 <td style="text-align: left;"><code>!!kill</code>
 [[<em>0</em>]<em>NUM</em>]</td>
 <td>Dry-run of command <code>!kill</code>.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!s</code></td>
 <td style="text-align: left;"><code>!session</code>
 [<em>HIST_FILE</em>]</td>
 <td>Change to, search for, or create history file.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!s</code></td>
 <td style="text-align: left;"><code>!!session</code>
 [<em>HIST_FILE</em>]</td>
@@ -1080,10 +1092,11 @@ Def=<em>1</em>.</p>
 insert text (only with some models of text cmpls).</p>
 </dd>
 </dl>
-<p><strong>-S</strong> <code>.</code>[<em>PROMPT_NAME</em>],
-<strong>-,</strong>[<em>PROMPT_NAME</em>]</p>
+<p><strong>-S</strong>
+<strong>.</strong>[<em>PROMPT_NAME</em>][<strong>.</strong>],
+<strong>-,</strong>[<em>PROMPT_NAME</em>][<strong>.</strong>]</p>
 <dl>
-<dt><strong>-S</strong> <code>,</code>[<em>PROMPT_NAME</em>],
+<dt><strong>-S</strong> <strong>,</strong>[<em>PROMPT_NAME</em>],
 <strong>-,</strong>[<em>PROMPT_NAME</em>]</dt>
 <dd>
 <p>Load, search for, or create custom prompt.</p>
@@ -1093,14 +1106,16 @@ prompt template files.</p>
 <p>Set <code>,</code>[<em>PROMPT</em>] to edit a prompt file.</p>
 </dd>
 </dl>
-<p><strong>-S</strong> <code>/</code>[<em>AWESOME_PROMPT_NAME</em>]</p>
+<p><strong>-S</strong>
+<strong>/</strong>[<em>AWESOME_PROMPT_NAME</em>]</p>
 <dl>
 <dt><strong>-S</strong>
-<code>%</code>[<em>AWESOME_PROMPT_NAME_ZH</em>]</dt>
+<strong>%</strong>[<em>AWESOME_PROMPT_NAME_ZH</em>]</dt>
 <dd>
 <p>Set or search for an <em>awesome-chatgpt-prompt(-zh)</em>.
 <em>Davinci</em> and <em>gpt3.5+</em> models.</p>
-<p>Set <code>//</code> or <code>%%</code> instead to refresh cache.</p>
+<p>Set <strong>//</strong> or <strong>%%</strong> instead to refresh
+cache.</p>
 </dd>
 </dl>
 <p><strong>-T</strong>, <strong>--tiktoken</strong></p>

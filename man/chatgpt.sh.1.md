@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.20.16 | General Commands Manual
+% CHATGPT.SH(1) v0.20.17 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -112,6 +112,9 @@ a previous audio segment. The prompt should match the audio language.
 `Option -W` **translates audio** stream to **English text**. A PROMPT in
 English may be set to guide the model as the second positional
 argument.
+
+Set these options twice, e.g. `-ww`, and `-WW`, to have phrase-level
+timestamps.
 
 Combine `-wW` **with** `-cc` to start **chat with voice input** (Whisper)
 support. Output may be piped to a voice synthesiser to have a
@@ -247,13 +250,15 @@ may be either "`!`", or "`/`".
       `-R`    `!start`     \[_SEQ_]      Set start sequence.
       `-s`    `!stop`      \[_SEQ_]      Set one stop sequence.
       `-t`    `!temp`      \[_VAL_]      Set temperature.
-      `-w`    `!rec`                     Start audio record chat mode.
+      `-w`    `!rec`      \[_ARGS_]      Toggle voice chat mode (whisper),
+                                           optionally set arguments to whisper.
   --------    -----------------------    --------------------------------------------
 
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
-       `-`    `!list`                                  List history files (_tsv_).
-       `-`    `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
+     `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
+                                                         Prompts "_pr_", or All "_._".
+   `!grep`    `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
       `-c`    `!new`                                   Start new session.
       `-H`    `!hist`                                  Edit history in editor.
      `-HH`    `!req`                                   Print context request immediately (see `option -V`).
@@ -763,26 +768,26 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
       should insert text (only with some models of text cmpls).
 
 
-**-S** `.`[_PROMPT_NAME_], **-,**\[_PROMPT_NAME_]
+**-S** **.**\[_PROMPT_NAME_]\[**.**], **-,**\[_PROMPT_NAME_]\[**.**]
 
-**-S** `,`[_PROMPT_NAME_], **-,**\[_PROMPT_NAME_]
+**-S** **,**\[_PROMPT_NAME_], **-,**\[_PROMPT_NAME_]
 
 :     Load, search for, or create custom prompt.
 
-      Set `..`[_PROMPT_] to silently load prompt.
+      Set `..`\[_PROMPT_] to silently load prompt.
       
       Set `.`_?_, or `.`_list_ to list prompt template files.
 
-      Set `,`[_PROMPT_] to edit a prompt file.
+      Set `,`\[_PROMPT_] to edit a prompt file.
 
 
-**-S** `/`[_AWESOME_PROMPT_NAME_]
+**-S** **/**\[_AWESOME_PROMPT_NAME_]
 
-**-S** `%`[_AWESOME_PROMPT_NAME_ZH_]
+**-S** **%**\[_AWESOME_PROMPT_NAME_ZH_]
 
 :     Set or search for an *awesome-chatgpt-prompt(-zh)*. _Davinci_ and _gpt3.5+_ models.
       
-      Set `//` or `%%` instead to refresh cache.
+      Set **//** or **%%** instead to refresh cache.
 
 
 **-T**, **\--tiktoken**
