@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.15  nov/2023  by mountaineerbr  GPL+3
+# v0.20.16  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist
 export COLUMNS
 
@@ -9,7 +9,7 @@ export COLUMNS
 
 # DEFAULTS
 # Text cmpls model
-MOD="davinci"
+MOD="text-davinci-003"
 # Chat cmpls model
 MOD_CHAT="gpt-3.5-turbo"
 # Edits model  (deprecated)
@@ -467,14 +467,15 @@ function set_model_epnf
 function model_capf
 {
 	case "$1" in  #set model max tokens
+		text-davinci-002-render-sha) 	MODMAX=8191;;
+		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
 		davinci-002|babbage-002) 	MODMAX=16384;;
 		davinci|curie|babbage|ada) 	MODMAX=2049;;
 		code-davinci-00[2-9]) MODMAX=8001;;
-		gpt-4*32k*) 	MODMAX=32768;; 
+		gpt-4*32k*|text*moderation*) 	MODMAX=32768;; 
 		gpt-4*) 	MODMAX=8192;;
-		*turbo*16k*) 	MODMAX=16384;;
+		gpt-3.5*16K*|*turbo*16k*) 	MODMAX=16384;;
 		*turbo*|*davinci*) 	MODMAX=4096;;
-		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
 		*embedding*|*search*) MODMAX=2046;;
 		*) 	MODMAX=2048;;
 	esac

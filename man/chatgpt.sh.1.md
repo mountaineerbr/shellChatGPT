@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.20.15 | General Commands Manual
+% CHATGPT.SH(1) v0.20.16 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -659,7 +659,7 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-m** \[_MODEL_], **\--model**=\[_MODEL_]
 
-:     Set language _MODEL_ name. Def=_davinci_, _gpt-3.5-turbo_.
+:     Set language _MODEL_ name. Def=_text-davinci-003_, _gpt-3.5-turbo_.
 
       Set _MODEL_ name as "_._" to pick from the list.
 

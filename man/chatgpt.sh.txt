@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.20.15 | General Commands Manual
+CHATGPT.SH(1) v0.20.16 | General Commands Manual
 mountaineerbr
 November 2023
 
@@ -582,7 +582,7 @@ Model Settings
 
 -m [MODEL], --model=[MODEL]
 
-    Set language MODEL name. Def=davinci, gpt-3.5-turbo.
+    Set language MODEL name. Def=text-davinci-003, gpt-3.5-turbo.
 
     Set MODEL name as “.” to pick from the list.
 
