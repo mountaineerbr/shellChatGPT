@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.17  nov/2023  by mountaineerbr  GPL+3
+# v0.20.18  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1370,7 +1370,7 @@ function cmd_runf
 			done ;__clr_lineupf $((12+55+1)) #!#
 			((${#args[@]})) && shell_histf "!${args[*]}"
 			;;
-		[/!]session*|session*|list*|copy*|fork*|sub|grep|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
+		[/!]session*|session*|list*|copy*|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
 			echo Session and History >&2
 			session_mainf /"${args[@]}"
 			;;
@@ -2374,7 +2374,7 @@ function session_mainf
 			_cmdmsgf "$msg Files" 'list'$'\n'
 			session_listf "$name"
 			printf '\nPress any key ' >&2
-			__read_charf >/dev/null </dev/tty ;return
+			__read_charf >/dev/null; return 0
 			;;
 		#fork current session to [dest_hist]: /fork
 		fork*|f\ *)
