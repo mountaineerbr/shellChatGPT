@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.18  nov/2023  by mountaineerbr  GPL+3
+# v0.20.19  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -8,7 +8,7 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # DEFAULTS
 # Text cmpls model
-MOD="text-davinci-003"
+MOD="text-davinci-003"  #"gpt-3.5-turbo-instruct"
 # Chat cmpls model
 MOD_CHAT="gpt-3.5-turbo"
 # Edits model  (deprecated)
@@ -1083,7 +1083,7 @@ function set_maxtknf
 #check input and run a chat command
 function cmd_runf
 {
-	typeset var wc args skip n
+	typeset var wc args xskip n
 	[[ ${*} = *([$IFS:])[/!-]* ]] || return $?
 	printf "${NC}" >&2
 
@@ -1132,19 +1132,19 @@ function cmd_runf
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  push_tohistf "$(escapef ":${INSTRUCTION_OLD:-$INSTRUCTION}")"
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
-			} ;unset CKSUM_OLD ;skip=1
+			}; unset CKSUM_OLD; xskip=1
 			;;
 		-g|-G|stream|no-stream)
 			((++STREAM)) ;((STREAM%=2))
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
 		-h*|h*|help*|\?*)
-			skip=1
 			sed -n -e 's/^\t*//' -e '/^\s*------ /,/^\s*------ /p' <<<"$HELP" | less -S
+			xskip=1
 			;;
 		-H|H|history|hist)
 			__edf "$FILECHAT"
-			unset CKSUM_OLD ;skip=1
+			unset CKSUM_OLD; xskip=1
 			;;
 		-HH|HH|request|req)
 			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" set_histf
@@ -1242,10 +1242,10 @@ function cmd_runf
 			;;
 		-xx|[/!]editor|[/!]ed|[/!]vim|[/!]vi)
 			((!OPTX)) && __cmdmsgf 'Text Editor' 'one-shot'
-			((OPTX)) || OPTX=2; REPLY= skip=1
+			((OPTX)) || OPTX=2; REPLY= xskip=1
 			;;
 		-x|editor|ed|vim|vi)
-			((++OPTX)) ;((OPTX%=2)); REPLY= skip=1
+			((++OPTX)) ;((OPTX%=2)); REPLY= xskip=1
 			;;
 		-y|-Y|tiktoken|tik|no-tik)
 			send_tiktokenf '/END_TIKTOKEN/'
@@ -1264,7 +1264,7 @@ function cmd_runf
 			  do 	((${#var})) || shift; break;
 			  done
 
-			  INPUT_ORIG=("${@:-${INPUT_ORIG[@]}}") skip=1
+			  INPUT_ORIG=("${@:-${INPUT_ORIG[@]}}") xskip=1
 			}; __cmdmsgf 'Whisper Chat' $(_onoff $OPTW)
 			((OPTW)) && __cmdmsgf "Whisper Args #${#INPUT_ORIG[@]}" "${INPUT_ORIG[*]}"
 			;;
@@ -1341,7 +1341,7 @@ function cmd_runf
 			then 	cmd_runf /sh "${@}"
 			else 	printf '%s\n' ' * Press <Ctrl-D> to flush * ' >&2
 				STDERR=/dev/null  cmd_runf /sh cat
-			fi ;skip=1
+			fi; xskip=1
 			;;
 		[/!]sh*)
 			set -- "${*##[/!]sh?(ell)*([$IFS])}"
@@ -1352,7 +1352,7 @@ function cmd_runf
 			;;
 		shell*|sh*)
 			set -- "${*##sh?(ell)*([$IFS])}"
-			[[ -n $* ]] || set --; skip=1
+			[[ -n $* ]] || set --; xskip=1
 			while :
 			do 	REPLY=$(bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR); echo >&2
 				#abort on empty
@@ -1390,11 +1390,11 @@ function cmd_runf
 			;;
 		*) 	return 1
 			;;
-	esac ;echo >&2
-	if ((OPTX)) && ((!(REGEN+skip) )) 
-	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2
-		__read_charf >/dev/null
-	fi ;return 0
+	esac; echo >&2
+	if ((OPTX)) && ((!(REGEN+xskip) )) 
+	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
+		__read_charf >/dev/null;
+	fi; return 0
 }
 
 #print msg to stderr
@@ -1463,10 +1463,10 @@ function edf
 		[[ "$pos" != "${pre:-%#}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
 	do 	__warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [r]edo or [a]bort? " ''
 		case "$(__read_charf ;echo >&2)" in
-			[AaQq]) return 201;;       #abort
-			[CcNn]) break;;            #continue
+			[AaQq]) echo abort >&2; return 201;;  #abort
+			[CcNn]) break;;      #continue
 			[Rr])  return 200;;  #redo
-			[Ee]|$'\e'|*) __edf "$FILETXT";; #edit
+			[Ee]|$'\e'|*) __edf "$FILETXT";;  #edit
 		esac
 	done
 	
@@ -2078,7 +2078,7 @@ function custom_prf
 
 	case "$file" in
 		[Cc]urrent|.) 	file="${FILECHAT}";;
-		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 2;;
+		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo abort >&2; return 2;;
 	esac
 	if [[ -f "$file" ]]
 	then 	msg=${msg:-LOAD}    INSTRUCTION=$(<"$file")
@@ -2191,7 +2191,7 @@ function session_globf
 			return
 			;;
 		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit)
-			printf 'abort'
+			echo abort; echo abort >&2;
 			return
 			;;
 		"$REPLY")
@@ -2249,9 +2249,9 @@ function session_name_choosef
 		else 	print_name="${fname/"$HOME"/"~"}"
 		fi
 		if [[ ! -e $fname ]]
-		then 	case "$fname" in *[N]ew.???) 	:;; *[Aa]bort.???|*[Cc]ancel.???|*[Ee]xit.???|*[Qq]uit.???) 	echo abort; return 2;; esac
+		then 	case "$fname" in *[N]ew.???) 	:;; *[Aa]bort.???|*[Cc]ancel.???|*[Ee]xit.???|*[Qq]uit.???) 	echo abort >&2; return 2;; esac
 			_sysmsgf "Confirm${new}? [Y]es/[n]o/[a]bort:" "${print_name} " '' ''
-			case "$(__read_charf)" in [AaQq]|$'\e') return 201;; [NnOo]) 	:;; *) 	false;; esac
+			case "$(__read_charf)" in [AaQq]|$'\e') 	echo abort >&2; return 201;; [NnOo]) 	:;; *) 	false;; esac
 		else 	false
 		fi
 	do 	unset fname new print_name
@@ -2311,7 +2311,7 @@ do 	__spinf 	#grep for user regex
 					;;
 			  	[NnOo]|$'\e') 	false
 					;;
-				[AaQq]) 	return 1
+				[AaQq]) 	echo abort >&2; return 2
 					;;
 				*) 	break 2
 					;;
@@ -2340,10 +2340,10 @@ function session_copyf
 	then 	src=${FILECHAT}; echo "${src:-err}" >&2
 	else 	src="$(session_globf "${@:1:1}" || session_name_choosef "${@:1:1}")"; echo "${src:-err}" >&2
 		set -- "${@:2:1}"
-	fi; case "$src" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 2;; esac
+	fi; case "$src" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo abort >&2; return 2;; esac
 	_sysmsgf 'Destination hist file: ' '' ''
 	dest="$(session_globf "$@" || session_name_choosef "$@")"; echo "${dest:-err}" >&2
-	dest="${dest:-$FILECHAT}"; case "$dest" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 2;; esac
+	dest="${dest:-$FILECHAT}"; case "$dest" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo abort >&2; return 2;; esac
 
 	buff=$(session_sub_printf "$src") \
 	&& if [[ -f "$dest" ]] ;then 	[[ "$(<"$dest")" != *"${buff}" ]] || return 0 ;fi \
@@ -2433,7 +2433,7 @@ function session_mainf
 
 		case "$file" in
 			[Cc]urrent|.) 	file="${FILECHAT}";;
-			[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 2;;
+			[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo abort >&2; return 2;;
 		esac
 		[[ -f "$file" ]] && msg=change || msg=create
 		_cmdmsgf 'Session' "$msg ${break:+ + session break}"
