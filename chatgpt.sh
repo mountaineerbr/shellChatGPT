@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.20.20  nov/2023  by mountaineerbr  GPL+3
+# v0.21  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -10,7 +10,7 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 # Text cmpls model
 MOD="text-davinci-003"  #"gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="gpt-3.5-turbo"
+MOD_CHAT="gpt-3.5-turbo-0301"  #"gpt-4-0314"
 # Edits model  (deprecated)
 MOD_EDIT="text-davinci-edit-001"
 # Audio model
@@ -2814,7 +2814,7 @@ else
 		#chatbot must sound like a human, shouldnt be lobotomised
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 :Marv is a chatbot that reluctantly answers questions with sarcastic responses:
-		OPTA="${OPTA:-0.4}" OPTT="${OPTT:-0.6}"  #!#
+		OPTA="${OPTA:-0.5}" OPTT="${OPTT:-0.7}"  #!#
 		STOPS+=("${Q_TYPE//$SPC1}" "${A_TYPE//$SPC1}")
 	else 	((EPN==6)) || __sysmsgf 'Text Completions'
 	fi

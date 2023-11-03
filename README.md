@@ -225,12 +225,32 @@ _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 -->
 
 
-## 💡  Tips
+## 💡  Notes and Tips
 
-- The original models `davinci` and `curie`, and to some extent,
-their forks `text-davinci-003` and `text-curie-001`,
+
+- Generally, my evaluation on models prefers using `davinci`, or
+`text-davinci-003` for less intruction intensive tasks, such as
+brainstorming. The newer models, `gpt-3.5-turbo-instruct`, may be
+better at following instructions, is cheap and much faster.
+
+- On chat completions, the launch verusion of the models seem to
+be more creative and better at tasks, generally speaking, than
+newer iterations of the same models. So, that is we default to
+`gpt-3.5-turbo-0301`, and, reccomend the model `gpt-4-0314`.
+
+<!--
+https://www.refuel.ai/blog-posts/gpt-3-5-turbo-model-comparison
+https://www.reddit.com/r/ChatGPT/comments/14u51ug/difference_between_gpt432k_and_gpt432k0314/
+https://www.reddit.com/r/ChatGPT/comments/14km5xy/anybody_else_notice_that_gpt40314_was_replaced_by/
+https://www.reddit.com/r/ChatGPT/comments/156drme/gpt40314_is_better_than_gpt40613_at_generating/
+https://stackoverflow.com/questions/75810740/openai-gpt-4-api-what-is-the-difference-between-gpt-4-and-gpt-4-0314-or-gpt-4-0
+-->
+
+- The original base models `davinci` and `curie`,
+and to some extent, their forks `text-davinci-003` and `text-curie-001`,
 generate very interesting responses (good for
 [brainstorming](https://github.com/mountaineerbr/shellChatGPT/discussions/16#discussioncomment-5811670]))!
+
 
 - Write your customised instruction as plain text file and set that file
 name as the instruction prompt.

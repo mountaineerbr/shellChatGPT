@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.20.17 \| General Commands Manual
+title: CHATGPT.SH(1) v0.21 \| General Commands Manual
 ---
 
 ### NAME
@@ -43,7 +43,8 @@ are automatically set to un-lobotomise the bot. Set `option -E` to exit
 on the first response.
 
 Set `option -cc` to start the chat mode via **native chat completions**
-and use *gpt-3.5+ models*.
+and defaults to *gpt-3.5-turbo-0301*, and may be set to use *gpt-4*
+models.
 
 Set `option -C` to **resume** (continue from) last history session.
 
@@ -71,7 +72,7 @@ as “*.*” to pick from the model list. List available models with
 `option -l`.
 
 Set *maximum response tokens* with `option` “`-`*NUM*” or “`-M` *NUM*”.
-This defaults to 512 tokens.
+This defaults to *512* tokens.
 
 If a second *NUM* is given to this option, *maximum model capacity* will
 also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
@@ -607,7 +608,7 @@ Set best of, must be greater than `option -n` (cmpls). Def=*1*.
 Request log probabilities, also see -z (cmpls, 0 - 5),
 
 **-m** \[*MODEL*\], **--model**=\[*MODEL*\]  
-Set language *MODEL* name. Def=*text-davinci-003*, *gpt-3.5-turbo*.
+Set language *MODEL* name. Def=*text-davinci-003*, *gpt-3.5-turbo-0301*.
 
 Set *MODEL* name as “*.*” to pick from the list.
 

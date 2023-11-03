@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.20.17 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.21 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.20.17 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.21 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -221,7 +221,8 @@ if none set. In chat mode, some options are automatically set to
 un-lobotomise the bot. Set <code>option -E</code> to exit on the first
 response.</p>
 <p>Set <code>option -cc</code> to start the chat mode via <strong>native
-chat completions</strong> and use <em>gpt-3.5+ models</em>.</p>
+chat completions</strong> and defaults to <em>gpt-3.5-turbo-0301</em>,
+and may be set to use <em>gpt-4</em> models.</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session.</p>
 <p>Set <code>option -q</code> for <strong>insert mode</strong>. The flag
@@ -247,7 +248,7 @@ to or create a new history file (with <code>options -ccCdHH</code>).</p>
 model list. List available models with <code>option -l</code>.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
-defaults to 512 tokens.</p>
+defaults to <em>512</em> tokens.</p>
 <p>If a second <em>NUM</em> is given to this option, <em>maximum model
 capacity</em> will also be set. The option syntax takes the form of
 “<code>-</code><em>NUM/NUM</em>”, and “<code>-M</code>
@@ -995,7 +996,7 @@ Def=<em>1</em>.</p>
 <strong>--model</strong>=[<em>MODEL</em>]</dt>
 <dd>
 <p>Set language <em>MODEL</em> name. Def=<em>text-davinci-003</em>,
-<em>gpt-3.5-turbo</em>.</p>
+<em>gpt-3.5-turbo-0301</em>.</p>
 <p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
 </dd>
 <dt><strong>-n</strong> [<em>NUM</em>],

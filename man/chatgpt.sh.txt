@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.20.17 | General Commands Manual
+CHATGPT.SH(1) v0.21 | General Commands Manual
 mountaineerbr
 November 2023
 
@@ -36,7 +36,7 @@ automatically set to un-lobotomise the bot. Set option -E to exit on the
 first response.
 
 Set option -cc to start the chat mode via native chat completions and
-use gpt-3.5+ models.
+defaults to gpt-3.5-turbo-0301, and may be set to use gpt-4 models.
 
 Set option -C to resume (continue from) last history session.
 
@@ -587,7 +587,7 @@ Model Settings
 
 -m [MODEL], --model=[MODEL]
 
-    Set language MODEL name. Def=text-davinci-003, gpt-3.5-turbo.
+    Set language MODEL name. Def=text-davinci-003, gpt-3.5-turbo-0301.
 
     Set MODEL name as “.” to pick from the list.
 

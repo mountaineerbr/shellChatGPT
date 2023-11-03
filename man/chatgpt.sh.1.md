@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.20.17 | General Commands Manual
+% CHATGPT.SH(1) v0.21 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -39,7 +39,7 @@ are automatically set to un-lobotomise the bot.
 Set `option -E` to exit on the first response.
 
 Set `option -cc` to start the chat mode via **native chat completions**
-and use _gpt-3.5+ models_.
+and defaults to _gpt-3.5-turbo-0301_, and may be set to use _gpt-4_ models.
 
 Set `option -C` to **resume** (continue from) last history session.
 
@@ -67,7 +67,7 @@ or set it as "_._" to pick from the model list.
 List available models with `option -l`.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
-This defaults to 512 tokens.
+This defaults to _512_ tokens.
 
 If a second _NUM_ is given to this option, _maximum model capacity_
 will also be set. The option syntax takes the form of "`-`_NUM/NUM_",
@@ -664,7 +664,7 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-m** \[_MODEL_], **\--model**=\[_MODEL_]
 
-:     Set language _MODEL_ name. Def=_text-davinci-003_, _gpt-3.5-turbo_.
+:     Set language _MODEL_ name. Def=_text-davinci-003_, _gpt-3.5-turbo-0301_.
 
       Set _MODEL_ name as "_._" to pick from the list.
 
