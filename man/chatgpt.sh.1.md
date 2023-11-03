@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.21 | General Commands Manual
+% CHATGPT.SH(1) v0.21.1 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -207,6 +207,8 @@ may be either "`!`", or "`/`".
 
   Misc        Commands
   --------    -----------------------    -------------------------------------------------------
+     `-S.`    `-.`         \[_NAME_]     Load and edit custom prompt.
+     `-S/`    `-S%`        \[_NAME_]     Load and edit awesome prompt (zh).
       `-z`    `!last`                    Print last response json.
       `!i`    `!info`                    Information on model and session settings.
       `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
@@ -256,13 +258,13 @@ may be either "`!`", or "`/`".
 
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
-     `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
-                                                         Prompts "_pr_", or All "_._".
-   `!grep`    `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
       `-c`    `!new`                                   Start new session.
       `-H`    `!hist`                                  Edit history in editor.
      `-HH`    `!req`                                   Print context request immediately (see `option -V`).
       `-L`    `!log`       \[_FILEPATH_]               Save to log file.
+     `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
+                                                         Prompts "_pr_", Awesome "_awe_", or all files "_._".
+   `!grep`    `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
       `!c`    `!copy` \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
       `!f`    `!fork`      \[_DEST_HIST_]              Fork current session to destination.
       `!k`    `!kill`      \[_NUM_]                    Comment out _n_ last entries in history file.

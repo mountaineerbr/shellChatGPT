@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21  nov/2023  by mountaineerbr  GPL+3
+# v0.21.1  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -206,6 +206,8 @@ Chat Commands
 
     ------    ----------    ---------------------------------------
     --- Misc Commands ---------------------------------------------
+       -S.     -.       [NAME]  Load and edit custom prompt.
+       -S/     -S%      [NAME]  Load and edit awesome prompt (zh).
        -z      !last            Print last response json.
        !i      !info            Info on model and session settings.
        !j      !jump            Jump to request, append response primer.
@@ -245,13 +247,13 @@ Chat Commands
        -t      !temp     [VAL]  Set temperature.
        -w      !rec     [ARGS]  Toggle voice chat mode (whisper).
     --- Session Management ----------------------------------------
-      !ls      !list    [GLOB]  List History files with name glob,
-                                Prompts \`pr', or All \`.'.
-      !grep    !sub    [REGEX]  Search sessions and copy to tail.
        -c      !new             Start new session (session break).
        -H      !hist            Edit raw history file in editor.
       -HH      !req             Print context request now (see -V).
        -L      !log  [FILEPATH] Save to log file (pretty-print).
+      !ls      !list    [GLOB]  List History files with name glob,
+                                Prompts \`pr', Awesome \`awe', or all \`.'.
+      !grep    !sub    [REGEX]  Search sessions and copy to tail.
        !c      !copy [SRC_HIST] [DEST_HIST]
                                 Copy session from source to destination.
        !f      !fork [DEST_HIST]
@@ -1210,6 +1212,19 @@ function cmd_runf
 			STOPS=("$(unescapef "${*}")" "${STOPS[@]}")
 			__cmdmsgf 'Stop Sequences' "${STOPS[*]}"
 			;;
+		-?(S)*([$' \t'])[.,]*)
+			set -- "${*##-?(S)*([$' \t'])}"; SKIP=1 EDIT=1 
+			var=$(INSTRUCTION=$* OPTRESUME=1 CMD_CHAT=1; custom_prf "$@" && echo "$INSTRUCTION")
+			case $? in [1-9]*|201|[!0]*) 	REPLY="!${args[*]}";; 	*) REPLY=$var;; esac
+			;;
+		-?(S)*([$' \t'])[/%]*)
+			set -- "${*##-?(S)*([$' \t'])}"; SKIP=1 EDIT=1 
+			var=$(INSTRUCTION=$* CMD_CHAT=1; awesomef && echo "$INSTRUCTION") && REPLY=$var
+			;;
+		-S*|-:*)
+			set -- "${*##-[S:]*([$' \t'])}"
+			SKIP=1 EDIT=1 REPLY=":${*##:}"
+			;;
 		-t*|temperature*|temp*)
 			set -- "${*//[!0-9.]}"
 			OPTT="${*:-$OPTT}"
@@ -1972,16 +1987,10 @@ function awesomef
 {
 	typeset REPLY act_keys act_keys_n act zh a l n
 	[[ "$INSTRUCTION" = %* ]] && FILEAWE="${FILEAWE%%.csv}-zh.csv" zh=1
-	set -- "${INSTRUCTION##[/%]}"
-	set -- "${1// /_}"
+	set -- "$(trimf "${INSTRUCTION##[/%]}" "*( )" )";
+	set -- "${1// /_}";
 	FILECHAT="${FILECHAT%/*}/awesome.tsv"
 	_cmdmsgf 'Awesome Prompts' "$1"
-
-	if ((OPTRESUME==1))
-	then 	unset OPTAWE ;return
-	elif ((!MTURN))
-	then 	unset OPTAWE
-	fi
 
 	if [[ ! -s $FILEAWE ]] || [[ $1 = [/%]* ]]  #second slash
 	then 	set -- "${1##[/%]}"
@@ -1994,10 +2003,16 @@ function awesomef
 		then 	[[ -f $FILEAWE ]] && rm -- "$FILEAWE"
 			return 1
 		fi
-	fi ;set -- "${1:-%#}" 
+	fi; set -- "${1:-%#}";
 
 	#map prompts to indexes and get user selection
 	act_keys=$(sed -e '1d; s/,.*//; s/^"//; s/"$//; s/""/\\"/g; s/[][()`*_]//g; s/ /_/g' "$FILEAWE")
+	case "$1" in
+		list*|ls*|+([./%*?-]))  #list awesome keys
+			{ 	pr -T -t -n:3 -W $COLUMNS -$(( (COLUMNS/80)+1)) || cat ;} <<<"$act_keys" >&2;
+			return 210;;
+	esac
+
 	act_keys_n=$(wc -l <<<"$act_keys")
 	while ! { 	((act && act <= act_keys_n)) ;}
 	do 	if ! act=$(grep -n -i -e "${1//[ _-]/[ _-]}" <<<"${act_keys}")
@@ -2018,7 +2033,7 @@ function awesomef
 	done
 
 	INSTRUCTION="$(sed -n -e 's/^[^,]*,//; s/^"//; s/"$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")"
-	((MTURN)) &&
+	((CMD_CHAT)) ||
 	if ((OPTX))  #edit chosen awesome prompt
 	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 		printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
@@ -2028,7 +2043,7 @@ function awesomef
 	if [[ -z $INSTRUCTION ]]
 	then 	__warmsgf 'Err:' 'awesome-chatgpt-prompts fail'
 		unset OPTAWE ;return 1
-	fi ;echo >&2
+	fi
 }
 
 # Custom prompts
@@ -2038,13 +2053,13 @@ function custom_prf
 	filechat="$FILECHAT"
 	FILECHAT="${FILECHAT%%.[Tt][SsXx][VvTt]}.pr"
 	case "$INSTRUCTION" in  #lax syntax
-		*[.]) 	INSTRUCTION=".${INSTRUCTION%%[.]}";;
-		*[,]) 	INSTRUCTION=",${INSTRUCTION%%[,]}";;
+		*[!.,][.]) 	INSTRUCTION=".${INSTRUCTION%%[.]}";;
+		*[!.,][,]) 	INSTRUCTION=",${INSTRUCTION%%[,]}";;
 	esac
 
 	#options
-	case "$INSTRUCTION"  in
-		*([.,])@(list|\?))
+	case "${INSTRUCTION// }"  in
+		+([.,])@(list|\?)|[.,]+([.,/*?-]))
 			INSTRUCTION= list=1
 			_cmdmsgf 'Prompt File' 'LIST'
 			;;
@@ -2078,7 +2093,7 @@ function custom_prf
 
 	case "$file" in
 		[Cc]urrent|.) 	file="${FILECHAT}";;
-		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo abort >&2; return 201;;
+		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 201; echo abort >&2; return 201;;
 	esac
 	if [[ -f "$file" ]]
 	then 	msg=${msg:-LOAD}    INSTRUCTION=$(<"$file")
@@ -2091,6 +2106,7 @@ function custom_prf
 	then 	session_sub_fifof "$FILECHAT"
 		return
 	fi
+	((CMD_CHAT)) ||
 	_sysmsgf 'Hist   File:' "${FILECHAT/"$HOME"/"~"}"
 	_sysmsgf 'Prompt File:' "${file/"$HOME"/"~"}"
 	_cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
@@ -2109,7 +2125,7 @@ function custom_prf
 
 		if ((template))  #push changes to file
 		then 	printf '%s' "$INSTRUCTION"${INSTRUCTION:+$'\n'} >"$file"
-			[[ -e "$file" && ! -s "$file" ]] && { rm -v -- "$file" || rm -- "$file" ;}
+			[[ -e "$file" && ! -s "$file" ]] && { rm -v -- "$file" || rm -- "$file" ;} >&2
 		fi
 		if [[ -z $INSTRUCTION ]]
 		then 	__warmsgf 'Err:' 'custom prompts fail'
@@ -2117,7 +2133,7 @@ function custom_prf
 		fi
 	fi
 	return ${ret:-0}
-}
+} #exit codes: 1) err; 	200) create new pr; 	201) abort.
 
 # Set the clipboard command
 function set_clipcmdf
@@ -2208,7 +2224,7 @@ function session_name_choosef
 {
 	typeset fname new print_name sglob
 	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}"
-	case "$fname" in [Nn]ew|*[N]ew.???) 	set --; fname=;; esac
+	case "$fname" in [Nn]ew|*[N]ew.${sglob}) 	set --; fname=;; esac
 	while
 		fname="${fname%%\/}"
 		fname="${fname%%.${sglob}}"
@@ -2224,9 +2240,9 @@ function session_name_choosef
 		fi
 
 		if [[ ${fname} = *([$IFS]) ]]
-		then 	[[ ${fname} = *.[Pp][Rr] ]] \
-			&& _sysmsgf 'New prompt file name <enter>:' \
-			|| _sysmsgf 'New session name <enter>:'
+		then 	[[ pr = ${sglob} ]] \
+			&& _sysmsgf 'New prompt file name <enter/abort>:' \
+			|| _sysmsgf 'New session name <enter/abort>:'
 			read -r -e -i "$fname" fname </dev/tty
 		fi
 
@@ -2236,9 +2252,8 @@ function session_name_choosef
 		fi
 
 		if [[ $fname != *?/?* ]] && [[ ! -e "$fname" ]]
-		then 	fname="${CACHEDIR%%/}/${fname:-x}"
-		fi
-		fname="${fname:-x}"
+		then 	fname="${CACHEDIR%%/}/${fname:-abort}"
+		fi; fname="${fname:-abort}"
 		if [[ ! -f "$fname" ]]
 		then 	fname="${fname}.${sglob//[!a-z]}"
 			new=" new"
@@ -2249,7 +2264,7 @@ function session_name_choosef
 		else 	print_name="${fname/"$HOME"/"~"}"
 		fi
 		if [[ ! -e $fname ]]
-		then 	case "$fname" in *[N]ew.???) 	:;; *[Aa]bort.???|*[Cc]ancel.???|*[Ee]xit.???|*[Qq]uit.???) 	echo abort; echo abort >&2; return 201;; esac
+		then 	case "$fname" in *[N]ew.${sglob}) 	:;; *[Aa]bort.${sglob}|*[Cc]ancel.${sglob}|*[Ee]xit.${sglob}|*[Qq]uit.${sglob}) 	echo abort; echo abort >&2; return 201;; esac
 			_sysmsgf "Confirm${new}? [Y]es/[n]o/[a]bort:" "${print_name} " '' ''
 			case "$(__read_charf)" in [AaQq]|$'\e') 	echo abort; echo abort >&2; return 201;; [NnOo]) 	:;; *) 	false;; esac
 		else 	false
@@ -2360,21 +2375,22 @@ function session_mainf
 	name="${name##?([/!])*([$IFS])}"
 
 	case "${name}" in
-		#list hist files: /list
+		#list files: /list [awe|pr|all|session]
 		list*|ls*)
 			name="${name##@(list|ls)*([$IFS])}"
 			case "$name" in
+				[Aa]wesome|[Aa]we)
+					INSTRUCTION=/list awesomef;
+					return 0;;  #e:210
 				[Pp][Rr]|[Pp]rompt|[Pp]rompts)
-					typeset SGLOB='[Pp][Rr]' name= msg=Prompts;;
-				[Aa]ll|[Ee]verything|[Aa]nything|[*?.])
+					typeset SGLOB='[Pp][Rr]' name= msg=Prompts;;  #duplicates opt `-S .list` fun
+				[Aa]ll|[Ee]verything|[Aa]nything|+([./*?-]))
 					typeset SGLOB='*' name= msg=All;;
 				[Tt][Ss][Vv]|[Ss]ession|[Ss]essions|*)
 					name= msg=Sessions;;
 			esac
 			_cmdmsgf "$msg Files" 'list'$'\n'
-			session_listf "$name"
-			printf '\nPress any key ' >&2
-			__read_charf >/dev/null; return 0
+			session_listf "$name"; return 0
 			;;
 		#fork current session to [dest_hist]: /fork
 		fork*|f\ *)
@@ -2795,12 +2811,17 @@ else
 	if [[ $INSTRUCTION = [/%.,]* ]]
 	then 	if [[ $INSTRUCTION = [/%]* ]]
 		then 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
+			if ((OPTRESUME==1))
+			then 	unset OPTAWE ;return
+			elif ((!MTURN))
+			then 	unset OPTAWE
+			fi
 			awesomef || exit
-			_sysmsgf 'Hist   File:' "${FILECHAT}"
+			_sysmsgf $'\n''Hist   File:' "${FILECHAT}"
 		else 	custom_prf "$@"
 			case $? in
-				200) 	set -- ;;
-				[1-9]*) exit $? ;;
+				200) 	set -- ;;  #create, read and clear pos args
+				[1-9]*|[!0]*) exit $? ;;  #err
 			esac
 		fi
 	fi

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.21 \| General Commands Manual
+title: CHATGPT.SH(1) v0.21.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -208,6 +208,8 @@ or “`/`”.
 
 | Misc   | Commands            |                                                        |
 |:-------|:--------------------|--------------------------------------------------------|
+| `-S.`  | `-.` \[*NAME*\]     | Load and edit custom prompt.                           |
+| `-S/`  | `-S%` \[*NAME*\]    | Load and edit awesome prompt (zh).                     |
 | `-z`   | `!last`             | Print last response json.                              |
 | `!i`   | `!info`             | Information on model and session settings.             |
 | `!j`   | `!jump`             | Jump to request, append start seq primer (text cmpls). |
@@ -254,13 +256,13 @@ or “`/`”.
 
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|
-| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*,                     |
-|         |                                        | Prompts “*pr*”, or All “*.*”.                              |
-| `!grep` | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail. |
 | `-c`    | `!new`                                 | Start new session.                                         |
 | `-H`    | `!hist`                                | Edit history in editor.                                    |
 | `-HH`   | `!req`                                 | Print context request immediately (see `option -V`).       |
 | `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                          |
+| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*,                     |
+|         |                                        | Prompts “*pr*”, Awesome “*awe*”, or all files “*.*”.       |
+| `!grep` | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail. |
 | `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                   |
 | `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.                       |
 | `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.              |

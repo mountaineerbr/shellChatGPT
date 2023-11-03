@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.21 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.21.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.21 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.21.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -372,6 +372,16 @@ prompt to set a new parameter. The command operator may be either
 </tr>
 </thead>
 <tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>-S.</code></td>
+<td style="text-align: left;"><code>-.</code> [<em>NAME</em>]</td>
+<td>Load and edit custom prompt.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-S/</code></td>
+<td style="text-align: left;"><code>-S%</code> [<em>NAME</em>]</td>
+<td>Load and edit awesome prompt (zh).</td>
+</tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-z</code></td>
 <td style="text-align: left;"><code>!last</code></td>
@@ -593,6 +603,26 @@ flush.</td>
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: left;"><code>-c</code></td>
+<td style="text-align: left;"><code>!new</code></td>
+<td>Start new session.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-H</code></td>
+<td style="text-align: left;"><code>!hist</code></td>
+<td>Edit history in editor.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-HH</code></td>
+<td style="text-align: left;"><code>!req</code></td>
+<td>Print context request immediately (see <code>option -V</code>).</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-L</code></td>
+<td style="text-align: left;"><code>!log</code> [<em>FILEPATH</em>]</td>
+<td>Save to log file.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!ls</code></td>
 <td style="text-align: left;"><code>!list</code> [<em>GLOB</em>]</td>
 <td>List History files with <em>name</em> <em>glob</em>,</td>
@@ -600,32 +630,13 @@ flush.</td>
 <tr class="even">
 <td style="text-align: left;"></td>
 <td style="text-align: left;"></td>
-<td>Prompts “<em>pr</em>”, or All “<em>.</em>”.</td>
+<td>Prompts “<em>pr</em>”, Awesome “<em>awe</em>”, or all files
+“<em>.</em>”.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
 <td>Search sessions (for regex) and copy session to hist tail.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>-c</code></td>
-<td style="text-align: left;"><code>!new</code></td>
-<td>Start new session.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>-H</code></td>
-<td style="text-align: left;"><code>!hist</code></td>
-<td>Edit history in editor.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>-HH</code></td>
-<td style="text-align: left;"><code>!req</code></td>
-<td>Print context request immediately (see <code>option -V</code>).</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>-L</code></td>
-<td style="text-align: left;"><code>!log</code> [<em>FILEPATH</em>]</td>
-<td>Save to log file.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!c</code></td>
