@@ -770,7 +770,7 @@ A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
       should insert text (only with some models of text cmpls).
 
 
-**-S** **.**\[_PROMPT_NAME_]\[**.**], **-,**\[_PROMPT_NAME_]\[**.**]
+**-S** **.**\[_PROMPT_NAME_]\[**.**], **-.**\[_PROMPT_NAME_]\[**.**]
 
 **-S** **,**\[_PROMPT_NAME_], **-,**\[_PROMPT_NAME_]
 

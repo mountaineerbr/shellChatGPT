@@ -677,7 +677,7 @@ Insert text rather than completing only.
 Use “*\[insert\]*” to indicate where the language model should insert
 text (only with some models of text cmpls).
 
-**-S** **.**\[*PROMPT_NAME*\]\[**.**\], **-,**\[*PROMPT_NAME*\]\[**.**\]
+**-S** **.**\[*PROMPT_NAME*\]\[**.**\], **-.**\[*PROMPT_NAME*\]\[**.**\]
 
 **-S** **,**\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]  
 Load, search for, or create custom prompt.
