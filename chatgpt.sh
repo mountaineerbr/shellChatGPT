@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.1  nov/2023  by mountaineerbr  GPL+3
+# v0.21.2  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -39,7 +39,9 @@ OPTN=1
 OPTS=512x512
 # Image format
 OPTI_FMT=b64_json  #url
-# Recorder command (with -ccw and -Ww), e.g. sox
+# Clipboard set command, e.g. "xsel -b", "pbcopy"
+#CLIP_CMD=""
+# Recorder command, e.g. "sox"
 #REC_CMD=""
 # Set python tiktoken to count tokens
 #OPTTIK=
@@ -101,7 +103,8 @@ HISTSIZE=512 SAVEHIST=512 HISTTIMEFORMAT='%F %T '
 # Def hist, txt chat types
 Q_TYPE="\\nQ: "
 A_TYPE="\\nA:"
-I_TYPE='[insert]'
+S_TYPE="\\n\\nSYSTEM: "
+I_TYPE="[insert]"
 
 # Globs
 SPC="*([$IFS])"
@@ -150,6 +153,11 @@ Description
 	first positional argument is taken as INSTRUCTION, if none set,
 	and the following ones as INPUT or PROMPT.
 
+	In multi-turn, when user prompt begins with a colon \`:', the
+	subsequent text is set as a system message (text and chat cmpls).
+	For text cmpls only, if souble colons \`::' are used, the following
+	text will be appended to the previous prompt.
+
 	If the first positional argument of the script starts with the
 	command operator, the command \`/session [HIST_NAME]' to change
 	to or create a new history file is assumed (with options -ccCdHH).
@@ -191,8 +199,9 @@ Environment
 	OPENAI_API_KEY
 	OPENAI_KEY 	Set your personal (free) OpenAI API key.
 
-	REC_CMD 	Audio recording command (with -ccw and -Ww),
-			e.g. sox.
+	CLIP_CMD 	Clipboard set command, e.g. \`xsel -b', \`pbcopy'.
+
+	REC_CMD 	Audio recording command, e.g. \`sox'.
 
 	VISUAL
 	EDITOR 		Text editor for external prompt editing.
@@ -249,7 +258,8 @@ Chat Commands
     --- Session Management ----------------------------------------
        -c      !new             Start new session (session break).
        -H      !hist            Edit raw history file in editor.
-      -HH      !req             Print context request now (see -V).
+      -HH      !req             Print context request immediately (see -V),
+                                set -HHH to also print commented out entries.
        -L      !log  [FILEPATH] Save to log file (pretty-print).
       !ls      !list    [GLOB]  List History files with name glob,
                                 Prompts \`pr', Awesome \`awe', or all \`.'.
@@ -495,10 +505,10 @@ function __promptf
 
 function _promptf
 {
-	typeset chunk str n
+	typeset chunk_n chunk str n
 	json_minif
 	
-	printf '✘\b' >&2
+	printf "${NC}${YELLOW}X\\b✘\\b${xNC}" >&2
 	if ((STREAM))
 	then 	set -- -s "$@" -S -L --no-buffer; : >"$FILE"  #clear buffer asap
 		__promptf "$@" | while IFS= read -r chunk
@@ -508,16 +518,17 @@ function _promptf
 			if ((!n))  #first pass
 			then 	((OPTC==1)) && {  #del leading spaces
 					str='text":"'
-					chunk="${chunk/${str}+${SPC1##\*}/$str}"
-					[[ $chunk = *"${str}"\",* ]] && continue
+					chunk_n="${chunk/${str}+${SPC1##\*}/$str}"
+					[[ $chunk_n = *"${str}"\",* ]] && continue
 				}; ((++n));
-			fi
-			tee -a "$FILE" <<<"$chunk"
+				printf '%s\n' "$chunk_n"
+			else 	printf '%s\n' "$chunk"
+			fi; 	printf '%s\n' "$chunk" >>"$FILE"
 		done
 	else
-		((OPTV>1)) && set -- -s "$@"
-		set -- -\# "$@" -L -o "$FILE"
-		__promptf "$@"
+		((OPTV>1)) && set -- -s "$@";
+		set -- -\# "$@" -L -o "$FILE"; echo >&2;
+		__promptf "$@"; __clr_lineupf 1;
 	fi
 }
 
@@ -615,7 +626,7 @@ function trimf
 function block_printf
 {
 	if ((OPTVV>1))
-	then 	printf '%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"
+	then 	printf '%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"; OPTAWE= SKIP=
 		printf '\n%s\n' '<Ctrl-D> redo, <Ctrl-C> exit, <Enter> continue'
 		typeset REPLY; read </dev/tty || return 200
 	else 	((STREAM)) && set -- -j
@@ -797,12 +808,12 @@ function lastjsonf
 #set up context from history file ($HIST and $HIST_C)
 function set_histf
 {
-	typeset time token string max_prev q_type a_type role role_old rest a_append com sub ind herr m
+	typeset time token string max_prev q_type a_type role rest com sub ind herr
 	[[ -s $FILECHAT ]] || return; unset HIST HIST_C; 
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
 	q_type=${Q_TYPE##$SPC1} a_type=${A_TYPE##$SPC1}
-	((OPTC>1 || EPN==6)) && a_append=" "
+	((OPTC>1 || EPN==6)) && typeset A_TYPE="${A_TYPE} "  #pretty-print seq "\\nA: " ($rest)
 	((${#})) && token_prevf "${*}"
 
 	while __spinf
@@ -843,15 +854,18 @@ function set_histf
 				stringc=$(trim_trailf "$stringc" "*(\\\\[ntrvf])")
 			fi
 
-			role_old=$role role= rest=
+			role= rest=
 			case "${string}" in
+				::*) 	role=system rest=
+					stringc=${stringc##:}  #append (txt cmpls)
+					;;
 				:*) 	role=system
-					rest=
+					((OPTC)) && rest="$S_TYPE" stringc="${stringc}\\n"  #system message
 					;;
 				"${a_type:-%#}"*|"${START:-%#}"*)
 					role=assistant
 					if ((OPTC)) || [[ -n "${START}" ]]
-					then 	rest="${START:-${A_TYPE}${a_append}}"
+					then 	rest="${START:-${A_TYPE}}"
 					fi
 					;;
 				*) #q_type, RESTART
@@ -866,7 +880,7 @@ function set_histf
 			((com)) && stringc=$(sed 's/\\n/\\n# /g' <<<"${rest}${stringc}") rest= com=
 			
 			HIST="${rest}${stringc}${HIST}"
-			((EPN==6)) && HIST_C="$(fmt_ccf "${stringc}" "${role}")${HIST_C:+,}${HIST_C}"
+			((EPN==6)) && HIST_C="$(fmt_ccf "${stringc%%"\\n"}" "${role}")${HIST_C:+,}${HIST_C}"
 		else 	break
 		fi
 	done < <(tac -- "$FILECHAT")
@@ -874,17 +888,17 @@ function set_histf
 	((MAX_PREV+=3)) # chat cmpls, every reply is primed with <|start|>assistant<|message|>
 	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns 
 
-	if [[ "$role" = system ]]  #first system/instruction: add newlines (txt cmpls) 
-	then 	[[ ${role_old:=user} = @(user|assistant) ]] || unset role_old
-		HIST="${stringc}${role_old:+\\n}\\n${HIST##"$stringc"?(\\n)}"
-	fi
-
 	#:||{  #debug
 	((!OPTC)) || [[ $HIST = "$stringc"*(\\n) ]] ||  #hist contains only one/system prompt?
 	HIST=$(trim_trailf "$HIST" "*(\\\\[ntrvf])")  #del multiple trailing nl
 	HIST=$(trim_leadf "$HIST" "?(\\\\[ntrvf]|$NL)?( )")  #del one leading nl+sp
 }
 #https://thoughtblogger.com/continuing-a-conversation-with-a-chatbot-using-gpt/
+
+function hist_lastlinef
+{
+	sed -n -e 's/\t"/\t/; s/"$//;' -e '$s/^[^\t]*\t[^\t]*\t//p' "$FILECHAT"
+}
 
 #print to history file
 #usage: push_tohistf [string] [tokens] [time]
@@ -1129,7 +1143,7 @@ function cmd_runf
 			OPTB="${*:-$OPTB}"
 			__cmdmsgf 'Best_Of' "$OPTB"
 			;;
-		-[Cc]|break|br|new)
+		-[cCdD]|break|br|new)
 			break_sessionf
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  push_tohistf "$(escapef ":${INSTRUCTION_OLD:-$INSTRUCTION}")"
@@ -1148,7 +1162,8 @@ function cmd_runf
 			__edf "$FILECHAT"
 			unset CKSUM_OLD; xskip=1
 			;;
-		-HH|HH|request|req)
+		-HH|-HHH*|HH|HHH*|request|req)
+			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
 			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" set_histf
 			printf "\\n---\\n" >&2
 			usr_logf "$(unescapef "$HIST\\n---")" >&2
@@ -1232,9 +1247,14 @@ function cmd_runf
 			__cmdmsgf 'Temperature' "$OPTT"
 			;;
 		-o|clipboard|clip)
-			((++OPTCLIP)) ;((OPTCLIP%=2))
-			set_clipcmdf
+			((++OPTCLIP)); ((OPTCLIP%=2))
 			__cmdmsgf 'Clipboard' $(_onoff $OPTCLIP)
+			if ((OPTCLIP))  #set clipboard
+			then 	set_clipcmdf;
+				set -- "$(hist_lastlinef)";
+				unescapef "$*" | ${CLIP_CMD:-false} &&
+				  printf "${NC}Clipboard Set -- %.*s..${CYAN}" $((COLUMNS-20>20?COLUMNS-20:20)) "$*" >&2;
+			fi
 			;;
 		-q|insert)
 			((++OPTSUFFIX)) ;((OPTSUFFIX%=2))
@@ -1401,7 +1421,7 @@ function cmd_runf
 			;;
 		q|quit|exit|bye)
 			send_tiktokenf '/END_TIKTOKEN/' && wait
-			exit 0
+			echo '[bye]' >&2; exit 0
 			;;
 		*) 	return 1
 			;;
@@ -1430,11 +1450,8 @@ function __warmsgf
 #command run feedback
 function __cmdmsgf
 {
-	typeset c s
-	for ((c=${#1};c<14;c++))
-	do 	s=" $s"
-	done
-	BWHITE="${WHITE}" Color200="${CYAN}" __sysmsgf "$1" "${s}=> ${2:-unset}"
+	BWHITE="${WHITE}" Color200="${CYAN}" \
+	__sysmsgf "$(printf '%-14s' "$1")" "=> ${2:-unset}"
 }
 function _cmdmsgf { 	OPTV=  __cmdmsgf "$@" ;}
 function _onoff
@@ -2102,7 +2119,7 @@ function custom_prf
 
 	FILECHAT="${filechat%/*}/${file##*/}"
 	FILECHAT="${FILECHAT%%.[Pp][Rr]}.tsv"
-	if ((OPTHH && OPTHH<=4))
+	if ((OPTHH>1 && OPTHH<=4))
 	then 	session_sub_fifof "$FILECHAT"
 		return
 	fi
@@ -2138,6 +2155,7 @@ function custom_prf
 # Set the clipboard command
 function set_clipcmdf
 {
+	((${#CLIP_CMD})) ||
 	if command -v termux-clipboard-set
 	then 	CLIP_CMD='termux-clipboard-set'
 	elif command -v pbcopy
@@ -2429,7 +2447,7 @@ function session_mainf
 	done
 
 	#print hist option
-	if ((OPTHH && OPTHH<=4))
+	if ((OPTHH>1 && OPTHH<=4))
 	then 	session_sub_fifof "$name"
 		return
 	#copy/fork session to destination
@@ -2811,13 +2829,15 @@ else
 	if [[ $INSTRUCTION = [/%.,]* ]]
 	then 	if [[ $INSTRUCTION = [/%]* ]]
 		then 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
-			if ((OPTRESUME==1))
-			then 	unset OPTAWE ;return
-			elif ((!MTURN))
-			then 	unset OPTAWE
-			fi
-			awesomef || exit
+			awesomef || case $? in 	210) exit 0;; 	*) exit 1;; esac
 			_sysmsgf $'\n''Hist   File:' "${FILECHAT}"
+			if ((OPTRESUME==1))
+			then 	unset OPTAWE
+			elif ((!${#}))
+			then 	printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request, or append user prompt:\n>\b' >&2
+			  	REPLY=$(__read_charf)
+			  	case "${REPLY//[$IFS]}" in 	?) SKIP=1 EDIT=1 OPTAWE=;; 	*) unset REPLY; echo >&2;; esac
+			fi
 		else 	custom_prf "$@"
 			case $? in
 				200) 	set -- ;;  #create, read and clear pos args
@@ -2984,7 +3004,8 @@ else
 					RETRY=1 BCYAN="${Color8}"
 				elif [[ -n $REPLY ]]
 				then
-					((RETRY+OPTV)) || new_prompt_confirmf ed whisper
+					[[ $REPLY = $SPC:* ]] || ((RETRY+OPTV)) \
+					|| new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;            #abort
 						200) 	WSKIP=1 ;continue;;  #redo
@@ -3040,14 +3061,22 @@ else
 
 			#system/instruction?
 			if [[ ${*} = $SPC:* ]]
-			then 	push_tohistf "$(escapef ":$(trim_leadf "$*" "$SPC:")")"
-				((OPTV<3)) &&
-				if ((EPN==6))
-				then 	_sysmsgf "System message added"  #gpt-3.5+ (chat cmpls)
-				else 	_sysmsgf "Text appended"  #davinci and earlier (txt cmpls)
+			then
+				var=$(escapef ":$( trim_leadf "$*" "$SPC:" )")
+
+				((OPTV<3)) && ((EPN!=6)) &&  #user feedback
+				if [[ ${*} = $SPC::* ]]      #append (text cmpls)
+				then
+					p=$(hist_lastlinef) q=${var##::} n=$((COLUMNS-19>30 ? (COLUMNS-19)/2 : 30/2))
+					((${#p}>n)) && p=${p:${#p}-n+1} pp=".."
+					((${#q}>n)) && q=${q:0:n}       qq=".."
+					_sysmsgf $'\n'"Text appended:" "$(printf "${NC}${CYAN}%s${BCYAN}%s${NC}" "${pp}${p}" "${q}${qq}")"
+				else
+					_sysmsgf "System prompt added"  #chat / text cmpls
+					((${#INSTRUCTION_OLD})) || INSTRUCTION_OLD=${INSTRUCTION:-${*##:}}
 				fi
-				INSTRUCTION_OLD="${INSTRUCTION_OLD:-$INSTRUCTION}"
-				set -- ;continue
+				push_tohistf "$var"
+				unset p q n pp qq var; set -- ;continue
 			fi
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi

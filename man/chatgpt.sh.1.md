@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.21.1 | General Commands Manual
+% CHATGPT.SH(1) v0.21.2 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -56,6 +56,11 @@ is usually optional and can be set with `option -S`.
 When **INSTRUCTION** is mandatory for a chosen model (such as edits models),
 the first positional argument is read as INSTRUCTION, if none set,
 and the following ones as **INPUT** or **PROMPT**.
+
+In multi-turn, when user prompt begins with a colon "_:_", the subsequent
+text is set as a system message (text and chat cmpls). For text cmpls only,
+if souble colons "_::_" are used, the following text will be appended
+to the previous prompt.
 
 If the first positional argument of the script starts with the
 command operator and a history file name, the
@@ -260,7 +265,8 @@ may be either "`!`", or "`/`".
   --------    -------------------------------------    -----------------------------------------------------------
       `-c`    `!new`                                   Start new session.
       `-H`    `!hist`                                  Edit history in editor.
-     `-HH`    `!req`                                   Print context request immediately (see `option -V`).
+     `-HH`    `!req`                                   Print context request immediately (see `option -V`),
+                                                       set `-HHH` to also print commented out history entries.
       `-L`    `!log`       \[_FILEPATH_]               Save to log file.
      `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
                                                          Prompts "_pr_", Awesome "_awe_", or all files "_._".
@@ -535,9 +541,14 @@ Setting **temperature** has an effect, the higher the more random.
 :    Set your personal (free) OpenAI API key.
 
 
+**CLIP_CMD**
+
+:    Clipboard set command, e.g. "_xsel_ _-b_", "_pbcopy_".
+
+
 **REC_CMD**
 
-:    Audio recording command (with `options -ccw` and `-Ww`), e.g. _sox_.
+:    Audio recording command, e.g. "_sox_".
 
 
 **VISUAL**

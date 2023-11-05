@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.21.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.21.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.21.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.21.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -239,6 +239,10 @@ with <code>option -S</code>.</p>
 (such as edits models), the first positional argument is read as
 INSTRUCTION, if none set, and the following ones as
 <strong>INPUT</strong> or <strong>PROMPT</strong>.</p>
+<p>In multi-turn, when user prompt begins with a colon “<em>:</em>”, the
+subsequent text is set as a system message (text and chat cmpls). For
+text cmpls only, if souble colons “<em>::</em>” are used, the following
+text will be appended to the previous prompt.</p>
 <p>If the first positional argument of the script starts with the
 command operator and a history file name, the command
 “<code>/session</code> [<em>HIST_NAME</em>]” is assumed. This wil change
@@ -615,59 +619,65 @@ flush.</td>
 <tr class="odd">
 <td style="text-align: left;"><code>-HH</code></td>
 <td style="text-align: left;"><code>!req</code></td>
-<td>Print context request immediately (see <code>option -V</code>).</td>
+<td>Print context request immediately (see <code>option -V</code>),</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td>set <code>-HHH</code> to also print commented out history
+entries.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>-L</code></td>
 <td style="text-align: left;"><code>!log</code> [<em>FILEPATH</em>]</td>
 <td>Save to log file.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!ls</code></td>
 <td style="text-align: left;"><code>!list</code> [<em>GLOB</em>]</td>
 <td>List History files with <em>name</em> <em>glob</em>,</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"></td>
 <td style="text-align: left;"></td>
 <td>Prompts “<em>pr</em>”, Awesome “<em>awe</em>”, or all files
 “<em>.</em>”.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
 <td>Search sessions (for regex) and copy session to hist tail.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!c</code></td>
 <td style="text-align: left;"><code>!copy</code> [<em>SRC_HIST</em>]
 [<em>DEST_HIST</em>]</td>
 <td>Copy session from source to destination.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!f</code></td>
 <td style="text-align: left;"><code>!fork</code>
 [<em>DEST_HIST</em>]</td>
 <td>Fork current session to destination.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!k</code></td>
 <td style="text-align: left;"><code>!kill</code> [<em>NUM</em>]</td>
 <td>Comment out <em>n</em> last entries in history file.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!k</code></td>
 <td style="text-align: left;"><code>!!kill</code>
 [[<em>0</em>]<em>NUM</em>]</td>
 <td>Dry-run of command <code>!kill</code>.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!s</code></td>
 <td style="text-align: left;"><code>!session</code>
 [<em>HIST_FILE</em>]</td>
 <td>Change to, search for, or create history file.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!s</code></td>
 <td style="text-align: left;"><code>!!session</code>
 [<em>HIST_FILE</em>]</td>
@@ -890,10 +900,14 @@ instead.</p>
 <dd>
 <p>Set your personal (free) OpenAI API key.</p>
 </dd>
+<dt><strong>CLIP_CMD</strong></dt>
+<dd>
+<p>Clipboard set command, e.g. “<em>xsel</em> <em>-b</em>”,
+“<em>pbcopy</em>”.</p>
+</dd>
 <dt><strong>REC_CMD</strong></dt>
 <dd>
-<p>Audio recording command (with <code>options -ccw</code> and
-<code>-Ww</code>), e.g. <em>sox</em>.</p>
+<p>Audio recording command, e.g. “<em>sox</em>”.</p>
 </dd>
 </dl>
 <p><strong>VISUAL</strong></p>

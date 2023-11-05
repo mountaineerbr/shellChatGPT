@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.21.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.21.2 \| General Commands Manual
 ---
 
 ### NAME
@@ -61,6 +61,11 @@ Positional arguments are read as a single **PROMPT**. Model
 When **INSTRUCTION** is mandatory for a chosen model (such as edits
 models), the first positional argument is read as INSTRUCTION, if none
 set, and the following ones as **INPUT** or **PROMPT**.
+
+In multi-turn, when user prompt begins with a colon “*:*”, the
+subsequent text is set as a system message (text and chat cmpls). For
+text cmpls only, if souble colons “*::*” are used, the following text
+will be appended to the previous prompt.
 
 If the first positional argument of the script starts with the command
 operator and a history file name, the command “`/session`
@@ -258,7 +263,8 @@ or “`/`”.
 |:--------|:---------------------------------------|------------------------------------------------------------|
 | `-c`    | `!new`                                 | Start new session.                                         |
 | `-H`    | `!hist`                                | Edit history in editor.                                    |
-| `-HH`   | `!req`                                 | Print context request immediately (see `option -V`).       |
+| `-HH`   | `!req`                                 | Print context request immediately (see `option -V`),       |
+|         |                                        | set `-HHH` to also print commented out history entries.    |
 | `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                          |
 | `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*,                     |
 |         |                                        | Prompts “*pr*”, Awesome “*awe*”, or all files “*.*”.       |
@@ -505,8 +511,11 @@ Initial initial instruction, or system message for chat mode.
 **OPENAI_KEY**  
 Set your personal (free) OpenAI API key.
 
+**CLIP_CMD**  
+Clipboard set command, e.g. “*xsel* *-b*”, “*pbcopy*”.
+
 **REC_CMD**  
-Audio recording command (with `options -ccw` and `-Ww`), e.g. *sox*.
+Audio recording command, e.g. “*sox*”.
 
 **VISUAL**
 
