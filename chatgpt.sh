@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.2  nov/2023  by mountaineerbr  GPL+3
+# v0.21.3  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -508,7 +508,6 @@ function _promptf
 	typeset chunk_n chunk str n
 	json_minif
 	
-	printf "${NC}${YELLOW}X\\b✘\\b${xNC}" >&2
 	if ((STREAM))
 	then 	set -- -s "$@" -S -L --no-buffer; : >"$FILE"  #clear buffer asap
 		__promptf "$@" | while IFS= read -r chunk
@@ -526,9 +525,9 @@ function _promptf
 			fi; 	printf '%s\n' "$chunk" >>"$FILE"
 		done
 	else
-		((OPTV>1)) && set -- -s "$@";
-		set -- -\# "$@" -L -o "$FILE"; echo >&2;
-		__promptf "$@"; __clr_lineupf 1;
+		((OPTV>1)) && set -- -s "$@"
+		set -- -\# "$@" -L -o "$FILE"
+		__promptf "$@"
 	fi
 }
 
@@ -543,10 +542,12 @@ function promptf
 	if ((STREAM))
 	then 	if ((RETRY>1))
 		then 	cat -- "$FILE"
-		else 	_promptf || exit
+		else 	printf "${BYELLOW}%s\\b${NC}" "X" >&2;
+			_promptf || exit;
 		fi | prompt_printf
 	else
-		((RETRY>1)) || _promptf || exit
+		printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
+		((RETRY>1)) || COLUMNS=$((COLUMNS-2)) _promptf || exit; printf "${NC}" >&2;
 		if ((OPTI))
 		then 	prompt_imgprintf
 		else 	prompt_printf
@@ -3219,4 +3220,4 @@ fi
 # - <https://help.openai.com/en/articles/8400551> gpt-4 image uplod
 # - <https://help.openai.com/en/articles/8400625> text-to-audio
 
-# vim=syntax sync minlines=3200
+# vim=syntax sync minlines=3300
