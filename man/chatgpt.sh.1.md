@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.21.2 | General Commands Manual
+% CHATGPT.SH(1) v0.21.4p | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -12,6 +12,7 @@
 
 |    **chatgpt.sh** \[`-c`|`-d`] \[`opt`] \[_PROMPT_|_TEXT_FILE_]
 |    **chatgpt.sh** `-e` \[`opt`] \[_INSTRUCTION_] \[_INPUT_|_TEXT_FILE_]
+|    **chatgpt.sh** `-i` \[`opt`] \[_L_|_P_]\[_hd_] \[_PROMPT_]  #_dall-e-3_
 |    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PROMPT_]
 |    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PNG_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
@@ -140,7 +141,7 @@ a response, \<_CTRL-C_\> may be pressed once to interrupt the call.
 User configuration is kept at "_~/.chatgpt.conf_".
 Script cache is kept at "_~/.cache/chatgptsh_".
 
-A personal (free) OpenAI API is required, set it with `option -K`.
+A personal OpenAI API is required, set it with `option -K`.
 See also **ENVIRONMENT section**.
 
 The moderation endpoint can be accessed by setting the model name
@@ -534,11 +535,19 @@ Setting **temperature** has an effect, the higher the more random.
 :    Initial initial instruction, or system message for chat mode.
 
 
-**OPENAI_API_KEY**
+**OPENAI_API_HOST**
+
+**OPENAI_API_HOST_TEXT**
+
+:    Custom host URL with an endpoint, or append a space to the end of
+     the string to keep endpoint auto-selection.
+
 
 **OPENAI_KEY**
 
-:    Set your personal (free) OpenAI API key.
+**OPENAI_API_KEY**
+
+:    Personal OpenAI API key.
 
 
 **CLIP_CMD**
@@ -620,7 +629,7 @@ with history, so avoid it.
 
 ### REQUIREMENTS
 
-A free OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
+An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 `ImageMagick`, and `Sox`/`Alsa-tools`/`FFmpeg` are optionally required.
 

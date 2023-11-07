@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.21.2 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.21.4p | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.21.2 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.21.4p | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -187,6 +187,9 @@ Whisper</div>
 [<em>PROMPT</em>|<em>TEXT_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-e</code> [<code>opt</code>]
 [<em>INSTRUCTION</em>] [<em>INPUT</em>|<em>TEXT_FILE</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
+[<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
+#<em>dall-e-3</em><br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
@@ -313,7 +316,7 @@ receiving a response, &lt;<em>CTRL-C</em>&gt; may be pressed once to
 interrupt the call.</p>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh</em>”.</p>
-<p>A personal (free) OpenAI API is required, set it with
+<p>A personal OpenAI API is required, set it with
 <code>option -K</code>. See also <strong>ENVIRONMENT
 section</strong>.</p>
 <p>The moderation endpoint can be accessed by setting the model name to
@@ -894,11 +897,19 @@ instead.</p>
 <p>Initial initial instruction, or system message for chat mode.</p>
 </dd>
 </dl>
-<p><strong>OPENAI_API_KEY</strong></p>
+<p><strong>OPENAI_API_HOST</strong></p>
 <dl>
-<dt><strong>OPENAI_KEY</strong></dt>
+<dt><strong>OPENAI_API_HOST_TEXT</strong></dt>
 <dd>
-<p>Set your personal (free) OpenAI API key.</p>
+<p>Custom host URL with an endpoint, or append a space to the end of the
+string to keep endpoint auto-selection.</p>
+</dd>
+</dl>
+<p><strong>OPENAI_KEY</strong></p>
+<dl>
+<dt><strong>OPENAI_API_KEY</strong></dt>
+<dd>
+<p>Personal OpenAI API key.</p>
 </dd>
 <dt><strong>CLIP_CMD</strong></dt>
 <dd>
@@ -963,7 +974,7 @@ cursor one char and press the up arrow key.
 with history, so avoid it.
 -->
 <h3 id="requirements">REQUIREMENTS</h3>
-<p>A free OpenAI <strong>API key</strong>. <code>Bash</code>,
+<p>An OpenAI <strong>API key</strong>. <code>Bash</code>,
 <code>cURL</code>, and <code>JQ</code>.</p>
 <p><code>ImageMagick</code>, and
 <code>Sox</code>/<code>Alsa-tools</code>/<code>FFmpeg</code> are
