@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.21.4p | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.21.5 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.21.4p | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.21.5 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -183,12 +183,12 @@
 Whisper</div>
 <h3 id="synopsis">SYNOPSIS</h3>
 <div class="line-block">   <strong>chatgpt.sh</strong>
-[<code>-c</code>|<code>-d</code>] [<code>opt</code>]
+[<code>-cc</code>|<code>-d</code>|<code>-qq</code>] [<code>opt</code>]
 [<em>PROMPT</em>|<em>TEXT_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-e</code> [<code>opt</code>]
 [<em>INSTRUCTION</em>] [<em>INPUT</em>|<em>TEXT_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
-[<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
+[<em>X</em>|<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
 #<em>dall-e-3</em><br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PROMPT</em>]<br />
@@ -204,9 +204,12 @@ Whisper</div>
 [<em>AUDIO_FILE</em>] [<em>LANG</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>]
 [<em>AUDIO_FILE</em>] [<em>PROMPT-EN</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-ccw</code> [<code>opt</code>]
+   <strong>chatgpt.sh</strong> <code>-z</code> [<code>opt</code>]
+[<em>VOICE</em>] [<em>SPEED</em>] [<em>FORMAT</em>]
+[<em>PROMPT</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-cczw</code> [<code>opt</code>]
 [<em>LANG</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-ccW</code>
+   <strong>chatgpt.sh</strong> <code>-cczW</code>
 [<code>opt</code>]<br />
    <strong>chatgpt.sh</strong> <code>-HHH</code>
 [<code>/</code><em>HIST_FILE</em>]<br />
@@ -244,12 +247,18 @@ INSTRUCTION, if none set, and the following ones as
 <strong>INPUT</strong> or <strong>PROMPT</strong>.</p>
 <p>In multi-turn, when user prompt begins with a colon “<em>:</em>”, the
 subsequent text is set as a system message (text and chat cmpls). For
-text cmpls only, if souble colons “<em>::</em>” are used, the following
+text cmpls only, if double colons “<em>::</em>” are used, the following
 text will be appended to the previous prompt.</p>
+<p>With <em>gpt-4-vision</em> models, insert an image to the prompt with
+chat command “<code>!img</code> [<em>url</em>|<em>filepath</em>]”. Image
+urls and files can also be appended by typing the operator pipe and a
+valid input at the end of the text prompt, such as “<code>|</code>
+[<em>url</em>|<em>filepath</em>]”.</p>
 <p>If the first positional argument of the script starts with the
 command operator and a history file name, the command
-“<code>/session</code> [<em>HIST_NAME</em>]” is assumed. This wil change
-to or create a new history file (with <code>options -ccCdHH</code>).</p>
+“<code>/session</code> [<em>HIST_NAME</em>]” is assumed. This will
+change to or create a new history file (with
+<code>options -ccCdHH</code>).</p>
 <p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
 <em>MODEL</em> as its name, or set it as “<em>.</em>” to pick from the
 model list. List available models with <code>option -l</code>.</p>
@@ -283,18 +292,24 @@ argument is an <em>IMAGE</em> file and the second a <em>MASK</em> file
 then <strong>edit the</strong> <em>IMAGE</em> according to <em>MASK</em>
 and PROMPT. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
 transparency.</p>
-<p>Optionally, size of output image may be set with
-“[<em>S</em>]<em>mall</em>”, “[<em>M</em>]<em>edium</em>” or
-“[<em>L</em>]<em>arge</em>” as the first positional argument. See
-<strong>IMAGES section</strong> below for more information on
+<p>The <strong>size of output images</strong> may be set as the first
+positional parameter in the command line: “<em>256x256</em>”
+(<em>S</em>), “<em>512x512</em>” (<em>M</em>), “<em>1024x1024</em>”
+(<em>L</em>) for <code>dall-e-2</code>, and “<em>1024x1024</em>”
+(<em>X</em>), “<em>1792x1024</em>” (<em>L</em>) and “<em>1024x1792</em>”
+(<em>P</em>), for <code>dall-e-3</code>. <code>Dall-e-3</code> also
+accepts the “<em>hd</em>” parameter for image quality, set it such as
+“<em>Lhd</em>”, or “<em>1792x1024hd</em>”. Defaults=<em>512x512</em>, or
+<em>1024x1024</em>.</p>
+<p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
 <p><code>Option -w</code> <strong>transcribes audio</strong> from
 <em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
 <em>wav</em>, and <em>webm</em> files. First positional argument must be
 an <em>AUDIO</em> file. Optionally, set a <em>TWO-LETTER</em> input
-language (<em>ISO-639-1</em>) as second argument. A PROMPT may also be
-set to guide the model’s style or continue a previous audio segment. The
-prompt should match the audio language.</p>
+language (<em>ISO-639-1</em>) as the second argument. A PROMPT may also
+be set to guide the model’s style, or continue a previous audio segment.
+The text prompt should match the audio language.</p>
 <p><code>Option -W</code> <strong>translates audio</strong> stream to
 <strong>English text</strong>. A PROMPT in English may be set to guide
 the model as the second positional argument.</p>
@@ -303,7 +318,17 @@ to have phrase-level timestamps.</p>
 <p>Combine <code>-wW</code> <strong>with</strong> <code>-cc</code> to
 start <strong>chat with voice input</strong> (Whisper) support. Output
 may be piped to a voice synthesiser to have a full voice in and out
-experience.</p>
+experience, or set, additionally, <code>-z</code> to enable
+<strong>text-to-speech</strong> (TTS) models and voice out.</p>
+<p><code>Option -z</code> synthesises voice from text (TTS models). Set
+a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
+“<em>echo</em>”, “<em>fable</em>”, “<em>onyx</em>”, “<em>nova</em>”, or
+“<em>shimmer</em>”). Set the second positional parameter as the
+<em>voice speed</em> (<em>0.25</em> - <em>4.0</em>), and, finally the
+<em>output file name</em> or the <em>format</em>, such as
+“<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>opus</em>”,
+“<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
+<code>option -zz</code> to try to play received output.</p>
 <p><code>Option -y</code> sets python tiktoken instead of the default
 script hack to preview token count. This option makes token count
 preview accurate fast (we fork tiktoken as a coprocess for fast token
@@ -390,7 +415,7 @@ prompt to set a new parameter. The command operator may be either
 <td>Load and edit awesome prompt (zh).</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>-z</code></td>
+<td style="text-align: left;"><code>-Z</code></td>
 <td style="text-align: left;"><code>!last</code></td>
 <td>Print last response json.</td>
 </tr>
@@ -458,7 +483,7 @@ prompt to set a new parameter. The command operator may be either
 <tr class="even">
 <td style="text-align: left;"><code>-U</code></td>
 <td style="text-align: left;"><code>-UU</code></td>
-<td>Toggle cat prompter. or set one-shot. &lt;<em>CTRL-D</em>&gt;
+<td>Toggle cat prompter, or set one-shot. &lt;<em>CTRL-D</em>&gt;
 flush.</td>
 </tr>
 <tr class="odd">
@@ -698,7 +723,7 @@ existing one changed to with command “<code>/session</code>
 [<em>HIST_FILE</em>]”, in which <em>HIST_FILE</em> is the file name of
 (with or without the <em>.tsv</em> extension), or path to, a history
 file.</p>
-<p>When the first postional argument to the script is the command
+<p>When the first positional argument to the script is the command
 operator forward slash followed by a history file name, the command
 <code>/session</code> is assumed.</p>
 <p>A history file can contain many sessions. The last one (the tail
@@ -846,11 +871,6 @@ script. Paint a portion of the outer area of an image with
 will be used as the mask, and set the same <em>colour</em> in the script
 with <code>-@</code>. Choose the best result amongst many results to
 continue the out-painting process step-wise.</p>
-<p>Optionally, for all image generations, variations, and edits, set
-<strong>size of output image</strong> with “<em>256x256</em>”
-(“<em>Small</em>”), “<em>512x512</em>” (“<em>Medium</em>”), or
-“<em>1024x1024</em>” (“<em>Large</em>”) as the first positional
-argument. Defaults=<em>512x512</em>.</p>
 <h3 id="audio-whisper">AUDIO / WHISPER</h3>
 <h4 id="transcriptions">1. Transcriptions</h4>
 <p>Transcribes audio file or voice record into the input language. Set a
@@ -866,17 +886,6 @@ as last positional argument. This prompt should be in English.</p>
 <p>Setting <strong>temperature</strong> has an effect, the higher the
 more random.</p>
 <h3 id="environment">ENVIRONMENT</h3>
-<dl>
-<dt><strong>APIURL</strong></dt>
-<dd>
-<p>Base API URL, along with endpoint. Note that this disables the script
-setting an endpoint automatically.
-<!-- By defaults, the endpoint is automatically set based on model name. --></p>
-<p>To change only the base API URL, set <strong>$APIURLBASE</strong>
-instead.</p>
-<p>Defaults="<em>https://api.openai.com/v1/</em><strong>chat/completions</strong>"</p>
-</dd>
-</dl>
 <p><strong>CHATGPTRC</strong></p>
 <dl>
 <dt><strong>CONFFILE</strong></dt>
@@ -1026,7 +1035,7 @@ Def=<em>1</em>.</p>
 <dt><strong>-B</strong> [<em>NUM</em>],
 <strong>--log-prob=[<em>NUM</em>]</strong></dt>
 <dd>
-<p>Request log probabilities, also see -z (cmpls, 0 - 5),</p>
+<p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
 </dd>
 <dt><strong>-m</strong> [<em>MODEL</em>],
 <strong>--model</strong>=[<em>MODEL</em>]</dt>
@@ -1272,7 +1281,11 @@ and start sequences.</p>
 <dd>
 <p>Unset tiktoken use (cmpls, chat, python).</p>
 </dd>
-<dt><strong>-z</strong>, <strong>--last</strong></dt>
+<dt><strong>-z</strong>, <strong>--tts</strong></dt>
+<dd>
+<p>Synthesise speech from text prompt.</p>
+</dd>
+<dt><strong>-Z</strong>, <strong>--last</strong></dt>
 <dd>
 <p>Print last response JSON data.</p>
 </dd>

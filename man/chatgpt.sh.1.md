@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.21.4p | General Commands Manual
+% CHATGPT.SH(1) v0.21.5 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -10,17 +10,18 @@
 
 ### SYNOPSIS
 
-|    **chatgpt.sh** \[`-c`|`-d`] \[`opt`] \[_PROMPT_|_TEXT_FILE_]
+|    **chatgpt.sh** \[`-cc`|`-d`|`-qq`] \[`opt`] \[_PROMPT_|_TEXT_FILE_]
 |    **chatgpt.sh** `-e` \[`opt`] \[_INSTRUCTION_] \[_INPUT_|_TEXT_FILE_]
-|    **chatgpt.sh** `-i` \[`opt`] \[_L_|_P_]\[_hd_] \[_PROMPT_]  #_dall-e-3_
+|    **chatgpt.sh** `-i` \[`opt`] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #_dall-e-3_
 |    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PROMPT_]
 |    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PNG_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_]
 |    **chatgpt.sh** `-w` \[`opt`] \[_AUDIO_FILE_] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`] \[_AUDIO_FILE_] \[_PROMPT-EN_]
-|    **chatgpt.sh** `-ccw` \[`opt`] \[_LANG_]
-|    **chatgpt.sh** `-ccW` \[`opt`]
+|    **chatgpt.sh** `-z` \[`opt`] \[_VOICE_] \[_SPEED_] \[_FORMAT_] \[_PROMPT_]
+|    **chatgpt.sh** `-cczw` \[`opt`] \[_LANG_]
+|    **chatgpt.sh** `-cczW` \[`opt`]
 |    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_]
 |    **chatgpt.sh** `-l` \[_MODEL_]
 
@@ -60,12 +61,17 @@ and the following ones as **INPUT** or **PROMPT**.
 
 In multi-turn, when user prompt begins with a colon "_:_", the subsequent
 text is set as a system message (text and chat cmpls). For text cmpls only,
-if souble colons "_::_" are used, the following text will be appended
+if double colons "_::_" are used, the following text will be appended
 to the previous prompt.
+
+With _gpt-4-vision_ models, insert an image to the prompt with chat
+command "`!img` \[_url_|_filepath_]". Image urls and files can also
+be appended by typing the operator pipe and a valid input at the
+end of the text prompt, such as "`|` \[_url_|_filepath_]".
 
 If the first positional argument of the script starts with the
 command operator and a history file name, the
-command "`/session` \[_HIST_NAME_]" is assumed. This wil
+command "`/session` \[_HIST_NAME_]" is assumed. This will
 change to or create a new history file (with `options -ccCdHH`).
 
 Set model with "`-m` \[_MODEL_]", with _MODEL_ as its name,
@@ -103,17 +109,20 @@ a _MASK_ file (with alpha channel and transparency), and a text PROMPT
 (required), then **edit the** _IMAGE_ according to _MASK_ and PROMPT.
 If _MASK_ is not provided, _IMAGE_ must have transparency.
 
-Optionally, size of output image may be set with "\[_S_]_mall_",
-"\[_M_]_edium_" or "\[_L_]_arge_" as the first positional argument.
-See **IMAGES section** below for more information on
-**inpaint** and **outpaint**.
+The **size of output images** may be set as the first positional parameter
+in the command line: "_256x256_" (_S_), "_512x512_" (_M_), "_1024x1024_" (_L_)
+for `dall-e-2`, and "_1024x1024_" (_X_), "_1792x1024_" (_L_)
+and "_1024x1792_" (_P_), for `dall-e-3`. `Dall-e-3` also accepts
+the "_hd_" parameter for image quality, set it such as "_Lhd_",
+or "_1792x1024hd_". Defaults=_512x512_, or _1024x1024_.
+
+See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 
 `Option -w` **transcribes audio** from _mp3_, _mp4_, _mpeg_, _mpga_,
-_m4a_, _wav_, and _webm_ files.
-First positional argument must be an _AUDIO_ file.
-Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_) as second
-argument. A PROMPT may also be set to guide the model's style or continue
-a previous audio segment. The prompt should match the audio language.
+_m4a_, _wav_, and _webm_ files. First positional argument must be
+an _AUDIO_ file. Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
+as the second argument. A PROMPT may also be set to guide the model's style,
+or continue a previous audio segment. The text prompt should match the audio language.
 
 `Option -W` **translates audio** stream to **English text**. A PROMPT in
 English may be set to guide the model as the second positional
@@ -124,7 +133,13 @@ timestamps.
 
 Combine `-wW` **with** `-cc` to start **chat with voice input** (Whisper)
 support. Output may be piped to a voice synthesiser to have a
-full voice in and out experience.
+full voice in and out experience, or set, additionally, `-z` to enable
+**text-to-speech** (TTS) models and voice out.
+
+`Option -z` synthesises voice from text (TTS models). Set a _voice_ as
+the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
+"_nova_", or "_shimmer_"). Set the second positional parameter as the
+_voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_", and "_flac_"), or "_-_" for stdout. Set `option -zz` to try to play received output.
 
 `Option -y` sets python tiktoken instead of the default script hack
 to preview token count. This option makes token count preview
@@ -215,7 +230,7 @@ may be either "`!`", or "`/`".
   --------    -----------------------    -------------------------------------------------------
      `-S.`    `-.`         \[_NAME_]     Load and edit custom prompt.
      `-S/`    `-S%`        \[_NAME_]     Load and edit awesome prompt (zh).
-      `-z`    `!last`                    Print last response json.
+      `-Z`    `!last`                    Print last response json.
       `!i`    `!info`                    Information on model and session settings.
       `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
      `!!j`    `!!jump`                   Jump to request, no response priming.
@@ -230,7 +245,7 @@ may be either "`!`", or "`/`".
       `-o`    `!clip`                    Copy responses to clipboard.
       `-u`    `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
      `-uu`    `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
-      `-U`    `-UU`                      Toggle cat prompter. or set one-shot. \<_CTRL-D_> flush.
+      `-U`    `-UU`                      Toggle cat prompter, or set one-shot. \<_CTRL-D_> flush.
        `-`    `!cat`       \[_FILE_]     Cat prompter as one-shot, or cat file.
       `-V`    `!context`                 Print context before request (see `option -HH`).
      `-VV`    `!debug`                   Dump raw request block and confirm.
@@ -292,7 +307,7 @@ changed to with command "`/session` \[_HIST_FILE_]", in which _HIST_FILE_
 is the file name of (with or without the _.tsv_ extension),
 or path to, a history file.
 
-When the first postional argument to the script is the command operator
+When the first positional argument to the script is the command operator
 forward slash followed by a history file name,
 the command `/session` is assumed.
 
@@ -474,11 +489,6 @@ same _colour_ in the script with `-@`. Choose the best result amongst
 many results to continue the out-painting process step-wise.
 
 
-Optionally, for all image generations, variations, and edits,
-set **size of output image** with "_256x256_" ("_Small_"), "_512x512_" ("_Medium_"),
-or "_1024x1024_" ("_Large_") as the first positional argument. Defaults=_512x512_.
-
-
 ### AUDIO / WHISPER
 
 #### 1. Transcriptions
@@ -500,15 +510,6 @@ Setting **temperature** has an effect, the higher the more random.
 
 
 ### ENVIRONMENT
-
-**APIURL**
-
-:   Base API URL, along with endpoint. Note that this disables the script
-    setting an endpoint automatically. <!-- By defaults, the endpoint is automatically set based on model name. -->
-
-    To change only the base API URL, set **$APIURLBASE** instead.
-
-    Defaults=\"_https://api.openai.com/v1/_**chat/completions**\"
 
 
 **CHATGPTRC**
@@ -681,7 +682,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-B** \[_NUM_], **\--log-prob=\[_NUM_]**
 
-: Request log probabilities, also see -z (cmpls, 0 - 5),
+: Request log probabilities, also see -Z (cmpls, 0 - 5),
 
 
 **-m** \[_MODEL_], **\--model**=\[_MODEL_]
@@ -945,7 +946,13 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 : Unset tiktoken use (cmpls, chat, python).
 
-**-z**, **\--last**
+
+**-z**, **\--tts**
+
+: Synthesise speech from text prompt.
+
+
+**-Z**, **\--last**
 
 : Print last response JSON data.
 
