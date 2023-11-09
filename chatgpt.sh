@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.7  nov/2023  by mountaineerbr  GPL+3
+# v0.21.8  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -11,14 +11,14 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 MOD="text-davinci-003"  #"gpt-3.5-turbo-instruct"
 # Chat cmpls model
 MOD_CHAT="gpt-3.5-turbo-0301"  #"gpt-4-0314"
-# Edits model  (deprecated)
+# Edits model
 MOD_EDIT="text-davinci-edit-001"
+# Image model (generations)
+MOD_IMAGE="dall-e-3"
 # Whisper model (STT)
 MOD_AUDIO="whisper-1"
 # Speech model (TTS)
 MOD_SPEECH="tts-1"   #"tts-1-hd"
-# Image model (generations)
-MOD_IMAGE="dall-e-3"
 # Prompter flush with <CTRL-D> (multiline bash)
 #OPTCTRD=
 # Stream response
@@ -1419,8 +1419,10 @@ function cmd_runf
 			clipboard    "${OPTCLIP:-unset}" \
 			ctrld-prpter "${OPTCTRD:-unset}" \
 			cat-prompter "${CATPR:-unset}" \
-			restart-seq  "\"$( ((OPTC)) && printf '%s' "${RESTART:-$Q_TYPE}" || printf '%s' "${RESTART:-unset}")\"" \
-			start-seq    "\"$( ((OPTC)) && printf '%s' "${START:-$A_TYPE}"   || printf '%s' "${START:-unset}")\"" \
+			restart-seq  "\"$( ((EPN==6)) && echo unavailable && exit;
+				((OPTC)) && printf '%s' "${RESTART:-$Q_TYPE}" || printf '%s' "${RESTART:-unset}")\"" \
+			start-seq    "\"$( ((EPN==6)) && echo unavailable && exit;
+				((OPTC)) && printf '%s' "${START:-$A_TYPE}"   || printf '%s' "${START:-unset}")\"" \
 			stop-seqs    "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
 			history-file "${FILECHAT/"$HOME"/"~"}"  >&2
 			printf '\033[1A' >&2  #one line up <https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html>
@@ -1757,7 +1759,6 @@ function set_optsf
 	((STREAM)) && STREAM_OPT="\"stream\": true," || unset STREAM STREAM_OPT
 	((OPTV<1)) && unset OPTV
 	
-	((EPN==6)) || {
 	if ((${#STOPS[@]})) && [[ "${STOPS[*]}" != "${STOPS_OLD[*]:-%#}" ]]
 	then  #compile stop sequences  #def: <|endoftext|>
 		unset OPTSTOP
@@ -1772,8 +1773,9 @@ function set_optsf
 		then 	OPTSTOP="\"stop\":[${OPTSTOP}],"
 		fi ;STOPS_OLD=("${STOPS[@]}")
 	fi #https://help.openai.com/en/articles/5072263-how-do-i-use-stop-sequences
-	[[ "$RESTART" = "$RESTART_OLD" ]] || restart_compf
-	[[ "$START" = "$START_OLD" ]] || start_compf
+	((EPN==6)) || {
+	  [[ "$RESTART" = "$RESTART_OLD" ]] || restart_compf
+	  [[ "$START" = "$START_OLD" ]] || start_compf
 	}
 }
 
@@ -3511,7 +3513,5 @@ fi
 # - Debug command performance by line in Bash:
 #   set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: '
 # - <https://help.openai.com/en/articles/6654000>
-# - <https://help.openai.com/en/articles/8400551> gpt-4 image uplod
-# - <https://help.openai.com/en/articles/8400625> text-to-audio
 
 # vim=syntax sync minlines=3550

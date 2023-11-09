@@ -17,14 +17,15 @@ Chat completions with streaming.
 - Custom prompts, easily create prompts and re-use them!
 - Integration with [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts) and [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 - Insert mode of text completions <!-- _(deprecated)_ -->
-- Fast and accurately count chat tokens with _tiktoken_ (requires python)
+- Fast and accurately count chat tokens with _tiktoken_ (requires python, set `option -y`)
 - Personalise colour scheme
 - _Generate images_ from text input
 - _Generate variations_ of images
 - _Edit images_, easily generate an alpha mask
-- _Transcribe audio_ from various languages
+- _Transcribe audio_ from various languages (`option -w`)
 - _Translate audio_ into English text
-- Record prompt voice, hear the answer back from the AI (pipe to voice synthesiser)
+- _Text-to-speeech_ functionality (`option -z`)
+- Record prompt voice, hear the answer back from the AI (`options -cczw`).
 - Choose amongst all available models
 - Lots of command line options
 - Converts response base64 JSON data to PNG image locally
