@@ -187,7 +187,7 @@ Set a one-shot instruction prompt with `option -S`:
 
 
 To create or load a personal prompt template file,
-set `option -S` with the operator comma and the name of the prompt
+set `option -S` with the operator dot and the name of the prompt
 as argument:
 
 
@@ -229,11 +229,12 @@ _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 - Generally, my evaluation on models prefers using `davinci`, or
 `text-davinci-003` for less intruction intensive tasks, such as
 brainstorming. The newer models, `gpt-3.5-turbo-instruct`, may be
-better at following instructions, is cheap and much faster.
+better at following instructions, is cheap and much faster, but seems
+more censored.
 
-- On chat completions, the launch verusion of the models seem to
-be more creative and better at tasks, generally speaking, than
-newer iterations of the same models. So, that is we default to
+- On chat completions, the _launch version_ of the models seem to
+be more creative and better at tasks at general, than
+newer iterations of the same models. So, that is why we default to
 `gpt-3.5-turbo-0301`, and, reccomend the model `gpt-4-0314`.
 
 <!--
