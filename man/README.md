@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.21.6 \| General Commands Manual
+title: CHATGPT.SH(1) v0.21.8 \| General Commands Manual
 ---
 
 ### NAME
@@ -392,7 +392,7 @@ Start with a comment with instructions, data or code. To create useful
 completions it’s helpful to think about what information a programmer
 would need to perform a task.
 
-### TEXT EDITS *(deprecated)*
+### TEXT EDITS <!-- _(deprecated)_ -->
 
 This endpoint is set with models with **edit** in their name or
 `option -e`. Editing works by setting INSTRUCTION on how to modify a
