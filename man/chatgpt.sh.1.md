@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.21.8 | General Commands Manual
+% CHATGPT.SH(1) v0.21.9 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -393,7 +393,7 @@ useful completions it's helpful to think about what information
 a programmer would need to perform a task. 
 
 
-### TEXT EDITS  <!-- _(deprecated)_ -->
+### TEXT EDITS  _(deprecated)_
 
 This endpoint is set with models with **edit** in their name or
 `option -e`. Editing works by setting INSTRUCTION on how to modify
