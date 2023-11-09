@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.21.5 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.21.6 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.21.5 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.21.6 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -299,8 +299,8 @@ positional parameter in the command line: “<em>256x256</em>”
 (<em>X</em>), “<em>1792x1024</em>” (<em>L</em>) and “<em>1024x1792</em>”
 (<em>P</em>), for <code>dall-e-3</code>. <code>Dall-e-3</code> also
 accepts the “<em>hd</em>” parameter for image quality, set it such as
-“<em>Lhd</em>”, or “<em>1792x1024hd</em>”. Defaults=<em>512x512</em>, or
-<em>1024x1024</em>.</p>
+“<em>Lhd</em>”, or “<em>1792x1024hd</em>”.
+Defaults=<em>1024x1024</em>.</p>
 <p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
 <p><code>Option -w</code> <strong>transcribes audio</strong> from
@@ -1130,10 +1130,11 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Edit image with mask and prompt (required).</p>
 </dd>
-<dt><strong>-q</strong>, <strong>--insert</strong>
+<dt><strong>-qq</strong>, <strong>--insert</strong>
 <!-- _(deprecated)_ --></dt>
 <dd>
-<p>Insert text rather than completing only.</p>
+<p>Insert text rather than completing only. May be set twice for
+multi-turn.</p>
 <p>Use “<em>[insert]</em>” to indicate where the language model should
 insert text (only with some models of text cmpls).</p>
 </dd>

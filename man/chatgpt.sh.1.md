@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.21.5 | General Commands Manual
+% CHATGPT.SH(1) v0.21.6 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -114,7 +114,7 @@ in the command line: "_256x256_" (_S_), "_512x512_" (_M_), "_1024x1024_" (_L_)
 for `dall-e-2`, and "_1024x1024_" (_X_), "_1792x1024_" (_L_)
 and "_1024x1792_" (_P_), for `dall-e-3`. `Dall-e-3` also accepts
 the "_hd_" parameter for image quality, set it such as "_Lhd_",
-or "_1792x1024hd_". Defaults=_512x512_, or _1024x1024_.
+or "_1792x1024hd_". Defaults=_1024x1024_.
 
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 
@@ -783,9 +783,10 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Edit image with mask and prompt (required).
 
 
-**-q**, **\--insert**  <!-- _(deprecated)_ -->
+**-qq**, **\--insert**  <!-- _(deprecated)_ -->
 
-:     Insert text rather than completing only. 
+:     Insert text rather than completing only. May be set twice
+      for multi-turn.
 
       Use "_\[insert]_" to indicate where the language model
       should insert text (only with some models of text cmpls).

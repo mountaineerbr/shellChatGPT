@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.21.5 | General Commands Manual
+CHATGPT.SH(1) v0.21.6 | General Commands Manual
 mountaineerbr
 November 2023
 
@@ -108,7 +108,7 @@ The size of output images may be set as the first positional parameter
 in the command line: “256x256” (S), “512x512” (M), “1024x1024” (L) for
 dall-e-2, and “1024x1024” (X), “1792x1024” (L) and “1024x1792” (P), for
 dall-e-3. Dall-e-3 also accepts the “hd” parameter for image quality,
-set it such as “Lhd”, or “1792x1024hd”. Defaults=512x512, or 1024x1024.
+set it such as “Lhd”, or “1792x1024hd”. Defaults=1024x1024.
 
 See IMAGES section below for more information on inpaint and outpaint.
 
@@ -690,9 +690,10 @@ Script Modes
 
     Edit image with mask and prompt (required).
 
--q, --insert 
+-qq, --insert 
 
-    Insert text rather than completing only.
+    Insert text rather than completing only. May be set twice for
+    multi-turn.
 
     Use “[insert]” to indicate where the language model should insert
     text (only with some models of text cmpls).

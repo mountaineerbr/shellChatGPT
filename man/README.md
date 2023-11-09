@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.21.5 \| General Commands Manual
+title: CHATGPT.SH(1) v0.21.6 \| General Commands Manual
 ---
 
 ### NAME
@@ -122,7 +122,7 @@ parameter in the command line: “*256x256*” (*S*), “*512x512*” (*M*),
 “*1024x1024*” (*L*) for `dall-e-2`, and “*1024x1024*” (*X*),
 “*1792x1024*” (*L*) and “*1024x1792*” (*P*), for `dall-e-3`. `Dall-e-3`
 also accepts the “*hd*” parameter for image quality, set it such as
-“*Lhd*”, or “*1792x1024hd*”. Defaults=*512x512*, or *1024x1024*.
+“*Lhd*”, or “*1792x1024hd*”. Defaults=*1024x1024*.
 
 See **IMAGES section** below for more information on **inpaint** and
 **outpaint**.
@@ -696,8 +696,9 @@ Create variations of a given image.
 **-i** \[*PNG*\] \[*MASK*\] \[*PROMPT*\]  
 Edit image with mask and prompt (required).
 
-**-q**, **--insert** <!-- _(deprecated)_ -->  
-Insert text rather than completing only.
+**-qq**, **--insert** <!-- _(deprecated)_ -->  
+Insert text rather than completing only. May be set twice for
+multi-turn.
 
 Use “*\[insert\]*” to indicate where the language model should insert
 text (only with some models of text cmpls).

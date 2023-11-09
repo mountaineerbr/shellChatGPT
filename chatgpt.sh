@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.5  nov/2023  by mountaineerbr  GPL+3
+# v0.21.6  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -42,7 +42,7 @@ OPTN=1
 # Set python tiktoken
 #OPTTIK=
 # Image size
-OPTS=512x512
+#OPTS=1024x1024
 # Image out format
 OPTI_FMT=b64_json  #url
 # TTS voice
