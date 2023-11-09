@@ -111,11 +111,8 @@ Chat in Portuguese with voice in and out:
 
     chatgpt.sh -cczw pt
 
-    chatgpt.sh -cczw pt
-
-
-**TIP**: Set _-vv_ to have auto sleep for reading time of last response,
-and less verbose in voice input chat!
+<!-- **TIP**: Set _-vv_ to have auto sleep for reading time of last response,
+and less verbose in voice input chat! *Only without option -z!* -->
 
 
 ### 📜 Text Completions
@@ -126,9 +123,8 @@ One-shot text completion:
 
 Multi-turn text completion with Curie model:
 
-    chatgpt.sh -d -m'text-curie-001' "Hello there! What is your name?"
 
-    chatgpt.sh -d -m1 "List biggest cities in the world."
+    chatgpt.sh -d -m 'text-curie-001' "List biggest cities in the world."
 
 _For better results,_ ***set an instruction/system prompt***:
     
