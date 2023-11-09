@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.6  nov/2023  by mountaineerbr  GPL+3
+# v0.21.7  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -3051,9 +3051,16 @@ elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
 	then 	__sysmsgf 'Image Edits'
 	else 	__sysmsgf 'Image Variations' ;fi
+	if [[ $MOD_IMAGE = *[3-9] ]]
+	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}"
+	fi
 	imgvarf "$@"
 elif ((OPTI))      #image generations
 then 	__sysmsgf 'Image Generations'
+	__sysmsgf 'Image Model:' "$MOD_IMAGE"
+	if [[ $MOD_IMAGE = *[3-9] ]]
+	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}"
+	fi
 	imggenf "$@"
 elif ((OPTEMBED))  #embeds
 then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \

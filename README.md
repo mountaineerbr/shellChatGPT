@@ -9,7 +9,8 @@ Chat completions with streaming.
 
 ## 🚀 Features
 
-- Text and chat completions
+- Text and chat completions, **gtp-4-vision** support.
+- Voice in (whisper) and out (TTS) chat modes.
 - _Multiline_ prompt, flush input with \<ctrl-d> (optional)
 - _Follow up_ conversations, _preview/regenerate_ responses
 - Manage _sessions_, _continue_ from last session, _print out_ session
