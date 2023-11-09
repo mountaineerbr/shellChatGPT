@@ -107,11 +107,11 @@ Chat completion with **voice as input**:
 
     chatgpt.sh -ccw
 
-Chat in Portuguese with voice in and out (pipe output to voice synthesiser):
+Chat in Portuguese with voice in and out:
 
-    chatgpt.sh -ccw pt | espeakng -v pt-br
+    chatgpt.sh -cczw pt
 
-    chatgpt.sh -ccw pt | termux-tts-speak -l pt -n br
+    chatgpt.sh -cczw pt
 
 
 **TIP**: Set _-vv_ to have auto sleep for reading time of last response,
