@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.9  nov/2023  by mountaineerbr  GPL+3
+# v0.21.10  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1965,8 +1965,8 @@ function ttsf
 		__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}";
 	fi; ((${#SPEEDZ})) && check_optrangef "$SPEEDZ" 0.25 4 'TTS speed'
 
-	prompt_ttsf "$@"; ret=$?;
-	((OPTZ<2)) || ${PLAY_CMD} "$FOUT";
+	prompt_ttsf "$@"; ret=$?; ((ret)) || echo '[done]' >&2
+	((OPTZ<2)) || ((!ret)) || ${PLAY_CMD} "$FOUT";
 	return $(($?+ret))
 }
 function __set_ttsf { 	__set_voicef "$1" || __set_outfmtf "$1" || __set_speedf "$1" ;}
@@ -2398,10 +2398,10 @@ function set_clipcmdf
 function set_playcmdf
 {
 	((${#PLAY_CMD})) ||
-	if command -v termux-media-player
-	then 	PLAY_CMD='termux-media-player'
-	elif command -v play-audio  #termux
+	if command -v play-audio  #termux
 	then 	PLAY_CMD='play-audio'
+	elif command -v termux-media-player
+	then 	PLAY_CMD='termux-media-player play'
 	elif command -v mpv
 	then 	PLAY_CMD='mpv --no-video --vo=null'
 	elif command -v play  #sox
