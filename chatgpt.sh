@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.11  nov/2023  by mountaineerbr  GPL+3
+# v0.21.12  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1250,7 +1250,7 @@ function cmd_runf
 			[[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
 			_cmdmsgf $'\nLog file' "<${USRLOG}>"
 			;;
-		media*|img*|image*)
+		media*|img*|image*|url*)
 			set -- "${*##@(media|img|image)*([$IFS])}";
 			CMD_CHAT=1 _mediachatf "|${1##\|}"
 			;;
@@ -1669,7 +1669,7 @@ function fmt_ccf
 	fi
 }
 
-#get files and urls from input, and set residual $TRUNC_IND
+#get files and urls from input, and set residual $TRUNC_IND index
 function _mediachatf
 {
 	typeset var spc i;
@@ -1698,7 +1698,7 @@ function _mediachatf
 		fi  #https://stackoverflow.com/questions/12199059/
 		set -- "${1%\|*}";
 	done; TRUNC_IND=$((i-${#1}));
-}
+}  #!# needs to fix the order of img/urls processing, and also, !img args will be appended rather than inserted in multi turns.
 
 #create user log
 function usr_logf
