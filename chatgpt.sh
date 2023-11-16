@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.12  nov/2023  by mountaineerbr  GPL+3
+# v0.21.13  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -536,7 +536,7 @@ function model_capf
 		gpt-4*32k*|text*moderation*) 	MODMAX=32768;; 
 		gpt-4*) 	MODMAX=8192;;
 		gpt-3.5*16K*|*turbo*16k*) 	MODMAX=16384;;
-		*turbo*|*davinci*) 	MODMAX=4096;;
+		*turbo*|*davinci*|ft:gtp*) 	MODMAX=4096;;
 		*embedding*|*search*) MODMAX=2046;;
 		*) 	MODMAX=2048;;
 	esac
