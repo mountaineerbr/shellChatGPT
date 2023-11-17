@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.13  nov/2023  by mountaineerbr  GPL+3
+# v0.21.14  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1649,21 +1649,22 @@ function json_minif
 #usage: fmt_ccf [prompt] [role]
 function fmt_ccf
 {
-	typeset var
+	typeset var i; i=1;
 	[[ ${1} != *([$IFS]) ]] || return
 	
-	if ((${#MEDIA_CHAT_CMD[@]}+${#MEDIA_CHAT[@]}))
+	if ((${#MEDIA_CHAT[@]}+${#MEDIA_CHAT_CMD[@]}))
 	then
-		printf '{"role": "%s", "content": [ { "type": "text", "text": "%s" }' "${2:-user}" "$1";
-		for var in "${MEDIA_CHAT_CMD[@]}" "${MEDIA_CHAT[@]}"
+		printf '{ "role": "%s", "content": [ { "type": "text", "text": "%s" }' "${2:-user}" "$1";
+		for var in "${MEDIA_CHAT[@]}" "${MEDIA_CHAT_CMD[@]}"
 		do
 			if [[ $var = *([$IFS]) ]]
 			then 	false;
 			elif [[ -f $var ]] && [[ -s $var ]]
 			then 	printf ',\n{ "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,%s" } }' "$(base64 "$var" | tr -d $'\n')";
 			else 	printf ',\n{ "type": "image_url", "image_url": { "url": "%s" } }' "$var";
-			fi
-		done; printf '%s\n' ' ] }';
+			fi && { 	printf "img/url #%d -- \`%s'\\n" "$i" "$var" >&2; ((++i)) ;}
+		done;
+		printf '%s\n' ' ] }';
 	else
 		printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
 	fi
@@ -1674,7 +1675,7 @@ function _mediachatf
 {
 	typeset var spc i;
 	spc='*(['$' \t\n\r'']|\[tnr])';
-	((CMD_CHAT)) || { 	((${#1}>180)) && set -- "${1:${#1}-180}" ;}
+	((CMD_CHAT)) || { 	((${#1}>220)) && set -- "${1:${#1}-220}" ;}
 	i=${#1};
 
 	set -- "${1%%\|${spc}}";
@@ -1689,16 +1690,21 @@ function _mediachatf
 				*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] ) :;;
 				*) false;;
 			esac
-		} || [[ $var =~ ^www.* || $var =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] ||
-			curl --output /dev/null --silent --head --fail --location -H "$UAG" -- "$var"
-		then 	((CMD_CHAT)) && MEDIA_CHAT_CMD+=("$var") || MEDIA_CHAT+=("$var"); printf "added -- \`%s'\\n" "$var" >&2 
+		} || [[ $var =~ ^www.* || $var =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] \
+			|| curl --output /dev/null --silent --head --fail --location -H "$UAG" -- "$var"
+		then
+			if ((CMD_CHAT))
+			then 	((${#MEDIA_CHAT_CMD[@]})) && MEDIA_CHAT_CMD=("$var" "${MEDIA_CHAT_CMD[@]}") || MEDIA_CHAT_CMD=("$var")
+			else 	((${#MEDIA_CHAT[@]})) && MEDIA_CHAT=("$var" "${MEDIA_CHAT[@]}") || MEDIA_CHAT=("$var")
+			fi
+			printf "added -- \`%s'\\n" "$var" >&2;
 		else
-			printf "err: invalid -- \`%s'\\n" "$var" >&2
-			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break 
+			printf "err: invalid -- \`%s'\\n" "$var" >&2;
+			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
 		fi  #https://stackoverflow.com/questions/12199059/
 		set -- "${1%\|*}";
 	done; TRUNC_IND=$((i-${#1}));
-}  #!# needs to fix the order of img/urls processing, and also, !img args will be appended rather than inserted in multi turns.
+}
 
 #create user log
 function usr_logf
