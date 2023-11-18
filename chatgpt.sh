@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.16  nov/2023  by mountaineerbr  GPL+3
+# v0.21.17  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1146,9 +1146,9 @@ function set_imgsizef
 			* ) 	OPTS=${OPTS:-1024x1024}; ((${#OPTS_HD}));;
 		esac;
 	else 	case "$1" in  #dall-e-2
-			1024* | 10*       | [LlXx] | [Ll][Aa][Rr][Gg][Ee] ) OPTS=1024x1024;;
-			512* | 51* | [Mm][Ee][Dd][Ii][Uu][Mm]|[Mm] ) OPTS=512x512;;
-			256* | 25* | [Ss][Mm][Aa][Ll][Ll]|[Ss] )     OPTS=256x256;;
+			1024* | 10*  | [LlXx] | [Ll][Aa][Rr][Gg][Ee] ) OPTS=1024x1024;;
+			512* | 51*   |  [Mm]  | [Mm][Ee][Dd][Ii][Uu][Mm] ) OPTS=512x512;;
+			256* | 25*   |  [Ss]  | [Ss][Mm][Aa][Ll][Ll] )     OPTS=256x256;;
 			*) 	OPTS=${OPTS:-512x512}; false;;
 		esac;
 	fi
@@ -1609,7 +1609,7 @@ function edf
 	fi ;return 0
 }
 
-#(un)escape from/to json
+#(un)escape from/to json (bash truncates input on \000)
 function _escapef
 {
 	tr -d '\000' <<<"$*" | sed 's/\\/\\\\/g;' \

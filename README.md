@@ -16,18 +16,18 @@ Chat completions with streaming.
 - Manage _sessions_, _continue_ from last session, _print out_ session
 - Custom prompts, easily create prompts and re-use them!
 - Integration with [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts) and [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-- Insert mode of text completions <!-- _(deprecated)_ -->
+- Insert mode of text completions <!-- _(deprecated ?)_ -->
 - Fast and accurately count chat tokens with _tiktoken_ (requires python, set `option -y`)
 - Personalise colour scheme
 - _Generate images_ from text input
 - _Generate variations_ of images
 - _Edit images_, easily generate an alpha mask
 - _Transcribe audio_ from various languages (`option -w`)
-- _Translate audio_ into English text
+- _Translate audio_ into English text (`option -W`)
 - _Text-to-speeech_ functionality (`option -z`)
 - Record prompt voice, hear the answer back from the AI (`options -cczw`).
-- Choose amongst all available models
-- Lots of command line options
+- Choose amongst all available models from a pick list (`option -m.`)
+- *Lots of* command line options
 - Converts response base64 JSON data to PNG image locally
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users).
 
@@ -36,7 +36,9 @@ Chat completions with streaming.
 
 ### 💾 Installation
 
-Just download the stand-alone `chatgpt.sh` and make it executable or clone this repo.
+Just download the stand-alone `[chatgpt.sh](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/chatgpt.sh)` and make it executable or clone this repo.
+
+Optionally, download and set the config file `[~/.chatgpt.conf](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf)`.
 
 
 ### ✔️ Required packages
@@ -44,8 +46,8 @@ Just download the stand-alone `chatgpt.sh` and make it executable or clone this 
 - [OpenAI GPTChat key](https://platform.openai.com/account/api-keys)
 - Bash <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
 - cURL, and JQ
-- Imagemagick (optional)
-- Base64 (optional)
+- Imagemagick (image edits and variations)
+- Base64 (required for _vision_ _models_)
 - Sox/Arecord/FFmpeg (optional)
 
 
@@ -499,6 +501,8 @@ _see_ [tkn-cnt.py](https://github.com/mountaineerbr/scripts/blob/main/tkn-cnt.py
 - OpenAI **API v1** is the focus of the present project implementation.
 
 - See _BUGS AND LIMITS_ section in the [man page](man/README.md).
+
+- Bash shell truncates input on `\000` (null).
 
 <!--
 - User input must double escape `\n` and `\t` to have them as literal sequences.
