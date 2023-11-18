@@ -36,9 +36,9 @@ Chat completions with streaming.
 
 ### 💾 Installation
 
-Just download the stand-alone `[chatgpt.sh](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/chatgpt.sh)` and make it executable or clone this repo.
+Just download the stand-alone [`chatgpt.sh`](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/chatgpt.sh) and make it executable or clone this repo.
 
-Optionally, download and set the config file `[~/.chatgpt.conf](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf)`.
+Optionally, download and set the config file [`~/.chatgpt.conf`](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf).
 
 
 ### ✔️ Required packages
