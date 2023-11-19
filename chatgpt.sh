@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.17  nov/2023  by mountaineerbr  GPL+3
+# v0.21.18  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -793,7 +793,8 @@ function prompt_imgprintf
 		done
 		((n)) || { 	cat -- "$FILE" ;false ;}
 	else 	jq -r '.data[].url' "$FILE" || cat -- "$FILE"
-	fi
+	fi &&
+	jq -r 'if .data[].revised_prompt then "REVISED PROMPT: "+.data[].revised_prompt else empty end' "$FILE" >&2
 }
 
 function prompt_audiof
