@@ -130,6 +130,33 @@ Chat in Portuguese with voice in and out:
 <!-- **TIP**: Set _-vv_ to have auto sleep for reading time of last response,
 and less verbose in voice input chat! *Only without option -z!* -->
 
+<!--
+Generate some unexpected use cases if chatgpt.sh.
+
+Certainly! Here are some unexpected use cases of the `chatgpt.sh` script:
+
+1. Creative Writing Assistant: Use the script to generate story prompts or brainstorm ideas for your creative writing projects.
+
+2. Virtual Therapist: Have a chat session with the script as a virtual therapist, sharing your thoughts and feelings.
+
+3. Language Learning Partner: Practice your language skills by having conversations with the script in your target language.
+
+4. Coding Assistance: Use the script to help you with coding tasks by providing code snippets or answering programming-related questions.
+
+5. Artistic Collaboration: Collaborate with the script to co-create art pieces, coming up with unique concepts and ideas.
+
+6. Songwriting Inspiration: Get inspired by having a chat session with the script and use its responses as prompts for songwriting.
+
+7. Historical Simulation: Have a conversation with the script as a historical figure or simulate historical events by interacting with the script.
+
+8. Technical Support: Use the script to troubleshoot technical issues or provide instructions for using specific software or tools.
+
+9. Game Master Assistant: Use the script to assist you in running tabletop role-playing game sessions by generating NPCs, locations, and plot ideas.
+
+10. Virtual Travel Guide: Have a chat session with the script to get travel recommendations, learn about different destinations, and plan your next trip.
+
+These unexpected use cases demonstrate the versatility of the `chatgpt.sh` script and how it can be utilized beyond its traditional applications. Have fun exploring and discovering new ways to interact with it!
+-->
 
 ### 📜 Text Completions
 

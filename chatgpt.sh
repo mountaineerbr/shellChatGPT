@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.20  nov/2023  by mountaineerbr  GPL+3
+# v0.21.21  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -3474,7 +3474,8 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 				__warmsgf "(response empty)"
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
 					&& var=$(jq .error.message//empty "$FILE") \
-					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]]
+					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]] \
+					&& [[ $ESC != ${ESC_OLD:=$ESC} ]]
 				then 	#[0]modmax [1]resquested [2]prompt [3]cmpl
 					var=(${var//[!0-9$IFS]})
 					if ((${#var[@]}<2 || var[1]<=(var[0]*3)/2)) \
@@ -3486,7 +3487,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
 				fi  #auto-adjust context err?
-			fi ;unset BAD_RES PSKIP
+			fi ;unset BAD_RES PSKIP ESC_OLD
 			((${#tkn[@]}>2||STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
 			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]
