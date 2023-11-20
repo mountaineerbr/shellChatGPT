@@ -10,7 +10,7 @@ Chat completions with streaming.
 ## 🚀 Features
 
 - Text and chat completions, [**gtp-4-vision** support](#gpt-4-vision).
-- **Voice in** (whisper) and **voice out** (TTS) chat modes.
+- **Voice in** (whisper) and **voice out** (TTS) [chat modes](#voice-in-and-out-chat-completions).
 - _Multiline_ prompt, flush input with \<ctrl-d> (optional)
 - _Follow up_ conversations, _preview/regenerate_ responses
 - Manage _sessions_, _continue_ from last session, _print out_ session
@@ -117,9 +117,9 @@ Alternatively, set the image paths / urls at the end of the prompt interactively
     Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
 
 
-### 🗣️ Voice + Chat Completions
+### Voice In and Out + Chat Completions
 
-Chat completion with **voice as input**:
+🗣️ Chat completion with **voice as input**:
 
     chatgpt.sh -ccw
 
