@@ -584,7 +584,7 @@ and may be set with colour-named variables or raw escape sequences
 - `Bash`
 - `cURL`, and `JQ`
 
-#### Optional for Specific Features
+#### Optional Packages for Specific Features
 
 - `Base64` - vision models
 - `Imagemagick` - image edits and variations
