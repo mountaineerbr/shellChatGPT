@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.22 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.22.3 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.22 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.22.3 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -432,26 +432,33 @@ prompt to set a new parameter. The command operator may be either
 <td>Print last response json.</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>!img</code></td>
+<td style="text-align: left;"><code>!!img</code>
+[<em>FILE</em>|<em>URL</em>]</td>
+<td>Append image / url to prompt. Run <code>!!img</code> to skip
+checks.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!i</code></td>
 <td style="text-align: left;"><code>!info</code></td>
 <td>Information on model and session settings.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!j</code></td>
 <td style="text-align: left;"><code>!jump</code></td>
 <td>Jump to request, append start seq primer (text cmpls).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!j</code></td>
 <td style="text-align: left;"><code>!!jump</code></td>
 <td>Jump to request, no response priming.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
 <td>Run shell, or <em>command</em>, and edit output.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!sh</code></td>
 <td style="text-align: left;"><code>!!shell</code> [<em>CMD</em>]</td>
 <td>Run interactive shell (with <em>command</em>) and exit.</td>

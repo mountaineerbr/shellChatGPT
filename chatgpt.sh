@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.2  nov/2023  by mountaineerbr  GPL+3
+# v0.22.3  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -260,7 +260,7 @@ Chat Commands
        -S.     -.       [NAME]   Load and edit custom prompt.
        -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
        -Z      !last             Print last response json.
-      !img     !media [URL|FILE] Insert image file to prompt.
+      !img     !!img [FILE|URL]  Append image / url to prompt.
        !i      !info             Info on model and session settings.
        !j      !jump             Jump to request, append response primer.
       !!j     !!jump             Jump to request, no response priming.
@@ -1259,9 +1259,11 @@ function cmd_runf
 			[[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
 			_cmdmsgf $'\nLog file' "<${USRLOG}>"
 			;;
-		media*|img*|image*|url*)
-			set -- "${*##@(media|img|image)*([$IFS])}";
-			CMD_CHAT=1 _mediachatf "|${1##\|}"
+		media*|img*|image*|url*|\
+		[/!]media*|[/!]img*|[/!]image*|[/!]url*)
+			[[ $* = [/!]* ]] && var=1 && set -- "${*##[/!]}"
+			set -- "${*##@(media|img|image|url)*([$IFS])}";
+			CMD_CHAT=1 CMD_PASS=$var _mediachatf "|${1##\|}"
 			;;
 		models*)
 			list_modelsf "${*##models*([$IFS])}" | less >&2
@@ -1694,7 +1696,7 @@ function _mediachatf
 		var=${var##${spc}\|${spc}} var=${var%%${spc}};
 
 		# check if var is a file or url and add to array
-		if { [[ -f $var ]] &&  #max: 20MB
+		if ((CMD_PASS)) || { [[ -f $var ]] &&  #max: 20MB
 			case "$var" in
 				*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] ) :;;
 				*) false;;

@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.22 | General Commands Manual
+% CHATGPT.SH(1) v0.22.3 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -246,16 +246,17 @@ may be either "`!`", or "`/`".
 
 
   Misc        Commands
-  --------    -----------------------    -------------------------------------------------------
+  --------    -----------------------    ----------------------------------------------------------
      `-S.`    `-.`         \[_NAME_]     Load and edit custom prompt.
      `-S/`    `-S%`        \[_NAME_]     Load and edit awesome prompt (zh).
       `-Z`    `!last`                    Print last response json.
+    `!img`    `!!img` \[_FILE_|_URL_]    Append image / url to prompt. Run `!!img` to skip checks.
       `!i`    `!info`                    Information on model and session settings.
       `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
      `!!j`    `!!jump`                   Jump to request, no response priming.
      `!sh`    `!shell`     \[_CMD_]      Run shell, or _command_, and edit output.
     `!!sh`    `!!shell`    \[_CMD_]      Run interactive shell (with _command_) and exit.
-  --------    -----------------------    -------------------------------------------------------
+  --------    -----------------------    ----------------------------------------------------------
 
   Script      Settings and UX
   --------    -----------------------    ----------------------------------------------------------
