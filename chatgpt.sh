@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.3  nov/2023  by mountaineerbr  GPL+3
+# v0.22.4  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1979,9 +1979,10 @@ function ttsf
 	if ((!(MTURN+OPTC+OPTCMPL) ))
 	then 	__sysmsgf 'Speech Model:' "$MOD_SPEECH";
 		__sysmsgf 'Voice:' "$VOICEZ";
-		__sysmsgf 'Speed:' "$OPTZ";
+		__sysmsgf 'Speed:' "${SPEEDZ:-1}";
 		__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}";
 	fi; ((${#SPEEDZ})) && check_optrangef "$SPEEDZ" 0.25 4 'TTS speed'
+	[[ $* != *([$IFS]) ]] || ! echo '(empty)' >&2 || return 2
 
 	prompt_ttsf "$@"; ret=$?; ((ret)) || echo '[done]' >&2
 	((OPTZ<2)) || ((ret)) || ${PLAY_CMD} "$FOUT";
@@ -3057,16 +3058,17 @@ then 	lastjsonf
 elif ((OPTL))      #model list
 then 	list_modelsf "$@"
 elif ((OPTTIKTOKEN))
-then 	((OPTYY)) && { 	if [[ -f $* ]]; then 	__tiktokenf "$(<"$*")"; elif [[ ! -t 0 ]]; then 	__tiktokenf "$(cat)"; else 	__tiktokenf "$*"; fi; exit ;}  #mainly for debugging, option -Y
+then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:1:${#}-1}" "$(<"${@:${#}}")"; elif [[ ! -t 0 ]]; then 	__tiktokenf "$(cat)"; else 	__tiktokenf "$*"; fi; exit ;}  #option -Y (debug)
 	((OPTTIKTOKEN>2)) || __sysmsgf 'Language Model:' "$MOD"
 	((${#})) || [[ -t 0 ]] || set -- "-"
-	[[ -f $* ]] && [[ -t 0 ]] && exec 0< "$*" && set -- "-"
+	[[ -f $* ]] && [[ -t 0 ]] && exec 0<"$*" && set -- "-"  #exec max one file
 	tiktokenf "$*" || ! __warmsgf \
 	  "Err:" "Make sure python tiktoken module is installed: \`pip install tiktoken\`"
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	whisperf "$@"
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
-then 	ttsf "$@"
+then 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"
+	ttsf "$@"
 elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
 	then 	__sysmsgf 'Image Edits'
@@ -3086,7 +3088,7 @@ elif ((OPTEMBED))  #embeds
 then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	|| __warmsgf "Warning:" "Not an embedding model -- $MOD"
 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM
-	[[ -f $1 ]] && set -- "$(escapef "$(<"$1")")" "${@:2}"
+	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"
 	if ((!${#}))
 	then 	echo 'Input:' >&2
 		IFS= read -r -e ${OPTCTRD:+-d $'\04'} REPLY </dev/tty
@@ -3101,8 +3103,8 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 elif ((OPTE))      #edits
 then 	__sysmsgf 'Text Edits'
 	[[ $MOD = *edit* ]] || __warmsgf "Warning:" "Not an edits model -- $MOD"
-	[[ -f $1 ]] && set -- "$(escapef "$(<"$1")")" "${@:2}"
-	[[ -f $2 ]] && set -- "$1" "$(escapef "$(<"$2")")" "${@:3}"
+	[[ -f $1 ]] && set -- "$(escapef "$(<"$1")")" "${@:2}"  #instruction
+	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"  #text prompt
 	if ((${#INSTRUCTION}))
 	then 	set -- "$INSTRUCTION" "$@"
 	else 	INSTRUCTION="$1"
@@ -3132,7 +3134,7 @@ else
 	fi
 
 	#text/chat completions
-	[[ -f $1 ]] && set -- "$(<"$1")" "${@:2}"  #load file (1st arg)
+	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"  #load file (last arg)
 	INPUT_ORIG=("$@")
 	((OPTW)) && { 	unset OPTX ;set -- ;}  #whisper input
 	if ((OPTC))
