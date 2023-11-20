@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.22.3 | General Commands Manual
+% CHATGPT.SH(1) v0.22.5 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -610,6 +610,21 @@ _\\e[0;35m_, and _\\e[1;36m_ may be set.
 Theme colours are named variables from `Colour1` to about `Colour11`,
 and may be set with colour-named variables or
 raw escape sequences (these must not change cursor position).
+
+
+### REQUIRED PACKAGES, OPTIONAL PACKAGES
+
+- `Bash`
+- `cURL`, and `JQ`
+
+#### Optional for Specific Features
+
+- `Base64` - vision models
+- `Imagemagick` - image edits and variations
+- `Python` - tiktoken, `Perl` - `option -HHHHH` only
+- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS output
+- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input, Whisper
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - open images, set clipboard
 
 
 ### BUGS AND LIMITS

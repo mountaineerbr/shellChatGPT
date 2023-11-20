@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.22.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.22.5 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.22.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.22.5 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -974,6 +974,26 @@ and background colours can be set with <em>$On_Yellow</em>,
 <p>Theme colours are named variables from <code>Colour1</code> to about
 <code>Colour11</code>, and may be set with colour-named variables or raw
 escape sequences (these must not change cursor position).</p>
+<h3 id="required-packages-optional-packages">REQUIRED PACKAGES, OPTIONAL
+PACKAGES</h3>
+<ul>
+<li><code>Bash</code></li>
+<li><code>cURL</code>, and <code>JQ</code></li>
+</ul>
+<h4 id="optional-for-specific-features">Optional for Specific
+Features</h4>
+<ul>
+<li><code>Base64</code> - vision models</li>
+<li><code>Imagemagick</code> - image edits and variations</li>
+<li><code>Python</code> - tiktoken, <code>Perl</code> -
+<code>option -HHHHH</code> only</li>
+<li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFmpeg</code>/<code>afplay</code>/<code>play-audio</code>
+(termux) - play TTS output</li>
+<li><code>SoX</code>/<code>Arecord</code>/<code>FFmpeg</code>/<code>termux-microphone-record</code>
+- record input, Whisper</li>
+<li><code>xdg-open</code>/<code>open</code>/<code>xsel</code>/<code>xclip</code>/<code>pbcopy</code>/<code>termux-clipboard-set</code>
+- open images, set clipboard</li>
+</ul>
 <h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
 <!-- NOT ANYMORE
 Input sequences _\\n_, and _\\t_ must be double escaped to be treated

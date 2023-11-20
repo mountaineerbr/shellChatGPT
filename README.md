@@ -44,11 +44,18 @@ Optionally, download and set the config file [`~/.chatgpt.conf`](https://gitlab.
 ### ✔️ Required packages
 
 - [OpenAI GPTChat key](https://platform.openai.com/account/api-keys)
-- Bash <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
-- cURL, and JQ
-- Imagemagick (image edits and variations)
-- Base64 (required for _vision_ _models_)
-- Sox/Arecord/FFmpeg (optional)
+- `Bash` <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
+- `cURL`, and `JQ`
+
+
+#### Optional for Specific Features
+
+- `Base64` - vision models
+- `Imagemagick` - image edits and variations
+- `Python` - tiktoken, `Perl` - `option -HHHHH` only
+- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS output
+- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input, Whisper
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - open images, set clipboard
 
 
 ### 🔥 Usage
@@ -482,7 +489,16 @@ in Arch Linux and derivative distros.
 -->
 
 
-## Tiktoken and Termux Users
+## Termux Users
+
+## Optional Deps
+
+For recording audio (Whisper, `option -w`), we reccomend `termux-microphone-record`, and
+for playing audio (TTS, `option -z`), install `play-audio`.
+
+To set the clipboard, it is required `termux-clipboard-set`.
+
+### Tiktoken
 
 To run `tiktoken` with `options -T -y`, be sure to have your system
 updated and installed with `python`, `rust`, and `rustc-dev` packages
