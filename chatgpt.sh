@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.21  nov/2023  by mountaineerbr  GPL+3
+# v0.22  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -680,7 +680,7 @@ function block_printf
 	if ((OPTVV>1))
 	then 	[[ ${BLOCK:0:10} = @* ]] && cat -- "${BLOCK##@}" | less -S >&2
 		printf '\n%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"; OPTAWE= SKIP=
-		printf '\n%s\n' '<Ctrl-D> redo, <Ctrl-C> exit, <Enter> continue'
+		printf '\n%s\n' '<Enter> continue, <Ctrl-D> redo, <Ctrl-C> exit'
 		typeset REPLY; read </dev/tty || return 200
 	else 	((STREAM)) && set -- -j
 		jq -r "$@" '.instruction//empty, .input//empty,
@@ -850,7 +850,7 @@ function lastjsonf
 #set up context from history file ($HIST and $HIST_C)
 function set_histf
 {
-	typeset time token string max_prev q_type a_type role rest com sub ind herr nl MEDIA_CHAT MEDIA_CHAT_CMD
+	typeset time token string max_prev q_type a_type role rest com sub ind herr nl x r MEDIA_CHAT MEDIA_CHAT_CMD
 	[[ -s $FILECHAT ]] || return; unset HIST HIST_C; 
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
@@ -885,24 +885,14 @@ function set_histf
 		#trail nls are rm in (text) chat modes, so actual request prompt token count may be *less*
 		#we currently ignore (re)start seq tkns, always consider +3 tkns from $[QA]_TYPE
 
-		if (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX)) ||
-			if ((OPTTIK))  #truncate input to fit most of the model capacity
-			then 	typeset x z r
-	#set -x
-	#echo token1=$token  max_prev=$max_prev tkn_prev=$TKN_PREV = $((max_prev+token+TKN_PREV)) >&2
-	#echo modmax-optmax=$MODMAX-$OPTMAX  = $((MODMAX-OPTMAX)) >&2
-				if 	(( x = MODMAX-OPTMAX-max_prev-TKN_PREV ));
-					(( z = (token / x) + 1 ));
-					(( z > 2));
-				then
-					(( token /= z));
-					(( r = ${#stringc} / z ));
-	#echo x=$x z=$z r=$r token2=$token str_start=${#stringc}-$r = $((${#stringc}-$r)) >&2
-					stringc=${stringc:${#stringc}-r};
-				fi
-				(( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX))    #&& set +x || ! set +x
-			else 	false;
-			fi
+		if (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX)) || {
+			#truncate input to fit most of the model capacity
+			(( x = ( (MODMAX-OPTMAX-max_prev-TKN_PREV)*(100-(herr*2) ) )/100 ));
+			(( r = ( ( ( ( ( (x*100)/token) * x) / 100) ) * ${#stringc}) / token ));
+			(( token = ( ( ( (x*100)/token) * x) / 100) + 1 ));
+			stringc=${stringc:${#stringc}-r};
+		   (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX))
+		}
 		then
 			((max_prev+=token)); ((MAIN_LOOP)) || ((TOTAL_OLD+=token))
 			MAX_PREV=$((max_prev+TKN_PREV))  HIST_TIME="${time###}"

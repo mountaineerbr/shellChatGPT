@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.21.19 \| General Commands Manual
+title: CHATGPT.SH(1) v0.22 \| General Commands Manual
 ---
 
 ### NAME
