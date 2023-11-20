@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.19  nov/2023  by mountaineerbr  GPL+3
+# v0.21.20  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -3472,7 +3472,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			if [[ -z "$ans" ]] && ((RET_PRF<120))
 			then 	jq 'if .error then . else empty end' "$FILE" >&2 || cat -- "$FILE" >&2
 				__warmsgf "(response empty)"
-				if ((HERR<=${HERR_DEF:=1}*5)) && ((MTURN+OPTRESUME)) \
+				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
 					&& var=$(jq .error.message//empty "$FILE") \
 					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]]
 				then 	#[0]modmax [1]resquested [2]prompt [3]cmpl
@@ -3482,10 +3482,10 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 					then   ADJ_INPUT="${*:-$REPLY}"
 					  ((HERR+=HERR_DEF*2)) ;BAD_RES=1 PSKIP=1; set --
 					  __warmsgf "Adjusting context:" -$((HERR_DEF+HERR))%
-					 ((!OPTTIK)) && ((HERR<HERR_DEF*4)) && _sysmsgf 'Tip:' "Set \`option -y' to use Tiktoken!"
+					 ((HERR<HERR_DEF*4)) && _sysmsgf 'Tip:' "Set \`option -y' to use Tiktoken!"
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
-				fi
+				fi  #auto-adjust context err?
 			fi ;unset BAD_RES PSKIP
 			((${#tkn[@]}>2||STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
