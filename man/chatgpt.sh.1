@@ -122,9 +122,8 @@ In multi-turn, when user prompt begins with a colon
 For text cmpls only, if double colons \[lq]\f[I]::\f[R]\[rq] are used,
 the following text will be appended to the previous prompt.
 .PP
-With \f[I]gpt-4-vision\f[R] models, insert an image to the prompt with
-chat command \[lq]\f[CR]!img\f[R]
-[\f[I]url\f[R]|\f[I]filepath\f[R]]\[rq].
+With \f[B]vision models\f[R], insert an image to the prompt with chat
+command \[lq]\f[CR]!img\f[R] [\f[I]url\f[R]|\f[I]filepath\f[R]]\[rq].
 Image urls and files can also be appended by typing the operator pipe
 and a valid input at the end of the text prompt, such as
 \[lq]\f[CR]|\f[R] [\f[I]url\f[R]|\f[I]filepath\f[R]]\[rq].
@@ -314,8 +313,8 @@ more \f[I]filepaths\f[R] / \f[I]urls\f[R] separated by the operator pipe
 chatgpt.sh -cc -m gpt-4-vision-preview \[aq]!img path/to/image.jpg\[aq]
 .EE
 .PP
-Alternatively, set the image paths / urls at the end of the prompt
-interactively:
+Alternatively, set the \f[I]image paths\f[R] / \f[I]urls\f[R] at the end
+of the text prompt interactively:
 .IP
 .EX
 chatgpt.sh -cc -m gpt-4-vision-preview

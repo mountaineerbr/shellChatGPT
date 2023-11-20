@@ -64,7 +64,7 @@ text is set as a system message (text and chat cmpls). For text cmpls only,
 if double colons "_::_" are used, the following text will be appended
 to the previous prompt.
 
-With _gpt-4-vision_ models, insert an image to the prompt with chat
+With **vision models**, insert an image to the prompt with chat
 command "`!img` \[_url_|_filepath_]". Image urls and files can also
 be appended by typing the operator pipe and a valid input at the
 end of the text prompt, such as "`|` \[_url_|_filepath_]".
@@ -229,7 +229,8 @@ separated by the operator pipe _|_.
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
 
 
-Alternatively, set the image paths / urls at the end of the prompt interactively:
+Alternatively, set the _image paths_ / _urls_ at the end of the
+text prompt interactively:
 
     chatgpt.sh -cc -m gpt-4-vision-preview
 
