@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.1  nov/2023  by mountaineerbr  GPL+3
+# v0.22.2  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -3466,19 +3466,18 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
 					&& var=$(jq .error.message//empty "$FILE") \
 					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]] \
-					&& [[ $ESC != ${ESC_OLD:=$ESC} ]]
+					&& [[ $ESC != "$ESC_OLD" ]]
 				then 	#[0]modmax [1]resquested [2]prompt [3]cmpl
 					var=(${var//[!0-9$IFS]})
-					if ((${#var[@]}<2 || var[1]<=(var[0]*3)/2)) \
-					    && [[ "${*:-$REPLY}" != "$ADJ_INPUT" ]]
-					then   ADJ_INPUT="${*:-$REPLY}"
+					if ((${#var[@]}<2 || var[1]<=(var[0]*3)/2))
+					then    ESC_OLD=$ESC
 					  ((HERR+=HERR_DEF*2)) ;BAD_RES=1 PSKIP=1; set --
 					  __warmsgf "Adjusting context:" -$((HERR_DEF+HERR))%
 					 ((HERR<HERR_DEF*4)) && _sysmsgf 'Tip:' "Set \`option -y' to use Tiktoken!"
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
-				fi  #auto-adjust context err?
-			fi ;unset BAD_RES PSKIP ESC_OLD
+				fi  #auto-adjust context err
+			fi; unset BAD_RES PSKIP ESC_OLD;
 			((${#tkn[@]}>2||STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
 			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]
@@ -3501,7 +3500,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : TKN_PREV ))" "${tkn[2]}"
 			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || unset OPTC OPTRESUME OPTCMPL MTURN
 			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
-			unset HIST_TIME ADJ_INPUT
+			unset HIST_TIME
 		elif ((MTURN))
 		then 	BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES MEDIA_CHAT
 			((OPTX)) && __read_charf >/dev/null
