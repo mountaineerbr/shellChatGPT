@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22  nov/2023  by mountaineerbr  GPL+3
+# v0.22.1  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -887,10 +887,11 @@ function set_histf
 
 		if (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX)) || {
 			#truncate input to fit most of the model capacity
-			(( x = ( (MODMAX-OPTMAX-max_prev-TKN_PREV)*(100-(herr*2) ) )/100 ));
-			(( r = ( ( ( ( ( (x*100)/token) * x) / 100) ) * ${#stringc}) / token ));
-			(( token = ( ( ( (x*100)/token) * x) / 100) + 1 ));
-			stringc=${stringc:${#stringc}-r};
+			if 	(( x = ( (MODMAX-OPTMAX-max_prev-TKN_PREV)*(100-(herr*2) ) )/100 )); ((x>20));
+			then 	(( r = ( ( ( ( ( (x*100)/token) * x) / 100) ) * ${#stringc}) / token ));
+				(( token = ( ( ( (x*100)/token) * x) / 100) + 1 ));
+				stringc=${stringc:${#stringc}-r};
+			fi
 		   (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX))
 		}
 		then
