@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.21.9 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.21.19 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.21.9 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.21.19 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2023</p>
 </header>
@@ -391,6 +391,18 @@ initial character sets the prompt as a <strong>SYSTEM</strong> message.
 In text completions, however, typing a colon “<em>:</em>” at the start
 of the prompt causes the text following it to be appended immediately to
 the last (response) prompt text.</p>
+<h4 id="gpt-4-vision">2.4 GPT-4-Vision</h4>
+<p>To send an <em>image</em>, or <em>url</em> to <strong>vision
+models</strong>, either set the image with the <code>!img</code> chat
+command with one or more <em>filepaths</em> / <em>urls</em> separated by
+the operator pipe <em>|</em>.</p>
+<pre><code>chatgpt.sh -cc -m gpt-4-vision-preview &#39;!img path/to/image.jpg&#39;</code></pre>
+<p>Alternatively, set the image paths / urls at the end of the prompt
+interactively:</p>
+<pre><code>chatgpt.sh -cc -m gpt-4-vision-preview
+
+[...]
+Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg</code></pre>
 <h5 id="chat-commands">2.4 Chat Commands</h5>
 <p>While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either

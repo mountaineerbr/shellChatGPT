@@ -9,7 +9,7 @@ Chat completions with streaming.
 
 ## 🚀 Features
 
-- Text and chat completions, **gtp-4-vision** support.
+- Text and chat completions, [**gtp-4-vision** support](#gpt-4-vision).
 - **Voice in** (whisper) and **voice out** (TTS) chat modes.
 - _Multiline_ prompt, flush input with \<ctrl-d> (optional)
 - _Follow up_ conversations, _preview/regenerate_ responses
@@ -98,9 +98,23 @@ Start a new session in chat mode, and set a different temperature (*gpt-3.5 and 
 
     chatgpt.sh -cc -t0.7
 
-Chat mode in text editor (visual) mode. Edit initial input:
 
-    chatgpt.sh -ccx "Complete the story: Alice visits Bob. John arrives .."
+#### GPT-4-Vision
+
+To send an `image` / `url` to vision models, start the script and then either
+set the image with the `!img` chat command with one or more filepaths / urls
+separated by the operator pipe **|**.
+
+
+    chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
+
+
+Alternatively, set the image paths / urls at the end of the prompt interactively:
+
+    chatgpt.sh -cc -m gpt-4-vision-preview
+
+    [...]
+    Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
 
 
 ### 🗣️ Voice + Chat Completions

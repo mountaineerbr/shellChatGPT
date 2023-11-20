@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.21.9 | General Commands Manual
+% CHATGPT.SH(1) v0.21.19 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -217,6 +217,24 @@ character sets the prompt as a **SYSTEM** message. In text completions,
 however, typing a colon "_:_" at the start of the prompt
 causes the text following it to be appended immediately to the last
 (response) prompt text.
+
+
+
+#### 2.4 GPT-4-Vision
+
+To send an _image_, or _url_ to **vision models**, either set the image
+with the `!img` chat command with one or more _filepaths_ / _urls_
+separated by the operator pipe _|_.
+
+    chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
+
+
+Alternatively, set the image paths / urls at the end of the prompt interactively:
+
+    chatgpt.sh -cc -m gpt-4-vision-preview
+
+    [...]
+    Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
 
 
 ##### 2.4 Chat Commands

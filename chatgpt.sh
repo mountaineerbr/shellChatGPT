@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.21.18  nov/2023  by mountaineerbr  GPL+3
+# v0.21.19  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -173,10 +173,10 @@ Description
 	For text cmpls only, if double colons \`::' are used, the following
 	text will be appended to the previous prompt.
 
-	With gpt-4 vision models, insert an image to the prompt with chat
-	command \`!img [url|filepath]'. Image urls and files can also
-	be appended by typing the operator pipe and a valid input at the
-	end of the text prompt, such as \`| [url|filepath]'.
+	With vision models, insert an image to the prompt with chat command
+	\`!img [url|filepath]'. Image urls and files can also be appended
+	by typing the operator pipe and a valid input at the end of the
+	text prompt, such as \`| [url|filepath]'.
 
 	If the first positional argument of the script starts with the
 	command operator, the command \`/session [HIST_NAME]' to change
@@ -525,7 +525,7 @@ function set_model_epnf
 #set ``model capacity''
 function model_capf
 {
-	case "$1" in  #set model max tokens
+	case "${1##ft:}" in  #set model max tokens, ft: fine-tune models
 		text-davinci-002-render-sha) 	MODMAX=8191;;
 		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
 		davinci-002|babbage-002) 	MODMAX=16384;;
@@ -536,7 +536,7 @@ function model_capf
 		gpt-4*32k*|text*moderation*) 	MODMAX=32768;; 
 		gpt-4*) 	MODMAX=8192;;
 		gpt-3.5*16K*|*turbo*16k*) 	MODMAX=16384;;
-		*turbo*|*davinci*|ft:gtp*) 	MODMAX=4096;;
+		*turbo*|*davinci*) 	MODMAX=4096;;
 		*embedding*|*search*) MODMAX=2046;;
 		*) 	MODMAX=2048;;
 	esac
@@ -571,7 +571,7 @@ function _promptf
 					chunk_n="${chunk/${str}+${SPC1##\*}/$str}"
 					[[ $chunk_n = *"${str}"\",* ]] && continue
 				}; ((++n));
-				printf '%s\n' "${chunk_n:-$chunk}"; chunk_n=;
+				printf '%s\n' "${chunk_n:-$chunk}"; chunk_n= ;
 			else 	printf '%s\n' "$chunk"
 			fi; 	printf '%s\n' "$chunk" >>"$FILE"
 		done
@@ -1229,7 +1229,7 @@ function cmd_runf
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  push_tohistf "$(escapef ":${INSTRUCTION_OLD:-$INSTRUCTION}")"
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | STREAM= foldf >&2
-			}; unset CKSUM_OLD; xskip=1
+			}; unset CKSUM_OLD MAX_PREV; xskip=1
 			;;
 		-g|-G|stream|no-stream)
 			((++STREAM)) ;((STREAM%=2))
@@ -1688,12 +1688,12 @@ function fmt_ccf
 	fi
 }
 
-#get files and urls from input, and set residual $TRUNC_IND index
+#get files and urls from input
 function _mediachatf
 {
 	typeset var spc i;
-	spc='*(['$' \t\n\r'']|\[tnr])';
-	((CMD_CHAT)) || { 	((${#1}>220)) && set -- "${1:${#1}-220}" ;}
+	TRUNC_IND= spc='*(['$' \t\n\r'']|\[tnr])';
+	((CMD_CHAT)) || { 	((${#1}>180)) && set -- "${1:${#1}-180}" ;}
 	i=${#1};
 
 	set -- "${1%%\|${spc}}";
@@ -1703,25 +1703,26 @@ function _mediachatf
 		var=${var##${spc}\|${spc}} var=${var%%${spc}};
 
 		# check if var is a file or url and add to array
-		if { 	[[ -f $var ]] &&  #max: 20MB
+		if { [[ -f $var ]] &&  #max: 20MB
 			case "$var" in
 				*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] ) :;;
 				*) false;;
 			esac
-		} || [[ $var =~ ^www.* || $var =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] \
-			|| curl --output /dev/null --silent --head --fail --location -H "$UAG" -- "$var"
+		} || [[ $var = [Ww][Ww][Ww].* || $var =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] \
+		|| { [[ $var != [./~]* ]] && curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$var" ;}
 		then
 			if ((CMD_CHAT))
 			then 	((${#MEDIA_CHAT_CMD[@]})) && MEDIA_CHAT_CMD=("$var" "${MEDIA_CHAT_CMD[@]}") || MEDIA_CHAT_CMD=("$var")
 			else 	((${#MEDIA_CHAT[@]})) && MEDIA_CHAT=("$var" "${MEDIA_CHAT[@]}") || MEDIA_CHAT=("$var")
-			fi
-			printf "added -- \`%s'\\n" "$var" >&2;
+			fi; printf "added -- \`%s'\\n" "$var" >&2;
+			set -- "${1%\|*}";
+			((TRUNC_IND = i - ${#1}));  #truncation on TRUNC_IND>0
 		else
 			printf "err: invalid -- \`%s'\\n" "$var" >&2;
 			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
+			set -- "${1%\|*}";
 		fi  #https://stackoverflow.com/questions/12199059/
-		set -- "${1%\|*}";
-	done; TRUNC_IND=$((i-${#1}));
+	done;
 }
 
 #create user log
@@ -2514,7 +2515,7 @@ function session_name_choosef
 {
 	typeset fname new print_name sglob
 	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}"
-	case "$fname" in [Nn]ew|*[N]ew.${sglob}) 	set --; fname=;; esac
+	case "$fname" in [Nn]ew|*[N]ew.${sglob}) 	set --; fname= ;; esac
 	while
 		fname="${fname%%\/}"
 		fname="${fname%%.${sglob}}"
@@ -3127,7 +3128,7 @@ else
 			elif ((!${#}))
 			then 	printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request, or append user prompt:\n>\b' >&2
 			  	REPLY=$(__read_charf)
-			  	case "${REPLY//[$IFS]}" in 	?) SKIP=1 EDIT=1 OPTAWE=;; 	*) unset REPLY; echo >&2;; esac
+			  	case "${REPLY//[$IFS]}" in 	?) SKIP=1 EDIT=1 OPTAWE= ;; 	*) unset REPLY; echo >&2;; esac
 			fi
 		else 	custom_prf "$@"
 			case $? in
@@ -3245,10 +3246,10 @@ else
 				then 	#auto sleep 3-6 words/sec
 					((OPTV>1)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))
 					
-					record_confirmf || case $? in 202) 	OPTW=;& *) 	REPLY=; continue 2;; esac
+					record_confirmf || case $? in 202) 	OPTW= ;& *) 	REPLY= ; continue 2;; esac
 					if recordf "$FILEINW"
 					then 	REPLY=$(
-						MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2=;
+						MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
 						set_model_epnf "$MOD_AUDIO";
 						whisperf "$FILEINW" "${INPUT_ORIG[@]}";
 					)
@@ -3307,7 +3308,7 @@ else
 						197) 	EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
 							((OPTCTRD==2)) && printf '\n%s\n' '--- prompter <ctr-d> one-shot ---' >&2
 							REPLY="$REPLY"$'\n'; set -- ;continue;; #multiline one-shot  #A#
-						196) 	WSKIP=1 EDIT=1 OPTW=; continue 2;;   #whisper off
+						196) 	WSKIP=1 EDIT=1 OPTW= ; continue 2;;   #whisper off
 						0) 	:;;                  #yes
 						*) 	unset REPLY; set -- ;break;; #no
 					esac
