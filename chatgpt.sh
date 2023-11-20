@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.4  nov/2023  by mountaineerbr  GPL+3
+# v0.22.5  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1563,7 +1563,7 @@ function ed_outf
 function edf
 {
 	typeset ed_msg pre rest pos ind sub
-	((OPTCMPL))|| ed_msg=$'\n\n'",,,,,,(edit below this line),,,,,,"
+	ed_msg=$'\n\n'",,,,,,(edit below this line),,,,,,"
 	((OPTC)) && rest="${RESTART:-$Q_TYPE}" || rest="${RESTART}"
 	rest="$(_unescapef "$rest")"
 
@@ -1572,13 +1572,15 @@ function edf
 		set_histf "${rest}${*}"
 	fi
 
-	pre="${INSTRUCTION}${INSTRUCTION:+$'\n\n'}""$(unescapef "$HIST")""${ed_msg}"
+	pre="${INSTRUCTION}${INSTRUCTION:+$'\n\n'}""$(unescapef "$HIST")"
+	((OPTCMPL)) || [[ $pre = *([$IFS]) ]] || pre="${pre}${ed_msg}"
 	printf "%s\\n" "${pre}"$'\n\n'"${rest}${*}" > "$FILETXT"
 
 	__edf "$FILETXT"
 
 	while pos="$(<"$FILETXT")"
-		[[ "$pos" != "${pre:-%#}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
+		echo pos="$pos" pre="${pre:-%#}"\* >&2
+		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
 	do 	__warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [r]edo or [a]bort? " ''
 		case "$(__read_charf ;echo >&2)" in
 			[AaQq]) echo abort >&2; return 201;;  #abort
@@ -1956,7 +1958,7 @@ function prompt_ttsf
 #speech synthesis (tts)
 function ttsf
 {
-	typeset FOUT VOICEZ SPEEDZ fname ret n m
+	typeset FOUT VOICEZ SPEEDZ fname ret var n m
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -1980,7 +1982,8 @@ function ttsf
 	then 	__sysmsgf 'Speech Model:' "$MOD_SPEECH";
 		__sysmsgf 'Voice:' "$VOICEZ";
 		__sysmsgf 'Speed:' "${SPEEDZ:-1}";
-		__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}";
+		__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}"; var="$*"; 
+		__sysmsgf 'Text Prompt:' "${var:0:COLUMNS-17}$([[ -n ${var:COLUMNS-17} ]] && echo ...)";
 	fi; ((${#SPEEDZ})) && check_optrangef "$SPEEDZ" 0.25 4 'TTS speed'
 	[[ $* != *([$IFS]) ]] || ! echo '(empty)' >&2 || return 2
 
@@ -2992,7 +2995,7 @@ else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 ((${#})) || [[ -t 0 ]] || ((OPTTIKTOKEN+OPTL+OPTZZ)) || set -- "$(<$STDIN)"
 
-((OPTX)) && ((OPTE+OPTEMBED+OPTI+OPTII+OPTTIKTOKEN)) &&
+((OPTX)) && ((OPTE+OPTEMBED+OPTI+OPTII+OPTZ+OPTTIKTOKEN)) &&
 edf "$@" && set -- "$(<"$FILETXT")"  #editor
 
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
