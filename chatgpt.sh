@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.6  nov/2023  by mountaineerbr  GPL+3
+# v0.22.7  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -850,7 +850,7 @@ function lastjsonf
 #set up context from history file ($HIST and $HIST_C)
 function set_histf
 {
-	typeset media_ind; (( media_ind = $((${#MEDIA_CHAT[@]} + ${#MEDIA_CHAT_CMD[@]} ));
+	typeset media_ind; (( media_ind = ${#MEDIA_CHAT[@]} + ${#MEDIA_CHAT_CMD[@]} ));
 	typeset time token string max_prev q_type a_type role rest com sub ind herr nl x r MEDIA_CHAT MEDIA_CHAT_CMD;
 	[[ -s $FILECHAT ]] || return; HIST= HIST_C= MEDIA_IND=1;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
