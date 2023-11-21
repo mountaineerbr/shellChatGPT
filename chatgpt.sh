@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.1  nov/2023  by mountaineerbr  GPL+3
+# v0.23.2  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -622,6 +622,15 @@ function promptf
 	fi
 }
 
+#clear impending stream (tty)
+function __clr_ttystf
+{
+	typeset REPLY;
+	while IFS= read -r -n 1 -t 0.1;
+	do 	:;
+	done </dev/tty;
+}
+
 #clear n lines up as needed (assumes one `new line').
 function __clr_lineupf
 {
@@ -681,7 +690,7 @@ function block_printf
 	then 	[[ ${BLOCK:0:10} = @* ]] && cat -- "${BLOCK##@}" | less -S >&2
 		printf '\n%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"; OPTAWE= SKIP=
 		printf '\n%s\n' '<Enter> continue, <Ctrl-D> redo, <Ctrl-C> exit'
-		typeset REPLY; read </dev/tty || return 200
+		typeset REPLY; __clr_ttystf; read </dev/tty || return 200;
 	else 	((STREAM)) && set -- -j
 		jq -r "$@" '.instruction//empty, .input//empty,
 		.prompt//(.messages[]|.role+": "+.content)//empty' <<<"$BLOCK" | STREAM= foldf
@@ -713,7 +722,7 @@ function new_prompt_confirmf
 function __read_charf
 {
 	typeset REPLY
-	read -n 1 "$@" </dev/tty
+	__clr_ttystf; read -n 1 "$@" </dev/tty;
 	printf '%.1s\n' "$REPLY"
 	[[ -z ${REPLY//[$IFS]} ]] || echo >&2
 }
@@ -831,8 +840,9 @@ function pick_modelf
 {
 	typeset REPLY mod
 	((${#MOD_LIST[@]})) || MOD_LIST=($(list_modelsf | grep "${@:--e.}")) #|| return
+	__clr_ttystf;
 	while ! ((REPLY && REPLY <= ${#MOD_LIST[@]}))
-	do 	echo $'\nPick a model:' >&2;
+	do 	echo $'\nPick model:' >&2;
 		select mod in ${MOD_LIST[@]}
 		do 	break;
 		done </dev/tty; REPLY=${REPLY//[$' \t\b\r']}
@@ -2282,7 +2292,8 @@ function awesomef
 	act_keys_n=$(wc -l <<<"$act_keys")
 	while ! { 	((act && act <= act_keys_n)) ;}
 	do 	if ! act=$(grep -n -i -e "${1//[ _-]/[ _-]}" <<<"${act_keys}")
-		then 	select act in ${act_keys}
+		then 	__clr_ttystf;
+			select act in ${act_keys}
 			do 	break
 			done </dev/tty; act="$REPLY";
 		elif act="$(cut -f1 -d: <<<"$act")"
@@ -2294,13 +2305,13 @@ function awesomef
 				done;
 			done <<<"${act_keys}"
 			printf '#? <enter> ' >&2
-			read -r -e act </dev/tty
+			__clr_ttystf; read -r -e act </dev/tty;
 		fi ;set -- "$act"
 	done
 
-	INSTRUCTION="$(sed -n -e 's/^[^,]*,//; s/^"//; s/"$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")"
+	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
 	((CMD_CHAT)) ||
-	if ((OPTX))  #edit chosen awesome prompt
+	if __clr_ttystf; ((OPTX))  #edit chosen awesome prompt
 	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 		printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
 	else 	read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION
@@ -2380,7 +2391,7 @@ function custom_prf
 	if { 	[[ $msg = *[Cc][Rr][Ee][Aa][Tt][Ee]* ]] && INSTRUCTION="$*" ret=200 ;} ||
 		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || ((MTURN && OPTRESUME!=1 && skip==0))
 	then
-		if ((OPTX))  #edit prompt
+		if __clr_ttystf; ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
@@ -2479,7 +2490,8 @@ function session_globf
 	fi
 
 	if ((${#} >1)) && [[ "$glob" != *[$IFS]* ]]
-	then 	printf '# Pick file [.%s]:\n' "${sglob//[!a-z]}" >&2
+	then 	__clr_ttystf;
+		printf '# Pick file [.%s]:\n' "${sglob//[!a-z]}" >&2
 		select file in 'current' 'new' 'abort' "${@%%.${sglob}}"
 		do 	break
 		done </dev/tty
@@ -2531,7 +2543,7 @@ function session_name_choosef
 		then 	[[ pr = ${sglob} ]] \
 			&& _sysmsgf 'New prompt file name <enter/abort>:' \
 			|| _sysmsgf 'New session name <enter/abort>:'
-			read -r -e -i "$fname" fname </dev/tty
+			__clr_ttystf; read -r -e -i "$fname" fname </dev/tty;
 		fi
 
 		if [[ -d "$fname" ]]
@@ -2609,7 +2621,7 @@ do 	__spinf 	#grep for user regex
 			  _sysmsgf "Is this the tail of the right session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
 			  case "$(__read_charf)" in
 			  	[]GgSsRr/?:\;]) 	__sysmsgf 'grep:' '<-opt> <regex> <enter>'
-					read -r -e -i "$search" search </dev/tty
+					__clr_ttystf; read -r -e -i "$search" search </dev/tty;
 					continue
 					;;
 			  	[NnOo]|$'\e') 	false
@@ -3094,7 +3106,7 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM
 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"
 	if ((!${#}))
-	then 	echo 'Input:' >&2
+	then 	__clr_ttystf; echo 'Input:' >&2;
 		IFS= read -r -e ${OPTCTRD:+-d $'\04'} REPLY </dev/tty
 		set -- "$REPLY"; echo >&2;
 	fi
@@ -3262,7 +3274,7 @@ else
 					fi;
 					((EDIT)) || unset REPLY  #!#
 
-					if ((CATPR)) && ((!EDIT))
+					if __clr_ttystf; ((CATPR)) && ((!EDIT))
 					then
 						REPLY=$(cat)
 					else
@@ -3541,4 +3553,4 @@ fi
 #   set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: '
 # - <https://help.openai.com/en/articles/6654000>
 
-# vim=syntax sync minlines=3550
+# vim=syntax sync minlines=3600
