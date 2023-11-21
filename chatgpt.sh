@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.7  nov/2023  by mountaineerbr  GPL+3
+# v0.22.8  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1579,7 +1579,6 @@ function edf
 	__edf "$FILETXT"
 
 	while pos="$(<"$FILETXT")"
-		echo pos="$pos" pre="${pre:-%#}"\* >&2
 		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
 	do 	__warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [r]edo or [a]bort? " ''
 		case "$(__read_charf ;echo >&2)" in
