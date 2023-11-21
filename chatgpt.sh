@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.11  nov/2023  by mountaineerbr  GPL+3
+# v0.22.12  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1986,7 +1986,8 @@ function ttsf
 	fi; ((${#SPEEDZ})) && check_optrangef "$SPEEDZ" 0.25 4 'TTS speed'
 	[[ $* != *([$IFS]) ]] || ! echo '(empty)' >&2 || return 2
 
-	prompt_ttsf "$@"; ret=$?; ((ret)) || echo '[done]' >&2
+	prompt_ttsf "$@"; ret=$?;
+	((ret)) || du -h "$FOUT" >&2 2>/dev/null || echo '[done]' >&2
 	((OPTZ<2)) || ((ret)) || ${PLAY_CMD} "$FOUT";
 	return $(($?+ret))
 }
