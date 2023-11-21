@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23  nov/2023  by mountaineerbr  GPL+3
+# v0.23.1  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -835,7 +835,7 @@ function pick_modelf
 	do 	echo $'\nPick a model:' >&2;
 		select mod in ${MOD_LIST[@]}
 		do 	break;
-		done; REPLY=${REPLY//[$' \t\b\r']}
+		done </dev/tty; REPLY=${REPLY//[$' \t\b\r']}
 		[[ \ ${MOD_LIST[*]}\  = *\ "$REPLY"\ * ]] && mod=$REPLY && break;
 	done; MOD=${mod:-$MOD};
 }
@@ -2284,7 +2284,7 @@ function awesomef
 	do 	if ! act=$(grep -n -i -e "${1//[ _-]/[ _-]}" <<<"${act_keys}")
 		then 	select act in ${act_keys}
 			do 	break
-			done ;act="$REPLY"
+			done </dev/tty; act="$REPLY";
 		elif act="$(cut -f1 -d: <<<"$act")"
 			[[ ${act} = *$'\n'?* ]]
 		then 	while read l;
@@ -2482,7 +2482,7 @@ function session_globf
 	then 	printf '# Pick file [.%s]:\n' "${sglob//[!a-z]}" >&2
 		select file in 'current' 'new' 'abort' "${@%%.${sglob}}"
 		do 	break
-		done
+		done </dev/tty
 		file="${file:-$REPLY}"
 	else 	file="${1}"
 	fi
