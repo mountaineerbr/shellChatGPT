@@ -588,7 +588,8 @@ and may be set with colour-named variables or raw escape sequences
 
 - `Base64` - vision models
 - `Imagemagick` - image edits and variations
-- `Python` - tiktoken, `Perl` - `option -HHHHH` only
+- `Python` - tiktoken, `Perl` - only for option -HHHHH (clean history
+  file)
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS
   output
 - `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input,
