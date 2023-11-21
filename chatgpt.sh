@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.5  nov/2023  by mountaineerbr  GPL+3
+# v0.22.6  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -260,7 +260,7 @@ Chat Commands
        -S.     -.       [NAME]   Load and edit custom prompt.
        -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
        -Z      !last             Print last response json.
-      !img     !!img [FILE|URL]  Append image / url to prompt.
+      !img     !url  [FILE|URL]  Append image / url to prompt.
        !i      !info             Info on model and session settings.
        !j      !jump             Jump to request, append response primer.
       !!j     !!jump             Jump to request, no response priming.
@@ -787,14 +787,14 @@ function prompt_imgprintf
 		while jq -e ".data[${n}]" "$FILE" >/dev/null 2>&1
 		do 	fout="${FILEOUT%.*}${m}.png"
 			jq -r ".data[${n}].b64_json" "$FILE" | { 	base64 -d || base64 -D ;} > "$fout"
-			printf 'File: %s\n' "${fout/"$HOME"/"~"}" >&2
+			_sysmsgf 'File Out:' "${fout/"$HOME"/"~"}";
 			((OPTV)) ||  __openf "$fout" || function __openf { : ;}
-			((++n, ++m)) ;((n<50)) || break
+			((++n, ++m)); ((n<50)) || break;
 		done
 		((n)) || { 	cat -- "$FILE" ;false ;}
 	else 	jq -r '.data[].url' "$FILE" || cat -- "$FILE"
 	fi &&
-	jq -r 'if .data[].revised_prompt then "REVISED PROMPT: "+.data[].revised_prompt else empty end' "$FILE" >&2
+	jq -r 'if .data[].revised_prompt then "\nREVISED PROMPT: "+.data[].revised_prompt else empty end' "$FILE" >&2
 }
 
 function prompt_audiof
@@ -850,8 +850,9 @@ function lastjsonf
 #set up context from history file ($HIST and $HIST_C)
 function set_histf
 {
-	typeset time token string max_prev q_type a_type role rest com sub ind herr nl x r MEDIA_CHAT MEDIA_CHAT_CMD
-	[[ -s $FILECHAT ]] || return; unset HIST HIST_C; 
+	typeset media_ind; (( media_ind = $((${#MEDIA_CHAT[@]} + ${#MEDIA_CHAT_CMD[@]} ));
+	typeset time token string max_prev q_type a_type role rest com sub ind herr nl x r MEDIA_CHAT MEDIA_CHAT_CMD;
+	[[ -s $FILECHAT ]] || return; HIST= HIST_C= MEDIA_IND=1;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
 	q_type=${Q_TYPE##$SPC1} a_type=${A_TYPE##$SPC1}
@@ -925,7 +926,7 @@ function set_histf
 					;;
 			esac
 			
-			#gpt-4 vision
+			#vision
 			if ((!OPTHH)) && [[ $MOD = *vision* ]]
 			then 	MEDIA_CHAT=(); _mediachatf "$stringc"
 				((TRUNC_IND)) && stringc=${stringc:0:${#stringc}-TRUNC_IND};
@@ -940,6 +941,7 @@ function set_histf
 		fi
 	done < <(tac -- "$FILECHAT")
 	__printbf ' ' #__spinf() end
+	((MEDIA_IND+=media_ind))
 	((MAX_PREV+=3)) # chat cmpls, every reply is primed with <|start|>assistant<|message|>
 	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns 
 	
@@ -1259,11 +1261,9 @@ function cmd_runf
 			[[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
 			_cmdmsgf $'\nLog file' "<${USRLOG}>"
 			;;
-		media*|img*|image*|url*|\
-		[/!]media*|[/!]img*|[/!]image*|[/!]url*)
-			[[ $* = [/!]* ]] && var=1 && set -- "${*##[/!]}"
+		media*|img*|image*|url*)
 			set -- "${*##@(media|img|image|url)*([$IFS])}";
-			CMD_CHAT=1 CMD_PASS=$var _mediachatf "|${1##\|}"
+			CMD_CHAT=1 _mediachatf "|${1##\|}"
 			;;
 		models*)
 			list_modelsf "${*##models*([$IFS])}" | less >&2
@@ -1662,7 +1662,7 @@ function json_minif
 #usage: fmt_ccf [prompt] [role]
 function fmt_ccf
 {
-	typeset var i; i=1;
+	typeset var
 	[[ ${1} != *([$IFS]) ]] || return
 	
 	if ((${#MEDIA_CHAT[@]}+${#MEDIA_CHAT_CMD[@]}))
@@ -1675,7 +1675,7 @@ function fmt_ccf
 			elif [[ -f $var ]] && [[ -s $var ]]
 			then 	printf ',\n{ "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,%s" } }' "$(base64 "$var" | tr -d $'\n')";
 			else 	printf ',\n{ "type": "image_url", "image_url": { "url": "%s" } }' "$var";
-			fi && { 	printf "img/url #%d -- \`%s'\\n" "$i" "$var" >&2; ((++i)) ;}
+			fi
 		done;
 		printf '%s\n' ' ] }';
 	else
@@ -1698,7 +1698,7 @@ function _mediachatf
 		var=${var##${spc}\|${spc}} var=${var%%${spc}};
 
 		# check if var is a file or url and add to array
-		if ((CMD_PASS)) || { [[ -f $var ]] &&  #max: 20MB
+		if { [[ -f $var ]] &&  #max: 20MB
 			case "$var" in
 				*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] ) :;;
 				*) false;;
@@ -1707,13 +1707,13 @@ function _mediachatf
 		|| { [[ $var != [./~]* ]] && curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$var" ;}
 		then
 			if ((CMD_CHAT))
-			then 	((${#MEDIA_CHAT_CMD[@]})) && MEDIA_CHAT_CMD=("$var" "${MEDIA_CHAT_CMD[@]}") || MEDIA_CHAT_CMD=("$var")
+			then 	((${#MEDIA_CHAT_CMD[@]})) && MEDIA_CHAT_CMD=("${MEDIA_CHAT_CMD[@]}" "$var") || MEDIA_CHAT_CMD=("$var")
 			else 	((${#MEDIA_CHAT[@]})) && MEDIA_CHAT=("$var" "${MEDIA_CHAT[@]}") || MEDIA_CHAT=("$var")
-			fi; printf "added -- \`%s'\\n" "$var" >&2;
-			set -- "${1%\|*}";
+			fi; _sysmsgf "img #${MEDIA_IND:=1} --" "${var:0:COLUMNS-15}$([[ -n ${var:COLUMNS-15} ]] && echo ...)"; #"img #10 --" 
+			((++MEDIA_IND)); set -- "${1%\|*}";
 			((TRUNC_IND = i - ${#1}));  #truncation on TRUNC_IND>0
 		else
-			printf "err: invalid -- \`%s'\\n" "$var" >&2;
+			__warmsgf 'err: invalid --' "${var:0:COLUMNS-20}$([[ -n ${var:COLUMNS-20} ]] && echo ...)";
 			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
 			set -- "${1%\|*}";
 		fi  #https://stackoverflow.com/questions/12199059/
@@ -3371,7 +3371,7 @@ else
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
 
-		#gpt-4 vision
+		#vision
 		if [[ $MOD = *vision* ]]
 		then 	((${#}<2)) || set -- "$*";
 			_mediachatf "$1";

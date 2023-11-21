@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2023
-title: CHATGPT.SH(1) v0.22.5 \| General Commands Manual
+title: CHATGPT.SH(1) v0.22.6 \| General Commands Manual
 ---
 
 ### NAME
@@ -251,17 +251,17 @@ While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “`!`”,
 or “`/`”.
 
-| Misc   | Commands                  |                                                           |
-|:-------|:--------------------------|-----------------------------------------------------------|
-| `-S.`  | `-.` \[*NAME*\]           | Load and edit custom prompt.                              |
-| `-S/`  | `-S%` \[*NAME*\]          | Load and edit awesome prompt (zh).                        |
-| `-Z`   | `!last`                   | Print last response json.                                 |
-| `!img` | `!!img` \[*FILE*\|*URL*\] | Append image / url to prompt. Run `!!img` to skip checks. |
-| `!i`   | `!info`                   | Information on model and session settings.                |
-| `!j`   | `!jump`                   | Jump to request, append start seq primer (text cmpls).    |
-| `!!j`  | `!!jump`                  | Jump to request, no response priming.                     |
-| `!sh`  | `!shell` \[*CMD*\]        | Run shell, or *command*, and edit output.                 |
-| `!!sh` | `!!shell` \[*CMD*\]       | Run interactive shell (with *command*) and exit.          |
+| Misc   | Commands                 |                                                        |
+|:-------|:-------------------------|--------------------------------------------------------|
+| `-S.`  | `-.` \[*NAME*\]          | Load and edit custom prompt.                           |
+| `-S/`  | `-S%` \[*NAME*\]         | Load and edit awesome prompt (zh).                     |
+| `-Z`   | `!last`                  | Print last response json.                              |
+| `!img` | `!url` \[*FILE*\|*URL*\] | Append image / url to prompt.                          |
+| `!i`   | `!info`                  | Information on model and session settings.             |
+| `!j`   | `!jump`                  | Jump to request, append start seq primer (text cmpls). |
+| `!!j`  | `!!jump`                 | Jump to request, no response priming.                  |
+| `!sh`  | `!shell` \[*CMD*\]       | Run shell, or *command*, and edit output.              |
+| `!!sh` | `!!shell` \[*CMD*\]      | Run interactive shell (with *command*) and exit.       |
 
 | Script | Settings and UX   |                                                           |
 |:-------|:------------------|-----------------------------------------------------------|

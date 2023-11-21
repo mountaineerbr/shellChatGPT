@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.22.5 | General Commands Manual
+% CHATGPT.SH(1) v0.22.6 | General Commands Manual
 % mountaineerbr
 % November 2023
 
@@ -250,7 +250,7 @@ may be either "`!`", or "`/`".
      `-S.`    `-.`         \[_NAME_]     Load and edit custom prompt.
      `-S/`    `-S%`        \[_NAME_]     Load and edit awesome prompt (zh).
       `-Z`    `!last`                    Print last response json.
-    `!img`    `!!img` \[_FILE_|_URL_]    Append image / url to prompt. Run `!!img` to skip checks.
+    `!img`    `!url`  \[_FILE_|_URL_]    Append image / url to prompt.
       `!i`    `!info`                    Information on model and session settings.
       `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
      `!!j`    `!!jump`                   Jump to request, no response priming.
