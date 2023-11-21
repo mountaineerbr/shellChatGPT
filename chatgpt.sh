@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.2  nov/2023  by mountaineerbr  GPL+3
+# v0.23.3  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -625,9 +625,9 @@ function promptf
 #clear impending stream (tty)
 function __clr_ttystf
 {
-	typeset REPLY;
+	typeset REPLY n;
 	while IFS= read -r -n 1 -t 0.1;
-	do 	:;
+	do 	((++n)); ((n<16384)) || break;
 	done </dev/tty;
 }
 
