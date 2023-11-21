@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.10  nov/2023  by mountaineerbr  GPL+3
+# v0.22.11  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -2739,6 +2739,7 @@ function session_mainf
 			[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 201;;
 		esac
 		[[ -f "$file" ]] && msg=change || msg=create
+		((!MAIN_LOOP&&!OPTRESUME)) && break=1  #1st invocation
 		_cmdmsgf 'Session' "$msg ${break:+ + session break}"
 
 		#break session?
