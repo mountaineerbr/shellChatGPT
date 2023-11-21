@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.8  nov/2023  by mountaineerbr  GPL+3
+# v0.22.9  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1261,8 +1261,8 @@ function cmd_runf
 			[[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
 			_cmdmsgf $'\nLog file' "<${USRLOG}>"
 			;;
-		media*|img*|image*|url*)
-			set -- "${*##@(media|img|image|url)*([$IFS])}";
+		media*|img*|url*)
+			set -- "${*##@(media|img|url)*([$IFS])}";
 			CMD_CHAT=1 _mediachatf "|${1##\|}"
 			;;
 		models*)
@@ -1843,7 +1843,7 @@ function recordf
 	case "$(__read_charf)" in [Ww]|$'\e') 	ret=2;; esac
 	rec_killf $pid $termux
 	trap 'coproc_killf' $SIG_TRAP
-	wait $pid; return $ret
+	wait $pid; return ${ret:-0}
 }
 #avfoundation for macos: <https://apple.stackexchange.com/questions/326388/>
 function rec_killf
@@ -3026,7 +3026,7 @@ command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 if ((OPTHH))  #edit history/pretty print last session
 then
 	[[ $INSTRUCTION = [.,]* ]] && OPTRESUME=1 custom_prf
-	((${#})) && OPTRESUME=1 session_mainf "/${1##/}" "${@:2}"
+	[[ $1 = /* ]] && OPTRESUME=1 session_mainf "/${1##/}" "${@:2}"
 	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
 
 	if ((OPTHH>4))
@@ -3250,7 +3250,7 @@ else
 						set_model_epnf "$MOD_AUDIO";
 						whisperf "$FILEINW" "${INPUT_ORIG[@]}";
 					)
-					else 	echo record abort >&2; unset OPTW
+					else 	echo record abort >&2; #unset OPTW;
 					fi ;printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2
 				else
 					if ((OPTCMPL)) && ((MAIN_LOOP || OPTCMPL==1)) \
