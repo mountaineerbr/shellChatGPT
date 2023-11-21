@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.23 | General Commands Manual
+CHATGPT.SH(1) v0.23.3 | General Commands Manual
 mountaineerbr
 November 2023
 
