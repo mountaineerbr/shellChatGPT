@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.22.12  nov/2023  by mountaineerbr  GPL+3
+# v0.23  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -870,7 +870,7 @@ function set_histf
 			[[ -n $time  ]] && string=$time  token=  time=
 		fi
 
-		string="${string##[\"]}" string="${string%%[\"]}"
+		((${#string}>1)) && string=${string:1:${#string}-2}  #del lead and trail ""
 		#improve bash globbing speed with substring manipulation
 		sub="${string:0:30}" sub="${sub##@("${q_type}"|"${a_type}"|":")}"
 		stringc="${sub}${string:30}"  #del lead seqs `\nQ: ' and `\nA:'
@@ -879,8 +879,8 @@ function set_histf
 		then 	((token<1 && OPTVV>1)) && __warmsgf "Warning:" "Zero/Neg token in history"
 			start_tiktokenf
 			if ((EPN==6))
-			then 	token=$(__tiktokenf "${stringc##:}")
-			else 	token=$(__tiktokenf "\\n${string##:}")
+			then 	token=$(__tiktokenf "$(trim_leadf "$stringc" :)" )
+			else 	token=$(__tiktokenf "\\n$(trim_leadf "$stringc" :)" )
 			fi; ((token+=TKN_ADJ))
 		fi # every message follows <|start|>{role/name}\n{content}<|end|>\n (gpt-3.5-turbo-0301)
 		#trail nls are rm in (text) chat modes, so actual request prompt token count may be *less*
@@ -907,7 +907,7 @@ function set_histf
 			role= rest= nl=
 			case "${string}" in
 				::*) 	role=system rest=
-					stringc=${stringc##:}  #append (txt cmpls)
+					stringc=$(trim_leadf "$stringc" :)  #append (txt cmpls)
 					;;
 				:*) 	role=system
 					((OPTC)) && rest="$S_TYPE" nl="\\n"  #system message
@@ -982,7 +982,7 @@ function prev_tohistf
 	if ((STREAM))
 	then 	answer=$(escapef "$(prompt_pf -r -j "$FILE")")
 	else 	answer=$(prompt_pf "$FILE")
-		answer="${answer##[\"]}" answer="${answer%%[\"]}"
+		((${#answer}>1)) && answer=${answer:1:${#answer}-2}  #del lead and trail ""
 	fi
 	push_tohistf "$input" '' '#1970-01-01'  #(dummy dates)
 	push_tohistf "$answer" '' '#1970-01-01'  #(as comments)
@@ -1174,12 +1174,12 @@ function set_maxtknf
 function cmd_runf
 {
 	typeset var wc args xskip n
-	[[ ${*} = *([$IFS:])[/!-]* ]] || return
-	printf "${NC}" >&2
+	[[ ${1:0:128} = *([$IFS:])[/!-]* ]] || return;
+	((${#1}<512)) || return;
+	printf "${NC}" >&2;
 
-	set -- "${1##*([$IFS:])?([/!])}" "${@:2}"
-	args=("$@") ;set -- "$*"
-	((${#1}<320)) || return $?
+	set -- "${1##*([$IFS:])?([/!])}" "${@:2}";
+	args=("$@"); set -- "$*";
 
 	case "$*" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
@@ -1315,8 +1315,8 @@ function cmd_runf
 			var=$(INSTRUCTION=$* CMD_CHAT=1; awesomef && echo "$INSTRUCTION") && REPLY=$var
 			;;
 		-S*|-:*)
-			set -- "${*##-[S:]*([$' \t'])}"
-			SKIP=1 EDIT=1 REPLY=":${*##:}"
+			set -- "${*##-[S:]*([$': \t'])}"
+			SKIP=1 EDIT=1 REPLY=":${*}"
 			;;
 		-t*|temperature*|temp*)
 			set -- "${*//[!0-9.]}"
@@ -1600,8 +1600,8 @@ function edf
 	printf "%s\\n" "$pos" > "$FILETXT"
 
 	if ((MTURN))
-	then 	cmd_runf "${pos##:}" && return 200
-	fi ;return 0
+	then 	cmd_runf "$pos" && return 200
+	fi
 }
 
 #(un)escape from/to json (bash truncates input on \000)
@@ -3028,7 +3028,7 @@ command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 if ((OPTHH))  #edit history/pretty print last session
 then
 	[[ $INSTRUCTION = [.,]* ]] && OPTRESUME=1 custom_prf
-	[[ $1 = /* ]] && OPTRESUME=1 session_mainf "/${1##/}" "${@:2}"
+	OPTRESUME=1 session_mainf "${@}"
 	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
 
 	if ((OPTHH>4))
@@ -3202,7 +3202,7 @@ else
 		REPLY_OLD=$(trim_leadf "$(fc -ln -1 | cut -c1-1000)" "*([$IFS])")
 		shell_histf "$*"
 	fi
-	cmd_runf "$*" && set --
+	cmd_runf "$@" && set --
 
 	#load stdin again?
 	((${#})) || [[ -t 0 ]] || set -- "$(<$STDIN)"
@@ -3270,14 +3270,14 @@ else
 						  OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot' ;}
 						IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$REPLY" REPLY
 					fi </dev/tty
-					((OPTCTRD+CATPR)) && { REPLY=${REPLY%%*($'\r')}; echo >&2 ;}
-				fi ;printf "${NC}" >&2
+					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])') && echo >&2
+				fi; printf "${NC}" >&2;
 				
 				if [[ $REPLY = *\\ ]]
 				then 	printf '\n%s\n' '---' >&2
 					EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
-					REPLY="${REPLY%%?(\\)\\}"$'\n'
-					set -- ;continue
+					REPLY=$(trim_trailf "$REPLY" "*(\\)")$'\n'
+					set --; continue;
 				elif [[ $REPLY = /cat*([$IFS]) ]]
 				then 	((CATPR)) || CATPR=2 ;REPLY= SKIP=1
 					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"
@@ -3288,11 +3288,12 @@ else
 					then 	REPLY="${REPLY_OLD:-$REPLY}"
 					else 	((SKIP)) || REPLY=
 					fi; set --; continue 2
-				elif [[ ${REPLY} = */*([$IFS]) ]] && ((!OPTW)) #preview / regen cmds
+				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0
+					[[ ${REPLY:ind} = */*([$IFS]) ]] && ((!OPTW)) #preview / regen cmds
 				then
 					((RETRY)) && prev_tohistf "$REPLY_OLD"  #record previous reply
 					[[ $REPLY = /* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
-					REPLY="${REPLY%/*}" REPLY_OLD="$REPLY"
+					REPLY=$(sed 's/\/.*$//' <<<"$REPLY") REPLY_OLD="$REPLY"
 					RETRY=1 BCYAN="${Color8}"
 				elif [[ -n $REPLY ]]
 				then
@@ -3325,7 +3326,7 @@ else
 				fi ;set -- "$REPLY"
 				((OPTCTRD==1)) || unset OPTCTRD
 				((CATPR==1)) || unset CATPR
-				unset WSKIP SKIP EDIT B Q i
+				unset WSKIP SKIP EDIT B Q ind
 				break
 			done
 		fi
@@ -3359,7 +3360,8 @@ else
 				((OPTV<3)) && ((EPN!=6)) &&  #user feedback
 				if [[ ${*} = $SPC::* ]]      #append (text cmpls)
 				then
-					p=$(hist_lastlinef) q=${var##::} n=$((COLUMNS-19>30 ? (COLUMNS-19)/2 : 30/2))
+					p=$(hist_lastlinef) q=$(trim_leadf "$var" ::)
+					n=$((COLUMNS-19>30 ? (COLUMNS-19)/2 : 30/2))
 					((${#p}>n)) && p=${p:${#p}-n+1} pp=".."
 					((${#q}>n)) && q=${q:0:n}       qq=".."
 					_sysmsgf $'\n'"Text appended:" "$(printf "${NC}${CYAN}%s${BCYAN}%s${NC}" "${pp}${p}" "${q}${qq}")"
@@ -3403,7 +3405,7 @@ else
 			fi
 			((JUMP)) && set -- && unset rest
 			ESC="${HIST}${rest}$(escapef "${*}")"
-			ESC="$(escapef "${INSTRUCTION}")${INSTRUCTION:+\\n\\n}${ESC##\\n}"
+			ESC="$(escapef "${INSTRUCTION}")${INSTRUCTION:+\\n\\n}$(trim_leadf "$ESC" "\\n")"
 			
 			if ((EPN==6))
 			then 	#chat cmpls
@@ -3453,7 +3455,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 
 		#record to hist file
 		if 	if ((STREAM))  #no token information in response
-			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans%%x}  #unescaped
+			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}  #del x; unescaped str;
 				ans=$(escapef "$ans")
 				tkn_ans=$( ((EPN==6)) && unset A_TYPE;
 					__tiktokenf "${A_TYPE}${ans}");
@@ -3464,7 +3466,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 				unset ans buff n
 				for ((n=0;n<OPTN;n++))  #multiple responses
 				do 	buff=$(INDEX=$n prompt_pf "$FILE")
-					buff="${buff##[\"]}" buff="${buff%%[\"]}"
+					((${#buff}>1)) && buff=${buff:1:${#buff}-2}  #del lead and trail ""
 					ans="${ans}"${ans:+${buff:+\\n---\\n}}"${buff}"
 				done
 			fi
