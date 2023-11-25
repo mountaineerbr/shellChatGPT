@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.3  nov/2023  by mountaineerbr  GPL+3
+# v0.23.4  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1814,11 +1814,11 @@ function start_compf {     START=$(escapef "$(unescapef "${*:-$START}")")   STAR
 function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
-	then 	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}" ' * Press Enter to Start record * ' >&2
+	then 	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}" ' * Press ENTER to START record * ' >&2
 		case "$(__read_charf)" in [Ww]|$'\e') 	return 202;; [AaNnQq]) 	return 201;; esac
 		__clr_lineupf 33  #!#
 	fi
-	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}\\a\\n\\n" ' * Press ENTER to  STOP record * ' >&2
+	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}\\a\\n" ' * Press ENTER to  STOP record * ' >&2
 }
 
 #record mic
@@ -1828,6 +1828,7 @@ function recordf
 	typeset termux pid ret REPLY
 
 	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
+	printf "\\n${BWHITE}${ON_PURPLE}%s${NC}" ' *   [r]edo, [w]hisper exit    * ' >&2
 
 	if [[ -n ${REC_CMD%% *} ]] && command -v ${REC_CMD%% *} >/dev/null 2>&1
 	then 	$REC_CMD "$1" &  #this ensures max user compat
@@ -1850,10 +1851,19 @@ function recordf
 	
 	trap "rec_killf $pid $termux;
 		trap 'coproc_killf' $SIG_TRAP" $SIG_TRAP
-	case "$(__read_charf)" in [Ww]|$'\e') 	ret=196;; esac  #abort+disable whisper
+	case "$(__read_charf)" in
+		[Ww]|$'\e')  #abort+disable whisper
+			ret=196
+			;;
+		[Rr]) 	rec_killf $pid $termux  #redo
+			trap 'coproc_killf' $SIG_TRAP
+			recordf "$@"
+			return
+			;;
+	esac
 	rec_killf $pid $termux
 	trap 'coproc_killf' $SIG_TRAP
-	wait $pid; return ${ret:-0}
+	return ${ret:-0}
 }
 #avfoundation for macos: <https://apple.stackexchange.com/questions/326388/>
 function rec_killf
