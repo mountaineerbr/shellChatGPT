@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.4  nov/2023  by mountaineerbr  GPL+3
+# v0.23.5  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1818,7 +1818,7 @@ function record_confirmf
 		case "$(__read_charf)" in [Ww]|$'\e') 	return 202;; [AaNnQq]) 	return 201;; esac
 		__clr_lineupf 33  #!#
 	fi
-	printf "\\r${BWHITE}${ON_PURPLE}%s${NC}\\a\\n" ' * Press ENTER to  STOP record * ' >&2
+	printf "\\r${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
 }
 
 #record mic
@@ -1828,7 +1828,7 @@ function recordf
 	typeset termux pid ret REPLY
 
 	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
-	printf "\\n${BWHITE}${ON_PURPLE}%s${NC}" ' *   [r]edo, [w]hisper exit    * ' >&2
+	printf "\\n${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' *   [r]edo, [w]hisper exit    * ' >&2
 
 	if [[ -n ${REC_CMD%% *} ]] && command -v ${REC_CMD%% *} >/dev/null 2>&1
 	then 	$REC_CMD "$1" &  #this ensures max user compat
