@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.8  nov/2023  by mountaineerbr  GPL+3
+# v0.23.9  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -834,7 +834,7 @@ function list_modelsf
 	then  	jq . "$FILE" || cat -- "$FILE"
 	else 	jq -r '.data[].id' "$FILE" | sort
 	fi && printf '%s\n' moderation ||  #text-moderation-latest text-moderation-stable
-	__warmsgf 'err:' 'model list'
+	! __warmsgf 'err:' 'model list'
 }
 
 function pick_modelf
@@ -1966,9 +1966,8 @@ function whisperf
 		printf 'Retry request? Y/n ' >&2;
 		case "$(__read_charf)" in
 			[AaNnQq]) false;;  #no
-			*) 	if ((rec))
-				then 	whisperf "${args[@]}" "$FILEINW";
-				else 	whisperf "${args[@]}"; fi;;
+			*) 	((rec)) && args+=("$FILEINW")
+				whisperf "${args[@]}";;
 		esac
 	}
 }
