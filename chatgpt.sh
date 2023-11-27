@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.7  nov/2023  by mountaineerbr  GPL+3
+# v0.23.8  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -810,7 +810,7 @@ function prompt_audiof
 {
 	((OPTVV)) && echo "Whisper model: ${MOD_AUDIO:-unset},  Temp: ${OPTT:-unset}${*:+,  }${*}" >&2
 
-	curl -\# ${OPTV:+-s} -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-s} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: multipart/form-data' \
@@ -826,14 +826,15 @@ function prompt_audiof
 
 function list_modelsf
 {
-	curl -L "$API_HOST/models${1:+/}${1}" \
+	curl -f -L "$API_HOST/models${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
-		-o "$FILE"
+		-o "$FILE" &&
 
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || cat -- "$FILE"
 	else 	jq -r '.data[].id' "$FILE" | sort
-	fi && printf '%s\n' moderation  #text-moderation-latest text-moderation-stable
+	fi && printf '%s\n' moderation ||  #text-moderation-latest text-moderation-stable
+	__warmsgf 'err:' 'model list'
 }
 
 function pick_modelf
@@ -1890,11 +1891,12 @@ function __set_langf
 #whisper
 function whisperf
 {
-	typeset file
+	typeset file args rec
 	if ((!MTURN))
 	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "$OPTT";
-	fi
+	fi;
 	check_optrangef "$OPTT" 0 1.0 Temperature
+	[[ $1 = *([$IFS]) ]] && shift; args=("$@");
 
 	#set language ISO-639-1 (two letters)
 	if __set_langf "$1"
@@ -1909,7 +1911,7 @@ function whisperf
 			[AaNnQq]|$'\e') 	:;;
 			*) 	OPTV=4 record_confirmf || return
 				WSKIP=1 recordf "$FILEINW"
-				set -- "$FILEINW" "$@";;
+				set -- "$FILEINW" "$@"; rec=1;;
 		esac
 	fi
 	
@@ -1930,7 +1932,7 @@ function whisperf
 		OPTW_FMT=verbose_json   #json, text, srt, verbose_json, or vtt.
 		[[ -n $OPTW_FMT ]] && set -- -F response_format="$OPTW_FMT" "$@"
 
-		prompt_audiof "$file" $LANGW "$@"
+		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "${JQCOLNULL} ${JQCOL}
 			def pad(x): tostring | (length | if . >= x then \"\" else \"0\" * (x - .) end) as \$padding | \"\(\$padding)\(.)\";
 			def seconds_to_time_string:
@@ -1947,14 +1949,28 @@ function whisperf
 			\"\\t\" + \"Dur: \(.duration|seconds_to_time_string)\" +
 			\"\\n\", (.segments[]| \"[\" + yellow + \"\(.start|seconds_to_time_string)\" + reset + \"]\" +
 			bpurple + .text + reset)" "$FILE" \
-			|| jq -r '.text' "$FILE" || cat -- "$FILE"
+			|| jq -r '.text' "$FILE" || cat -- "$FILE" ;}
 			#https://rosettacode.org/wiki/Convert_seconds_to_compound_duration#jq
 			#https://stackoverflow.com/questions/64957982/how-to-pad-numbers-with-jq
 	else
-		prompt_audiof "$file" $LANGW "$@"
+		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "${JQCOLNULL} ${JQCOL}
-		bpurple + .text + reset" "$FILE" || cat -- "$FILE"
-	fi
+		bpurple + .text + reset" "$FILE" || cat -- "$FILE" ;}
+	fi &&
+	if ((OPTCLIP&&!MTURN)) || [[ ! -t 1 ]]
+	then 	typeset out ;out=$(jq -r ".text" "$FILE" || cat -- "$FILE")
+		((OPTCLIP&&!MTURN)) && (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
+		[[ -t 1 ]] || printf '%s\n' "$out" >&2  #pipe + stderr
+	fi || {
+		__warmsgf 'err:' 'whisper response'
+		printf 'Retry request? Y/n ' >&2;
+		case "$(__read_charf)" in
+			[AaNnQq]) false;;  #no
+			*) 	if ((rec))
+				then 	whisperf "${args[@]}" "$FILEINW";
+				else 	whisperf "${args[@]}"; fi;;
+		esac
+	}
 }
 
 #request tts prompt
