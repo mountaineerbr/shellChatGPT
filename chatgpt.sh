@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.9  nov/2023  by mountaineerbr  GPL+3
+# v0.23.10  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -545,7 +545,7 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	curl "$@" "$API_HOST${ENDPOINTS[EPN]}" \
+	curl "$@" -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -559,7 +559,7 @@ function _promptf
 	json_minif
 	
 	if ((STREAM))
-	then 	set -- -s "$@" -S -L --no-buffer; : >"$FILE"  #clear buffer asap
+	then 	set -- -s "$@" -S --no-buffer; : >"$FILE"  #clear buffer asap
 		__promptf "$@" | while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
 			chunk=${chunk##*([$' \t'])[Dd][Aa][Tt][Aa]:*([$' \t'])}
@@ -577,7 +577,7 @@ function _promptf
 		done
 	else
 		((OPTV>1)) && set -- -s "$@"
-		set -- -\# "$@" -L -o "$FILE"
+		set -- -\# "$@" -o "$FILE"
 		__promptf "$@"
 	fi
 }
@@ -1977,7 +1977,7 @@ function prompt_ttsf
 {
 	((OPTVV)) && echo "TTS model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}" >&2
 
-	curl -\# ${OPTV:+-s} -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-s} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -2075,7 +2075,7 @@ function imggenf
 #image variations
 function prompt_imgvarf
 {
-	curl -\# ${OPTV:+-s} -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-s} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
 		-F response_format="$OPTI_FMT" \
@@ -2299,10 +2299,10 @@ function awesomef
 	if [[ ! -s $FILEAWE ]] || [[ $1 = [/%]* ]]  #second slash
 	then 	set -- "${1##[/%]}"
 		if 	if ((zh))
-			then 	! { curl -\#L "$AWEURLZH" \
+			then 	! { curl -\#Lf "$AWEURLZH" \
 				| jq '"act,prompt",(.[]|join(","))' \
 				| sed 's/,/","/' >"$FILEAWE" ;}  #json to csv
-			else 	! curl -\#L "$AWEURL" -o "$FILEAWE"
+			else 	! curl -\#Lf "$AWEURL" -o "$FILEAWE"
 			fi
 		then 	[[ -f $FILEAWE ]] && rm -- "$FILEAWE"
 			return 1
