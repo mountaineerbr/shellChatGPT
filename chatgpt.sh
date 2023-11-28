@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.11  nov/2023  by mountaineerbr  GPL+3
+# v0.23.12  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -2008,7 +2008,8 @@ function ttsf
 	if [[ $FOUT != "-" ]]
 	then 	n=0 m=0  #set a filename for output
 		for fname in "${FILEOUT_TTS%.*}"*
-		do 	fname="${fname%.*}" fname="${fname##*[!0-9]}"
+		do 	fname=${fname##*/} fname=${fname%.*}
+			fname=${fname%-*([0-9])} fname=${fname##*[!0-9]}
 			((m>fname)) || ((m=fname+1)) 
 		done
 		FOUT="${FILEOUT_TTS%.*}${m}.${OPTZ_FMT}"
