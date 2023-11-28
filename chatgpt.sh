@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.10  nov/2023  by mountaineerbr  GPL+3
+# v0.23.11  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1984,8 +1984,7 @@ function prompt_ttsf
 		-d "{
 	\"model\": \"${MOD_SPEECH}\",
 	\"input\": \"${*}\",
-	\"voice\": \"${VOICEZ}\",
-	${SPEEDZ:+\"speed\": ${SPEEDZ},}
+	\"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
 	\"response_format\": \"${OPTZ_FMT}\"
 }" 		-o "$FOUT"  && {
 	  [[ \ ${OPTV:+-s}\  = *\ -s\ * ]] || __clr_lineupf; ((MTURN)) || echo >&2
@@ -1995,7 +1994,7 @@ function prompt_ttsf
 #speech synthesis (tts)
 function ttsf
 {
-	typeset FOUT VOICEZ SPEEDZ fname ret var n m
+	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -2015,19 +2014,35 @@ function ttsf
 		FOUT="${FILEOUT_TTS%.*}${m}.${OPTZ_FMT}"
 	fi
 
+	xinput=$*; [[ ${MOD_SPEECH} = tts-1* ]] && max=4096 || max=40960;
 	if ((!(MTURN+OPTC+OPTCMPL) ))
 	then 	__sysmsgf 'Speech Model:' "$MOD_SPEECH";
 		__sysmsgf 'Voice:' "$VOICEZ";
 		__sysmsgf 'Speed:' "${SPEEDZ:-1}";
-		__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}"; var="$*"; 
-		__sysmsgf 'Text Prompt:' "${var:0:COLUMNS-17}$([[ -n ${var:COLUMNS-17} ]] && echo ...)";
 	fi; ((${#SPEEDZ})) && check_optrangef "$SPEEDZ" 0.25 4 'TTS speed'
 	[[ $* != *([$IFS]) ]] || ! echo '(empty)' >&2 || return 2
 
-	prompt_ttsf "$@"; ret=$?;
-	((ret)) || du -h "$FOUT" >&2 2>/dev/null || echo '[done]' >&2
-	((OPTZ<2)) || ((ret)) || ${PLAY_CMD} "$FOUT";
-	return $(($?+ret))
+	if ((${#xinput}>max))
+	then 	__warmsgf 'warning:' "user input ${#xinput} chars / max ${max} chars"  #max ~5 minutes
+		i=1 FOUT=${FOUT%.*}-${i}.${OPTZ_FMT};
+	fi  #https://help.openai.com/en/articles/8555505-tts-api
+	
+	while input=${xinput:0:max};
+	do
+		if ((!(MTURN+OPTC+OPTCMPL) ))
+		then 	__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}";
+			__sysmsgf 'Text Prompt:' "${xinput:0:COLUMNS-17}$([[ -n ${xinput:COLUMNS-17} ]] && echo ...)";
+		fi
+
+		prompt_ttsf "${input:-$*}"; ((ret+=$?));
+		du -h "$FOUT" >&2 2>/dev/null || echo '[done]' >&2;
+		((OPTZ<2)) || ${PLAY_CMD} "$FOUT";
+		
+		((++i)); FOUT=${FOUT%-*}-${i}.${OPTZ_FMT};
+		xinput=${xinput:max};
+		((${#xinput})) || break; ((!ret)) || break;
+	done;
+	return $ret
 }
 function __set_ttsf { 	__set_voicef "$1" || __set_outfmtf "$1" || __set_speedf "$1" ;}
 function __set_voicef
@@ -3580,5 +3595,6 @@ fi
 # - Debug command performance by line in Bash:
 #   set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: '
 # - <https://help.openai.com/en/articles/6654000>
+# - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
 # vim=syntax sync minlines=3600
