@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.12  nov/2023  by mountaineerbr  GPL+3
+# v0.23.13  nov/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1456,7 +1456,7 @@ function cmd_runf
 					((OPTCTRD==2)) && __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot';;
 				*) 	((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
 					__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD)
-					((OPTCTRD)) && __warmsgf 'Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * ';;
+					((OPTCTRD)) && __warmsgf '' '* <Ctrl-V> + <Ctrl-J> for newline * ';;
 			esac
 			;;
 		-U|-UU*(U))
@@ -1471,7 +1471,7 @@ function cmd_runf
 			set -- "${*##[/!-]}"
 			if [[ $* = cat*[!$IFS]* ]]
 			then 	cmd_runf /sh "${@}"
-			else 	printf '%s\n' ' * Press <Ctrl-D> to flush * ' >&2
+			else 	__warmsgf '' '* Press <Ctrl-D> to flush * '
 				STDERR=/dev/null  cmd_runf /sh cat
 			fi; xskip=1
 			;;
@@ -3093,7 +3093,7 @@ then
 		((OPTHH>5)) && cmd=(perl -n -e 'print unless /^\s*#/') var='Deep ';
 		
 		"${cmd[@]}" -- "$FILECHAT" | perl -0777 -p -e "s/BREAK\s*\n\N*\n\s*SESSION\s*//g" &&
-			_sysmsgf 'Tip:' 'diff output and replace the history file manually.' &&
+			_sysmsgf '' '* diff output and replace the history file manually * ' &&
 			__cmdmsgf "Hist ${var}Clean" "$FILECHAT"
 	elif ((OPTHH>1))
 	then
@@ -3248,8 +3248,8 @@ else
 	fi
 
 	#warnings and tips
-	((OPTCTRD)) && __warmsgf $'\n''Tip:' '* <Ctrl-V> + <Ctrl-J> for newline * '
-	((OPTCTRD+CATPR)) && __warmsgf $'\n''Tip:' '* <Ctrl-D> to flush input * '
+	((OPTCTRD)) && __warmsgf $'\n' '* <Ctrl-V> + <Ctrl-J> for newline * '
+	((OPTCTRD+CATPR)) && __warmsgf $'\n' '* <Ctrl-D> to flush input * '
 	echo >&2  #!#
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
@@ -3540,7 +3540,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 					then    ESC_OLD=$ESC
 					  ((HERR+=HERR_DEF*2)) ;BAD_RES=1 PSKIP=1; set --
 					  __warmsgf "Adjusting context:" -$((HERR_DEF+HERR))%
-					 ((HERR<HERR_DEF*4)) && _sysmsgf 'Tip:' "Set \`option -y' to use Tiktoken!"
+					 ((HERR<HERR_DEF*4)) && _sysmsgf '' "* Set \`option -y' to use Tiktoken! * "
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
 				fi  #auto-adjust context err
