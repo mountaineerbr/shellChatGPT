@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.13  nov/2023  by mountaineerbr  GPL+3
+# v0.23.14  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1507,7 +1507,7 @@ function cmd_runf
 			session_mainf /"${args[@]}"
 			;;
 		r|regenerate|regen|[$IFS]|[/!]|'')  #regenerate last response
-			REGEN=1 SKIP=1 PSKIP=1 EDIT=1 REPLY=
+			REGEN=1 SKIP=1 PSKIP=1 EDIT=1 REPLY= MEDIA_IND=1;
 			if ((!BAD_RES)) && [[ -f "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
 			then 	# comment out two lines from tail
@@ -3350,7 +3350,7 @@ else
 					((RETRY)) && prev_tohistf "$REPLY_OLD"  #record previous reply
 					[[ $REPLY = /* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					REPLY=$(sed 's/\/.*$//' <<<"$REPLY") REPLY_OLD="$REPLY"
-					RETRY=1 BCYAN="${Color8}"
+					RETRY=1 BCYAN="${Color8}" MEDIA_IND=1;
 				elif [[ -n $REPLY ]]
 				then
 					[[ $REPLY = $SPC:* ]] || ((RETRY+OPTV)) \
