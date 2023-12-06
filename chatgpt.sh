@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.14  dec/2023  by mountaineerbr  GPL+3
+# v0.23.15  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -810,7 +810,7 @@ function prompt_audiof
 {
 	((OPTVV)) && echo "Whisper model: ${MOD_AUDIO:-unset},  Temp: ${OPTT:-unset}${*:+,  }${*}" >&2
 
-	curl -\# ${OPTV:+-s} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: multipart/form-data' \
@@ -819,8 +819,8 @@ function prompt_audiof
 		-F temperature="$OPTT" \
 		-o "$FILE" \
 		"${@:2}" && {
-	  [[ \ ${OPTV:+-s}\  = *\ -s\ * ]] || __clr_lineupf; ((MTURN)) || echo >&2
-	  if [[ -d $CACHEDIR ]]; then 	printf '%s\n\n' "$(<"$FILE")" >> "$FILEWHISPER"; fi
+	  [[ -d $CACHEDIR ]] && printf '%s\n\n' "$(<"$FILE")" >> "$FILEWHISPER";
+	  ((OPTV)) || __clr_lineupf; ((MTURN)) || echo >&2;
 	}
 }
 
@@ -1976,25 +1976,26 @@ function whisperf
 function prompt_ttsf
 {
 	((OPTVV)) && echo "TTS model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}" >&2
+	
+	#disable curl progress-bar because of `chunk transfer encoding'
+	printf "${BYELLOW}%s${YELLOW}\n" "X (tts curl)" >&2;  #!#
 
-	curl -\# ${OPTV:+-s} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -Ss -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
 		-d "{
-	\"model\": \"${MOD_SPEECH}\",
-	\"input\": \"${*}\",
-	\"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
-	\"response_format\": \"${OPTZ_FMT}\"
-}" 		-o "$FOUT"  && {
-	  [[ \ ${OPTV:+-s}\  = *\ -s\ * ]] || __clr_lineupf; ((MTURN)) || echo >&2
-	}
+\"model\": \"${MOD_SPEECH}\",
+\"input\": \"${*}\",
+\"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
+\"response_format\": \"${OPTZ_FMT}\"
+}" 		-o "$FOUT" && __clr_lineupf 12  #!#
 }
 
 #speech synthesis (tts)
 function ttsf
 {
-	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret n m i
+	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid sig n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -2034,14 +2035,31 @@ function ttsf
 		then 	__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}";
 			__sysmsgf 'Text Prompt:' "${xinput:0:COLUMNS-17}$([[ -n ${xinput:COLUMNS-17} ]] && echo ...)";
 		fi
-
-		prompt_ttsf "${input:-$*}"; ((ret+=$?));
-		du -h "$FOUT" >&2 2>/dev/null || echo '[done]' >&2;
-		((OPTZ<2)) || ${PLAY_CMD} "$FOUT";
 		
+		prompt_ttsf "${input:-$*}" &
+		pid=$! sig="INT";  #catch <CTRL-C>
+		trap "kill -- $pid" $sig;
+		wait $pid; ret=$?; trap '-' $sig;
+		printf "${NC}" >&2;
+
+		((ret)) && {
+			__warmsgf $'\rerr:' 'tts response'
+			printf 'Retry request? Y/n ' >&2;
+			case "$(__read_charf)" in
+				[AaNnQq]) false;;  #no
+				*) 	continue;;
+			esac
+		}
+
+		du -h "$FOUT" >&2 2>/dev/null || echo '[done]' >&2;
+		((OPTZ<2)) || {
+			${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
+			trap "kill -- $pid" $sig;
+			wait $pid; trap '-' $sig;
+		}
 		((++i)); FOUT=${FOUT%-*}-${i}.${OPTZ_FMT};
 		xinput=${xinput:max};
-		((${#xinput})) || break; ((!ret)) || break;
+		((${#xinput})) && ((!ret)) || break;
 	done;
 	return $ret
 }
@@ -2091,7 +2109,7 @@ function imggenf
 #image variations
 function prompt_imgvarf
 {
-	curl -\# ${OPTV:+-s} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
 		-F response_format="$OPTI_FMT" \
@@ -3580,14 +3598,16 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			((STREAM)) && ((SLEEP_WORDS=(SLEEP_WORDS*2)/3));
 			((++SLEEP_WORDS));
 		elif ((OPTZ))
-		then 	( OPTZ=2 MOD=$MOD_SPEECH;
+		then 	sig=INT; trap '' $sig;
+			( OPTZ=2 MOD=$MOD_SPEECH;
 			set_model_epnf "$MOD_SPEECH";
 			ttsf $OPTZ_CHAT_ARG "${ans##"${A_TYPE##$SPC1}"}"; )
+			trap '-' $sig;
 		fi
 
 		((++MAIN_LOOP)) ;set --
 		unset INSTRUCTION OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC RET_PRF Q
-		unset role rest tkn tkn_ans ans buff glob out var s n
+		unset role rest tkn tkn_ans ans buff glob out var sig pid s n
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
@@ -3598,4 +3618,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3600
+# xvim=syntax sync minlines=3700
