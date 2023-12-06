@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.15  dec/2023  by mountaineerbr  GPL+3
+# v0.23.16  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1978,7 +1978,7 @@ function prompt_ttsf
 	((OPTVV)) && echo "TTS model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}" >&2
 	
 	#disable curl progress-bar because of `chunk transfer encoding'
-	printf "${BYELLOW}%s${YELLOW}\n" "X (tts curl)" >&2;  #!#
+	printf "${BYELLOW}%s${NC}\r" "X (tts curl)" >&2;  #!# 12chars
 
 	curl -Ss -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
@@ -1989,7 +1989,7 @@ function prompt_ttsf
 \"input\": \"${*}\",
 \"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
 \"response_format\": \"${OPTZ_FMT}\"
-}" 		-o "$FOUT" && __clr_lineupf 12  #!#
+}" 		-o "$FOUT" && printf '%s\r' "            " >&2;  #!# 12 chars
 }
 
 #speech synthesis (tts)
@@ -2040,7 +2040,6 @@ function ttsf
 		pid=$! sig="INT";  #catch <CTRL-C>
 		trap "kill -- $pid" $sig;
 		wait $pid; ret=$?; trap '-' $sig;
-		printf "${NC}" >&2;
 
 		((ret)) && {
 			__warmsgf $'\rerr:' 'tts response'
