@@ -193,12 +193,14 @@ string `[insert]` where the model should insert text:
 An instruction prompt in this mode may interferre with insert completions.
 
 **NOTE:** [Insert mode](https://openai.com/blog/gpt-3-edit-insert)
-works with models `davinci`, `text-davinci-002`, `text-davinci-003`,
-and the newer `gpt-3.5-turbo-instruct`.
+works with model `gpt-3.5-turbo-instruct`.
+
+<!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
 
 
-### Text Edits  _(deprecated)_
+### Text Edits  _(discontinued)_
 
+<!--
 Choose an `edit` model or set `option -e` to use this endpoint.
 Two prompts are accepted, an instruction prompt and
 an input prompt (optional):
@@ -208,7 +210,12 @@ an input prompt (optional):
     chatgpt.sh -e "Shell code to move files to trash bin." ""
 
 Edits works great with INSTRUCTION and an empty prompt (e.g. to create
-some code based on instruction only).
+some code based on instruction only). -->
+
+Use _gpt-4+ models_ and the right instructions.
+
+The last working shell script version that works with this endpoint
+is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978e6f7630a3a6ebffc1efbe5a49b60bead4c).
 
 
 ## ⚙️ Prompts
@@ -402,9 +409,9 @@ Transcribe audio and print timestamps `option -ww`:
 ![Transcribe audio with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
 
 
-### Code Completions (Codex)
+### Code Completions (Codex, _discontinued_)
 
-Codex models are discontinued. Use davinci models or gpt-3.5+.
+Codex models are discontinued. Use models davinci, or gpt-3.5+.
 
 Start with a commented out code or instruction for the model,
 or ask it in comments to optimise the following code, for example.

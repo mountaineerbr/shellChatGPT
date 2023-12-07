@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.23.3 | General Commands Manual
+% CHATGPT.SH(1) v0.24 | General Commands Manual
 % mountaineerbr
-% November 2023
+% December 2023
 
 
 ### NAME
@@ -11,7 +11,6 @@
 ### SYNOPSIS
 
 |    **chatgpt.sh** \[`-cc`|`-d`|`-qq`] \[`opt`] \[_PROMPT_|_TEXT_FILE_]
-|    **chatgpt.sh** `-e` \[`opt`] \[_INSTRUCTION_] \[_INPUT_|_TEXT_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #_dall-e-3_
 |    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PROMPT_]
 |    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PNG_FILE_]
@@ -49,15 +48,12 @@ Set `option -q` for **insert mode**. The flag "_[insert]_" must be present
 in the middle of the input prompt. Insert mode works completing
 between the end of the text preceding the flag, and ends completion
 with the succeeding text after the flag.
-Insert mode works with models `davinci`, `text-davinci-002`, `text-davinci-003`,
-and the newer `gpt-3.5-turbo-instruct`.
+Insert mode works with model `gpt-3.5-turbo-instruct`.
+
+<!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
 
 Positional arguments are read as a single **PROMPT**. Model **INSTRUCTION**
 is usually optional and can be set with `option -S`.
-
-When **INSTRUCTION** is mandatory for a chosen model (such as edits models),
-the first positional argument is read as INSTRUCTION, if none set,
-and the following ones as **INPUT** or **PROMPT**.
 
 In multi-turn, when user prompt begins with a colon "_:_", the subsequent
 text is set as a system message (text and chat cmpls). For text cmpls only,
@@ -90,17 +86,11 @@ _Model capacity_ (maximum model tokens) can be set more intuitively with
 for known models, or to _2048_ tokens as fallback.
 
 If a plain text file path is set as the first positional argument
-of the script, the file is loaded as text PROMPT (text cmpls, chat cmpls,
-and text/code edits).
+of the script, the file is loaded as text PROMPT (text cmpls, and chat cmpls).
 
-`Option -S` sets an INSTRUCTION prompt (the initial prompt) for
-text cmpls, chat cmpls, and text/code edits. A text file path
-may be supplied as the single argument.
+`Option -S` sets an INSTRUCTION prompt (the initial prompt) for text cmpls,
+and chat cmpls. A text file path may be supplied as the single argument.
 Also see *CUSTOM / AWESOME PROMPTS* section below.
-
-`Option -e` sets the **text edits** endpoint. That endpoint requires
-both INSTRUCTION and INPUT prompts. User may choose a model amongst
-the _edit model family_. This endpoint is going \*deprecated\*.
 
 `Option -i` **generates images** according to text PROMPT. If the first
 positional argument is an _IMAGE_ file, then **generate variations** of
@@ -400,21 +390,22 @@ See detailed info on settings for each endpoint at:
  - <https://platform.openai.com/docs/>
 
 
-### CODE COMPLETIONS
+### CODE COMPLETIONS _(discontinued)_
 
 Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
 
-Turn comments into code, complete the next line or function in
+<!-- Turn comments into code, complete the next line or function in
 context, add code comments, and rewrite code for efficiency,
-amongst other functions.
+amongst other functions. -->
 
 Start with a comment with instructions, data or code. To create
 useful completions it's helpful to think about what information
 a programmer would need to perform a task. 
 
 
-### TEXT EDITS  _(deprecated)_
+### TEXT EDITS  _(discontinued)_
 
+<!--
 This endpoint is set with models with **edit** in their name or
 `option -e`. Editing works by setting INSTRUCTION on how to modify
 a prompt and the prompt proper.
@@ -424,7 +415,9 @@ of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
 to the completions endpoint. 
 
-Alternatively, use _gpt-4+ models_.
+Alternatively, -->
+
+Use _gpt-4+ models_ and the right instructions.
 
 
 ### ESCAPING NEW LINES AND TABS
@@ -759,7 +752,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-t** \[_VAL_], **\--temperature**=\[_VAL_]
 
-: Set temperature value (cmpls/chat/edits/audio), (0.0 - 2.0, whisper 0.0 - 1.0). Def=_0_.
+: Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 - 1.0). Def=_0_.
 
 
 #### Script Modes
@@ -783,9 +776,12 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Start new multi-turn session in plain text completions.
 
 
-**-e** \[_INSTRUCTION_] \[_INPUT_], **\--edit**
+<!-- 
+**-e**, **--edit**
 
-: Set Edit mode. Model def=_text-davinci-edit-001_.
+: _Text edits models are discontinued._ -->
+
+<!-- Set Edit mode. Model def=_text-davinci-edit-001_. -->
 
 
 **-E**, **--exit**
@@ -824,7 +820,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
       for multi-turn.
 
       Use "_\[insert]_" to indicate where the language model
-      should insert text (only with some models of text cmpls).
+      should insert text (`gpt-3.5-turbo-instruct`).
 
 
 **-S** **.**\[_PROMPT_NAME_]\[**.**], **-.**\[_PROMPT_NAME_]\[**.**]

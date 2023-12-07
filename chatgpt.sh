@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.23.16  dec/2023  by mountaineerbr  GPL+3
+# v0.24  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -8,11 +8,9 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # DEFAULTS
 # Text cmpls model
-MOD="text-davinci-003"  #"gpt-3.5-turbo-instruct"
+MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
 MOD_CHAT="gpt-3.5-turbo-0301"  #"gpt-4-0314"
-# Edits model
-MOD_EDIT="text-davinci-edit-001"
 # Image model (generations)
 MOD_IMAGE="dall-e-3"
 # Whisper model (STT)
@@ -132,7 +130,6 @@ HELP="Name
 
 Synopsis
 	${0##*/} [-cc|-d|-qq] [opt] [PROMPT|TEXT_FILE]
-	${0##*/} -e [opt] [INSTRUCTION] [INPUT|TEXT_FILE]
 	${0##*/} -i [opt] [X|L|P][hd] [PROMPT]  #dall-e-3
 	${0##*/} -i [opt] [S|M|L] [PROMPT]
 	${0##*/} -i [opt] [S|M|L] [PNG_FILE]
@@ -163,10 +160,6 @@ Description
 	
 	Positional arguments are read as a single PROMPT. Optionally set
 	INTRUCTION with option -S.
-
-	When INSTRUCTION is mandatory (such as for edits models), the
-	first positional argument is taken as INSTRUCTION, if none set,
-	and the following ones as INPUT or PROMPT.
 
 	In multi-turn, when user prompt begins with a colon \`:', the
 	subsequent text is set as a system message (text and chat cmpls).
@@ -373,7 +366,7 @@ Options
 	-S [INSTRUCTION|FILE], --instruction
 		Set an instruction prompt. It may be a text file.
 	-t [VAL], --temperature=[VAL]
-		Set temperature value (cmpls/chat/edits/audio),
+		Set temperature value (cmpls/chat/whisper),
 		(0.0 - 2.0, whisper 0.0 - 1.0). Def=${OPTT:-0}.
 
 	Script Modes
@@ -384,8 +377,6 @@ Options
 		Continue from (resume) last session (cmpls/chat).
 	-d, --text
 		Start new multi-turn session in plain text completions.
-	-e [INSTRUCTION] [INPUT], --edit
-		Set Edit mode. Model def=${MOD_EDIT}.
 	-E, --exit
 		Exit on first run (even with -cc).
 	-g, --stream
@@ -418,11 +409,11 @@ Options
 		Set twice to print tokens, thrice to available encodings.
 		Set model or encoding with option -m.
 	-w [AUD] [LANG] [PROMPT], --transcribe
-		Transcribe audio file into text. LANG is optional.
-		A prompt that matches the audio language is optional.
-		Set twice to get phrase-level timestamps. 
+		Transcribe audio file into text (whisper models).
+		LANG is optional. A prompt that matches the audio language
+		is optional. Set twice to get phrase-level timestamps. 
 	-W [AUD] [PROMPT-EN], --translate
-		Translate audio file into English text.
+		Translate audio file into English text (whisper models).
 		Set twice to get phrase-level timestamps. 
 	
 	Script Settings
@@ -489,18 +480,16 @@ ENDPOINTS=(
 #set model endpoint based on its name
 function set_model_epnf
 {
-	unset OPTE OPTEMBED TKN_ADJ EPN6
+	unset OPTEMBED TKN_ADJ EPN6
 	case "$1" in
 		tts-*|*-tts-*) 	EPN=10;;
 		*whisper*) 		((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	case "$1" in
 					*search*) 	EPN=5 OPTEMBED=1;;
-					*edit*) 	EPN=2 OPTE=1;;
 					*) 		EPN=0;;
 				esac;;
 		text-*|*turbo-instruct*|*moderation*) 	case "$1" in
 					*embedding*|*similarity*|*search*) 	EPN=5 OPTEMBED=1;;
-					*edit*) 	EPN=2 OPTE=1;;
 					*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
@@ -515,7 +504,6 @@ function set_model_epnf
 				;;
 		*) 		#fallback
 				case "$1" in
-					*-edit*) 	EPN=2 OPTE=1;;
 					*-embedding*|*-similarity*|*-search*) 	EPN=5 OPTEMBED=1;;
 					*) 	EPN=0;;  #defaults
 				esac;;
@@ -1766,12 +1754,11 @@ function set_optsf
 	typeset s n
 	((OPTI+OPTEMBED)) || {
 	  ((OPTW)) || {
-	    ((OPTE)) || {
-	      check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
-	      check_optrangef "$OPTAA"  -2.0 2.0 'Frequency-penalty'
-	      ((OPTB)) && check_optrangef "${OPTB:-$OPTN}"  "$OPTN" 50 'Best_of'
-	      check_optrangef "$OPTBB" 0   5 'Logprobs'
-	    }
+	    check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
+	    check_optrangef "$OPTAA"  -2.0 2.0 'Frequency-penalty'
+	    ((OPTB)) && check_optrangef "${OPTB:-$OPTN}"  "$OPTN" 50 'Best_of'
+	    check_optrangef "$OPTBB" 0   5 'Logprobs'
+
 	    check_optrangef "$OPTP"  0.0 1.0 'Top_p'
 	    ((!OPTMAX && OPTBB)) ||
 	    check_optrangef "$OPTMAX"  1 "$MODMAX" 'Response Max Tokens'
@@ -2304,19 +2291,6 @@ function moderationf
 {
 	BLOCK="{ \"input\": \"${*:?INPUT ERR}\" }"
 	_promptf
-}
-
-#edits
-function editf
-{
-	BLOCK="{
-		\"model\": \"$MOD\",
-		\"instruction\": \"${1:?EDIT MODE ERR}\",
-		\"input\": \"${@:2}\",
-		\"temperature\": $OPTT, $OPTP_OPT
-		\"n\": $OPTN
-	}"
-	promptf
 }
 
 # Awesome-chatgpt-prompts
@@ -2916,9 +2890,9 @@ do
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		d) 	OPTCMPL=1;;
-		e) 	OPTE=1 EPN=2;;
+		e) 	__warmsgf 'Err:' 'Text edits models are discontinued'; exit 2;;  #also del --edit long option
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_EDIT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTE OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV NC
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Nc
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -2999,7 +2973,7 @@ def reset:   null;"
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${GPTCHATKEY:-${OPENAI_API_KEY:?Required}}}}"
 ((OPTL+OPTZZ)) && unset OPTX
-((OPTE+OPTI)) && unset OPTC
+((OPTI)) && unset OPTC
 ((OPTCLIP)) && set_clipcmdf
 ((OPTZ)) && set_playcmdf
 ((OPTC)) || OPTT="${OPTT:-0}"  #!#temp *must* be set
@@ -3008,16 +2982,14 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${GPTCHATKEY:-${OPENAI_API_KEY:?
 ((OPTCMPL)) && ((!OPTRESUME)) && OPTCMPL=2  #2# txt cmpls new
 ((OPTC+OPTCMPL || OPTRESUME>1)) && MTURN=1  #multi-turn, interactive
 ((OPTSUFFIX>1)) && MTURN=1 OPTSUFFIX=1      #multi-turn -q insert mode
-((OPTI+OPTE+OPTEMBED)) && ((OPTVV)) && OPTVV=2
+((OPTI+OPTEMBED)) && ((OPTVV)) && OPTVV=2
 ((OPTCTRD)) || unset OPTCTRD  #(un)set <ctrl-d> prompter flush [bash]
 [[ ${INSTRUCTION} != *([$IFS]) ]] || unset INSTRUCTION
 
 #map models
 if [[ -n $OPTMARG ]]
 then 	((OPTI+OPTII)) && MOD_IMAGE=$OPTMARG  #image
-else 	if ((OPTE))      #edits
-	then 	MOD=$MOD_EDIT STREAM=
-	elif ((OPTC>1))  #chat
+else 	if ((OPTC>1))  #chat
 	then 	MOD=$MOD_CHAT
 	elif ((OPTW)) && ((!MTURN))  #whisper endpoint
 	then 	MOD=$MOD_AUDIO
@@ -3069,7 +3041,7 @@ else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 ((${#})) || [[ -t 0 ]] || ((OPTTIKTOKEN+OPTL+OPTZZ)) || set -- "$(<$STDIN)"
 
-((OPTX)) && ((OPTE+OPTEMBED+OPTI+OPTII+OPTZ+OPTTIKTOKEN)) &&
+((OPTX)) && ((OPTEMBED+OPTI+OPTII+OPTZ+OPTTIKTOKEN)) &&
 edf "$@" && set -- "$(<"$FILETXT")"  #editor
 
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
@@ -3084,7 +3056,7 @@ then 	if ((!OPTHH))
 	fi
 fi
 
-((OPTW+OPTZ+OPTII+OPTI+OPTEMBED+OPTE)) &&
+((OPTW+OPTZ+OPTII+OPTI+OPTEMBED)) &&
 for arg  #!# escape input
 do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
@@ -3177,17 +3149,6 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 		printf '%-22s: %s\n' flagged $(lastjsonf | jq -r '.results[].flagged') &&
 		printf '%-22s: %.24f (%s)\n' $(lastjsonf | jq -r '.results[].categories|keys_unsorted[]' | while read -r; do 	lastjsonf | jq -r "\"$REPLY \" + (.results[].category_scores.\"$REPLY\"|tostring//empty) + \" \" + (.results[].categories.\"$REPLY\"|tostring//empty)"; done)
 	fi
-elif ((OPTE))      #edits
-then 	__sysmsgf 'Text Edits'
-	[[ $MOD = *edit* ]] || __warmsgf "Warning:" "Not an edits model -- $MOD"
-	[[ -f $1 ]] && set -- "$(escapef "$(<"$1")")" "${@:2}"  #instruction
-	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"  #text prompt
-	if ((${#INSTRUCTION}))
-	then 	set -- "$INSTRUCTION" "$@"
-	else 	INSTRUCTION="$1"
-	fi ;__sysmsgf 'INSTRUCTION:' "${INSTRUCTION:-(EMPTY)}" 
-	: "${1:?INSTRUCTION ERR}" "${2:?INPUT ERR}"  ;echo >&2
-	editf "$@"
 else
 	#custom / awesome prompts
 	if [[ $INSTRUCTION = [/%.,]* ]]
@@ -3617,4 +3578,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# xvim=syntax sync minlines=3700
+# vim=syntax sync minlines=3700
