@@ -189,8 +189,8 @@ string `[insert]` where the model should insert text:
     chatgpt.sh -q 'It was raining when [insert] tomorrow.'
 
 
-**NOTE:** This example works with _no intruction_ prompt set!
-An instruction prompt in this mode may interferre with insert completions.
+**NOTE:** This example works with _no instruction_ prompt set!
+An instruction prompt in this mode may interfere with insert completions.
 
 **NOTE:** [Insert mode](https://openai.com/blog/gpt-3-edit-insert)
 works with model `gpt-3.5-turbo-instruct`.
@@ -284,7 +284,7 @@ _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 
 
 - Generally, my evaluation on models prefers using `davinci`, or
-`text-davinci-003` for less intruction intensive tasks, such as
+`text-davinci-003` for less instruction intensive tasks, such as
 brainstorming. The newer models, `gpt-3.5-turbo-instruct`, may be
 better at following instructions, is cheap and much faster, but seems
 more censored.
