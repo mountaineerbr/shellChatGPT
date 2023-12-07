@@ -238,7 +238,7 @@ to even know that it should answer the questions.
 Set a one-shot instruction prompt with `option -S`:
 
 
-    chatgpt.sh -cc -S 'You are a PhD psicologist student.' 
+    chatgpt.sh -cc -S 'You are a PhD psycologist student.' 
 
     chatgpt.sh -ccS'You are a professional software programmer.'
 
@@ -248,7 +248,7 @@ set `option -S` with the operator dot and the name of the prompt
 as argument:
 
 
-    chatgpt.sh -cc -S.psicologist 
+    chatgpt.sh -cc -S.psycologist 
 
     chatgpt.sh -cc -S.software_programmer
 
