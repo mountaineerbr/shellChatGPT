@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24  dec/2023  by mountaineerbr  GPL+3
+# v0.24.1  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1242,10 +1242,12 @@ function cmd_runf
 			usr_logf "$(unescapef "$HIST\\n---")" >&2
 			;;
 		j|jump)
+			__cmdmsgf 'Jump:' 'append response primer'
 			JUMP=1 REPLY=
 			return 179
 			;;
 		[/!]j|[/!]jump|J|Jump)
+			__cmdmsgf 'Jump:' 'no response primer'
 			JUMP=2 REPLY=
 			return 180
 			;;
@@ -3251,20 +3253,27 @@ else
 		then 	set -- "$REPLY"
 		#text editor prompter
 		elif ((OPTX))
-		then 	edf "${@:-$REPLY}" || case $? in 200) 	continue;; 201) 	break;; esac
-			while REPLY="$(<"$FILETXT")"
-				printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}"
-			do 	((OPTV)) || new_prompt_confirmf
-				case $? in
-					201) 	break 2;;  #abort
-					200) 	continue 2;;  #redo
-					19[6789]) 	edf "${REPLY:-$*}" || break 2;;  #edit
-					0) 	set -- "$REPLY" ; break;;  #yes
-					*) 	set -- ; break;;  #no
-				esac
-			done ;((OPTX>1)) && unset OPTX
+		then 	edf "${@:-$REPLY}"
+			case $? in
+				179|180) :;;        #jumps
+				200) 	continue;;  #redo
+				201) 	break 1;;   #abort
+				*) 	while REPLY="$(<"$FILETXT")"
+						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}"
+					do 	((OPTV)) || new_prompt_confirmf
+						case $? in
+							201) 	break 2;;  #abort
+							200) 	continue 2;;  #redo
+							19[6789]) 	edf "${REPLY:-$*}" || break 2;;  #edit
+							0) 	set -- "$REPLY" ; break;;  #yes
+							*) 	set -- ; break;;  #no
+						esac
+					done;
+					((OPTX>1)) && unset OPTX;
+			esac
 		fi
 
+		((JUMP)) ||
 		#defaults prompter
 		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ "$*" = $SPC ]]
 		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
@@ -3459,7 +3468,7 @@ else
 		set_optsf
 
 		if ((EPN==6))
-		then 	BLOCK="\"messages\": [$(sed '$s/,$//' <<<"$*")],"
+		then 	BLOCK="\"messages\": [$(sed -e '/^\s*$/d' <<<"$*" | sed -e '$s/,\s*$//')],"
 		else 	BLOCK="\"prompt\": \"${*}\","
 		fi
 		BLOCK="{
@@ -3578,4 +3587,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3700
+# vim=syntax sync minlines=3600
