@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.1  dec/2023  by mountaineerbr  GPL+3
+# v0.24.2  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -828,15 +828,20 @@ function list_modelsf
 function pick_modelf
 {
 	typeset REPLY mod
-	((${#MOD_LIST[@]})) || MOD_LIST=($(list_modelsf | grep "${@:--e.}")) #|| return
-	__clr_ttystf;
-	while ! ((REPLY && REPLY <= ${#MOD_LIST[@]}))
-	do 	echo $'\nPick model:' >&2;
-		select mod in ${MOD_LIST[@]}
-		do 	break;
-		done </dev/tty; REPLY=${REPLY//[$' \t\b\r']}
-		[[ \ ${MOD_LIST[*]}\  = *\ "$REPLY"\ * ]] && mod=$REPLY && break;
-	done; MOD=${mod:-$MOD};
+	set -- "${1// }"; set -- "${1##*(0)}";
+	((${#1}<3)) || return
+	((${#MOD_LIST[@]})) || MOD_LIST=($(list_modelsf))
+	if [[ ${REPLY:=$1} = +([0-9]) ]] && ((REPLY && REPLY <= ${#MOD_LIST[@]}))
+	then 	mod=${MOD_LIST[REPLY-1]}  #pick model by number from the model list
+	else 	__clr_ttystf;
+		while ! ((REPLY && REPLY <= ${#MOD_LIST[@]}))
+		do 	echo $'\nPick model:' >&2;
+			select mod in ${MOD_LIST[@]:-err}
+			do 	break;
+			done </dev/tty; REPLY=${REPLY//[$' \t\b\r']}
+			[[ \ ${MOD_LIST[*]}\  = *\ "$REPLY"\ * ]] && mod=$REPLY && break;
+		done;  #pick model by number or name
+	fi; MOD=${mod:-$MOD};
 }
 
 function lastjsonf
@@ -1272,7 +1277,7 @@ function cmd_runf
 		-m*|model*|mod*)
 			set -- "${*##@(-m|model|mod)}"; set -- "${1//[$IFS]}"
 			if ((${#1}<3))
-			then 	pick_modelf -v -e moderation -e search -e similarity -e embedding -e whisper
+			then 	pick_modelf "$1"
 			else 	MOD=${1:-$MOD};
 			fi
 			set_model_epnf "$MOD"; model_capf "$MOD"
@@ -2999,7 +3004,7 @@ else 	if ((OPTC>1))  #chat
 	then 	MOD=$MOD_SPEECH
 	fi
 fi
-((${#MOD}<3)) && pick_modelf 
+pick_modelf "$MOD"
 
 if ((OPTI+OPTII))
 then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url
@@ -3174,9 +3179,9 @@ else
 	fi
 
 	#text/chat completions
-	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"  #load file (last arg)
+	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$( ((OPTX)) && echo "$(<"${@:${#}}")" || escapef "$(<"${@:${#}}")" )"  #load file (last arg)
 	INPUT_ORIG=("$@")
-	((OPTW)) && { 	unset OPTX ;set -- ;}  #whisper input
+	((OPTW)) && { 	unset OPTX; set -- ;}  #whisper input
 	if ((OPTC))
 	then 	__sysmsgf 'Chat Completions'
 		#chatbot must sound like a human, shouldnt be lobotomised
