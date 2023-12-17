@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.24 | General Commands Manual
+CHATGPT.SH(1) v0.24.3 | General Commands Manual
 mountaineerbr
 December 2023
 
@@ -561,12 +561,6 @@ Optional Packages for Specific Features
     set clipboard
 
 BUGS AND LIMITS
-
-With the exception of Davinci models, older models were designed to be
-run as one-shot.
-
-The script is expected to work with language models and inputs up to 32k
-tokens.
 
 Garbage in, garbage out. An idiot savant.
 

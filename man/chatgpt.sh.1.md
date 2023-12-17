@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.24 | General Commands Manual
+% CHATGPT.SH(1) v0.24.3 | General Commands Manual
 % mountaineerbr
 % December 2023
 
@@ -632,11 +632,11 @@ input contains *software code*. -->
 because the recorded token count may differ from model encoding to encoding.
 Set `option -y` for accurate token counting. -->
 
-With the exception of Davinci models, older models were designed
-to be run as one-shot.
+<!-- With the exception of Davinci and newer base models, older models were designed
+to be run as one-shot. -->
 
-The script is expected to work with language models and inputs
-up to 32k tokens.
+<!-- The script is expected to work with language models and inputs
+up to 32k tokens. -->
 
 <!-- OBVIOUSLY, ALREADY MENTIONED
 Instruction prompts are required for the model to even know that

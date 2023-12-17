@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.2  dec/2023  by mountaineerbr  GPL+3
+# v0.24.3  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1158,7 +1158,7 @@ function set_maxtknf
 {
 	typeset buff
 	set -- "${*:-$OPTMAX}"
-	set -- "${*##[+-]}" ;set -- "${*%%[+-]}"
+	set -- "${*##[+-]}"; set -- "${*%%[+-]}"; set -- "${*// }";
 
 	case "$*" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
@@ -1286,6 +1286,7 @@ function cmd_runf
 			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 			;;
 		-n*|results*)
+			[[ $* = -n*[!0-9\ ]* ]] && { 	cmd_runf "-N${*##-n}"; return ;}  #compat with -Nill option
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
 			OPTN="${*:-$OPTN}"
 			__cmdmsgf 'Results' "$OPTN"
@@ -2889,7 +2890,7 @@ do
 			fi;;
 		[0-9/-]) 	OPTMM="$OPTMM$opt";;
 		M) 	OPTMM="$OPTARG";;
-		N) 	[[ $OPTARG = *[!0-9]* ]] && OPTMM="$OPTARG" || OPTNN="$OPTARG";;
+		N) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" || OPTNN="$OPTARG";;
 		a) 	OPTA="$OPTARG";;
 		A) 	OPTAA="$OPTARG";;
 		b) 	OPTB="$OPTARG";;
@@ -2922,7 +2923,8 @@ do
 			[[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
 			_cmdmsgf 'Log file' "<${USRLOG}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
-		n) 	OPTN="$OPTARG" ;;
+		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
+			OPTN="$OPTARG" ;;
 		k) 	OPTK=1;;
 		K) 	OPENAI_API_KEY="$OPTARG";;
 		o) 	OPTCLIP=1;;
@@ -3179,7 +3181,12 @@ else
 	fi
 
 	#text/chat completions
-	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$( ((OPTX)) && echo "$(<"${@:${#}}")" || escapef "$(<"${@:${#}}")" )"  #load file (last arg)
+	if ((${#})) && [[ -f ${@:${#}} ]]
+	then 	if ((OPTX))
+		then 	set -- "${@:1:${#}-1}" "$(<"${@:${#}}")"
+		else 	set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")" )"  #load file (last arg)
+		fi
+	fi
 	INPUT_ORIG=("$@")
 	((OPTW)) && { 	unset OPTX; set -- ;}  #whisper input
 	if ((OPTC))
