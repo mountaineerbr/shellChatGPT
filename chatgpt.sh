@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.5  dec/2023  by mountaineerbr  GPL+3
+# v0.24.6  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -554,7 +554,7 @@ function _promptf
 			[[ $chunk = *([$IFS]) ]] && continue
 			[[ $chunk = *([$IFS])\[+([A-Z])\] ]] && continue
 			if ((!n))  #first pass
-			then 	((OPTC==1)) && {  #del leading spaces
+			then 	((OPTC&&EPN==0)) && {  #del leading spaces
 					str='text":"'
 					chunk_n="${chunk/${str}+${SPC1##\*}/$str}"
 					[[ $chunk_n = *"${str}"\",* ]] && continue
