@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.3  dec/2023  by mountaineerbr  GPL+3
+# v0.24.4  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -48,7 +48,7 @@ OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 # TTS voice speed
 #OPTZ_SPEED=   #0.25 - 4.0
 # TTS out file format
-OPTZ_FMT=mp3   #opus, aac, flac
+OPTZ_FMT=opus   #opus, aac, flac
 # Clipboard set command, e.g. "xsel -b", "pbcopy"
 #CLIP_CMD=""
 # Recorder command, e.g. "sox"
@@ -1815,7 +1815,7 @@ function record_confirmf
 		__clr_lineupf 33  #!#
 	fi
 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
-	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [r]edo, [s]top, [w]hspr off * ' >&2
+	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [q]uit, [r]edo, [w]hspr off * ' >&2
 }
 
 #record mic
@@ -1851,10 +1851,10 @@ function recordf
 		[Ww]|$'\e')  #abort+disable whisper
 			ret=196
 			;;
-		[Rr]|[Ss]) rec_killf $pid $termux; wait $pid;  #redo
+		[Rr]|[QqSs]) rec_killf $pid $termux; wait $pid;  #redo, quit
 			trap 'coproc_killf' $SIG_TRAP
 			case "$REPLY" in
-				[Ss]) 	OPTV= WSKIP= record_confirmf;;
+				[QqSs]) 	OPTV= WSKIP= record_confirmf;;
 				*) 	OPTV=4 WSKIP= record_confirmf;;
 			esac
 			recordf "$@"; return;
@@ -1973,7 +1973,7 @@ function prompt_ttsf
 	((OPTVV)) && echo "TTS model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}" >&2
 	
 	#disable curl progress-bar because of `chunk transfer encoding'
-	printf "${BYELLOW}%s${NC}\r" "X (tts curl)" >&2;  #!# 12chars
+	_sysmsgf 'TTS:' '<ctr-d> stop, <enter> play now ' ''
 
 	curl -Ss -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
@@ -1984,7 +1984,7 @@ function prompt_ttsf
 \"input\": \"${*}\",
 \"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
 \"response_format\": \"${OPTZ_FMT}\"
-}" 		-o "$FOUT" && printf '%s\r' "            " >&2;  #!# 12 chars
+}" 		-o "$FOUT"
 }
 
 #speech synthesis (tts)
@@ -2024,7 +2024,7 @@ function ttsf
 		i=1 FOUT=${FOUT%.*}-${i}.${OPTZ_FMT};
 	fi  #https://help.openai.com/en/articles/8555505-tts-api
 	
-	while input=${xinput:0:max};
+	while input=${xinput:0:max} play= ;
 	do
 		if ((!(MTURN+OPTC+OPTCMPL) ))
 		then 	__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}";
@@ -2034,19 +2034,31 @@ function ttsf
 		prompt_ttsf "${input:-$*}" &
 		pid=$! sig="INT";  #catch <CTRL-C>
 		trap "kill -- $pid" $sig;
-		wait $pid; ret=$?; trap '-' $sig;
-
-		((ret)) && {
-			__warmsgf $'\rerr:' 'tts response'
-			printf 'Retry request? Y/n ' >&2;
-			case "$(__read_charf)" in
-				[AaNnQq]) false;;  #no
-				*) 	continue;;
+		while __spinf
+			kill -0 -- $pid  >/dev/null 2>&1
+		do 	case "$(read -n 1 -t 0.5 && echo "$REPLY" || echo x)" in
+				$'\e'|""|[Pp]) play=1;
+					while [[ ! -s $FOUT ]]
+					do 	sleep 0.3s;
+					done; sleep 1s; break 1;;
+				[QqSs]) 	kill -- $pid; break 2;;
 			esac
-		}
+		done </dev/tty; echo >&2;
+		((play)) || wait $pid; ret=$?; trap '-' $sig;
+
+		case $ret in
+			0) 	:;;
+			1[2-9][0-9]|2[0-5][0-9]) 	break;;
+			*) 	__warmsgf $'\rerr:' 'tts response'
+				printf 'Retry request? Y/n ' >&2;
+				case "$(__read_charf)" in
+					[AaNnQq]) false;;  #no
+					*) 	continue;;
+				esac
+		esac
 
 		du -h "$FOUT" >&2 2>/dev/null || echo '[done]' >&2;
-		((OPTZ<2)) || {
+		((OPTZ<2)) || [[ ! -s $FOUT ]] || {
 			${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
 			trap "kill -- $pid" $sig;
 			wait $pid; trap '-' $sig;
@@ -2483,7 +2495,7 @@ function set_playcmdf
 	elif command -v play  #sox
 	then 	PLAY_CMD='play'
 	elif command -v cvlc
-	then 	PLAY_CMD='cvlc'
+	then 	PLAY_CMD='cvlc --no-loop --no-repeat'
 	elif command -v ffplay
 	then 	PLAY_CMD='ffplay -nodisp'
 	elif command -v afplay  #macos
