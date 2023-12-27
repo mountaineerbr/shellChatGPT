@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.24.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.24.8 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.24.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.24.8 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">December 2023</p>
 </header>
@@ -203,8 +203,8 @@ Whisper</div>
    <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>]
 [<em>AUDIO_FILE</em>] [<em>PROMPT-EN</em>]<br />
    <strong>chatgpt.sh</strong> <code>-z</code> [<code>opt</code>]
-[<em>VOICE</em>] [<em>SPEED</em>] [<em>FORMAT</em>]
-[<em>PROMPT</em>]<br />
+[<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
+[<em>SPEED</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-cczw</code> [<code>opt</code>]
 [<em>LANG</em>]<br />
    <strong>chatgpt.sh</strong> <code>-cczW</code>
@@ -357,6 +357,8 @@ command</em> as prompter.</p>
 <p>Type in a backslash “<em>\</em>” as the last character of the input
 line to append a literal newline once and return to edition, or press
 &lt;<em>CTRL-V</em>&gt; <em>+</em> &lt;<em>CTRL-J</em>&gt;.</p>
+<p>Press &lt;<em>CTRL-\</em>&gt; to always exit from the script, even if
+recording, requesting, or playing tts.</p>
 <p>Language model <strong>SKILLS</strong> can activated, with specific
 prompts, see <a href="https://platform.openai.com/examples"
 class="uri">https://platform.openai.com/examples</a>.</p>
@@ -818,8 +820,8 @@ to the completions endpoint.
 Alternatively, -->
 <p>Use <em>gpt-4+ models</em> and the right instructions.</p>
 <h3 id="escaping-new-lines-and-tabs">ESCAPING NEW LINES AND TABS</h3>
-<p>As of <em>v0.18</em>, sequences “<em>\n</em>” and “<em>\t</em>” are
-only treated specially in restart, start and stop sequences!</p>
+<p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
+specially in restart, start and stop sequences! (<em>v0.18+</em>)</p>
 <h3 id="custom-awesome-prompts">CUSTOM / AWESOME PROMPTS</h3>
 <p>When the argument to <code>option -S</code> starts with a full stop,
 such as “<code>-S</code> <code>.</code><em>my_prompt</em>”, load, search
@@ -1316,9 +1318,12 @@ and start sequences.</p>
 <dd>
 <p>Unset tiktoken use (cmpls, chat, python).</p>
 </dd>
-<dt><strong>-z</strong>, <strong>--tts</strong></dt>
+<dt><strong>-zz</strong> [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>]
+[<em>VOICE</em>] [<em>SPEED</em>] [<em>PROMPT</em>],
+<strong>--tts</strong></dt>
 <dd>
-<p>Synthesise speech from text prompt.</p>
+<p>Synthesise speech from text prompt. Takes a voice name, speed and
+text prompt. Set twice to play.</p>
 </dd>
 <dt><strong>-Z</strong>, <strong>--last</strong></dt>
 <dd>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.7  dec/2023  by mountaineerbr  GPL+3
+# v0.24.8  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -137,7 +137,7 @@ Synopsis
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE]
 	${0##*/} -w [opt] [AUDIO_FILE] [LANG] [PROMPT]
 	${0##*/} -W [opt] [AUDIO_FILE] [PROMPT-EN]
-	${0##*/} -zz [VOICE] [SPEED] [FORMAT] [PROMPT]
+	${0##*/} -zz [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 	${0##*/} -cczw [opt] [LANG]
 	${0##*/} -cczW [opt]
 	${0##*/} -HHH [/HIST_FILE]
@@ -201,8 +201,8 @@ Description
 	to preview token count. Set this option for accurate history
 	context length (fast).
 
-	As of v0.18, sequences \`\\n' and \`\\t' are only treated specially
-	in restart, start and stop sequences!
+	Input sequences \`\\n' and \`\\t' are only treated specially in
+	restart, start and stop sequences! (v0.18+)
 
 	A personal OpenAI API is required, set environment or option -K.
 
@@ -456,8 +456,8 @@ Options
 		Set tiktoken for token count (cmpls, chat).
 	-Y, --no-tik
 		Unset tiktoken use (cmpls, chat).
-	-z, --tts
-		Synthesise speech from text prompt.
+	-zz [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT], --tts
+		Synthesise speech from text prompt, set twice to play.
 	-Z, --last
 		Print last response JSON data."
 
@@ -593,12 +593,9 @@ function promptf
 		fi
 	fi & pid=$! sig="INT"  #catch <CTRL-C>
 	
-	trap "kill -- $pid;
-	      trap 'coproc_killf' $sig;
-	      echo >&2; return 130" $sig;
-	
+	trap "kill -- $pid; echo >&2" $sig;
 	wait $pid; echo >&2;
-	trap 'coproc_killf' $sig;
+	trap '-' $sig;
 
 	if ((OPTCLIP)) || [[ ! -t 1 ]]
 	then 	typeset out ;out=$(
@@ -1135,18 +1132,18 @@ function set_imgsizef
 			set -- "${1//[Hh][Dd]}";
 		fi  #def=standard
 		case "$1" in  #width x height, dall-e-3
-			1024*1792 | 10*17* | [Pp] | [Pp][Oo][Rr][Tt][Rr][Aa][Ii][Tt] )
+			1024*1792 | 10*17* | [Pp] | [Pp][Oo][Rr][Tt][Rr][Aa][Ii][Tt] )  #portrait
 				OPTS=1024x1792; set --;;  #portrait
-			1792* | 17*        | [Ll] | [Ll][Aa][Nn][Dd][Ss][Cc][Aa][Pp][Ee] )
+			1792* | 17*        | [Ll] | [Ll][Aa][Nn][Dd][Ss][Cc][Aa][Pp][Ee] )  #landscape
 				OPTS=1792x1024; set --;;  #landscape
-			1024* | 10*       | [LlXx] | [Ll][Aa][Rr][Gg][Ee] )
+			1024* | 10*       | [LlXx] | [Ll][Aa][Rr][Gg][Ee] )  #large
 				OPTS=1024x1024;;
 			* ) 	OPTS=${OPTS:-1024x1024}; ((${#OPTS_HD}));;
 		esac;
 	else 	case "$1" in  #dall-e-2
 			1024* | 10*  | [LlXx] | [Ll][Aa][Rr][Gg][Ee] ) OPTS=1024x1024;;
-			512* | 51*   |  [Mm]  | [Mm][Ee][Dd][Ii][Uu][Mm] ) OPTS=512x512;;
-			256* | 25*   |  [Ss]  | [Ss][Mm][Aa][Ll][Ll] )     OPTS=256x256;;
+			512* | 51*   |  [Mm]  | [Mm][Ee][Dd][Ii][Uu][Mm] ) OPTS=512x512;;  #medium
+			256* | 25*   |  [Ss]  | [Ss][Mm][Aa][Ll][Ll] )     OPTS=256x256;;  #small
 			*) 	OPTS=${OPTS:-512x512}; false;;
 		esac;
 	fi
@@ -1822,7 +1819,7 @@ function record_confirmf
 #usage: recordf [filename]
 function recordf
 {
-	typeset termux pid ret REPLY
+	typeset termux pid sig ret REPLY
 
 	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
 
@@ -1843,16 +1840,16 @@ function recordf
 		{ 	ffmpeg -f avfoundation -i ":1" -y "$1" & pid=$! ;}
 		#-acodec libmp3lame -ab 32k -ac 1  #https://stackoverflow.com/questions/19689029/
 	fi >&2
-	pid=${pid:-$!}
+	pid=${pid:-$!} sig="INT";
 	
-	trap "rec_killf $pid $termux;
-		trap 'coproc_killf' $SIG_TRAP" $SIG_TRAP
+	trap "rec_killf $pid $termux" $sig
+	
 	case "${REPLY:=$(__read_charf)}" in
 		[Ww]|$'\e')  #abort+disable whisper
 			ret=196
 			;;
 		[Rr]|[QqSs]) rec_killf $pid $termux; wait $pid;  #redo, quit
-			trap 'coproc_killf' $SIG_TRAP
+			trap '-' $sig
 			case "$REPLY" in
 				[QqSs]) 	OPTV= WSKIP= record_confirmf;;
 				*) 	OPTV=4 WSKIP= record_confirmf;;
@@ -1860,9 +1857,9 @@ function recordf
 			recordf "$@"; return;
 			;;
 	esac
-	rec_killf $pid $termux
-	trap 'coproc_killf' $SIG_TRAP
-	wait $pid; return ${ret:-0}
+
+	rec_killf $pid $termux; trap '-' $sig;
+	wait $pid; return ${ret:-0};
 }
 #avfoundation for macos: <https://apple.stackexchange.com/questions/326388/>
 function rec_killf
@@ -1910,9 +1907,9 @@ function whisperf
 		esac
 	fi
 	
-	if [[ -e $1 && $1 = *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
+	if [[ -e $1 && $1 = *@([Mm][Pp][34]|[Mm][Pp][Gg]|[Mm][Pp][Ee][Gg]|[Mm][Pp][Gg][Aa]|[Mm]4[Aa]|[Ww][Aa][Vv]|[Ww][Ee][Bb][Mm]) ]] #mp3|mp4|mpeg|mpga|m4a|wav|webm
 	then 	file="$1"; shift;
-	elif (($#)) && [[ -e ${@:${#}} && ${@:${#}} = *@(mp3|mp4|mpeg|mpga|m4a|wav|webm) ]]
+	elif (($#)) && [[ -e ${@:${#}} && ${@:${#}} = *@([Mm][Pp][34]|[Mm][Pp][Gg]|[Mm][Pp][Ee][Gg]|[Mm][Pp][Gg][Aa]|[Mm]4[Aa]|[Ww][Aa][Vv]|[Ww][Ee][Bb][Mm]) ]]
 	then 	file="${@:${#}}"; set -- "${@:1:$((${#}-1))}";
 	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "${1:-nill}" >&2
 		return 1
@@ -2057,6 +2054,7 @@ function ttsf
 				esac
 		esac
 
+	[[ $FOUT = "-"* ]] || { 
 		du -h "$FOUT" >&2 2>/dev/null || echo '[done]' >&2;
 		((OPTZ<2)) || [[ ! -s $FOUT ]] || {
 			${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
@@ -2066,22 +2064,26 @@ function ttsf
 		((++i)); FOUT=${FOUT%-*}-${i}.${OPTZ_FMT};
 		xinput=${xinput:max};
 		((${#xinput})) && ((!ret)) || break;
+	}
 	done;
 	return $ret
 }
-function __set_ttsf { 	__set_voicef "$1" || __set_outfmtf "$1" || __set_speedf "$1" ;}
+function __set_ttsf { 	__set_outfmtf "$1" || __set_voicef "$1" || __set_speedf "$1" ;}
 function __set_voicef
 {
+	typeset -l VOICEZ
 	case "$1" in
-		alloy|echo|fable|onyx|nova|shimmer) 	VOICEZ=$1;;
+		#alloy|echo|fable|onyx|nova|shimmer
+		[Aa][Ll][Ll][Oo][Yy]|[Ee][Cc][Hh][Oo]|[Ff][Aa][Bb][Ll][Ee]|[Oo][Nn][Yy][Xx]|[Nn][Oo][Vv][Aa]|[Ss][Hh][Ii][Mm][Mm][Ee][Rr]) 	VOICEZ=$1;;
 		*) 	false;;
 	esac
 }
 function __set_outfmtf
 {
-	case "$1" in
-		mp3|opus|aac|flac) 	OPTZ_FMT=$1;;
-		*.mp3|*.opus|*.aac|*.flac) 	OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
+	typeset -l OPTZ_FMT
+	case "$1" in  #mp3|opus|aac|flac
+		mp3|[Mm][Pp]3|[Oo][Pp][Uu][Ss]|[Aa][Aa][Cc]|[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=$1;;
+		*.[Mm][Pp]3|*.[Oo][Pp][Uu][Ss]|*.[Aa][Aa][Cc]|*.[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
 		*/) 	[[ -d $1 ]] && FILEOUT_TTS=${1%%/}/${FILEOUT_TTS##*/};;
 		-) 	FOUT='-';;
 		*) 	false;;
@@ -3090,6 +3092,8 @@ then 	function jq { 	false ;}
 	function unescapef { 	_unescapef "$@" ;}
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
+
+trap 'exit 2' QUIT  #always exit on <CTRL-\>
 
 if ((OPTHH))  #edit history/pretty print last session
 then

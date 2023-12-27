@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.24.3 | General Commands Manual
+% CHATGPT.SH(1) v0.24.8 | General Commands Manual
 % mountaineerbr
 % December 2023
 
@@ -18,7 +18,7 @@
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_]
 |    **chatgpt.sh** `-w` \[`opt`] \[_AUDIO_FILE_] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`] \[_AUDIO_FILE_] \[_PROMPT-EN_]
-|    **chatgpt.sh** `-z` \[`opt`] \[_VOICE_] \[_SPEED_] \[_FORMAT_] \[_PROMPT_]
+|    **chatgpt.sh** `-z` \[`opt`] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
 |    **chatgpt.sh** `-cczw` \[`opt`] \[_LANG_]
 |    **chatgpt.sh** `-cczW` \[`opt`]
 |    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_]
@@ -178,6 +178,9 @@ Alternatively, set `option -U` to set _cat command_ as prompter.
 Type in a backslash "_\\_" as the last character of the input line
 to append a literal newline once and return to edition,
 or press \<_CTRL-V_> _+_ \<_CTRL-J_>.
+
+Press \<_CTRL-\\_> to always exit from the script, even if recording,
+requesting, or playing tts.
 
 Language model **SKILLS** can activated, with specific prompts,
 see <https://platform.openai.com/examples>.
@@ -422,8 +425,8 @@ Use _gpt-4+ models_ and the right instructions.
 
 ### ESCAPING NEW LINES AND TABS
 
-As of _v0.18_, sequences "_\\n_" and "_\\t_" are only treated specially
-in restart, start and stop sequences!
+Input sequences "_\\n_" and "_\\t_" are only treated specially
+in restart, start and stop sequences! (_v0.18+_)
 
 
 ### CUSTOM / AWESOME PROMPTS
@@ -979,9 +982,10 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Unset tiktoken use (cmpls, chat, python).
 
 
-**-z**, **\--tts**
+**-zz** \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_], **\--tts**
 
-: Synthesise speech from text prompt.
+: Synthesise speech from text prompt. Takes a voice name, speed and text prompt.
+  Set twice to play.
 
 
 **-Z**, **\--last**
