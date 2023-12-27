@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.6  dec/2023  by mountaineerbr  GPL+3
+# v0.24.7  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -1347,9 +1347,9 @@ function cmd_runf
 			;;
 		-v|verbose|ver)
 			((++OPTV)) ;((OPTV%=4))
-			case "$OPTV" in
+			case "${OPTV:-0}" in
 				1) var='Less';;  2) var='Much less';;
-				3) var='OFF';;   0) var='ON';;
+				3) var='OFF';;   0) var='ON'; unset OPTV;;
 			esac ;_cmdmsgf 'Verbose' "$var"
 			;;
 		-V|context)
@@ -1814,8 +1814,8 @@ function record_confirmf
 		case "$(__read_charf)" in [Ww]|$'\e') 	return 202;; [AaNnQq]) 	return 201;; esac
 		__clr_lineupf 33  #!#
 	fi
-	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
-	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [q]uit, [r]edo, [w]hspr off * ' >&2
+	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [q]uit, [r]edo, [w]hspr off * ' >&2
+	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
 }
 
 #record mic
@@ -1902,7 +1902,7 @@ function whisperf
 	
 	if { 	((!$#)) || [[ ! -e $1 && ! -e ${@:${#}} ]] ;} && ((!MTURN))
 	then 	printf "${PURPLE}%s ${NC}" 'Record mic input? [Y/n]' >&2
-		case "$(__read_charf)" in
+		case "$( [[ -t 1 ]] || __read_charf )" in
 			[AaNnQq]|$'\e') 	:;;
 			*) 	OPTV=4 record_confirmf || return
 				WSKIP=1 recordf "$FILEINW"
@@ -3094,7 +3094,10 @@ command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 if ((OPTHH))  #edit history/pretty print last session
 then
 	[[ $INSTRUCTION = [.,]* ]] && OPTRESUME=1 custom_prf
-	OPTRESUME=1 session_mainf "${@}"
+	if [[ $* = .* ]]
+	then 	OPTRESUME=1 session_mainf /s"${@}"
+	else 	OPTRESUME=1 session_mainf "${@}"
+	fi
 	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
 
 	if ((OPTHH>4))
@@ -3310,7 +3313,7 @@ else
 				((SKIP+OPTW)) && echo >&2
 				if ((OPTW)) && ((!EDIT))
 				then 	#auto sleep 3-6 words/sec
-					((OPTV>1)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))
+					((OPTV)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))
 					
 					record_confirmf || case $? in 202) 	OPTW= ;& *) 	REPLY= ; continue 2;; esac
 					if recordf "$FILEINW"
@@ -3611,4 +3614,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3600
+# vim=syntax sync minlines=3700
