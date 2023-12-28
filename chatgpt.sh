@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.9  dec/2023  by mountaineerbr  GPL+3
+# v0.24.10  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -85,7 +85,8 @@ Blue='\e[0;34m'    BBlue='\e[1;34m'    On_Blue='\e[44m'   \
 Purple='\e[0;35m'  BPurple='\e[1;35m'  On_Purple='\e[45m' \
 Cyan='\e[0;36m'    BCyan='\e[1;36m'    On_Cyan='\e[46m'   \
 White='\e[0;37m'   BWhite='\e[1;37m'   On_White='\e[47m'  \
-Inv='\e[0;7m'      Nc='\e[m'           Alert=$BWhite$On_Red
+Inv='\e[0;7m'      Nc='\e[m'           Alert=$BWhite$On_Red \
+Bold='\033[0;1m'
 
 # Load user defaults
 CONFFILE="${CHATGPTRC:-$HOME/.chatgpt.conf}"
@@ -519,7 +520,7 @@ function model_capf
 		davinci-002|babbage-002) 	MODMAX=16384;;
 		davinci|curie|babbage|ada) 	MODMAX=2049;;
 		code-davinci-00[2-9]) MODMAX=8001;;
-		gpt-4-1106*|gpt-4-vision*) MODMAX=128000;;
+		gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*) MODMAX=128000;;
 		gpt-3.5-turbo-1106) MODMAX=16385;;
 		gpt-4*32k*|text*moderation*) 	MODMAX=32768;; 
 		gpt-4*) 	MODMAX=8192;;
@@ -528,7 +529,7 @@ function model_capf
 		*embedding*|*search*) MODMAX=2046;;
 		*) 	MODMAX=2048;;
 	esac
-}
+}  #max output of gpt-4 is 4096 tokens. #https://help.openai.com/en/articles/8555510-gpt-4-turbo
 
 #make cmpls request
 function __promptf
@@ -632,9 +633,12 @@ function __clr_lineupf
 #  Copyright 1997 Chester Ramey (adapted)
 SPIN_CHARS=(\| \\ - /)
 function __spinf
-{ 	printf '%s\b' "${SPIN_CHARS[SPIN_INDEX]}" >&2
-	((++SPIN_INDEX)); ((SPIN_INDEX%=${#SPIN_CHARS[@]}))
+{
+	((++SPIN_INDEX)); ((SPIN_INDEX%=${#SPIN_CHARS[@]}));
+	printf "%s\\b" "${SPIN_CHARS[SPIN_INDEX]}" >&2;
 }
+
+#print input and backspaces for all chars
 function __printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
 
 #trim leading spaces
@@ -1974,7 +1978,7 @@ function prompt_ttsf
 	((OPTVV)) && echo "TTS model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}" >&2
 	
 	#disable curl progress-bar because of `chunk transfer encoding'
-	_sysmsgf 'TTS:' '<ctr-d> stop, <enter> play now ' ''
+	_sysmsgf 'TTS:' '<ctr-c> stop, <enter> play now ' ''
 
 	curl -Ss -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
@@ -2983,7 +2987,7 @@ unset LANGW MTURN MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB init 
   : "${PURPLE:=${Color5:=${Purple}}}" "${BPURPLE:=${Color6:=${BPurple}}}" "${ON_PURPLE:=${Color7:=${On_Purple}}}"
   : "${CYAN:=${Color8:=${Cyan}}}"     "${BCYAN:=${Color9:=${BCyan}}}"  "${ON_CYAN:=${Color12:=${On_Cyan}}}"  #Color12 needs adding to all themes
   : "${WHITE:=${Color10:=${White}}}"  "${BWHITE:=${Color11:=${BWhite}}}"
-  : "${INV:=${Inv}}" "${NC:=${Nc}}"
+  : "${INV:=${Inv}}" "${ALERT:=${Alert}}" "${BOLD:=${Bold}}" "${NC:=${Nc}}"
   JQCOL="\
   def red:     \"${RED//\\e/\\u001b}\";     \
   def yellow:  \"${YELLOW//\\e/\\u001b}\";  \
