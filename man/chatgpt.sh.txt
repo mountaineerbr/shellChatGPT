@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.24.8 | General Commands Manual
+CHATGPT.SH(1) v0.24.11 | General Commands Manual
 mountaineerbr
 December 2023
 
@@ -69,7 +69,7 @@ Set model with “-m [MODEL]”, with MODEL as its name, or set it as “.” to
 pick from the model list. List available models with option -l.
 
 Set maximum response tokens with option “-NUM” or “-M NUM”. This
-defaults to 512 tokens.
+defaults to 1024 tokens.
 
 If a second NUM is given to this option, maximum model capacity will
 also be set. The option syntax takes the form of “-NUM/NUM”, and “-M
@@ -591,13 +591,13 @@ Model Settings
 
 -M [NUM[/NUM]], --max=[NUM[-NUM]]
 
-    Set maximum number of response tokens. Def=512.
+    Set maximum number of response tokens. Def=1024.
 
     A second number in the argument sets model capacity.
 
 -N [NUM], --modmax=[NUM]
 
-    Set model capacity tokens. Def=auto, fallback=2048.
+    Set model capacity tokens. Def=auto, fallback=4000.
 
 -a [VAL], --presence-penalty=[VAL]
 
@@ -672,7 +672,7 @@ Script Modes
 
     Exit on first run (even with options -cc).
 
--g, --stream
+-g, --stream (defaults)
 
     Set response streaming.
 
@@ -756,6 +756,7 @@ Script Settings
 -F
 
     Edit configuration file with text editor, if it exists.
+    Def=~/.chatgpt.conf .
 
 -FF
 
@@ -832,7 +833,7 @@ Script Settings
 
     Set tiktoken for token count (cmpls, chat, python).
 
--Y, –no-tik
+-Y, –no-tik (defaults)
 
     Unset tiktoken use (cmpls, chat, python).
 

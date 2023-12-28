@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: December 2023
-title: CHATGPT.SH(1) v0.24.8 \| General Commands Manual
+title: CHATGPT.SH(1) v0.24.11 \| General Commands Manual
 ---
 
 ### NAME
@@ -82,7 +82,7 @@ as “*.*” to pick from the model list. List available models with
 `option -l`.
 
 Set *maximum response tokens* with `option` “`-`*NUM*” or “`-M` *NUM*”.
-This defaults to *512* tokens.
+This defaults to *1024* tokens.
 
 If a second *NUM* is given to this option, *maximum model capacity* will
 also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
@@ -388,7 +388,7 @@ See detailed info on settings for each endpoint at:
 
 - <https://platform.openai.com/docs/>
 
-### CODE COMPLETIONS *(discontinued)*
+### CODE COMPLETIONS (*discontinued*)
 
 Codex models are discontinued. Use davinci or *gpt-3.5+ models* for
 coding tasks.
@@ -401,7 +401,7 @@ Start with a comment with instructions, data or code. To create useful
 completions it’s helpful to think about what information a programmer
 would need to perform a task.
 
-### TEXT EDITS *(discontinued)*
+### TEXT EDITS (*discontinued*)
 
 <!--
 This endpoint is set with models with **edit** in their name or
@@ -640,12 +640,12 @@ Unset model max response (chat cmpls only).
 **-NUM**
 
 **-M** \[*NUM*\[*/NUM*\]\], **--max**=\[*NUM*\[*-NUM*\]\]  
-Set maximum number of *response tokens*. Def=*512*.
+Set maximum number of *response tokens*. Def=*1024*.
 
 A second number in the argument sets model capacity.
 
 **-N** \[*NUM*\], **--modmax**=\[*NUM*\]  
-Set *model capacity* tokens. Def=*auto*, fallback=*2048*.
+Set *model capacity* tokens. Def=*auto*, fallback=*4000*.
 
 **-a** \[*VAL*\], **--presence-penalty**=\[*VAL*\]  
 Set presence penalty (cmpls/chat, -2.0 - 2.0).
@@ -708,7 +708,7 @@ Start new multi-turn session in plain text completions.
 **-E**, **–exit**  
 Exit on first run (even with options -cc).
 
-**-g**, **--stream**  
+**-g**, **--stream** (*defaults*)  
 Set response streaming.
 
 **-G**, **--no-stream**  
@@ -723,7 +723,7 @@ Create variations of a given image.
 **-i** \[*PNG*\] \[*MASK*\] \[*PROMPT*\]  
 Edit image with mask and prompt (required).
 
-**-qq**, **--insert** <!-- _(deprecated)_ -->  
+**-qq**, **--insert** <!-- (_deprecated_) -->  
 Insert text rather than completing only. May be set twice for
 multi-turn.
 
@@ -779,6 +779,7 @@ Ignore user configuration file and environment.
 
 **-F**  
 Edit configuration file with text editor, if it exists.
+Def=*~/.chatgpt.conf* .
 
 **-FF**  
 Dump template configuration file to stdout.
@@ -840,7 +841,7 @@ Edit prompt in text editor.
 **-y**, **--tik**  
 Set tiktoken for token count (cmpls, chat, python).
 
-**-Y**, **–no-tik**  
+**-Y**, **–no-tik** (*defaults*)  
 Unset tiktoken use (cmpls, chat, python).
 
 **-zz** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\], **--tts**  

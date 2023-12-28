@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.24.8 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.24.11 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.24.8 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.24.11 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">December 2023</p>
 </header>
@@ -257,7 +257,7 @@ change to or create a new history file (with
 model list. List available models with <code>option -l</code>.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
-defaults to <em>512</em> tokens.</p>
+defaults to <em>1024</em> tokens.</p>
 <p>If a second <em>NUM</em> is given to this option, <em>maximum model
 capacity</em> will also be set. The option syntax takes the form of
 “<code>-</code><em>NUM/NUM</em>”, and “<code>-M</code>
@@ -797,7 +797,7 @@ class="uri">https://github.com/openai/openai-cookbook/blob/main/techniques_to_im
 class="uri">https://platform.openai.com/docs/</a></li>
 </ul>
 <h3 id="code-completions-discontinued">CODE COMPLETIONS
-<em>(discontinued)</em></h3>
+(<em>discontinued</em>)</h3>
 <p>Codex models are discontinued. Use davinci or <em>gpt-3.5+
 models</em> for coding tasks.</p>
 <!-- Turn comments into code, complete the next line or function in
@@ -806,7 +806,7 @@ amongst other functions. -->
 <p>Start with a comment with instructions, data or code. To create
 useful completions it’s helpful to think about what information a
 programmer would need to perform a task.</p>
-<h3 id="text-edits-discontinued">TEXT EDITS <em>(discontinued)</em></h3>
+<h3 id="text-edits-discontinued">TEXT EDITS (<em>discontinued</em>)</h3>
 <!--
 This endpoint is set with models with **edit** in their name or
 `option -e`. Editing works by setting INSTRUCTION on how to modify
@@ -1041,14 +1041,15 @@ optionally required.</p>
 <dt><strong>-M</strong> [<em>NUM</em>[<em>/NUM</em>]],
 <strong>--max</strong>=[<em>NUM</em>[<em>-NUM</em>]]</dt>
 <dd>
-<p>Set maximum number of <em>response tokens</em>. Def=<em>512</em>.</p>
+<p>Set maximum number of <em>response tokens</em>.
+Def=<em>1024</em>.</p>
 <p>A second number in the argument sets model capacity.</p>
 </dd>
 <dt><strong>-N</strong> [<em>NUM</em>],
 <strong>--modmax</strong>=[<em>NUM</em>]</dt>
 <dd>
 <p>Set <em>model capacity</em> tokens. Def=<em>auto</em>,
-fallback=<em>2048</em>.</p>
+fallback=<em>4000</em>.</p>
 </dd>
 <dt><strong>-a</strong> [<em>VAL</em>],
 <strong>--presence-penalty</strong>=[<em>VAL</em>]</dt>
@@ -1145,7 +1146,8 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Exit on first run (even with options -cc).</p>
 </dd>
-<dt><strong>-g</strong>, <strong>--stream</strong></dt>
+<dt><strong>-g</strong>, <strong>--stream</strong>
+(<em>defaults</em>)</dt>
 <dd>
 <p>Set response streaming.</p>
 </dd>
@@ -1167,7 +1169,7 @@ Def=<em>1</em>.</p>
 <p>Edit image with mask and prompt (required).</p>
 </dd>
 <dt><strong>-qq</strong>, <strong>--insert</strong>
-<!-- _(deprecated)_ --></dt>
+<!-- (_deprecated_) --></dt>
 <dd>
 <p>Insert text rather than completing only. May be set twice for
 multi-turn.</p>
@@ -1233,7 +1235,8 @@ matches the audio language is optional.</p>
 </dd>
 <dt><strong>-F</strong></dt>
 <dd>
-<p>Edit configuration file with text editor, if it exists.</p>
+<p>Edit configuration file with text editor, if it exists.
+Def=<em>~/.chatgpt.conf</em> .</p>
 </dd>
 <dt><strong>-FF</strong></dt>
 <dd>
@@ -1314,7 +1317,8 @@ and start sequences.</p>
 <dd>
 <p>Set tiktoken for token count (cmpls, chat, python).</p>
 </dd>
-<dt><strong>-Y</strong>, <strong>–no-tik</strong></dt>
+<dt><strong>-Y</strong>, <strong>–no-tik</strong>
+(<em>defaults</em>)</dt>
 <dd>
 <p>Unset tiktoken use (cmpls, chat, python).</p>
 </dd>

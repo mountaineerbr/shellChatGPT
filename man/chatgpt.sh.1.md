@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.24.8 | General Commands Manual
+% CHATGPT.SH(1) v0.24.11 | General Commands Manual
 % mountaineerbr
 % December 2023
 
@@ -75,7 +75,7 @@ or set it as "_._" to pick from the model list.
 List available models with `option -l`.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
-This defaults to _512_ tokens.
+This defaults to _1024_ tokens.
 
 If a second _NUM_ is given to this option, _maximum model capacity_
 will also be set. The option syntax takes the form of "`-`_NUM/NUM_",
@@ -393,7 +393,7 @@ See detailed info on settings for each endpoint at:
  - <https://platform.openai.com/docs/>
 
 
-### CODE COMPLETIONS _(discontinued)_
+### CODE COMPLETIONS (_discontinued_)
 
 Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
 
@@ -406,7 +406,7 @@ useful completions it's helpful to think about what information
 a programmer would need to perform a task. 
 
 
-### TEXT EDITS  _(discontinued)_
+### TEXT EDITS  (_discontinued_)
 
 <!--
 This endpoint is set with models with **edit** in their name or
@@ -686,14 +686,14 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-M** \[_NUM_[_/NUM_]], **\--max**=\[_NUM_[_-NUM_]]
 
-:     Set maximum number of _response tokens_. Def=_512_.
+:     Set maximum number of _response tokens_. Def=_1024_.
 
       A second number in the argument sets model capacity.
 
 
 **-N** \[_NUM_], **\--modmax**=\[_NUM_]
 
-: Set _model capacity_ tokens. Def=_auto_, fallback=_2048_.
+: Set _model capacity_ tokens. Def=_auto_, fallback=_4000_.
 
 
 **-a** \[_VAL_], **\--presence-penalty**=\[_VAL_]
@@ -792,7 +792,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Exit on first run (even with options -cc).
 
 
-**-g**, **\--stream**
+**-g**, **\--stream**   (_defaults_)
 
 : Set response streaming.
 
@@ -817,7 +817,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Edit image with mask and prompt (required).
 
 
-**-qq**, **\--insert**  <!-- _(deprecated)_ -->
+**-qq**, **\--insert**  <!-- (_deprecated_) -->
 
 :     Insert text rather than completing only. May be set twice
       for multi-turn.
@@ -885,7 +885,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-F**
 
-: Edit configuration file with text editor, if it exists.
+: Edit configuration file with text editor, if it exists. Def=_~/.chatgpt.conf_ .
 
 
 **-FF**
@@ -977,7 +977,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Set tiktoken for token count (cmpls, chat, python).
 
 
-**-Y**, **--no-tik**
+**-Y**, **--no-tik**  (_defaults_)
 
 : Unset tiktoken use (cmpls, chat, python).
 

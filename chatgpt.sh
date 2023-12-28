@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.10  dec/2023  by mountaineerbr  GPL+3
-set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
+# v0.24.11  dec/2023  by mountaineerbr  GPL+3
+set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
 #OPENAI_API_KEY=
@@ -20,13 +20,13 @@ MOD_SPEECH="tts-1"   #"tts-1-hd"
 # Prompter flush with <CTRL-D> (multiline bash)
 #OPTCTRD=
 # Stream response
-#STREAM=
+STREAM=1
 # Temperature
 #OPTT=
 # Top_p probability mass (nucleus sampling)
 #OPTP=1
 # Maximum response tokens
-OPTMAX=512
+OPTMAX=1024
 # Model capacity (auto)
 #MODMAX=
 # Presence penalty
@@ -48,7 +48,7 @@ OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 # TTS voice speed
 #OPTZ_SPEED=   #0.25 - 4.0
 # TTS out file format
-OPTZ_FMT=opus   #opus, aac, flac
+OPTZ_FMT=opus   #mp3, opus, aac, flac
 # Clipboard set command, e.g. "xsel -b", "pbcopy"
 #CLIP_CMD=""
 # Recorder command, e.g. "sox"
@@ -342,7 +342,7 @@ Options
 		Set maximum number of \`response tokens'. Def=$OPTMAX.
 		A second number in the argument sets model capacity.
 	-N [NUM], --modmax=[NUM]
-		Set \`model capacity' tokens. Def=_auto_, fallback=2048.
+		Set \`model capacity' tokens. Def=_auto_, fallback=4000.
 	-a [VAL], --presence-penalty=[VAL]
 		Set presence penalty  (cmpls/chat, -2.0 - 2.0).
 	-A [VAL], --frequency-penalty=[VAL]
@@ -380,7 +380,7 @@ Options
 		Start new multi-turn session in plain text completions.
 	-E, --exit
 		Exit on first run (even with -cc).
-	-g, --stream
+	-g, --stream  (defaults)
 		Set response streaming.
 	-G, --no-stream
 		Unset response streaming.
@@ -420,7 +420,7 @@ Options
 	Script Settings
 	-f, --no-conf
 		Ignore user configuration file and environment.
-	-F 	Edit configuration file, if it exists.
+	-F 	Edit configuration file, if it exists. Def="${CONFFILE/"$HOME"/"~"}".
 	-FF 	Dump template configuration file to stdout.
 	-h, --help
 		Print this help page.
@@ -455,7 +455,7 @@ Options
 		Edit prompt in text editor.
 	-y, --tik
 		Set tiktoken for token count (cmpls, chat).
-	-Y, --no-tik
+	-Y, --no-tik  (defaults)
 		Unset tiktoken use (cmpls, chat).
 	-zz [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT], --tts
 		Synthesise speech from text prompt, set twice to play.
@@ -527,7 +527,7 @@ function model_capf
 		gpt-3.5*16K*|*turbo*16k*) 	MODMAX=16384;;
 		*turbo*|*davinci*) 	MODMAX=4096;;
 		*embedding*|*search*) MODMAX=2046;;
-		*) 	MODMAX=2048;;
+		*) 	MODMAX=4000;;
 	esac
 }  #max output of gpt-4 is 4096 tokens. #https://help.openai.com/en/articles/8555510-gpt-4-turbo
 
@@ -1183,8 +1183,8 @@ function set_maxtknf
 function cmd_runf
 {
 	typeset var wc args xskip n
-	[[ ${1:0:128} = *([$IFS:])[/!-]* ]] || return;
-	((${#1}<512)) || return;
+	[[ ${1:0:256} = *([$IFS:])[/!-]* ]] || return;
+	((${#1}<768)) || return;
 	printf "${NC}" >&2;
 
 	set -- "${1##*([$IFS:])?([/!])}" "${@:2}";
@@ -1660,7 +1660,7 @@ function fix_dotf
 #minify json
 function json_minif
 {
-	typeset blk
+	typeset blk;
 	if [[ ${BLOCK:0:10} = @* ]]
 	then 	blk=$(jq -c . "${BLOCK##@}") || return
 		printf '%s\n' "$blk" >"${BLOCK##@}"
@@ -2922,9 +2922,9 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	__warmsgf 'Err:' 'Text edits models are discontinued'; exit 2;;  #also del --edit long option
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY
-			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV NC
-			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Nc
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY;
+			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
+			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
 		F) 	((++OPTFF));;
 		g) 	STREAM=1;;
@@ -3093,11 +3093,12 @@ do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
 done ;unset arg init
 
-mkdir -p "$CACHEDIR" || exit
+mkdir -p "$CACHEDIR" || { 	_sysmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
 if ! command -v jq >/dev/null 2>&1
 then 	function jq { 	false ;}
 	function escapef { 	_escapef "$@" ;}
 	function unescapef { 	_unescapef "$@" ;}
+	Color200=$INV __warmsgf 'Warning:' 'JQ not found. Please, install JQ.'
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 
