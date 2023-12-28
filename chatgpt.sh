@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.12  dec/2023  by mountaineerbr  GPL+3
+# v0.24.13  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1976,7 +1976,7 @@ function prompt_ttsf
 	((OPTVV)) && echo "TTS model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}" >&2
 	
 	#disable curl progress-bar because of `chunk transfer encoding'
-	_sysmsgf 'TTS:' '<ctr-c> stop, <enter> play now ' ''
+	_sysmsgf 'TTS:' '<ctr-c> [s]top, <enter> [p]lay now ' ''
 
 	curl -Ss -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
@@ -2023,14 +2023,14 @@ function ttsf
 	[[ $* != *([$IFS]) ]] || ! echo '(empty)' >&2 || return 2
 
 	if ((${#xinput}>max))
-	then 	__warmsgf 'warning:' "user input ${#xinput} chars / max ${max} chars"  #max ~5 minutes
+	then 	__warmsgf 'Warning:' "User input ${#xinput} chars / max ${max} chars"  #max ~5 minutes
 		i=1 FOUT=${FOUT%.*}-${i}.${OPTZ_FMT};
 	fi  #https://help.openai.com/en/articles/8555505-tts-api
 	
 	while input=${xinput:0:max} play= ;
 	do
 		if ((!(MTURN+OPTC+OPTCMPL) ))
-		then 	__sysmsgf 'File Out:' "${FOUT/"$HOME"/"~"}";
+		then 	__sysmsgf $'\n''File Out:' "${FOUT/"$HOME"/"~"}";
 			__sysmsgf 'Text Prompt:' "${xinput:0:COLUMNS-17}$([[ -n ${xinput:COLUMNS-17} ]] && echo ...)";
 		fi
 		
@@ -2040,11 +2040,11 @@ function ttsf
 		while __spinf
 			kill -0 -- $pid  >/dev/null 2>&1
 		do 	case "$(read -n 1 -t 0.3 && echo "$REPLY" || echo x)" in
-				$'\e'|""|[Pp]) play=1;
+				$'\e'|""|[EePp]) play=1;
 					while [[ ! -s $FOUT ]]
 					do 	sleep 0.3s;
 					done; sleep 1s; break 1;;
-				[QqSs]) 	kill -- $pid; break 2;;
+				[CcQqSs]) 	kill -- $pid; break 2;;
 			esac
 		done </dev/tty; echo >&2;
 		((play)) || wait $pid; ret=$?; trap '-' $sig;
