@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.8  dec/2023  by mountaineerbr  GPL+3
+# v0.24.9  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS
 
 # OpenAI API key
@@ -957,7 +957,11 @@ function set_histf
 
 function hist_lastlinef
 {
-	sed -n -e 's/\t"/\t/; s/"$//;' -e '$s/^[^\t]*\t[^\t]*\t//p' "$FILECHAT"
+	typeset r s
+	r=${Q_TYPE##\\n} r=${r%%\\n}
+	s=${A_TYPE##\\n} s=${s%%\\n}
+	sed -n -e 's/\t"/\t/; s/"$//;' -e '$s/^[^\t]*\t[^\t]*\t//p' "$FILECHAT" \
+	| sed -e "s/^://; s/^${r}//; s/^${s}//;"
 }
 
 #print to history file
