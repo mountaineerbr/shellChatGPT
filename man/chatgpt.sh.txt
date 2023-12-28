@@ -756,7 +756,8 @@ Script Settings
 -F
 
     Edit configuration file with text editor, if it exists.
-    Def=~/.chatgpt.conf .
+
+    $CHATGPTRC="~/.chatgpt.conf".
 
 -FF
 

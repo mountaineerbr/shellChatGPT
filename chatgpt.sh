@@ -218,7 +218,7 @@ See Also
 Environment
 	CHATGPTRC
 	CONFFILE 	Path to user chatgpt.sh configuration.
-			Defaults=\"${CHATGPTRC:-${CONFFILE:-~/.chatgpt.conf}}\"
+			Defaults=\"${CHATGPTRC:-${CONFFILE:-"$HOME/.chatgpt.conf"}}\"
 
 	FILECHAT 	Path to a history / session TSV file.
 
@@ -420,7 +420,8 @@ Options
 	Script Settings
 	-f, --no-conf
 		Ignore user configuration file and environment.
-	-F 	Edit configuration file, if it exists. Def="${CONFFILE/"$HOME"/"~"}".
+	-F 	Edit configuration file, if it exists.
+		\$CHATGPTRC="${CONFFILE/"$HOME"/"~"}".
 	-FF 	Dump template configuration file to stdout.
 	-h, --help
 		Print this help page.

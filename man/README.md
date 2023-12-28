@@ -779,7 +779,8 @@ Ignore user configuration file and environment.
 
 **-F**  
 Edit configuration file with text editor, if it exists.
-Def=*~/.chatgpt.conf* .
+
+\$CHATGPTRC="*~/.chatgpt.conf*".
 
 **-FF**  
 Dump template configuration file to stdout.

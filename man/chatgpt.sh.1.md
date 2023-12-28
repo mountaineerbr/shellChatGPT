@@ -885,7 +885,9 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-F**
 
-: Edit configuration file with text editor, if it exists. Def=_~/.chatgpt.conf_ .
+:     Edit configuration file with text editor, if it exists.
+      
+      \$CHATGPTRC=\"_~/.chatgpt.conf_\".
 
 
 **-FF**
