@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: December 2023
-title: CHATGPT.SH(1) v0.24.11 \| General Commands Manual
+title: CHATGPT.SH(1) v0.24.25 \| General Commands Manual
 ---
 
 ### NAME
@@ -28,8 +28,9 @@ title: CHATGPT.SH(1) v0.24.11 \| General Commands Manual
 \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
    **chatgpt.sh** `-cczw` \[`opt`\] \[*LANG*\]  
    **chatgpt.sh** `-cczW` \[`opt`\]  
-   **chatgpt.sh** `-HHH` \[`/`*HIST_FILE*\]  
-   **chatgpt.sh** `-l` \[*MODEL*\]
+   **chatgpt.sh** `-l` \[*MODEL*\]  
+   **chatgpt.sh** `-HHH` \[`/`*HIST_FILE*\|*.*\]  
+   **chatgpt.sh** `-HHw`
 
 ### DESCRIPTION
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.24  dec/2023  by mountaineerbr  GPL+3
+# v0.24.25  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -142,8 +142,9 @@ Synopsis
 	${0##*/} -zz [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 	${0##*/} -cczw [opt] [LANG]
 	${0##*/} -cczW [opt]
-	${0##*/} -HHH [/HIST_FILE]
 	${0##*/} -l [MODEL]
+	${0##*/} -HHH [/HIST_FILE|.]
+	${0##*/} -HHw
 
 
 Description
@@ -1936,37 +1937,26 @@ function whisperf
 		[[ -n $OPTW_FMT ]] && set -- -F response_format="$OPTW_FMT" "$@"
 
 		prompt_audiof "$file" $LANGW "$@" && {
-		jq -r "${JQCOLNULL} ${JQCOL}
-			def pad(x): tostring | (length | if . >= x then \"\" else \"0\" * (x - .) end) as \$padding | \"\(\$padding)\(.)\";
-			def seconds_to_time_string:
-			def nonzero: floor | if . > 0 then . else empty end;
-			if . == 0 then \"00\"
-			else
-			[(./60/60         | nonzero),
-			 (./60       % 60 | pad(2)),
-			 (.          % 60 | pad(2))]
-			| join(\":\")
-			end;
+		jq -r "${JQCOLNULL} ${JQCOL} ${JQDATE}
 			\"Task: \(.task)\" +
 			\"\\t\" + \"Lang: \(.language)\" +
 			\"\\t\" + \"Dur: \(.duration|seconds_to_time_string)\" +
 			\"\\n\", (.segments[]| \"[\" + yellow + \"\(.start|seconds_to_time_string)\" + reset + \"]\" +
 			bpurple + .text + reset)" "$FILE" \
-			|| jq -r '.text' "$FILE" || cat -- "$FILE" ;}
-			#https://rosettacode.org/wiki/Convert_seconds_to_compound_duration#jq
-			#https://stackoverflow.com/questions/64957982/how-to-pad-numbers-with-jq
+		|| jq -r 'if .segments then (.segments[] | (.start|tostring) + .text) else .text end' "$FILE" || cat -- "$FILE" ;}
 	else
 		prompt_audiof "$file" $LANGW "$@" && {
-		jq -r "${JQCOLNULL} ${JQCOL}
-		bpurple + .text + reset" "$FILE" || cat -- "$FILE" ;}
+		jq -r "${JQCOLNULL} ${JQCOL} ${JQDATE}
+		  bpurple + .text + reset" "$FILE" \
+		|| jq -r '.text' "$FILE" || cat -- "$FILE" ;}
 	fi &&
-	if WHISPER_OUT=$(jq -r '.text' "$FILE" || cat -- "$FILE") &&
-		  ((!CHAT_ENV)) && [[ -d $OUTDIR ]] &&  #rec whisper output
-		  printf '\n===\n%s\n' "$(date -R 2>/dev/null||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG";
-		((OPTCLIP && !CHAT_ENV)) || [[ ! -t 1 ]]
-	then
-		((OPTCLIP && !CHAT_ENV)) && (${CLIP_CMD:-false} <<<"$WHISPER_OUT" &)  #clipboard
-		[[ -t 1 ]] || printf '%s\n' "$WHISPER_OUT" >&2  #pipe + stderr
+	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"\(.start|seconds_to_time_string)\" + .text) else .text end" "$FILE" || cat -- "$FILE") &&
+		  ((!CHAT_ENV)) && [[ -d ${FILEWHISPERLOG%/*} ]] &&  #rec whisper output
+		  printf '\n====\n%s\n\n%s\n' "$(date -R 2>/dev/null||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG" &&
+		  __warmsgf 'Log:' "$FILEWHISPERLOG";
+
+		((OPTCLIP && !CHAT_ENV))
+	then 	(${CLIP_CMD:-false} <<<"$WHISPER_OUT" &)  #clipboard
 	fi || {
 		__warmsgf 'err:' 'whisper response'
 		printf 'Retry request? Y/n ' >&2;
@@ -1977,6 +1967,19 @@ function whisperf
 		esac
 	}
 }
+#JQ function: seconds to compound time
+JQDATE="def pad(x): tostring | (length | if . >= x then \"\" else \"0\" * (x - .) end) as \$padding | \"\(\$padding)\(.)\";
+def seconds_to_time_string:
+def nonzero: floor | if . > 0 then . else empty end;
+if . == 0 then \"00\"
+else
+[(./60/60         | nonzero),
+ (./60       % 60 | pad(2)),
+ (.          % 60 | pad(2))]
+| join(\":\")
+end;"
+#https://rosettacode.org/wiki/Convert_seconds_to_compound_duration#jq
+#https://stackoverflow.com/questions/64957982/how-to-pad-numbers-with-jq
 
 #request tts prompt
 function prompt_ttsf
@@ -3123,7 +3126,17 @@ command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 
 trap 'exit 2' QUIT  #always exit on <CTRL-\>
 
-if ((OPTHH))  #edit history/pretty print last session
+if ((OPTHH&&OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN) )) && [[ -f $FILEWHISPERLOG ]]
+then  #whisper log
+	if ((OPTHH>1))
+	then 	while IFS= read -r || [[ -n $REPLY ]]
+		do 	[[ $REPLY = ==== ]] && [[ -n $BUFF ]] && break;
+			BUFF=${REPLY}$'\n'${BUFF};
+		done < <(tac "$FILEWHISPERLOG");
+		printf '%s' "$BUFF";
+	else 	__edf "$FILEWHISPERLOG"
+	fi
+elif ((OPTHH))  #edit history/pretty print last session
 then
 	[[ $INSTRUCTION = [.,]* ]] && OPTRESUME=1 custom_prf
 	if [[ $* = .* ]]

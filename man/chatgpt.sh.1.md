@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.24.11 | General Commands Manual
+% CHATGPT.SH(1) v0.24.25 | General Commands Manual
 % mountaineerbr
 % December 2023
 
@@ -21,8 +21,9 @@
 |    **chatgpt.sh** `-z` \[`opt`] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
 |    **chatgpt.sh** `-cczw` \[`opt`] \[_LANG_]
 |    **chatgpt.sh** `-cczW` \[`opt`]
-|    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_]
 |    **chatgpt.sh** `-l` \[_MODEL_]
+|    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_|_._]
+|    **chatgpt.sh** `-HHw`
 
 
 ### DESCRIPTION
