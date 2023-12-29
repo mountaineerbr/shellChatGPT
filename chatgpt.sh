@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.18  dec/2023  by mountaineerbr  GPL+3
+# v0.24.19  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -810,7 +810,7 @@ function prompt_audiof
 		-o "$FILE" \
 		"${@:2}" && {
 	  [[ -d $CACHEDIR ]] && printf '%s\n\n' "$(<"$FILE")" >> "$FILEWHISPER";
-	  ((OPTV)) || __clr_lineupf; ((MTURN)) || echo >&2;
+	  ((OPTV)) || __clr_lineupf; ((CHAT_ENV)) || echo >&2;
 	}
 }
 
@@ -1577,7 +1577,7 @@ function edf
 	((OPTC)) && rest="${RESTART:-$Q_TYPE}" || rest="${RESTART}"
 	rest="$(_unescapef "$rest")"
 
-	if ((MTURN+OPTRESUME))
+	if ((CHAT_ENV))
 	then 	MAIN_LOOP=1 Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= \
 		set_histf "${rest}${*}"
 	fi
@@ -1609,7 +1609,7 @@ function edf
 
 	printf "%s\\n" "$pos" > "$FILETXT"
 
-	if ((MTURN))
+	if ((CHAT_ENV))
 	then 	cmd_runf "$pos" && return 200
 	fi
 }
@@ -1841,7 +1841,7 @@ function recordf
 		REC_CMD='ffmpeg_recf'
 	fi >/dev/null 2>&1
 	
-	((MTURN)) || __sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
+	((CHAT_ENV)) || __sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
 	[[ $REC_CMD = termux* ]] && termux=1;
 	$REC_CMD "$1" & pid=$! sig="INT";
 	trap "rec_killf $pid $termux" $sig;
@@ -1892,7 +1892,7 @@ function __set_langf
 function whisperf
 {
 	typeset file args rec; unset WHISPER_OUT;
-	if ((!MTURN))
+	if ((!CHAT_ENV))
 	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "$OPTT";
 	fi;
 	check_optrangef "$OPTT" 0 1.0 Temperature
@@ -1905,7 +1905,7 @@ function whisperf
 	then 	set -- "${@:1:1}" "${@:3}"
 	fi
 	
-	if { 	((!$#)) || [[ ! -e $1 && ! -e ${@:${#}} ]] ;} && ((!MTURN))
+	if { 	((!$#)) || [[ ! -e $1 && ! -e ${@:${#}} ]] ;} && ((!CHAT_ENV))
 	then 	printf "${PURPLE}%s ${NC}" 'Record mic input? [Y/n]' >&2
 		case "$( [[ -t 1 ]] || __read_charf )" in
 			[AaNnQq]|$'\e') 	:;;
@@ -1927,7 +1927,7 @@ function whisperf
 	[[ ${*} = *([$IFS]) ]] || set -- -F prompt="$*"
 
 	#response_format (timestamps) - testing
-	if ((OPTW>1 || OPTWW>1)) && ((!MTURN))
+	if ((OPTW>1 || OPTWW>1)) && ((!CHAT_ENV))
 	then
 		OPTW_FMT=verbose_json   #json, text, srt, verbose_json, or vtt.
 		[[ -n $OPTW_FMT ]] && set -- -F response_format="$OPTW_FMT" "$@"
@@ -1957,9 +1957,9 @@ function whisperf
 		jq -r "${JQCOLNULL} ${JQCOL}
 		bpurple + .text + reset" "$FILE" || cat -- "$FILE" ;}
 	fi && { 	((!OPTZ)) || WHISPER_OUT=$(jq -r '.text' "$FILE" || cat -- "$FILE") ;} &&
-	if ((OPTCLIP&&!MTURN)) || [[ ! -t 1 ]]
+	if ((OPTCLIP && !CHAT_ENV)) || [[ ! -t 1 ]]
 	then 	typeset out ;out=${WHISPER_OUT:-$(jq -r ".text" "$FILE" || cat -- "$FILE")}
-		((OPTCLIP&&!MTURN)) && (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
+		((OPTCLIP && !CHAT_ENV)) && (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
 		[[ -t 1 ]] || printf '%s\n' "$out" >&2  #pipe + stderr
 	fi || {
 		__warmsgf 'err:' 'whisper response'
@@ -1995,7 +1995,7 @@ function ttsf
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
-	if ((!(MTURN+OPTC+OPTCMPL) ))  #!no chat!#
+	if ((!CHAT_ENV))
 	then 	#set speech voice, out file format, and speed
 		__set_ttsf "$3" && set -- "${@:1:2}" "${@:4}"
 		__set_ttsf "$2" && set -- "${@:1:1}" "${@:3}"
@@ -2013,7 +2013,7 @@ function ttsf
 	fi
 
 	xinput=$*; [[ ${MOD_SPEECH} = tts-1* ]] && max=4096 || max=40960;
-	if ((!(MTURN+OPTC+OPTCMPL) ))
+	if ((!CHAT_ENV))
 	then 	__sysmsgf 'Speech Model:' "$MOD_SPEECH";
 		__sysmsgf 'Voice:' "$VOICEZ";
 		__sysmsgf 'Speed:' "${SPEEDZ:-1}";
@@ -2027,7 +2027,7 @@ function ttsf
 	
 	while input=${xinput:0:max};
 	do
-		if ((!(MTURN+OPTC+OPTCMPL) ))
+		if ((!CHAT_ENV))
 		then 	__sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
 			__sysmsgf 'Text Prompt:' "${xinput:0:COLUMNS-17}$([[ -n ${xinput:COLUMNS-17} ]] && echo ...)";
 		fi
@@ -2050,7 +2050,7 @@ function ttsf
 					break 1;;
 			esac
 		done </dev/tty;
-		((${#var})) && echo X >&2; __clr_lineupf $((40+${#var}));  #!# 40+${var:+1+}${#var}
+		((${#var})) && echo X >&2; __clr_lineupf $((40+${#var}));  #!#
 		wait $pid; ret=$?; trap '-' $sig;
 
 		case $ret in
@@ -2067,7 +2067,7 @@ function ttsf
 	[[ $FOUT = "-"* ]] || { 
 		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
 		((OPTZ<2)) || [[ ! -s $FOUT ]] || {
-			((MTURN)) || __sysmsgf 'PLAY_CMD:' "\"${PLAY_CMD}\"";
+			((CHAT_ENV)) || __sysmsgf 'PLAY_CMD:' "\"${PLAY_CMD}\"";
 			${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
 			trap "kill -- $pid" $sig;
 			wait $pid; trap '-' $sig;
@@ -2455,7 +2455,7 @@ function custom_prf
 	_cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
 
 	if { 	[[ $msg = *[Cc][Rr][Ee][Aa][Tt][Ee]* ]] && INSTRUCTION="$*" ret=200 ;} ||
-		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || ((MTURN && OPTRESUME!=1 && skip==0))
+		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || (( (MTURN+CHAT_ENV) && OPTRESUME!=1 && skip==0))
 	then
 		if __clr_ttystf; ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
@@ -2923,7 +2923,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	__warmsgf 'Err:' 'Text edits models are discontinued'; exit 2;;  #also del --edit long option
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -2979,7 +2979,7 @@ do
 	esac ;OPTARG=
 done
 shift $((OPTIND -1))
-unset LANGW MTURN MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB init buff var n s
+unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB init buff var n s
 
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
   #map colours
@@ -3205,6 +3205,7 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 		printf '%-22s: %.24f (%s)\n' $(lastjsonf | jq -r '.results[].categories|keys_unsorted[]' | while read -r; do 	lastjsonf | jq -r "\"$REPLY \" + (.results[].category_scores.\"$REPLY\"|tostring//empty) + \" \" + (.results[].categories.\"$REPLY\"|tostring//empty)"; done)
 	fi
 else
+	CHAT_ENV=1
 	#custom / awesome prompts
 	if [[ $INSTRUCTION = [/%.,]* ]]
 	then 	if [[ $INSTRUCTION = [/%]* ]]
