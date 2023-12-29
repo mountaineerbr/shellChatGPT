@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.23  dec/2023  by mountaineerbr  GPL+3
+# v0.24.24  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1962,7 +1962,7 @@ function whisperf
 	fi &&
 	if WHISPER_OUT=$(jq -r '.text' "$FILE" || cat -- "$FILE") &&
 		  ((!CHAT_ENV)) && [[ -d $OUTDIR ]] &&  #rec whisper output
-		  printf '\n===\n%s\n' "$(date -R||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG";
+		  printf '\n===\n%s\n' "$(date -R 2>/dev/null||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG";
 		((OPTCLIP && !CHAT_ENV)) || [[ ! -t 1 ]]
 	then
 		((OPTCLIP && !CHAT_ENV)) && (${CLIP_CMD:-false} <<<"$WHISPER_OUT" &)  #clipboard
