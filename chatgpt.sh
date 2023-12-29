@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.17  dec/2023  by mountaineerbr  GPL+3
+# v0.24.18  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -2033,23 +2033,24 @@ function ttsf
 		fi
 		
 		((OPTVV)) && _sysmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}"
-		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> [p]lay now ' ''
+		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> [p]lay now ' '';  #!#
 
 		prompt_ttsf "${input:-$*}" &
 		pid=$! sig="INT";  #catch <CTRL-C>
 		trap "kill -9 -- $pid" $sig;
 		while __spinf
 			kill -0 -- $pid  >/dev/null 2>&1
-		do 	var=$(read -r -n 1 -t 0.3 && printf '%s' "$REPLY" || printf x)
+		do 	var=$(IFS=$'\n' read -r -n 1 -t 0.3 && printf '%s' "$REPLY" || printf x)
 			case "$var" in
-				$'\e'|[Pp]|"")
+				$'\t'|' '|''|[Pp])
 					__read_charf -t 1.4  &>/dev/null
 					break 1;;
-				[CcEeKkQqSs])
+				$'\e'|[CcEeKkQqSs])
 					kill -- $pid;
 					break 1;;
 			esac
-		done </dev/tty; echo X >&2; __clr_lineupf 41; #!#
+		done </dev/tty;
+		((${#var})) && echo X >&2; __clr_lineupf $((40+${#var}));  #!# 40+${var:+1+}${#var}
 		wait $pid; ret=$?; trap '-' $sig;
 
 		case $ret in
