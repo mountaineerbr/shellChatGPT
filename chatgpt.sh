@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.16  dec/2023  by mountaineerbr  GPL+3
+# v0.24.17  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1841,8 +1841,8 @@ function recordf
 		REC_CMD='ffmpeg_recf'
 	fi >/dev/null 2>&1
 	
-	__sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
-	[[ $REC_CMD = *termux-* ]] && termux=1;
+	((MTURN)) || __sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
+	[[ $REC_CMD = termux* ]] && termux=1;
 	$REC_CMD "$1" & pid=$! sig="INT";
 	trap "rec_killf $pid $termux" $sig;
 	
@@ -1991,7 +1991,7 @@ function prompt_ttsf
 #speech synthesis (tts)
 function ttsf
 {
-	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid sig n m i
+	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid sig var n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -2040,7 +2040,8 @@ function ttsf
 		trap "kill -9 -- $pid" $sig;
 		while __spinf
 			kill -0 -- $pid  >/dev/null 2>&1
-		do 	case "$(read -r -n 1 -t 0.3 && printf '%s' "$REPLY" || printf x)" in
+		do 	var=$(read -r -n 1 -t 0.3 && printf '%s' "$REPLY" || printf x)
+			case "$var" in
 				$'\e'|[Pp]|"")
 					__read_charf -t 1.4  &>/dev/null
 					break 1;;
@@ -2048,7 +2049,7 @@ function ttsf
 					kill -- $pid;
 					break 1;;
 			esac
-		done </dev/tty; echo X >&2;
+		done </dev/tty; echo X >&2; __clr_lineupf 41; #!#
 		wait $pid; ret=$?; trap '-' $sig;
 
 		case $ret in
@@ -2065,7 +2066,7 @@ function ttsf
 	[[ $FOUT = "-"* ]] || { 
 		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
 		((OPTZ<2)) || [[ ! -s $FOUT ]] || {
-			__sysmsgf 'PLAY_CMD:' "\"${PLAY_CMD}\"";
+			((MTURN)) || __sysmsgf 'PLAY_CMD:' "\"${PLAY_CMD}\"";
 			${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
 			trap "kill -- $pid" $sig;
 			wait $pid; trap '-' $sig;
