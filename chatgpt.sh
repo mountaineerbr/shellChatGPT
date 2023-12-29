@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.19  dec/2023  by mountaineerbr  GPL+3
+# v0.24.20  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -697,7 +697,7 @@ function new_prompt_confirmf
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
 	REPLY=$(__read_charf); __clr_lineupf $((8+40+1+${#extra})) #!#
-	case "${REPLY}" in
+	case "$REPLY" in
 		[AaQq]) 	return 201;;  #break
 		[Rr]) 		return 200;;  #redo
 		[Ee]|$'\e') 	return 199;;  #edit
@@ -711,10 +711,12 @@ function new_prompt_confirmf
 #read one char from user
 function __read_charf
 {
-	typeset REPLY
-	__clr_ttystf; read -n 1 "$@" </dev/tty;
-	printf '%.1s\n' "$REPLY"
-	[[ -z ${REPLY//[$IFS]} ]] || echo >&2
+	typeset REPLY ret
+	((NO_CLR)) || __clr_ttystf;
+	IFS=$'\n' read -r -n 1 "$@" </dev/tty; ret=$?;
+	printf '%.1s\n' "$REPLY";
+	[[ -n $REPLY ]] && echo >&2;
+	return $ret
 }
 
 #print response
@@ -1591,7 +1593,7 @@ function edf
 	while pos="$(<"$FILETXT")"
 		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
 	do 	__warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [r]edo or [a]bort? " ''
-		case "$(__read_charf ;echo >&2)" in
+		case "$(__read_charf)" in
 			[AaQq]) echo abort >&2; return 201;;  #abort
 			[CcNn]) break;;      #continue
 			[Rr])  return 200;;  #redo
@@ -1891,7 +1893,7 @@ function __set_langf
 #whisper
 function whisperf
 {
-	typeset file args rec; unset WHISPER_OUT;
+	typeset file args rec var; unset WHISPER_OUT;
 	if ((!CHAT_ENV))
 	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "$OPTT";
 	fi;
@@ -1907,7 +1909,8 @@ function whisperf
 	
 	if { 	((!$#)) || [[ ! -e $1 && ! -e ${@:${#}} ]] ;} && ((!CHAT_ENV))
 	then 	printf "${PURPLE}%s ${NC}" 'Record mic input? [Y/n]' >&2
-		case "$( [[ -t 1 ]] || __read_charf )" in
+		[[ -t 1 ]] && echo >&2 || var=$(__read_charf)
+		case "$var" in
 			[AaNnQq]|$'\e') 	:;;
 			*) 	OPTV=4 record_confirmf || return
 				WSKIP=1 recordf "$FILEINW"
@@ -2033,14 +2036,14 @@ function ttsf
 		fi
 		
 		((OPTVV)) && _sysmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}"
-		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> [p]lay now ' '';  #!#
+		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play now ' '';  #!#
 
 		prompt_ttsf "${input:-$*}" &
 		pid=$! sig="INT";  #catch <CTRL-C>
 		trap "kill -9 -- $pid" $sig;
 		while __spinf
 			kill -0 -- $pid  >/dev/null 2>&1
-		do 	var=$(IFS=$'\n' read -r -n 1 -t 0.3 && printf '%s' "$REPLY" || printf x)
+		do 	var=$(NO_CLR=1 __read_charf -t 0.3 || printf xXx)
 			case "$var" in
 				$'\t'|' '|''|[Pp])
 					__read_charf -t 1.4  &>/dev/null
@@ -2979,7 +2982,7 @@ do
 	esac ;OPTARG=
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB init buff var n s
+unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB NO_CLR init buff var n s
 
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
   #map colours
@@ -3215,9 +3218,9 @@ else
 			if ((OPTRESUME==1))
 			then 	unset OPTAWE
 			elif ((!${#}))
-			then 	printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request, or append user prompt:\n>\b' >&2
-			  	REPLY=$(__read_charf)
-			  	case "${REPLY//[$IFS]}" in 	?) SKIP=1 EDIT=1 OPTAWE= ;; 	*) unset REPLY; echo >&2;; esac
+			then 	unset REPLY
+				printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request, or append user prompt: ' >&2
+			  	case "$(__read_charf)" in 	?) SKIP=1 EDIT=1 OPTAWE= ;; 	*) JUMP=1;; esac
 			fi
 		else 	custom_prf "$@"
 			case $? in
@@ -3596,7 +3599,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]
 			then 	Color200=${NC} __warmsgf \
 				'Err: History file modified'$'\n' 'Fork session? [Y]es/[n]o/[i]gnore all ' ''
-				case "$(__read_charf ;echo >&2)" in
+				case "$(__read_charf)" in
 					[IiGg]) 	unset CKSUM CKSUM_OLD ;function cksumf { 	: ;};;
 					[AaNnOoQq]|$'\e') :;;
 					*) 		session_mainf /copy "$FILECHAT" || break;;
