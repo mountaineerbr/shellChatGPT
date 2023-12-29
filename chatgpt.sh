@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.14  dec/2023  by mountaineerbr  GPL+3
+# v0.24.15  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -2039,7 +2039,7 @@ function ttsf
 		trap "kill -9 -- $pid" $sig;
 		while __spinf
 			kill -0 -- $pid  >/dev/null 2>&1
-		do 	case "$(IFS= read -r -n 1 -t 0.3 && printf '%s' "$REPLY" || printf x)" in
+		do 	case "$(read -r -n 1 -t 0.3 && printf '%s' "$REPLY" || printf x)" in
 				$'\e'|[Pp]|"")
 					__read_charf -t 1.4  &>/dev/null
 					break 1;;
