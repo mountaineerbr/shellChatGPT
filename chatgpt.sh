@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.13  dec/2023  by mountaineerbr  GPL+3
+# v0.24.14  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -963,7 +963,7 @@ function set_histf
 function hist_lastlinef
 {
 	sed -n -e 's/\t"/\t/; s/"$//;' -e '$s/^[^\t]*\t[^\t]*\t//p' "$FILECHAT" \
-	| sed -e "s/^://; s/^${Q_TYPE##\\n}//; s/^${A_TYPE##\\n}//;"
+	| sed -e "s/^://; s/^${Q_TYPE//\\n}//; s/^${A_TYPE//\\n}//;"
 }
 
 #print to history file
@@ -1829,26 +1829,21 @@ function recordf
 
 	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
 
-	if [[ -n ${REC_CMD%% *} ]] && command -v ${REC_CMD%% *} >/dev/null 2>&1
-	then 	$REC_CMD "$1" &  #this ensures max user compat
-	elif command -v termux-microphone-record >/dev/null 2>&1
-	then 	termux=1
-		termux-microphone-record -c 1 -l 0 -f "$1" &
-	elif command -v sox  >/dev/null 2>&1
-	then 	#sox, best auto option
-		{ 	rec "$1" & pid=$! ;} ||
-		{ 	sox -d "$1" & pid=$! ;}
-	elif command -v arecord  >/dev/null 2>&1
-	then 	#alsa-utils
-		arecord -i "$1" &
+	if ((${#REC_CMD}))
+	then 	:  #user custom
+	elif command -v termux-microphone-record
+	then 	REC_CMD='termux-microphone-record -c 1 -l 0 -f' termux=1
+	elif command -v sox  #sox, best auto option
+	then 	REC_CMD='sox -d'
+	elif command -v arecord  #alsa utils
+	then 	REC_CMD='arecord -i'
 	else 	#ffmpeg
-		{ 	ffmpeg -f alsa -i pulse -ac 1 -y "$1" & pid=$! ;} ||
-		{ 	ffmpeg -f avfoundation -i ":1" -y "$1" & pid=$! ;}
-		#-acodec libmp3lame -ab 32k -ac 1  #https://stackoverflow.com/questions/19689029/
-	fi >&2
-	pid=${pid:-$!} sig="INT";
+		REC_CMD='ffmpeg_recf'
+	fi >/dev/null 2>&1
 	
-	trap "rec_killf $pid $termux" $sig
+	__sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
+	$REC_CMD "$1" & pid=$! sig="INT";
+	trap "rec_killf $pid $termux" $sig;
 	
 	case "${REPLY:=$(__read_charf)}" in
 		[Ww]|$'\e')  #abort+disable whisper
@@ -1874,6 +1869,12 @@ function rec_killf
 	pid=$1 termux=$2
 	((termux)) && termux-microphone-record -q >&2 || kill -INT -- $pid 2>/dev/null;
 }
+#
+function ffmpeg_recf
+{
+	ffmpeg -f alsa -i pulse -ac 1 -y "$1" || ffmpeg -f avfoundation -i ":1" -y "$1"  #macos
+}
+#-acodec libmp3lame -ab 32k -ac 1  #https://stackoverflow.com/questions/19689029/
 
 #set whisper language
 function __set_langf
@@ -1889,7 +1890,7 @@ function __set_langf
 #whisper
 function whisperf
 {
-	typeset file args rec
+	typeset file args rec; unset WHISPER_OUT;
 	if ((!MTURN))
 	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "$OPTT";
 	fi;
@@ -1954,9 +1955,9 @@ function whisperf
 		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "${JQCOLNULL} ${JQCOL}
 		bpurple + .text + reset" "$FILE" || cat -- "$FILE" ;}
-	fi &&
+	fi && { 	((!OPTZ)) || WHISPER_OUT=$(jq -r '.text' "$FILE" || cat -- "$FILE") ;} &&
 	if ((OPTCLIP&&!MTURN)) || [[ ! -t 1 ]]
-	then 	typeset out ;out=$(jq -r ".text" "$FILE" || cat -- "$FILE")
+	then 	typeset out ;out=${WHISPER_OUT:-$(jq -r ".text" "$FILE" || cat -- "$FILE")}
 		((OPTCLIP&&!MTURN)) && (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
 		[[ -t 1 ]] || printf '%s\n' "$out" >&2  #pipe + stderr
 	fi || {
@@ -1973,12 +1974,7 @@ function whisperf
 #request tts prompt
 function prompt_ttsf
 {
-	((OPTVV)) && echo "TTS model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}" >&2
-	
-	#disable curl progress-bar because of `chunk transfer encoding'
-	_sysmsgf 'TTS:' '<ctr-c> [s]top, <enter> [p]lay now ' ''
-
-	curl -Ss -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -NSs -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -1989,6 +1985,7 @@ function prompt_ttsf
 \"response_format\": \"${OPTZ_FMT}\"
 }" 		-o "$FOUT"
 }
+#disable curl progress-bar because of `chunk transfer encoding'
 
 #speech synthesis (tts)
 function ttsf
@@ -1997,7 +1994,7 @@ function ttsf
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
-	if ((!(MTURN+OPTC+OPTCMPL) ))
+	if ((!(MTURN+OPTC+OPTCMPL) ))  #!no chat!#
 	then 	#set speech voice, out file format, and speed
 		__set_ttsf "$3" && set -- "${@:1:2}" "${@:4}"
 		__set_ttsf "$2" && set -- "${@:1:1}" "${@:3}"
@@ -2027,31 +2024,35 @@ function ttsf
 		i=1 FOUT=${FOUT%.*}-${i}.${OPTZ_FMT};
 	fi  #https://help.openai.com/en/articles/8555505-tts-api
 	
-	while input=${xinput:0:max} play= ;
+	while input=${xinput:0:max};
 	do
 		if ((!(MTURN+OPTC+OPTCMPL) ))
-		then 	__sysmsgf $'\n''File Out:' "${FOUT/"$HOME"/"~"}";
+		then 	__sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
 			__sysmsgf 'Text Prompt:' "${xinput:0:COLUMNS-17}$([[ -n ${xinput:COLUMNS-17} ]] && echo ...)";
 		fi
 		
+		((OPTVV)) && _sysmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}"
+		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> [p]lay now ' ''
+
 		prompt_ttsf "${input:-$*}" &
 		pid=$! sig="INT";  #catch <CTRL-C>
-		trap "kill -- $pid" $sig;
+		trap "kill -9 -- $pid" $sig;
 		while __spinf
 			kill -0 -- $pid  >/dev/null 2>&1
-		do 	case "$(read -n 1 -t 0.3 && echo "$REPLY" || echo x)" in
-				$'\e'|""|[EePp]) play=1;
-					while [[ ! -s $FOUT ]]
-					do 	sleep 0.3s;
-					done; sleep 1s; break 1;;
-				[CcQqSs]) 	kill -- $pid; break 2;;
+		do 	case "$(IFS= read -r -n 1 -t 0.3 && printf '%s' "$REPLY" || printf x)" in
+				$'\e'|[Pp]|"")
+					__read_charf -t 1.4  &>/dev/null
+					break 1;;
+				[CcEeKkQqSs])
+					kill -- $pid;
+					break 1;;
 			esac
-		done </dev/tty; echo >&2;
-		((play)) || wait $pid; ret=$?; trap '-' $sig;
+		done </dev/tty; echo X >&2;
+		wait $pid; ret=$?; trap '-' $sig;
 
 		case $ret in
-			0) 	:;;
-			1[2-9][0-9]|2[0-5][0-9]) 	break;;
+			0|1[2-9][0-9]|2[0-5][0-9]) 	:;;
+			[1-9]|[1-9][0-9]) 	break 1;;
 			*) 	__warmsgf $'\rerr:' 'tts response'
 				printf 'Retry request? Y/n ' >&2;
 				case "$(__read_charf)" in
@@ -2061,15 +2062,16 @@ function ttsf
 		esac
 
 	[[ $FOUT = "-"* ]] || { 
-		du -h "$FOUT" >&2 2>/dev/null || echo '[done]' >&2;
+		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
 		((OPTZ<2)) || [[ ! -s $FOUT ]] || {
+			__sysmsgf 'PLAY_CMD:' "\"${PLAY_CMD}\"";
 			${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
 			trap "kill -- $pid" $sig;
 			wait $pid; trap '-' $sig;
 		}
 		((++i)); FOUT=${FOUT%-*}-${i}.${OPTZ_FMT};
 		xinput=${xinput:max};
-		((${#xinput})) && ((!ret)) || break;
+		((${#xinput})) && ((!ret)) || break 1;
 	}
 	done;
 	return $ret
@@ -2077,16 +2079,14 @@ function ttsf
 function __set_ttsf { 	__set_outfmtf "$1" || __set_voicef "$1" || __set_speedf "$1" ;}
 function __set_voicef
 {
-	typeset -l VOICEZ
 	case "$1" in
 		#alloy|echo|fable|onyx|nova|shimmer
-		[Aa][Ll][Ll][Oo][Yy]|[Ee][Cc][Hh][Oo]|[Ff][Aa][Bb][Ll][Ee]|[Oo][Nn][Yy][Xx]|[Nn][Oo][Vv][Aa]|[Ss][Hh][Ii][Mm][Mm][Ee][Rr]) 	VOICEZ=$1;;
+		[Aa][Ll][Ll][Oo][Yy]|[Ee][Cc][Hh][Oo]|[Ff][Aa][Bb][Ll][Ee]|[Oo][Nn][YyIi][Xx]|[Nn][Oo][Vv][Aa]|[Ss][Hh][Ii][Mm][Mm][Ee][Rr]) 	VOICEZ=$1;;
 		*) 	false;;
 	esac
 }
 function __set_outfmtf
 {
-	typeset -l OPTZ_FMT
 	case "$1" in  #mp3|opus|aac|flac
 		mp3|[Mm][Pp]3|[Oo][Pp][Uu][Ss]|[Aa][Aa][Cc]|[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=$1;;
 		*.[Mm][Pp]3|*.[Oo][Pp][Uu][Ss]|*.[Aa][Aa][Cc]|*.[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
@@ -2458,7 +2458,7 @@ function custom_prf
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
-			|| { typeset OPTCTRD=2; __cmdmsgf $'\n''Prompter <Ctrl-D>' 'one-shot' ;}
+			|| { typeset OPTCTRD=2; __cmdmsgf $'\nPrompter <Ctrl-D>' 'one-shot' ;}
 			IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION
 			INSTRUCTION=${INSTRUCTION%%*($'\r')}
 		fi </dev/tty
@@ -2752,7 +2752,7 @@ function session_mainf
 				[Tt][Ss][Vv]|[Ss]ession|[Ss]essions|*)
 					name= msg=Sessions;;
 			esac
-			_cmdmsgf "$msg Files" 'list'$'\n'
+			_cmdmsgf "$msg Files" $'list\n'
 			session_listf "$name"; return 0
 			;;
 		#fork current session to [dest_hist]: /fork
@@ -3002,6 +3002,7 @@ def reset:   null;"
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${GPTCHATKEY:-${OPENAI_API_KEY:?Required}}}}"
 ((OPTL+OPTZZ)) && unset OPTX
+((OPTZ && OPTW && !MTURN)) && unset OPTX
 ((OPTI)) && unset OPTC
 ((OPTCLIP)) && set_clipcmdf
 ((OPTZ)) && set_playcmdf
@@ -3014,6 +3015,9 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${GPTCHATKEY:-${OPENAI_API_KEY:?
 ((OPTI+OPTEMBED)) && ((OPTVV)) && OPTVV=2
 ((OPTCTRD)) || unset OPTCTRD  #(un)set <ctrl-d> prompter flush [bash]
 [[ ${INSTRUCTION} != *([$IFS]) ]] || unset INSTRUCTION
+
+typeset -l VOICEZ  #lowercase vars
+typeset -l OPTZ_FMT
 
 #map models
 if [[ -n $OPTMARG ]]
@@ -3070,8 +3074,16 @@ else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 ((${#})) || [[ -t 0 ]] || ((OPTTIKTOKEN+OPTL+OPTZZ)) || set -- "$(<$STDIN)"
 
-((OPTX)) && ((OPTEMBED+OPTI+OPTII+OPTZ+OPTTIKTOKEN)) &&
-edf "$@" && set -- "$(<"$FILETXT")"  #editor
+if ((OPTX)) && ((OPTEMBED+OPTI+OPTII+OPTZ+OPTTIKTOKEN))
+then  #text editor
+	if ((OPTZ))
+	then 	if ((${#})) && [[ -f ${@:${#}} ]]
+		then 	edf "$(<"${@:${#}}")" && set -- "${@:1:${#}-1}";
+		else 	edf
+		fi && set -- "$@" "$(<"$FILETXT")";
+	else 	edf "$@" && set -- "$(<"$FILETXT")";
+	fi
+fi
 
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
@@ -3149,9 +3161,14 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 	tiktokenf "$*" || ! __warmsgf \
 	  "Err:" "Make sure python tiktoken module is installed: \`pip install tiktoken\`"
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
-then 	whisperf "$@"
+then 	whisperf "$@" &&
+	if ((OPTZ)) && [[ -n $WHISPER_OUT ]]
+	then 	MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
+		ttsf "$WHISPER_OUT";
+	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
-then 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"
+then 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")";
+	[[ -t 0 ]] || set -- "$@" "$(escapef "$(<$STDIN)")"
 	ttsf "$@"
 elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
@@ -3190,7 +3207,7 @@ else
 	then 	if [[ $INSTRUCTION = [/%]* ]]
 		then 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
 			awesomef || case $? in 	210) exit 0;; 	*) exit 1;; esac
-			_sysmsgf $'\n''Hist   File:' "${FILECHAT}"
+			_sysmsgf $'\nHist   File:' "${FILECHAT}"
 			if ((OPTRESUME==1))
 			then 	unset OPTAWE
 			elif ((!${#}))
@@ -3262,7 +3279,7 @@ else
 	# fix: bash: enable multiline cmd history, v0.18.0 aug/23.
 	if ((OPTC+OPTCMPL+OPTRESUME)) && ((!DISABLE_BASH_FIX)) \
 		&& [[ $(sed -n 1p -- "$HISTFILE" 2>/dev/null )\#10 != \#[0-9]* ]]
-	then 	(echo >&2; set -xv; sed -i -e 's/^/#10\n/' "$HISTFILE")
+	then 	(echo >&2; set -x; sed -i -e 's/^/#10\n/' "$HISTFILE")
 	fi
 
 	#warnings and tips
@@ -3324,7 +3341,7 @@ else
 				((SKIP+OPTW)) && echo >&2
 				if ((OPTW)) && ((!EDIT))
 				then 	#auto sleep 3-6 words/sec
-					((OPTV)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))
+					((OPTV)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))  &>/dev/null
 					
 					record_confirmf || case $? in 202) 	OPTW= ;& *) 	REPLY= ; continue 2;; esac
 					if recordf "$FILEINW"
@@ -3445,9 +3462,9 @@ else
 					n=$((COLUMNS-19>30 ? (COLUMNS-19)/2 : 30/2))
 					((${#p}>n)) && p=${p:${#p}-n+1} pp=".."
 					((${#q}>n)) && q=${q:0:n}       qq=".."
-					_sysmsgf $'\n'"Text appended:" "$(printf "${NC}${CYAN}%s${BCYAN}%s${NC}" "${pp}${p}" "${q}${qq}")"
+					_sysmsgf $'\nText appended:' "$(printf "${NC}${CYAN}%s${BCYAN}%s${NC}" "${pp}${p}" "${q}${qq}")"
 				else
-					_sysmsgf "System prompt added"  #chat / text cmpls
+					_sysmsgf 'System prompt added'  #chat / text cmpls
 					((${#INSTRUCTION_OLD})) || INSTRUCTION_OLD=${INSTRUCTION:-${*##:}}
 				fi
 				push_tohistf "$var"
