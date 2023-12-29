@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.15  dec/2023  by mountaineerbr  GPL+3
+# v0.24.16  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1832,7 +1832,7 @@ function recordf
 	if ((${#REC_CMD}))
 	then 	:  #user custom
 	elif command -v termux-microphone-record
-	then 	REC_CMD='termux-microphone-record -c 1 -l 0 -f' termux=1
+	then 	REC_CMD='termux-microphone-record -c 1 -l 0 -f'
 	elif command -v sox  #sox, best auto option
 	then 	REC_CMD='sox -d'
 	elif command -v arecord  #alsa utils
@@ -1842,6 +1842,7 @@ function recordf
 	fi >/dev/null 2>&1
 	
 	__sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
+	[[ $REC_CMD = *termux-* ]] && termux=1;
 	$REC_CMD "$1" & pid=$! sig="INT";
 	trap "rec_killf $pid $termux" $sig;
 	
