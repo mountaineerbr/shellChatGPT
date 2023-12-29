@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.22  dec/2023  by mountaineerbr  GPL+3
+# v0.24.23  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -96,6 +96,7 @@ CONFFILE="${CHATGPTRC:-$HOME/.chatgpt.conf}"
 FILE="${CACHEDIR%/}/chatgpt.json"
 FILECHAT="${FILECHAT:-${CACHEDIR%/}/chatgpt.tsv}"
 FILEWHISPER="${FILECHAT%/*}/whisper.json"
+FILEWHISPERLOG="${OUTDIR%/*}/whisper_log.txt"
 FILETXT="${CACHEDIR%/}/chatgpt.txt"
 FILEOUT="${OUTDIR%/}/dalle_out.png"
 FILEOUT_TTS="${OUTDIR%/}/tts.${OPTZ_FMT:=mp3}"
@@ -1958,11 +1959,14 @@ function whisperf
 		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "${JQCOLNULL} ${JQCOL}
 		bpurple + .text + reset" "$FILE" || cat -- "$FILE" ;}
-	fi && { 	((!OPTZ)) || WHISPER_OUT=$(jq -r '.text' "$FILE" || cat -- "$FILE") ;} &&
-	if ((OPTCLIP && !CHAT_ENV)) || [[ ! -t 1 ]]
-	then 	typeset out ;out=${WHISPER_OUT:-$(jq -r ".text" "$FILE" || cat -- "$FILE")}
-		((OPTCLIP && !CHAT_ENV)) && (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
-		[[ -t 1 ]] || printf '%s\n' "$out" >&2  #pipe + stderr
+	fi &&
+	if WHISPER_OUT=$(jq -r '.text' "$FILE" || cat -- "$FILE") &&
+		  ((!CHAT_ENV)) && [[ -d $OUTDIR ]] &&  #rec whisper output
+		  printf '\n===\n%s\n' "$(date -R||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG";
+		((OPTCLIP && !CHAT_ENV)) || [[ ! -t 1 ]]
+	then
+		((OPTCLIP && !CHAT_ENV)) && (${CLIP_CMD:-false} <<<"$WHISPER_OUT" &)  #clipboard
+		[[ -t 1 ]] || printf '%s\n' "$WHISPER_OUT" >&2  #pipe + stderr
 	fi || {
 		__warmsgf 'err:' 'whisper response'
 		printf 'Retry request? Y/n ' >&2;
