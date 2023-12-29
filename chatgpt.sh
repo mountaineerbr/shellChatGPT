@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.20  dec/2023  by mountaineerbr  GPL+3
+# v0.24.21  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1849,8 +1849,7 @@ function recordf
 	trap "rec_killf $pid $termux" $sig;
 	
 	case "${REPLY:=$(__read_charf)}" in
-		[Ww]|$'\e')  #abort+disable whisper
-			ret=196
+		$'\e'|[EeWw]) ret=196  #abort, whisper off  #text edit (199)
 			;;
 		[Rr]|[QqSs]) rec_killf $pid $termux; wait $pid;  #redo, quit
 			trap '-' $sig
@@ -3357,7 +3356,7 @@ else
 						set_model_epnf "$MOD_AUDIO";
 						whisperf "$FILEINW" "${INPUT_ORIG[@]}";
 					)
-					else 	case $? in 196) 	unset OPTW;; esac;
+					else 	case $? in 196|199) unset OPTW;; esac;
 						echo record abort >&2;
 					fi; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2;
 				else
