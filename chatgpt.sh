@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.25  dec/2023  by mountaineerbr  GPL+3
+# v0.24.26  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -698,7 +698,7 @@ function new_prompt_confirmf
 	((${#2})) && ((OPTW)) && extra="${extra}, [w]hisper_off"
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
-	REPLY=$(__read_charf); __clr_lineupf $((8+40+${#extra})) #!#
+	REPLY=$(__read_charf); __clr_lineupf $((8+40+${#extra})) #!# +1
 	case "$REPLY" in
 		[AaQq]) 	return 201;;  #break
 		[Rr]) 		return 200;;  #redo
@@ -1818,7 +1818,7 @@ function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
 	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * Press ENTER to START record * ' >&2
-		case "$(__read_charf)" in [Ww]|$'\e') 	return 202;; [AaNnQq]) 	return 201;; esac
+		case "$(__read_charf)" in [EeWw]|$'\e') 	return 196;; [AaNnQq]) 	return 201;; esac
 		__clr_lineupf 33  #!#
 	fi
 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [q]uit, [r]edo, [w]hspr off * ' >&2
@@ -1851,7 +1851,7 @@ function recordf
 	trap "rec_killf $pid $termux" $sig;
 	
 	case "${REPLY:=$(__read_charf)}" in
-		$'\e'|[EeWw]) ret=196  #abort, whisper off  #text edit (199)
+		$'\e'|[EeWw]) ret=196  #whisper off  #text edit (199)
 			;;
 		[Rr]|[QqSs]) rec_killf $pid $termux; wait $pid;  #redo, quit
 			trap '-' $sig
@@ -2048,8 +2048,8 @@ function ttsf
 		pid=$! sig="INT";  #catch <CTRL-C>
 		trap "kill -9 -- $pid" $sig;
 		while __spinf
-			kill -0 -- $pid  >/dev/null 2>&1
-		do 	var=$(NO_CLR=1 __read_charf -t 0.3 || printf xXx)
+			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
+		do 	var=$(NO_CLR=1 __read_charf -t 0.3) &&
 			case "$var" in
 				$'\t'|' '|''|[Pp])
 					__read_charf -t 1.4  &>/dev/null
@@ -2059,7 +2059,7 @@ function ttsf
 					break 1;;
 			esac
 		done </dev/tty;
-		((${#var})) && echo X >&2; __clr_lineupf $((40+${#var}));  #!#
+		((${#var})) && echo >&2; __clr_lineupf $((40+${#var}));  #!# +1
 		wait $pid; ret=$?; trap '-' $sig;
 
 		case $ret in
@@ -3135,7 +3135,7 @@ then  #whisper log
 		done < <(tac "$FILEWHISPERLOG");
 		printf '%s' "$BUFF";
 	else 	__edf "$FILEWHISPERLOG"
-	fi
+	fi; __warmsgf 'Whisper Log:' "$FILEWHISPERLOG";
 elif ((OPTHH))  #edit history/pretty print last session
 then
 	[[ $INSTRUCTION = [.,]* ]] && OPTRESUME=1 custom_prf
@@ -3366,14 +3366,14 @@ else
 				then 	#auto sleep 3-6 words/sec
 					((OPTV)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))  &>/dev/null
 					
-					record_confirmf || case $? in 202) 	OPTW= ;& *) 	REPLY= ; continue 2;; esac
+					record_confirmf || case $? in 196) 	OPTW= REPLY= ; continue 2;; *) 	REPLY= ; continue 2;; esac
 					if recordf "$FILEINW"
 					then 	REPLY=$(
 						MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
 						set_model_epnf "$MOD_AUDIO";
 						whisperf "$FILEINW" "${INPUT_ORIG[@]}";
 					)
-					else 	case $? in 196|199) unset OPTW;; esac;
+					else 	case $? in 196|199) 	unset OPTW;; esac;
 						echo record abort >&2;
 					fi; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2;
 				else
