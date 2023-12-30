@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.26  dec/2023  by mountaineerbr  GPL+3
+# v0.24.27  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -698,7 +698,7 @@ function new_prompt_confirmf
 	((${#2})) && ((OPTW)) && extra="${extra}, [w]hisper_off"
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
-	REPLY=$(__read_charf); __clr_lineupf $((8+40+${#extra})) #!# +1
+	REPLY=$(__read_charf); __clr_lineupf $((8+1+40+${#extra}))  #!#
 	case "$REPLY" in
 		[AaQq]) 	return 201;;  #break
 		[Rr]) 		return 200;;  #redo
@@ -1502,7 +1502,7 @@ function cmd_runf
 					[!Ss]|'') 	SKIP=1 EDIT=1;
 							printf '\n%s\n' '---' >&2; break;;  #yes
 				esac ;set --
-			done ;__clr_lineupf $((12+55+1)) #!#
+			done ;__clr_lineupf $((12+1+55))  #!#
 			((${#args[@]})) && shell_histf "!${args[*]}"
 			;;
 		[/!]session*|session*|list*|copy*|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
@@ -2059,7 +2059,7 @@ function ttsf
 					break 1;;
 			esac
 		done </dev/tty;
-		((${#var})) && echo >&2; __clr_lineupf $((40+${#var}));  #!# +1
+		((${#var})) && echo >&2; __clr_lineupf $((4+1+33+${#var}));  #!#
 		wait $pid; ret=$?; trap '-' $sig;
 
 		case $ret in
