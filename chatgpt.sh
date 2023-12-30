@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.27  dec/2023  by mountaineerbr  GPL+3
+# v0.24.28  dec/2023  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -2052,14 +2052,13 @@ function ttsf
 		do 	var=$(NO_CLR=1 __read_charf -t 0.3) &&
 			case "$var" in
 				$'\t'|' '|''|[Pp])
-					__read_charf -t 1.4  &>/dev/null
+					__read_charf -t 1.4  >/dev/null 2>&1
 					break 1;;
 				$'\e'|[CcEeKkQqSs])
 					kill -- $pid;
 					break 1;;
 			esac
-		done </dev/tty;
-		((${#var})) && echo >&2; __clr_lineupf $((4+1+33+${#var}));  #!#
+		done </dev/tty; __clr_lineupf $((4+1+33+${#var}));  #!#
 		wait $pid; ret=$?; trap '-' $sig;
 
 		case $ret in
