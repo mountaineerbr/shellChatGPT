@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.24.28  dec/2023  by mountaineerbr  GPL+3
+# v0.25  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -705,7 +705,7 @@ function new_prompt_confirmf
 		[Ee]|$'\e') 	return 199;;  #edit
 		[VvXx]) 	return 198;;  #text editor
 		[UuMm]) 	return 197;;  #multiline
-		[Ww]) 		return 196;;  #whisper_off
+		[Ww]) 		return 196;;  #whisper off
 		[NnOo]) 	unset REC_OUT ;return 1;;  #no
 	esac  #yes
 }
@@ -1379,10 +1379,12 @@ function cmd_runf
 			((++OPTTIK)) ;((OPTTIK%=2))
 			__cmdmsgf 'Tiktoken' $(_onoff $OPTTIK)
 			;;
-		-w*|-W*|[Ww]*|audio*|rec*|whisper*)
-			((OPTW)) && OPTW= || {
-			  OPTW=1 ;[[ $* = -W* ]] && OPTW=2
-			  set -- "${*##@(-[wW][wW]|-[wW]|[Ww]|audio|rec|whisper)$SPC}"
+		-w*|-W*|[Ww]*|rec*|whisper*)
+			if ((++OPTW)); ((OPTW%2))
+			then
+			  set_reccmdf
+			  [[ $* = -W* ]] && OPTW=2
+			  set -- "${*##@(-[wW][wW]|-[wW]|[Ww]|rec|whisper)$SPC}"
 
 			  var="${*##$SPC}"
 			  [[ $var = [a-z][a-z][$IFS]*[[:graph:]]* ]] \
@@ -1392,13 +1394,16 @@ function cmd_runf
 			  done
 
 			  INPUT_ORIG=("${@:-${INPUT_ORIG[@]}}") xskip=1
-			}; __cmdmsgf 'Whisper Chat' $(_onoff $OPTW)
-			((OPTW)) && __cmdmsgf "Whisper Args #${#INPUT_ORIG[@]}" "${INPUT_ORIG[*]}"
+			  __cmdmsgf "Whisper Args #${#INPUT_ORIG[@]}" "${INPUT_ORIG[*]:-unset}"
+			fi; __cmdmsgf 'Whisper Chat' $(_onoff $OPTW);
 			;;
 		-z*|tts*|speech*)
 			set -- "${*##@(-z*([zZ])|tts|speech)$SPC}"
 			[[ $* = $SPC ]] || OPTZ_CHAT_ARG=$*
-			((++OPTZ)); ((OPTZ%2)) && printf "tts args -- \`\`%s''\\n" "${OPTZ_CHAT_ARG:-unset}" >&2 || echo tts off >&2
+			if ((++OPTZ)); ((OPTZ%2))
+			then 	set_playcmdf;
+				__cmdmsgf 'TTS Args' "${OPTZ_CHAT_ARG:-unset}";
+			fi; __cmdmsgf 'TTS Chat' $(_onoff $OPTZ);
 			;;
 		-Z|last)
 			lastjsonf >&2
@@ -1818,10 +1823,10 @@ function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
 	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * Press ENTER to START record * ' >&2
-		case "$(__read_charf)" in [EeWw]|$'\e') 	return 196;; [AaNnQq]) 	return 201;; esac
+		case "$(__read_charf)" in [OoQqWw]) 	return 196;; [Ee]|$'\e') 	return 199;; [AaNnQq]) 	return 201;; esac
 		__clr_lineupf 33  #!#
 	fi
-	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [q]uit, [r]edo, [w]hspr off * ' >&2
+	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr off * ' >&2
 	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
 }
 
@@ -1833,32 +1838,18 @@ function recordf
 
 	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
 
-	if ((${#REC_CMD}))
-	then 	:  #user custom
-	elif command -v termux-microphone-record
-	then 	REC_CMD='termux-microphone-record -c 1 -l 0 -f'
-	elif command -v sox  #sox, best auto option
-	then 	REC_CMD='sox -d'
-	elif command -v arecord  #alsa utils
-	then 	REC_CMD='arecord -i'
-	else 	#ffmpeg
-		REC_CMD='ffmpeg_recf'
-	fi >/dev/null 2>&1
-	
-	((CHAT_ENV)) || __sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
 	[[ $REC_CMD = termux* ]] && termux=1;
 	$REC_CMD "$1" & pid=$! sig="INT";
 	trap "rec_killf $pid $termux" $sig;
 	
 	case "${REPLY:=$(__read_charf)}" in
-		$'\e'|[EeWw]) ret=196  #whisper off  #text edit (199)
+		[OoQqWw]) ret=196  #whisper off
 			;;
-		[Rr]|[QqSs]) rec_killf $pid $termux; wait $pid;  #redo, quit
-			trap '-' $sig
-			case "$REPLY" in
-				[QqSs]) 	OPTV= WSKIP= record_confirmf;;
-				*) 	OPTV=4 WSKIP= record_confirmf;;
-			esac
+		[Ee]|$'\e') 	ret=199  #text edit (single-shot)
+			;;
+		[RrSs]) rec_killf $pid $termux; wait $pid;  #redo, quit
+			trap '-' $sig;
+			OPTV=4 WSKIP= record_confirmf;
 			recordf "$@"; return;
 			;;
 	esac
@@ -1913,7 +1904,8 @@ function whisperf
 		[[ -t 1 ]] && echo >&2 || var=$(__read_charf)
 		case "$var" in
 			[AaNnQq]|$'\e') 	:;;
-			*) 	OPTV=4 record_confirmf || return
+			*) 	((CHAT_ENV)) || __sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
+				OPTV=4 record_confirmf || return
 				WSKIP=1 recordf "$FILEINW"
 				set -- "$FILEINW" "$@"; rec=1;;
 		esac
@@ -2051,10 +2043,10 @@ function ttsf
 			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
 		do 	var=$(NO_CLR=1 __read_charf -t 0.3) &&
 			case "$var" in
-				$'\t'|' '|''|[Pp])
+				[Pp]|' '|''|$'\t')
 					__read_charf -t 1.4  >/dev/null 2>&1
 					break 1;;
-				$'\e'|[CcEeKkQqSs])
+				[CcEeKkQqSs]|$'\e')
 					kill -- $pid;
 					break 1;;
 			esac
@@ -2521,6 +2513,21 @@ function set_playcmdf
 	then 	PLAY_CMD='afplay'
 	fi >/dev/null 2>&1
 }  #streaming: ffplay -nodisp -, cvlc -
+
+#set audio recorder command
+function set_reccmdf
+{
+	((${#REC_CMD})) ||
+	if command -v termux-microphone-record
+	then 	REC_CMD='termux-microphone-record -c 1 -l 0 -f'
+	elif command -v sox  #sox, best auto option
+	then 	REC_CMD='sox -d'
+	elif command -v arecord  #alsa utils
+	then 	REC_CMD='arecord -i'
+	else 	#ffmpeg
+		REC_CMD='ffmpeg_recf'
+	fi >/dev/null 2>&1
+}
 
 #append to shell hist list
 function shell_histf
@@ -3016,6 +3023,7 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${GPTCHATKEY:-${OPENAI_API_KEY:?
 ((OPTZ && OPTW && !MTURN)) && unset OPTX
 ((OPTI)) && unset OPTC
 ((OPTCLIP)) && set_clipcmdf
+((OPTW+OPTWW)) && set_reccmdf
 ((OPTZ)) && set_playcmdf
 ((OPTC)) || OPTT="${OPTT:-0}"  #!#temp *must* be set
 ((OPTCMPL)) && unset OPTC  #opt -d
@@ -3365,16 +3373,25 @@ else
 				then 	#auto sleep 3-6 words/sec
 					((OPTV)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))  &>/dev/null
 					
-					record_confirmf || case $? in 196) 	OPTW= REPLY= ; continue 2;; *) 	REPLY= ; continue 2;; esac
-					if recordf "$FILEINW"
-					then 	REPLY=$(
-						MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
-						set_model_epnf "$MOD_AUDIO";
-						whisperf "$FILEINW" "${INPUT_ORIG[@]}";
-					)
-					else 	case $? in 196|199) 	unset OPTW;; esac;
-						echo record abort >&2;
-					fi; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2;
+					record_confirmf
+					case $? in
+						0) 	if recordf "$FILEINW"
+							then 	REPLY=$(
+								MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
+								set_model_epnf "$MOD_AUDIO";
+								whisperf "$FILEINW" "${INPUT_ORIG[@]}";
+							)
+							else 	case $? in 196) 	unset OPTW REPLY; continue 1;; 199) 	EDIT=1; continue 1;; esac;
+								echo record abort >&2;
+							fi; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2;
+							;;
+						196) 	unset OPTW REPLY; continue 1;
+							;;
+						199) 	EDIT=1; continue 1;
+							;;
+						*) 	unset REPLY; continue 1;
+							;;
+					esac
 				else
 					if ((OPTCMPL)) && ((MAIN_LOOP || OPTCMPL==1)) \
 						&& ((EPN!=6)) && [[ -z "${RESTART}${REPLY}" ]]
