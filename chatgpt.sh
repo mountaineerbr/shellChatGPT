@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.25  jan/2024  by mountaineerbr  GPL+3
+# v0.25.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1380,7 +1380,7 @@ function cmd_runf
 			__cmdmsgf 'Tiktoken' $(_onoff $OPTTIK)
 			;;
 		-w*|-W*|[Ww]*|rec*|whisper*)
-			if ((++OPTW)); ((OPTW%2))
+			if ((++OPTW)); ((OPTW%=2))
 			then
 			  set_reccmdf
 			  [[ $* = -W* ]] && OPTW=2
@@ -1400,7 +1400,7 @@ function cmd_runf
 		-z*|tts*|speech*)
 			set -- "${*##@(-z*([zZ])|tts|speech)$SPC}"
 			[[ $* = $SPC ]] || OPTZ_CHAT_ARG=$*
-			if ((++OPTZ)); ((OPTZ%2))
+			if ((++OPTZ)); ((OPTZ%=2))
 			then 	set_playcmdf;
 				__cmdmsgf 'TTS Args' "${OPTZ_CHAT_ARG:-unset}";
 			fi; __cmdmsgf 'TTS Chat' $(_onoff $OPTZ);
@@ -1976,7 +1976,7 @@ end;"
 #request tts prompt
 function prompt_ttsf
 {
-	curl -NSs -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -N -Ss -f -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -3175,7 +3175,7 @@ then
 elif ((OPTFF))
 then 	if [[ -s "$CONFFILE" ]] && ((OPTFF<2))
 	then 	__edf "$CONFFILE"
-	else 	curl -Lf "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf"
+	else 	curl -f -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf"
 		CONFFILE=stdout
 	fi; _sysmsgf 'Conf File:' "$CONFFILE"
 elif ((OPTZZ))      #last response json
@@ -3383,7 +3383,7 @@ else
 							)
 							else 	case $? in 196) 	unset OPTW REPLY; continue 1;; 199) 	EDIT=1; continue 1;; esac;
 								echo record abort >&2;
-							fi; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2;
+							fi;
 							;;
 						196) 	unset OPTW REPLY; continue 1;
 							;;
@@ -3391,7 +3391,7 @@ else
 							;;
 						*) 	unset REPLY; continue 1;
 							;;
-					esac
+					esac; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2;
 				else
 					if ((OPTCMPL)) && ((MAIN_LOOP || OPTCMPL==1)) \
 						&& ((EPN!=6)) && [[ -z "${RESTART}${REPLY}" ]]
@@ -3624,7 +3624,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 					 ((HERR<HERR_DEF*4)) && _sysmsgf '' "* Set \`option -y' to use Tiktoken! * "
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
-				fi  #auto-adjust context err
+				fi  #adjust context err
 			fi; unset BAD_RES PSKIP ESC_OLD;
 			((${#tkn[@]}>2||STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
@@ -3647,21 +3647,26 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			((OPTAWE)) ||
 			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : TKN_PREV ))" "${tkn[2]}"
 			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || unset OPTC OPTRESUME OPTCMPL MTURN
+			
 			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
 			unset HIST_TIME
 		elif ((MTURN))
-		then 	BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES MEDIA_CHAT
+		then
+			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES MEDIA_CHAT
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi; unset MEDIA_CHAT MEDIA_CHAT_CMD;
+
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
 		if ((OPTW)) && ((!OPTZ))
-		then 	SLEEP_WORDS=$(wc -w <<<"${ans}");
+		then
+			SLEEP_WORDS=$(wc -w <<<"${ans}");
 			((STREAM)) && ((SLEEP_WORDS=(SLEEP_WORDS*2)/3));
 			((++SLEEP_WORDS));
 		elif ((OPTZ))
-		then 	sig=INT; trap '' $sig;
+		then
+			sig=INT; trap '' $sig;
 			( OPTZ=2 MOD=$MOD_SPEECH;
 			set_model_epnf "$MOD_SPEECH";
 			ttsf $OPTZ_CHAT_ARG "${ans##"${A_TYPE##$SPC1}"}"; )
