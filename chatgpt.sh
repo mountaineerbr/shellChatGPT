@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.25.4  jan/2024  by mountaineerbr  GPL+3
+# v0.25.5  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -729,6 +729,7 @@ function __read_charf
 #usage: read_mainf [read_opt].. VARIABLE_NAME
 function read_mainf
 {
+	typeset ret
 	#this can prevent pasted characters from being interpreted as editing commands
 	set -o ${READLINEOPT:-emacs}; bind 'set enable-bracketed-paste on';
 
