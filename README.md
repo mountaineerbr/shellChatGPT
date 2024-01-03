@@ -11,7 +11,7 @@ Chat completions with streaming.
 
 - Text and chat completions, [**gtp-4-vision** support](#gpt-4-vision).
 - **Voice in** (whisper) and **voice out** (TTS) [chat modes](#voice-in-and-out-chat-completions).
-- _Multiline_ prompt, flush input with \<ctrl-d> (optional)
+- Set _multiline_ prompt, flush with \<ctrl-d> (optional), bracketed paste in bash
 - _Follow up_ conversations, _preview/regenerate_ responses
 - Manage _sessions_, _continue_ from last session, _print out_ session
 - Custom prompts, easily create prompts and re-use them!
@@ -25,7 +25,7 @@ Chat completions with streaming.
 - _Transcribe audio_ from various languages (`option -w`)
 - _Translate audio_ into English text (`option -W`)
 - _Text-to-speeech_ functionality (`option -z`)
-- Record prompt voice, hear the answer back from the AI (`options -cczw`).
+- Record a prompt voice, hear the answer back from the AI (`options -cczw`).
 - Choose amongst all available models from a pick list (`option -m.`)
 - *Lots of* command line options
 - Converts response base64 JSON data to PNG image locally

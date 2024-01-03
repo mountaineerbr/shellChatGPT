@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.25.1  jan/2024  by mountaineerbr  GPL+3
+# v0.25.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
+	#################################################!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # OpenAI API key
 #OPENAI_API_KEY=
@@ -17,6 +18,8 @@ MOD_IMAGE="dall-e-3"
 MOD_AUDIO="whisper-1"
 # Speech model (TTS)
 MOD_SPEECH="tts-1"   #"tts-1-hd"
+# Bash readline mode
+READLINEOPT="emacs"  #"vi"
 # Prompter flush with <CTRL-D> (multiline bash)
 #OPTCTRD=
 # Stream response
@@ -720,6 +723,26 @@ function __read_charf
 	[[ -n $REPLY ]] && echo >&2;
 	return $ret
 }
+
+#main user input read, and bracketed paste
+#usage: read_mainf [read_opt].. VARIABLE_NAME
+function read_mainf
+{
+	typeset varname var buff ret
+	((${#})) || set -- REPLY; varname=${@:${#}};
+	#this can prevent pasted characters from being interpreted as editing commands
+	set -o ${READLINEOPT:-emacs}; bind 'set enable-bracketed-paste on';
+
+	IFS= read -r -e -d $'\r' ${OPTCTRD:+-d $'\04'} "$@"; ret=$?;
+	
+	set +o ${READLINEOPT:-emacs};
+	if ((OPTCTRD))  #delete \r from end of input
+	then 	eval "$varname=\$(trim_trailf \"\$$varname\" \$'*([\\r])')"
+	fi
+
+	return $ret
+}
+#https://www.reddit.com/r/bash/comments/ppp6a2/is_there_a_way_to_paste_multiple_lines_where_read/
 
 #print response
 function prompt_printf
@@ -1464,7 +1487,7 @@ function cmd_runf
 					((OPTCTRD==2)) && __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot';;
 				*) 	((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
 					__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD)
-					((OPTCTRD)) && __warmsgf '' '* <Ctrl-V> + <Ctrl-J> for newline * ';;
+					((OPTCTRD)) && __warmsgf $'\n' '* <Ctrl-V> + <Ctrl-J> for newline * ';;
 			esac
 			;;
 		-U|-UU*(U))
@@ -1480,7 +1503,7 @@ function cmd_runf
 			if [[ $* = cat*[!$IFS]* ]]
 			then 	cmd_runf /sh "${@}"
 			else 	__warmsgf '' '* Press <Ctrl-D> to flush * '
-				STDERR=/dev/null  cmd_runf /sh cat
+				STDERR=/dev/null  cmd_runf /sh cat </dev/tty
 			fi; xskip=1
 			;;
 		[/!]sh*)
@@ -2380,8 +2403,7 @@ function awesomef
 	if __clr_ttystf; ((OPTX))  #edit chosen awesome prompt
 	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 		printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
-	else 	read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION
-		INSTRUCTION=${INSTRUCTION%%*($'\r')}
+	else 	read_mainf -i "$INSTRUCTION" INSTRUCTION
 	fi </dev/tty
 	if [[ -z $INSTRUCTION ]]
 	then 	__warmsgf 'Err:' 'awesome-chatgpt-prompts fail'
@@ -2427,9 +2449,11 @@ function custom_prf
 	if [[ -f $name ]]
 	then 	file="$name"
 	elif [[ $name = */* ]] ||
-		! file=$(SESSION_LIST=$list SGLOB='[Pp][Rr]' session_globf "$name")
+		! file=$(SESSION_LIST=$list SGLOB='[Pp][Rr]' EXT='pr' \
+			session_globf "$name")
 	then 	template=1
-		file=$(SGLOB='[Pp][Rr]' session_name_choosef "$name")
+		file=$(SGLOB='[Pp][Rr]' EXT='pr' \
+			session_name_choosef "$name")
 		[[ -e $file ]] && msg=${msg:-LOAD} || msg=CREATE
 	fi
 	((list)) && exit
@@ -2457,13 +2481,13 @@ function custom_prf
 	if { 	[[ $msg = *[Cc][Rr][Ee][Aa][Tt][Ee]* ]] && INSTRUCTION="$*" ret=200 ;} ||
 		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || (( (MTURN+CHAT_ENV) && OPTRESUME!=1 && skip==0))
 	then
-		if __clr_ttystf; ((OPTX))  #edit prompt
+		__clr_ttystf;
+		if ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
 			|| { typeset OPTCTRD=2; __cmdmsgf $'\nPrompter <Ctrl-D>' 'one-shot' ;}
-			IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$INSTRUCTION" INSTRUCTION
-			INSTRUCTION=${INSTRUCTION%%*($'\r')}
+			read_mainf -i "$INSTRUCTION" INSTRUCTION
 		fi </dev/tty
 
 		if ((template))  #push changes to file
@@ -2554,8 +2578,8 @@ function session_listf
 #pick session files by globbing cache dir
 function session_globf
 {
-	typeset REPLY file glob sglob ok
-	sglob="${SGLOB:-[Tt][Ss][Vv]}"
+	typeset REPLY file glob sglob ext ok
+	sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}"
 	[[ ! -f "$1" ]] || return
 	case "$1" in
 		[Nn]ew) 	return 2;;
@@ -2564,7 +2588,7 @@ function session_globf
 
 	cd -- "${CACHEDIR}"
 	glob="${1%%.${sglob}}" glob="${glob##*/}"
-	[[ -f "${glob}".${sglob//[!a-z]} ]] || set -- *${glob}*.${sglob}
+	[[ -f "${glob}".${ext} ]] || set -- *${glob}*.${sglob}
 	
 	if ((SESSION_LIST))
 	then 	ls -- "$@" >&2 ;return
@@ -2572,7 +2596,7 @@ function session_globf
 
 	if ((${#} >1)) && [[ "$glob" != *[$IFS]* ]]
 	then 	__clr_ttystf;
-		printf '# Pick file [.%s]:\n' "${sglob//[!a-z]}" >&2
+		printf '# Pick file [.%s]:\n' "${ext}" >&2
 		select file in 'current' 'new' 'abort' "${@%%.${sglob}}"
 		do 	break
 		done </dev/tty
@@ -2597,14 +2621,14 @@ function session_globf
 	esac
 
 	file="${CACHEDIR%%/}/${file:-${*:${#}}}"
-	file="${file%%.${sglob}}.${sglob//[!a-z]}"
+	file="${file%%.${sglob}}.${ext}"
 	[[ -f $file || $ok -gt 0 ]] && printf '%s\n' "${file}"
 }
 #set tsv filename based on input
 function session_name_choosef
 {
-	typeset fname new print_name sglob
-	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}"
+	typeset fname new print_name sglob ext
+	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}" 
 	case "$fname" in [Nn]ew|*[N]ew.${sglob}) 	set --; fname= ;; esac
 	while
 		fname="${fname%%\/}"
@@ -2636,7 +2660,7 @@ function session_name_choosef
 		then 	fname="${CACHEDIR%%/}/${fname:-abort}"
 		fi; fname="${fname:-abort}"
 		if [[ ! -f "$fname" ]]
-		then 	fname="${fname}.${sglob//[!a-z]}"
+		then 	fname="${fname}.${ext}"
 			new=" new"
 		fi
 
@@ -2764,9 +2788,9 @@ function session_mainf
 					INSTRUCTION=/list awesomef;
 					return 0;;  #e:210
 				[Pp][Rr]|[Pp]rompt|[Pp]rompts)
-					typeset SGLOB='[Pp][Rr]' name= msg=Prompts;;  #duplicates opt `-S .list` fun
+					typeset SGLOB='[Pp][Rr]' EXT='pr' name= msg=Prompts;;  #duplicates opt `-S .list` fun
 				[Aa]ll|[Ee]verything|[Aa]nything|+([./*?-]))
-					typeset SGLOB='*' name= msg=All;;
+					typeset SGLOB='*' EXT='*' name= msg=All;;
 				[Tt][Ss][Vv]|[Ss]ession|[Ss]essions|*)
 					name= msg=Sessions;;
 			esac
@@ -2938,7 +2962,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	__warmsgf 'Err:' 'Text edits models are discontinued'; exit 2;;  #also del --edit long option
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY READLINEOPT;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -2994,7 +3018,7 @@ do
 	esac ;OPTARG=
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB NO_CLR init buff var n s
+unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT NO_CLR init buff var n s
 
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
   #map colours
@@ -3037,6 +3061,8 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${GPTCHATKEY:-${OPENAI_API_KEY:?
 
 typeset -l VOICEZ  #lowercase vars
 typeset -l OPTZ_FMT
+
+[[ $BASH_VERSION = [5-9]* ]] || ((OPTV)) || __warmsgf 'Warning:' 'Bash 5+ required';
 
 #map models
 if [[ -n $OPTMARG ]]
@@ -3221,7 +3247,7 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"
 	if ((!${#}))
 	then 	__clr_ttystf; echo 'Input:' >&2;
-		IFS= read -r -e ${OPTCTRD:+-d $'\04'} REPLY </dev/tty
+		read_mainf REPLY </dev/tty
 		set -- "$REPLY"; echo >&2;
 	fi
 	if [[ $MOD = *embed* ]]
@@ -3320,7 +3346,10 @@ else
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	history -c; history -r;  #set -o history;
 	  	[[ -s $HISTFILE ]] &&
-		REPLY_OLD=$(trim_leadf "$(fc -ln -1 | cut -c1-1000)" "*([$IFS])")
+		case "$BASH_VERSION" in  #avoid bash4 hanging
+			[0-3]*|4.[01]*) 	:;;
+			*) 	REPLY_OLD=$(trim_leadf "$(fc -ln -1 | cut -c1-1000)" "*([$IFS])");;
+		esac
 		shell_histf "$*"
 	fi
 	cmd_runf "$@" && set --
@@ -3393,21 +3422,24 @@ else
 							;;
 					esac; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2;
 				else
+
 					if ((OPTCMPL)) && ((MAIN_LOOP || OPTCMPL==1)) \
 						&& ((EPN!=6)) && [[ -z "${RESTART}${REPLY}" ]]
 					then 	REPLY=" " EDIT=1  #txt cmpls: start with space?
 					fi;
 					((EDIT)) || unset REPLY  #!#
 
-					if __clr_ttystf; ((CATPR)) && ((!EDIT))
+					__clr_ttystf;
+					if ((CATPR)) && ((!EDIT))
 					then
-						REPLY=$(cat)
+						REPLY=$(cat);
 					else
 						[[ $REPLY != *$'\n'* ]] || ((OPTCTRD)) || {
 						  OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot' ;}
-						IFS= read -r -e ${OPTCTRD:+-d $'\04'} -i "$REPLY" REPLY
+
+						read_mainf -i "$REPLY" REPLY;
 					fi </dev/tty
-					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])') && echo >&2
+					((OPTCTRD+CATPR)) && echo >&2
 				fi; printf "${NC}" >&2;
 				
 				if [[ $REPLY = *\\ ]]
@@ -3686,4 +3718,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3700
+# vim=syntax sync minlines=3740
