@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.25.5  jan/2024  by mountaineerbr  GPL+3
+# v0.25.6  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -3437,9 +3437,8 @@ else
 						  OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot' ;}
 
 						read_mainf -i "$REPLY" REPLY;
-						((OPTCTRD)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])')
 					fi </dev/tty
-					((OPTCTRD+CATPR)) && echo >&2
+					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])') && echo >&2
 				fi; printf "${NC}" >&2;
 				
 				if [[ $REPLY = *\\ ]]
