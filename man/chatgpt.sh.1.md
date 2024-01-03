@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.25 | General Commands Manual
+% CHATGPT.SH(1) v0.25.3 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -130,7 +130,9 @@ full voice in and out experience, or set, additionally, `-z` to enable
 `Option -z` synthesises voice from text (TTS models). Set a _voice_ as
 the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
 "_nova_", or "_shimmer_"). Set the second positional parameter as the
-_voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_", and "_flac_"), or "_-_" for stdout. Set `option -zz` to try to play received output.
+_voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or
+the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_",
+and "_flac_"), or "_-_" for stdout. Set `option -zz` to try to play received output.
 
 `Option -y` sets python tiktoken instead of the default script hack
 to preview token count. This option makes token count preview
@@ -143,6 +145,9 @@ after option parsing. Stdin input sets a single PROMPT.
 
 While _cURL_ is in the middle of transmitting a request, or receiving
 a response, \<_CTRL-C_\> may be pressed once to interrupt the call.
+
+Press \<_CTRL-\\_> to exit from the script, even if recording,
+requesting, or playing tts.
 
 User configuration is kept at "_~/.chatgpt.conf_".
 Script cache is kept at "_~/.cache/chatgptsh_".
@@ -180,8 +185,8 @@ Type in a backslash "_\\_" as the last character of the input line
 to append a literal newline once and return to edition,
 or press \<_CTRL-V_> _+_ \<_CTRL-J_>.
 
-Press \<_CTRL-\\_> to always exit from the script, even if recording,
-requesting, or playing tts.
+Bash brackedted paste is enabled, meaning multiline input may be
+pasted or typed, even without setting `options -uU` (_v25.2+_).
 
 Language model **SKILLS** can activated, with specific prompts,
 see <https://platform.openai.com/examples>.
@@ -427,7 +432,7 @@ Use _gpt-4+ models_ and the right instructions.
 ### ESCAPING NEW LINES AND TABS
 
 Input sequences "_\\n_" and "_\\t_" are only treated specially
-in restart, start and stop sequences! (_v0.18+_)
+in restart, start and stop sequences (_v0.18+_)!
 
 
 ### CUSTOM / AWESOME PROMPTS

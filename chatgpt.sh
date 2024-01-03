@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.25.2  jan/2024  by mountaineerbr  GPL+3
+# v0.25.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
-	#################################################!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # OpenAI API key
 #OPENAI_API_KEY=
@@ -333,6 +332,8 @@ Chat Commands
 
 	Type in a backslash \`\\' as the last character of the input line
 	to append a literal newline, or press <CTRL-V> + <CTRL-J>.
+
+	Press <CTRL-\\> to terminate the script.
 
 
 Options

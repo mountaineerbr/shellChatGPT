@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.25 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.25.3 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.25 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.25.3 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -329,6 +329,8 @@ option parsing. Stdin input sets a single PROMPT.</p>
 <p>While <em>cURL</em> is in the middle of transmitting a request, or
 receiving a response, &lt;<em>CTRL-C</em>&gt; may be pressed once to
 interrupt the call.</p>
+<p>Press &lt;<em>CTRL-\</em>&gt; to exit from the script, even if
+recording, requesting, or playing tts.</p>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh</em>”.</p>
 <p>A personal OpenAI API is required, set it with
@@ -358,8 +360,9 @@ command</em> as prompter.</p>
 <p>Type in a backslash “<em>\</em>” as the last character of the input
 line to append a literal newline once and return to edition, or press
 &lt;<em>CTRL-V</em>&gt; <em>+</em> &lt;<em>CTRL-J</em>&gt;.</p>
-<p>Press &lt;<em>CTRL-\</em>&gt; to always exit from the script, even if
-recording, requesting, or playing tts.</p>
+<p>Bash brackedted paste is enabled, meaning multiline input may be
+pasted or typed, even without setting <code>options -uU</code>
+(<em>v25.2+</em>).</p>
 <p>Language model <strong>SKILLS</strong> can activated, with specific
 prompts, see <a href="https://platform.openai.com/examples"
 class="uri">https://platform.openai.com/examples</a>.</p>
@@ -822,7 +825,7 @@ Alternatively, -->
 <p>Use <em>gpt-4+ models</em> and the right instructions.</p>
 <h3 id="escaping-new-lines-and-tabs">ESCAPING NEW LINES AND TABS</h3>
 <p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
-specially in restart, start and stop sequences! (<em>v0.18+</em>)</p>
+specially in restart, start and stop sequences (<em>v0.18+</em>)!</p>
 <h3 id="custom-awesome-prompts">CUSTOM / AWESOME PROMPTS</h3>
 <p>When the argument to <code>option -S</code> starts with a full stop,
 such as “<code>-S</code> <code>.</code><em>my_prompt</em>”, load, search

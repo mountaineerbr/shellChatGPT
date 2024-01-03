@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.25 \| General Commands Manual
+title: CHATGPT.SH(1) v0.25.3 \| General Commands Manual
 ---
 
 ### NAME
@@ -155,6 +155,9 @@ option parsing. Stdin input sets a single PROMPT.
 While *cURL* is in the middle of transmitting a request, or receiving a
 response, \<*CTRL-C*\> may be pressed once to interrupt the call.
 
+Press \<*CTRL-\\*\> to exit from the script, even if recording,
+requesting, or playing tts.
+
 User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
 at “*~/.cache/chatgptsh*”.
 
@@ -191,8 +194,8 @@ Type in a backslash “*\\*” as the last character of the input line to
 append a literal newline once and return to edition, or press
 \<*CTRL-V*\> *+* \<*CTRL-J*\>.
 
-Press \<*CTRL-\\*\> to always exit from the script, even if recording,
-requesting, or playing tts.
+Bash brackedted paste is enabled, meaning multiline input may be pasted
+or typed, even without setting `options -uU` (*v25.2+*).
 
 Language model **SKILLS** can activated, with specific prompts, see
 <https://platform.openai.com/examples>.
@@ -419,7 +422,7 @@ Use *gpt-4+ models* and the right instructions.
 ### ESCAPING NEW LINES AND TABS
 
 Input sequences “*\n*” and “*\t*” are only treated specially in restart,
-start and stop sequences! (*v0.18+*)
+start and stop sequences (*v0.18+*)!
 
 ### CUSTOM / AWESOME PROMPTS
 
