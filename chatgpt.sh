@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.25.3  jan/2024  by mountaineerbr  GPL+3
+# v0.25.4  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -729,18 +729,12 @@ function __read_charf
 #usage: read_mainf [read_opt].. VARIABLE_NAME
 function read_mainf
 {
-	typeset varname var buff ret
-	((${#})) || set -- REPLY; varname=${@:${#}};
 	#this can prevent pasted characters from being interpreted as editing commands
 	set -o ${READLINEOPT:-emacs}; bind 'set enable-bracketed-paste on';
 
 	IFS= read -r -e -d $'\r' ${OPTCTRD:+-d $'\04'} "$@"; ret=$?;
 	
 	set +o ${READLINEOPT:-emacs};
-	if ((OPTCTRD))  #delete \r from end of input
-	then 	eval "$varname=\$(trim_trailf \"\$$varname\" \$'*([\\r])')"
-	fi
-
 	return $ret
 }
 #https://www.reddit.com/r/bash/comments/ppp6a2/is_there_a_way_to_paste_multiple_lines_where_read/
@@ -2405,6 +2399,7 @@ function awesomef
 	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 		printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
 	else 	read_mainf -i "$INSTRUCTION" INSTRUCTION
+		((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
 	fi </dev/tty
 	if [[ -z $INSTRUCTION ]]
 	then 	__warmsgf 'Err:' 'awesome-chatgpt-prompts fail'
@@ -2489,6 +2484,7 @@ function custom_prf
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
 			|| { typeset OPTCTRD=2; __cmdmsgf $'\nPrompter <Ctrl-D>' 'one-shot' ;}
 			read_mainf -i "$INSTRUCTION" INSTRUCTION
+			((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
 		fi </dev/tty
 
 		if ((template))  #push changes to file
@@ -3249,6 +3245,7 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	if ((!${#}))
 	then 	__clr_ttystf; echo 'Input:' >&2;
 		read_mainf REPLY </dev/tty
+		((OPTCTRD)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])')
 		set -- "$REPLY"; echo >&2;
 	fi
 	if [[ $MOD = *embed* ]]
@@ -3439,6 +3436,7 @@ else
 						  OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot' ;}
 
 						read_mainf -i "$REPLY" REPLY;
+						((OPTCTRD)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])')
 					fi </dev/tty
 					((OPTCTRD+CATPR)) && echo >&2
 				fi; printf "${NC}" >&2;
