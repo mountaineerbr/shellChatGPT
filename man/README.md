@@ -7,7 +7,7 @@ title: CHATGPT.SH(1) v0.25.7 \| General Commands Manual
 
 ### NAME
 
-   chatgpt.sh -- Wrapper for ChatGPT / DALL-E / Whisper
+   chatgpt.sh -- Wrapper for ChatGPT / DALL-E / Whisper / TTS
 
 ### SYNOPSIS
 

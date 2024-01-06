@@ -5,7 +5,7 @@
 
 ### NAME
 
-|    chatgpt.sh \-- Wrapper for ChatGPT / DALL-E / Whisper
+|    chatgpt.sh \-- Wrapper for ChatGPT / DALL-E / Whisper / TTS
 
 
 ### SYNOPSIS

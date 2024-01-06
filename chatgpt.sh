@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
+# chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
 # v0.25.7  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
@@ -129,7 +129,7 @@ UAG='user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (K
 SIG_TRAP="INT HUP TERM EXIT"
 
 HELP="Name
-	${0##*/} -- Wrapper for ChatGPT / DALL-E / Whisper
+	${0##*/} -- Wrapper for ChatGPT / DALL-E / Whisper / TTS
 
 
 Synopsis
