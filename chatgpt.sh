@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.25.9  jan/2024  by mountaineerbr  GPL+3
+# v0.25.10  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -2906,20 +2906,21 @@ do
 			a:presence-penalty      a:presence   a:pre \
 			A:frequency-penalty     A:frequency  A:freq \
 			b:best-of   b:best      B:logprobs   c:chat \
-			C:resume    C:continue  C:cont       d:text \
+			C:resume    C:resume    C:continue   C:cont  d:text \
 			e:edit      E:exit      f:no-conf    g:stream \
 			G:no-stream h:help      H:hist       i:image \
 			'j:synthesi[sz]e'  j:synth 'J:synthesi[sz]e-voice' \
 			J:synth-voice  'k:no-colo*' \
 			K:api-key   l:list-model   l:list-models \
-			L:log       m:model        m:mod \
-			n:results   o:clipboard    o:clip    p:top-p \
-			p:top  q:insert  r:restart-sequence  r:restart \
-			R:start-sequence           R:start \
+			L:log       m:model        m:mod   n:results \
+			o:clipboard    o:clip    p:top-p  p:top  \
+			q:insert  r:restart-sequence  r:restart-seq  r:restart \
+			R:start-sequence  R:start-seq  R:start \
 			s:stop      S:instruction  t:temperature \
 			t:temp      T:tiktoken   u:multiline  u:multi  U:cat \
 			v:verbose   x:editor     X:media  w:transcribe w:stt \
-			W:translate y:tik  Y:no-tik  z:tts  z:speech  Z:last  #opt:long_name
+			W:translate y:tik  Y:no-tik  z:tts  z:speech  Z:last
+			#opt:long_name
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
