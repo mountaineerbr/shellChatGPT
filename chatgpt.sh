@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.25.8  jan/2024  by mountaineerbr  GPL+3
+# v0.25.9  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -3607,7 +3607,7 @@ else
 		set_optsf
 
 		if ((EPN==6))
-		then 	BLOCK="\"messages\": [$(sed -e '/^\s*$/d' <<<"$*" | sed -e '$s/,\s*$//')],"
+		then 	BLOCK="\"messages\": [$(sed -e '/^\\s*$/d' <<<"$*" | sed -e '$s/,\\s*$//')],"
 		else 	BLOCK="\"prompt\": \"${*}\","
 		fi
 		BLOCK="{
