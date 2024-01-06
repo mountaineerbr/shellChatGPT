@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper
-# v0.25.6  jan/2024  by mountaineerbr  GPL+3
+# v0.25.7  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1204,7 +1204,7 @@ function set_maxtknf
 function cmd_runf
 {
 	typeset var wc args xskip n
-	[[ ${1:0:256} = *([$IFS:])[/!-]* ]] || return;
+	[[ ${1:0:256} = *([$IFS:])[/!-]?* ]] || return;
 	((${#1}<768)) || return;
 	printf "${NC}" >&2;
 
@@ -1252,7 +1252,7 @@ function cmd_runf
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  push_tohistf "$(escapef ":${INSTRUCTION_OLD:-$INSTRUCTION}")"
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | STREAM= foldf >&2
-			}; unset CKSUM_OLD MAX_PREV; xskip=1
+			}; unset CKSUM_OLD MAX_PREV INPUT_ORIG WCHAT_C; xskip=1;
 			;;
 		-g|-G|stream|no-stream)
 			((++STREAM)) ;((STREAM%=2))
@@ -1412,9 +1412,10 @@ function cmd_runf
 			  do 	((${#var})) || shift; break;
 			  done
 
-			  INPUT_ORIG=("${@:-${INPUT_ORIG[@]}}") xskip=1
-			  __cmdmsgf "Whisper Args #${#INPUT_ORIG[@]}" "${INPUT_ORIG[*]:-unset}"
+			  WARGS=("${@:-${WARGS[@]}}") xskip=1
+			  __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
 			fi; __cmdmsgf 'Whisper Chat' $(_onoff $OPTW);
+		       	((OPTW)) || unset OPTW WSKIP SKIP;
 			;;
 		-z*|tts*|speech*)
 			set -- "${*##@(-z*([zZ])|tts|speech)$SPC}"
@@ -1423,6 +1424,7 @@ function cmd_runf
 			then 	set_playcmdf;
 				__cmdmsgf 'TTS Args' "${OPTZ_CHAT_ARG:-unset}";
 			fi; __cmdmsgf 'TTS Chat' $(_onoff $OPTZ);
+		       	((OPTZ)) || unset OPTZ SKIP;
 			;;
 		-Z|last)
 			lastjsonf >&2
@@ -1939,7 +1941,12 @@ function whisperf
 	fi ;[[ -e $1 ]] && shift  #get rid of eventual second filename
 	
 	#set a prompt
-	[[ ${*} = *([$IFS]) ]] || set -- -F prompt="$*"
+	if [[ ${*} != *([$IFS]) ]]
+	then 	set -- -F prompt="$*";
+	elif ((CHAT_ENV+MTURN))
+	then 	var="${WCHAT_C:-$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")}";
+		((${#var})) && set -- -F prompt="$var";
+	fi
 
 	#response_format (timestamps) - testing
 	if ((OPTW>1 || OPTWW>1)) && ((!CHAT_ENV))
@@ -2475,6 +2482,7 @@ function custom_prf
 	_sysmsgf 'Prompt File:' "${file/"$HOME"/"~"}"
 	_cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
 
+	((!MTURN || OPTEXIT)) && skip=1
 	if { 	[[ $msg = *[Cc][Rr][Ee][Aa][Tt][Ee]* ]] && INSTRUCTION="$*" ret=200 ;} ||
 		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || (( (MTURN+CHAT_ENV) && OPTRESUME!=1 && skip==0))
 	then
@@ -2773,7 +2781,7 @@ function session_copyf
 function session_mainf
 {
 	typeset name file optsession args arg break msg
-	name="${1}${2}"           ;((${#name}<320)) || return
+	name="${*}"               ;((${#name}<320)) || return
 	name="${name##*([$IFS])}" ;[[ $name = [/!]* ]] || return
 	name="${name##?([/!])*([$IFS])}"
 
@@ -3016,7 +3024,7 @@ do
 	esac ;OPTARG=
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT NO_CLR init buff var n s
+unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT NO_CLR INPUT_ORIG WARGS WCHAT_C init buff var n s
 
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
   #map colours
@@ -3285,8 +3293,8 @@ else
 		else 	set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")" )"  #load file (last arg)
 		fi
 	fi
-	INPUT_ORIG=("$@")
-	((OPTW)) && { 	unset OPTX; set -- ;}  #whisper input
+	#INPUT_ORIG=("$@"); 
+	((OPTW)) && { 	WARGS=("$@"); unset OPTX; set -- ;}  #whisper input
 	if ((OPTC))
 	then 	__sysmsgf 'Chat Completions'
 		#chatbot must sound like a human, shouldnt be lobotomised
@@ -3307,8 +3315,13 @@ else
 	} ;((${#STOPS[@]})) && unescape_stopsf
 
 	#session cmds
-	[[ $* = *([$IFS])/* ]] && [[ ! -f "$1" ]] \
-	&& session_mainf "$@" && set --
+	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
+	then 	case "$1" in
+			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy) )
+				session_mainf "$1" "${@:2:1}" && set -- "${@:3}";;
+			*) 	session_mainf "$1" && set -- "${@:2}";;
+		esac
+	fi
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
@@ -3389,11 +3402,11 @@ else
 		((JUMP)) ||
 		#defaults prompter
 		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ "$*" = $SPC ]]
-		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
+		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:-> }}" || Q="${RESTART:-> }"
 			B=$(_unescapef "${Q:0:320}") B=${B##*$'\n'} B=${B//?/\\b}  #backspaces
 
 			while ((SKIP)) ||
-				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE:}${NC}" >&2
+				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE: }${NC}" >&2
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
 			do
 				((SKIP+OPTW)) && echo >&2
@@ -3407,7 +3420,7 @@ else
 							then 	REPLY=$(
 								MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
 								set_model_epnf "$MOD_AUDIO";
-								whisperf "$FILEINW" "${INPUT_ORIG[@]}";
+								whisperf "$FILEINW" "${WARGS[@]}";
 							)
 							else 	case $? in 196) 	unset OPTW REPLY; continue 1;; 199) 	EDIT=1; continue 1;; esac;
 								echo record abort >&2;
@@ -3703,6 +3716,15 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			ttsf $OPTZ_CHAT_ARG "${ans##"${A_TYPE##$SPC1}"}"; )
 			trap '-' $sig;
 		fi
+		if ((OPTW))
+		then 	#whisper auto context for better transcription / translation
+			WCHAT_C="${WCHAT_C:-$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")}\\n\\n${REPLY:-$*}";
+			if ((${#WCHAT_C}>224*4))
+			then 	((n = ${#WCHAT_C} - (220*4) ));
+				WCHAT_C=$(trim_leadf "${WCHAT_C:n}" "$SPC1");
+			fi  #max 224 tkns, GPT-2 encoding
+			#https://platform.openai.com/docs/guides/speech-to-text/improving-reliability
+		fi
 
 		((++MAIN_LOOP)) ;set --
 		unset INSTRUCTION OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC RET_PRF Q
@@ -3717,4 +3739,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3740
+# vim=syntax sync minlines=3760
