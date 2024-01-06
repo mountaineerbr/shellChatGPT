@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.25.3 | General Commands Manual
+% CHATGPT.SH(1) v0.25.7 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -399,7 +399,7 @@ See detailed info on settings for each endpoint at:
  - <https://platform.openai.com/docs/>
 
 
-### CODE COMPLETIONS (_discontinued_)
+### CODE COMPLETIONS _(discontinued)_
 
 Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
 
@@ -412,7 +412,7 @@ useful completions it's helpful to think about what information
 a programmer would need to perform a task. 
 
 
-### TEXT EDITS  (_discontinued_)
+### TEXT EDITS  _(discontinued)_
 
 <!--
 This endpoint is set with models with **edit** in their name or

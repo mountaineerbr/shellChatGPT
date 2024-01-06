@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.25.3 \| General Commands Manual
+title: CHATGPT.SH(1) v0.25.7 \| General Commands Manual
 ---
 
 ### NAME
@@ -392,7 +392,7 @@ See detailed info on settings for each endpoint at:
 
 - <https://platform.openai.com/docs/>
 
-### CODE COMPLETIONS (*discontinued*)
+### CODE COMPLETIONS *(discontinued)*
 
 Codex models are discontinued. Use davinci or *gpt-3.5+ models* for
 coding tasks.
@@ -405,7 +405,7 @@ Start with a comment with instructions, data or code. To create useful
 completions it’s helpful to think about what information a programmer
 would need to perform a task.
 
-### TEXT EDITS (*discontinued*)
+### TEXT EDITS *(discontinued)*
 
 <!--
 This endpoint is set with models with **edit** in their name or
