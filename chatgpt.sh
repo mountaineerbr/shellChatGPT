@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.25.12  jan/2024  by mountaineerbr  GPL+3
+# v0.25.13  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1940,6 +1940,10 @@ function whisperf
 	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "${1:-nill}" >&2
 		return 1
 	fi ;[[ -e $1 ]] && shift  #get rid of eventual second filename
+	if var=$(wc -c <"$file"); ((var > 25000000));
+	then 	du -h "$file" >&2;
+		__warmsgf 'Warning:' "Whisper input exceeds API limit of 25MBytes";
+	fi
 	
 	#set a prompt
 	if [[ ${*} != *([$IFS]) ]]
