@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.25.7  jan/2024  by mountaineerbr  GPL+3
+# v0.25.8  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -529,7 +529,8 @@ function model_capf
 		code-davinci-00[2-9]) MODMAX=8001;;
 		gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*) MODMAX=128000;;
 		gpt-3.5-turbo-1106) MODMAX=16385;;
-		gpt-4*32k*|text*moderation*) 	MODMAX=32768;; 
+		gpt-4*32k*) 	MODMAX=32768;; 
+		text*moderation*) 	MODMAX=150000;;
 		gpt-4*) 	MODMAX=8192;;
 		gpt-3.5*16K*|*turbo*16k*) 	MODMAX=16384;;
 		*turbo*|*davinci*) 	MODMAX=4096;;
@@ -2481,8 +2482,8 @@ function custom_prf
 	_sysmsgf 'Hist   File:' "${FILECHAT/"$HOME"/"~"}"
 	_sysmsgf 'Prompt File:' "${file/"$HOME"/"~"}"
 	_cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
+	{ 	[[ ! -t 1 ]] || ((OPTEXIT)) || ((!MTURN)) ;} && skip=1
 
-	((!MTURN || OPTEXIT)) && skip=1
 	if { 	[[ $msg = *[Cc][Rr][Ee][Aa][Tt][Ee]* ]] && INSTRUCTION="$*" ret=200 ;} ||
 		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || (( (MTURN+CHAT_ENV) && OPTRESUME!=1 && skip==0))
 	then
