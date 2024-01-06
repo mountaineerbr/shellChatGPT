@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.25.11  jan/2024  by mountaineerbr  GPL+3
+# v0.25.12  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -2585,11 +2585,10 @@ function session_listf
 #pick session files by globbing cache dir
 function session_globf
 {
-	typeset REPLY file glob sglob ext exact ok
+	typeset REPLY file glob sglob ext ok
 	sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}"
 
 	[[ ! -f "$1" ]] || return
-	[[ $1 = *$sglob ]] && exact=1
 	case "$1" in
 		[Nn]ew) 	return 2;;
 		[Cc]urrent|.) 	set -- "${FILECHAT##*/}" "${@:2}";;
@@ -2597,7 +2596,9 @@ function session_globf
 
 	cd -- "${CACHEDIR}"
 	glob="${1%%.${sglob}}" glob="${glob##*/}"
-	[[ -f "${glob}".${ext} ]] || ((exact)) || set -- *${glob}*.${sglob}
+	#input is exact filename, or ends with extension?
+	[[ -f "${glob}".${ext} ]] || [[ "$1" = *?.${sglob} ]] \
+	|| set -- *${glob}*.${sglob}  #set the glob
 	
 	if ((SESSION_LIST))
 	then 	ls -- "$@" >&2 ;return
