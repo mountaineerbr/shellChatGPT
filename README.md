@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI API for ChatGPT, DALL-E, and Whisper.
+Shell wrapper for OpenAI API for ChatGPT, DALL-E, Whisper, and TTS.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
