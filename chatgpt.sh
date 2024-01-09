@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.27.3  jan/2024  by mountaineerbr  GPL+3
+# v0.27.4  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -2150,8 +2150,8 @@ function __set_outfmtf
 function __set_speedf
 {
 	case "$1" in
-		.[0-9]*([0-9.,])) 	SPEEDZ=0$1;;
-		[0-9]*([0-9.,])) 	SPEEDZ=$1;;
+		[.,][0-9]*([0-9])) 	SPEEDZ=0${1//,/.};;
+		[0-9]*([0-9.,])) 	SPEEDZ=${1//,/.};;
 		*) 	false;;
 	esac
 }
