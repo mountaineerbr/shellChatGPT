@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.26.1  jan/2024  by mountaineerbr  GPL+3
+# v0.26.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1922,8 +1922,10 @@ function whisperf
 	fi;
 	check_optrangef "$OPTT" 0 1.0 Temperature
 	
-	((!${#})) && ((${#WARGS[@]})) && set -- "${WARGS[@]}"
-	[[ $1 = *([$IFS]) ]] && shift; args=("$@");
+	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@"
+	for var
+	do    [[ $var = *([$IFS]) ]] && shift || break;
+	done; var=; args=("$@");
 
 	#set language ISO-639-1 (two letters)
 	if __set_langf "$1"
@@ -2037,7 +2039,11 @@ function ttsf
 	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid sig var n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
-	((!${#})) && ((${#ZARGS[@]})) && set -- "${ZARGS[@]}"
+	
+	((${#})) || [[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@"
+	for var
+	do    [[ $var = *([$IFS]) ]] && shift || break;
+	done; var=;
 	
 	if ((!CHAT_ENV))
 	then 	#set speech voice, out file format, and speed
@@ -3275,13 +3281,17 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 	tiktokenf "$*" || ! __warmsgf \
 	  "Err:" "Make sure python tiktoken module is installed: \`pip install tiktoken\`"
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
-then 	whisperf "$@" &&
+then 	[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
+	whisperf "$@" &&
 	if ((OPTZ)) && [[ -n $WHISPER_OUT ]]
-	then 	MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
-		echo >&2; ttsf ${ZARGS[@]} "$WHISPER_OUT";
+	then 	echo >&2; set -- ;
+	       	MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
+		[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+		ttsf "$@" "$WHISPER_OUT";
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
-then 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")";
+then 	[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")";
 	[[ -t 0 ]] || set -- "$@" "$(escapef "$(<$STDIN)")"
 	ttsf "$@"
 elif ((OPTII))     #image variations+edits
@@ -3470,9 +3480,10 @@ else
 					case $? in
 						0) 	if recordf "$FILEINW"
 							then 	REPLY=$(
-								MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
+								set --; MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
 								set_model_epnf "$MOD_AUDIO";
-								whisperf "$FILEINW" "${WARGS[@]}";
+								[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@"
+								whisperf "$FILEINW" "$@";
 							)
 							else 	case $? in 196) 	unset OPTW REPLY; continue 1;; 199) 	EDIT=1; continue 1;; esac;
 								echo record abort >&2;
@@ -3764,8 +3775,9 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 		then
 			sig=INT; trap '' $sig;
 			( OPTV= MOD=$MOD_SPEECH;
-			set_model_epnf "$MOD_SPEECH";
-			ttsf ${ZARGS[@]} "${ans##"${A_TYPE##$SPC1}"}"; )
+			set_model_epnf "$MOD_SPEECH"; set --;
+			[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+			ttsf "$@" "${ans##"${A_TYPE##$SPC1}"}"; )
 			trap '-' $sig;
 		fi
 		if ((OPTW))
@@ -3792,4 +3804,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3800
+# vim=syntax sync minlines=3840
