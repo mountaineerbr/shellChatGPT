@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.26 | General Commands Manual
+% CHATGPT.SH(1) v0.27 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -19,7 +19,7 @@
 |    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_] \[_PROMPT-EN_]
 |    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
-|    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[`whisper_opt`..] \-- \[`tts_opt`..] 
+|    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[`whisper_arg`..] \-- \[`tts_arg`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_|_._]
 |    **chatgpt.sh** `-HHw`
@@ -225,10 +225,10 @@ causes the text following it to be appended immediately to the last
 The *options -ccwz* may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes.
 When setting *flag -w*, or *flag -z*, the first positional paramenters are read as
-whisper, or tts  options. When setting both *flags -wz*,
-add a double hyphen to set first whisper and then tts options.
+whisper, or tts  arguments. When setting both *flags -wz*,
+add a double hyphen to set first whisper, and then tts arguments.
 
-Set chat mode, plus whisper language and prompt, and the tts voice option:
+Set chat mode, plus whisper language and prompt, and the tts voice option argument:
 
     chatgpt.sh -ccwz  en 'whisper prompt'  --  nova
 

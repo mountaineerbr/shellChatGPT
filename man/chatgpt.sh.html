@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.26 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.27 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.26 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.27 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -206,7 +206,7 @@ Whisper / TTS</div>
 [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
 [<em>SPEED</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-ccWwz</code> [<code>opt</code>..]
--- [<code>whisper_opt</code>..] -- [<code>tts_opt</code>..]<br />
+-- [<code>whisper_arg</code>..] -- [<code>tts_arg</code>..]<br />
    <strong>chatgpt.sh</strong> <code>-l</code> [<em>MODEL</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HHH</code>
 [<code>/</code><em>HIST_FILE</em>|<em>.</em>]<br />
@@ -389,11 +389,11 @@ the last (response) prompt text.</p>
 <p>The <em>options -ccwz</em> may be combined to have voice recording
 input and synthesised voice output, specially nice with chat modes. When
 setting <em>flag -w</em>, or <em>flag -z</em>, the first positional
-paramenters are read as whisper, or tts options. When setting both
-<em>flags -wz</em>, add a double hyphen to set first whisper and then
-tts options.</p>
+paramenters are read as whisper, or tts arguments. When setting both
+<em>flags -wz</em>, add a double hyphen to set first whisper, and then
+tts arguments.</p>
 <p>Set chat mode, plus whisper language and prompt, and the tts voice
-option:</p>
+option argument:</p>
 <pre><code>chatgpt.sh -ccwz  en &#39;whisper prompt&#39;  --  nova</code></pre>
 <h4 id="gpt-4-vision">2.5 GPT-4-Vision</h4>
 <p>To send an <em>image</em>, or <em>url</em> to <strong>vision
