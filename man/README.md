@@ -65,8 +65,8 @@ Positional arguments are read as a single **PROMPT**. Model
 
 In multi-turn, when user prompt begins with a colon “*:*”, the
 subsequent text is set as a system message (text and chat cmpls). For
-text cmpls only, if double colons “*::*” are used, the following text
-will be appended to the previous prompt.
+text cmpls only, if double colons “*::*” are used, the text following
+them will be appended to the previous prompt.
 
 With **vision models**, insert an image to the prompt with chat command
 “`!img` \[*url*\|*filepath*\]”. Image urls and files can also be

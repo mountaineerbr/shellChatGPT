@@ -57,7 +57,7 @@ is usually optional and can be set with `option -S`.
 
 In multi-turn, when user prompt begins with a colon "_:_", the subsequent
 text is set as a system message (text and chat cmpls). For text cmpls only,
-if double colons "_::_" are used, the following text will be appended
+if double colons "_::_" are used, the text following them will be appended
 to the previous prompt.
 
 With **vision models**, insert an image to the prompt with chat
