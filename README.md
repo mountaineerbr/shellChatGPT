@@ -61,7 +61,7 @@ Optionally, download and set the config file [`~/.chatgpt.conf`](https://gitlab.
 ### 🔥 Usage
 
 - Set your OpenAI API key with the environment variable `$OPENAI_API_KEY`,
-  or set `option -K [KEY]`, or set the conf file.
+  or set `option -K [KEY]`, or set the configuration file.
 - Just write your prompt as positional arguments after setting options!
 - Chat mode may be configured with Instruction or not.
 - Set temperature value with `-t [VAL]` (0.0 to 2.0), defaults=0.
@@ -381,29 +381,40 @@ The prompt should match the audio language:
     chatgpt.sh -w path/to/audio.mp3 "en" "This is a poem about X."
 
 
-Generate transcription from voice recording, set Portuguese as the language to transcribe to:
+*1.* Generate transcription from voice recording, set Portuguese as the language to transcribe to:
 
     chatgpt.sh -w pt
 
 
 This also works to transcribe from one language to another.
 
-Transcribe any language audio input **to japanese** (_prompt_ must be in
+
+*2.* Transcribe any language audio input **to Japanese** (_prompt_ must be in
 the same language as the input audio language):
 
     chatgpt.sh -w ja "A job interview is currently being done."
 
 
-Translate audio file or voice recording in any language to English:
+*3.1* Translate English audio input to Japanese, and generate audio output from text.
+
+    chatgpt.sh -wz ja "Getting directions to famous places in the city."
+
+
+*3.2* Also doing it conversely, this gives an opportunity to (manual)
+conversation turns of two speakers of different languages. Below,
+a Japanese speaker can translate its voice and generate audio in the target language.
+
+    chatgpt.sh -wz en "Providing directions to famous places in the city."
+
+
+*4.* Translate audio file or voice recording from any language to English:
 
     chatgpt.sh -W [audio_file]
 
     chatgpt.sh -W
 
 
-Transcribe audio and print timestamps `option -ww`:
-
-    chatgpt.sh -ww pt audio_in.mp3
+_OBS:_ get phrasal-level timestamps setting `option -w` or `option -W` twice.
 
 
 ![Transcribe audio with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)

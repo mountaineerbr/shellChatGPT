@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.27.2  jan/2024  by mountaineerbr  GPL+3
+# v0.27.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1986,7 +1986,7 @@ function whisperf
 		  bpurple + .text + reset" "$FILE" \
 		|| jq -r '.text' "$FILE" || cat -- "$FILE" ;}
 	fi &&
-	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"\(.start|seconds_to_time_string)\" + .text) else .text end" "$FILE" || cat -- "$FILE") &&
+	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + .text) else .text end" "$FILE" || cat -- "$FILE") &&
 		  ((!CHAT_ENV)) && [[ -d ${FILEWHISPERLOG%/*} ]] &&  #rec whisper output
 		  printf '\n====\n%s\n\n%s\n' "$(date -R 2>/dev/null||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG" &&
 		  _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
@@ -2150,8 +2150,8 @@ function __set_outfmtf
 function __set_speedf
 {
 	case "$1" in
-		.[0-9]*) 	SPEEDZ=0$1;;
-		[0-9]*) 	SPEEDZ=$1;;
+		.[0-9]*([0-9.,])) 	SPEEDZ=0$1;;
+		[0-9]*([0-9.,])) 	SPEEDZ=$1;;
 		*) 	false;;
 	esac
 }
@@ -3284,11 +3284,12 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 	whisperf "$@" &&
-	if ((OPTZ)) && [[ -n $WHISPER_OUT ]]
+	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then .segments[].text else .text end" "$FILE") \
+		&& ((${#WHISPER_OUT}))
 	then 	echo >&2; set -- ;
 	       	MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
 		[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
-		ttsf "$@" "$WHISPER_OUT";
+		ttsf "$@" "$(escapef "$WHISPER_OUT")";
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
 then 	[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
