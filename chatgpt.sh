@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.25.13  jan/2024  by mountaineerbr  GPL+3
+# v0.26  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -133,17 +133,16 @@ HELP="Name
 
 
 Synopsis
-	${0##*/} [-cc|-d|-qq] [opt] [PROMPT|TEXT_FILE]
-	${0##*/} -i [opt] [X|L|P][hd] [PROMPT]  #dall-e-3
-	${0##*/} -i [opt] [S|M|L] [PROMPT]
-	${0##*/} -i [opt] [S|M|L] [PNG_FILE]
-	${0##*/} -i [opt] [S|M|L] [PNG_FILE] [MASK_FILE] [PROMPT]
+	${0##*/} [-cc|-d|-qq] [opt..] [PROMPT|TEXT_FILE]
+	${0##*/} -i [opt..] [X|L|P][hd] [PROMPT]  #dall-e-3
+	${0##*/} -i [opt..] [S|M|L] [PROMPT]
+	${0##*/} -i [opt..] [S|M|L] [PNG_FILE]
+	${0##*/} -i [opt..] [S|M|L] [PNG_FILE] [MASK_FILE] [PROMPT]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE]
-	${0##*/} -w [opt] [AUDIO_FILE] [LANG] [PROMPT]
-	${0##*/} -W [opt] [AUDIO_FILE] [PROMPT-EN]
-	${0##*/} -zz [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
-	${0##*/} -cczw [opt] [LANG]
-	${0##*/} -cczW [opt]
+	${0##*/} -w [opt..] [AUDIO_FILE] [LANG] [PROMPT]
+	${0##*/} -W [opt..] [AUDIO_FILE] [PROMPT-EN]
+	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
+	${0##*/} -ccWwz [opt..] -- [whisper_opt..] -- [tts_opt..]
 	${0##*/} -l [MODEL]
 	${0##*/} -HHH [/HIST_FILE|.]
 	${0##*/} -HHw
@@ -200,7 +199,7 @@ Description
 	\`nova', or \`shimmer'). Set the second positional parameter as the
 	speed (0.25 - 4.0), and, finally the output file name or the format,
 	such as \`./new_audio.mp3' (\`mp3', \`opus', \`aac', and \`flac'),
-	or \`-' for stdout. Set option -zz to try to play received output.
+	or \`-' for stdout. Set options -vz to not play received output.
 
 	Option -y sets python tiktoken instead of the default script hack
 	to preview token count. Set this option for accurate history
@@ -464,8 +463,8 @@ Options
 		Set tiktoken for token count (cmpls, chat).
 	-Y, --no-tik  (defaults)
 		Unset tiktoken use (cmpls, chat).
-	-zz [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT], --tts
-		Synthesise speech from text prompt, set twice to play.
+	-z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT], --tts
+		Synthesise speech from text prompt, set -v to not play.
 	-Z, --last
 		Print last response JSON data."
 
@@ -784,13 +783,23 @@ function prompt_pf
 
 function _p_suffixf { 	((!${#SUFFIX} )) || printf '%s' "$(unescapef "$SUFFIX")" ;}
 
-#open file with sys defaults
+#open image with sys defaults
 function __openf
 {
 	if command -v xdg-open >/dev/null 2>&1
 	then 	xdg-open "$1"
 	elif command -v open >/dev/null 2>&1
 	then 	open "$1"
+	elif command -v feh >/dev/null 2>&1
+	then 	feh "$1"
+	elif command -v sxiv >/dev/null 2>&1
+	then 	sxiv "$1"
+	elif command -v firefox >/dev/null 2>&1
+	then 	firefox "$1"
+	elif command -v google-chrome-stable >/dev/null 2>&1
+	then 	google-chrome-stable "$1"
+	elif command -v google-chrome >/dev/null 2>&1
+	then 	google-chrome "$1"
 	else 	false
 	fi
 }
@@ -1253,7 +1262,7 @@ function cmd_runf
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  push_tohistf "$(escapef ":${INSTRUCTION_OLD:-$INSTRUCTION}")"
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | STREAM= foldf >&2
-			}; unset CKSUM_OLD MAX_PREV INPUT_ORIG WCHAT_C; xskip=1;
+			}; unset CKSUM_OLD MAX_PREV WCHAT_C; xskip=1;
 			;;
 		-g|-G|stream|no-stream)
 			((++STREAM)) ;((STREAM%=2))
@@ -1413,17 +1422,17 @@ function cmd_runf
 			  do 	((${#var})) || shift; break;
 			  done
 
-			  WARGS=("${@:-${WARGS[@]}}") xskip=1
+			  [[ $* = $SPC ]] || WARGS=("$@"); xskip=1;
 			  __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
 			fi; __cmdmsgf 'Whisper Chat' $(_onoff $OPTW);
 		       	((OPTW)) || unset OPTW WSKIP SKIP;
 			;;
 		-z*|tts*|speech*)
 			set -- "${*##@(-z*([zZ])|tts|speech)$SPC}"
-			[[ $* = $SPC ]] || OPTZ_CHAT_ARG=$*
 			if ((++OPTZ)); ((OPTZ%=2))
 			then 	set_playcmdf;
-				__cmdmsgf 'TTS Args' "${OPTZ_CHAT_ARG:-unset}";
+				[[ $* = $SPC ]] || ZARGS=("$@"); xskip=1;
+				__cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
 			fi; __cmdmsgf 'TTS Chat' $(_onoff $OPTZ);
 		       	((OPTZ)) || unset OPTZ SKIP;
 			;;
@@ -1912,6 +1921,8 @@ function whisperf
 	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "$OPTT";
 	fi;
 	check_optrangef "$OPTT" 0 1.0 Temperature
+	
+	((!${#})) && ((${#WARGS[@]})) && set -- "${WARGS[@]}"
 	[[ $1 = *([$IFS]) ]] && shift; args=("$@");
 
 	#set language ISO-639-1 (two letters)
@@ -1926,7 +1937,7 @@ function whisperf
 		[[ -t 1 ]] && echo >&2 || var=$(__read_charf)
 		case "$var" in
 			[AaNnQq]|$'\e') 	:;;
-			*) 	((CHAT_ENV)) || __sysmsgf 'REC_CMD:' "\"${REC_CMD}\"";
+			*) 	((CHAT_ENV)) || __sysmsgf 'Rec Cmd:' "\"${REC_CMD}\"";
 				OPTV=4 record_confirmf || return
 				WSKIP=1 recordf "$FILEINW"
 				set -- "$FILEINW" "$@"; rec=1;;
@@ -1976,7 +1987,7 @@ function whisperf
 	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"\(.start|seconds_to_time_string)\" + .text) else .text end" "$FILE" || cat -- "$FILE") &&
 		  ((!CHAT_ENV)) && [[ -d ${FILEWHISPERLOG%/*} ]] &&  #rec whisper output
 		  printf '\n====\n%s\n\n%s\n' "$(date -R 2>/dev/null||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG" &&
-		  __warmsgf 'Log:' "$FILEWHISPERLOG";
+		  _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
 
 		((OPTCLIP && !CHAT_ENV))
 	then 	(${CLIP_CMD:-false} <<<"$WHISPER_OUT" &)  #clipboard
@@ -2026,6 +2037,7 @@ function ttsf
 	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid sig var n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
+	((!${#})) && ((${#ZARGS[@]})) && set -- "${ZARGS[@]}"
 	
 	if ((!CHAT_ENV))
 	then 	#set speech voice, out file format, and speed
@@ -2060,7 +2072,7 @@ function ttsf
 	while input=${xinput:0:max};
 	do
 		if ((!CHAT_ENV))
-		then 	__sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
+		then 	_sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
 			__sysmsgf 'Text Prompt:' "${xinput:0:COLUMNS-17}$([[ -n ${xinput:COLUMNS-17} ]] && echo ...)";
 		fi
 		
@@ -2097,8 +2109,8 @@ function ttsf
 
 	[[ $FOUT = "-"* ]] || { 
 		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
-		((OPTZ<2)) || [[ ! -s $FOUT ]] || {
-			((CHAT_ENV)) || __sysmsgf 'PLAY_CMD:' "\"${PLAY_CMD}\"";
+		((OPTV)) || [[ ! -s $FOUT ]] || {
+			((CHAT_ENV)) || __sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
 			${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
 			trap "kill -- $pid" $sig;
 			wait $pid; trap '-' $sig;
@@ -2739,7 +2751,7 @@ do 	__spinf 	#grep for user regex
 			  ((${search:+1})) && _sysmsgf "Is this the right session?" '[Y/n/a] ' '' ||
 			  _sysmsgf "Is this the tail of the right session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
 			  case "$(__read_charf)" in
-			  	[]GgSsRr/?:\;]) 	__sysmsgf 'grep:' '<-opt> <regex> <enter>'
+			  	[]GgSsRr/?:\;]) 	_sysmsgf 'grep:' '<-opt> <regex> <enter>'
 					__clr_ttystf; read -r -e -i "$search" search </dev/tty;
 					continue
 					;;
@@ -2998,7 +3010,7 @@ do
 			else 	USRLOG="${OPTARG:-${USRLOG}}"
 			fi
 			[[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
-			_cmdmsgf 'Log file' "<${USRLOG}>";;
+			_sysmsgf 'Log File' "<${USRLOG}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
@@ -3027,13 +3039,13 @@ do
 		W) 	((OPTW)) || OPTW=1 ;((++OPTWW)); WSKIP=1;;
 		y) 	OPTTIK=1;;
 		Y) 	OPTTIK= OPTYY=1;;
-		z) 	((++OPTZ));;
+		z) 	OPTZ=1;;
 		Z) 	OPTZZ=1;;
 		\?) 	exit 1;;
 	esac ;OPTARG=
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT NO_CLR INPUT_ORIG WARGS WCHAT_C init buff var n s
+unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT NO_CLR WARGS ZARGS WCHAT_C init buff var n s
 
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
   #map colours
@@ -3161,7 +3173,39 @@ fi
 for arg  #!# escape input
 do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
-done ;unset arg init
+done; unset arg init;
+
+if ((OPTW+OPTZ))  #handle options for combined modes for chat + whisper + tts
+then 	n=1; for arg
+	do 	[[ ${arg:0:4} = -- ]] && argn=(${argn[@]} $n); ((++n));
+	done; #map double hyphens `--'
+	if ((${#argn[@]}>=2)) && ((OPTW)) && ((OPTZ))  #improbable case
+	then 	((ii=argn[1]-argn[0])); ((ii<1)) && ii=1;
+		WARGS=("${@:argn[0]+1:ii-1}");
+		ZARGS=("${@:argn[1]+1}");
+		set -- "${@:1:argn[0]-1}";
+	elif ((${#argn[@]}==1)) && ((OPTW)) && ((OPTZ))
+	then 	WARGS=("${@:1:argn[0]-1}");
+		ZARGS=("${@:argn[0]+1}");
+		set -- ;
+	elif ((${#argn[@]})) && ((OPTW))
+	then 	WARGS=("${@:argn[0]+1}");
+		set -- "${@:1:argn[0]-1}";
+	elif ((${#argn[@]})) && ((OPTZ))
+	then 	ZARGS=("${@:argn[0]+1}");
+		set -- "${@:1:argn[0]-1}";
+	elif ((MTURN))
+	then 	if ((OPTW))
+		then 	WARGS=("$@");
+		elif ((OPTZ))
+		then 	ZARGS=("$@");
+		fi; set -- ;
+	fi
+	((${#})) && { 	var=$* var=${var:0:128}; __cmdmsgf 'Text Prompt' "$var [..]"; }
+	((${#WARGS[@]})) && __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-unset}"
+	((${#ZARGS[@]})) && __cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
+	unset n ii var arg argn;
+fi
 
 mkdir -p "$CACHEDIR" || { 	_sysmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
 if ! command -v jq >/dev/null 2>&1
@@ -3183,7 +3227,7 @@ then  #whisper log
 		done < <(tac "$FILEWHISPERLOG");
 		printf '%s' "$BUFF";
 	else 	__edf "$FILEWHISPERLOG"
-	fi; __warmsgf 'Whisper Log:' "$FILEWHISPERLOG";
+	fi; _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
 elif ((OPTHH))  #edit history/pretty print last session
 then
 	[[ $INSTRUCTION = [.,]* ]] && OPTRESUME=1 custom_prf
@@ -3234,7 +3278,7 @@ elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	whisperf "$@" &&
 	if ((OPTZ)) && [[ -n $WHISPER_OUT ]]
 	then 	MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
-		ttsf "$WHISPER_OUT";
+		echo >&2; ttsf "$WHISPER_OUT";
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
 then 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")";
@@ -3273,7 +3317,8 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 		printf '%-22s: %.24f (%s)\n' $(lastjsonf | jq -r '.results[].categories|keys_unsorted[]' | while read -r; do 	lastjsonf | jq -r "\"$REPLY \" + (.results[].category_scores.\"$REPLY\"|tostring//empty) + \" \" + (.results[].categories.\"$REPLY\"|tostring//empty)"; done)
 	fi
 else
-	CHAT_ENV=1
+	CHAT_ENV=1; ((OPTW)) && unset OPTX;
+
 	#custom / awesome prompts
 	if [[ $INSTRUCTION = [/%.,]* ]]
 	then 	if [[ $INSTRUCTION = [/%]* ]]
@@ -3302,8 +3347,6 @@ else
 		else 	set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")" )"  #load file (last arg)
 		fi
 	fi
-	#INPUT_ORIG=("$@"); 
-	((OPTW)) && { 	WARGS=("$@"); unset OPTX; set -- ;}  #whisper input
 	if ((OPTC))
 	then 	__sysmsgf 'Chat Completions'
 		#chatbot must sound like a human, shouldnt be lobotomised
@@ -3720,9 +3763,9 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 		elif ((OPTZ))
 		then
 			sig=INT; trap '' $sig;
-			( OPTZ=2 MOD=$MOD_SPEECH;
+			( OPTV= MOD=$MOD_SPEECH;
 			set_model_epnf "$MOD_SPEECH";
-			ttsf $OPTZ_CHAT_ARG "${ans##"${A_TYPE##$SPC1}"}"; )
+			ttsf ${ZARGS[@]} "${ans##"${A_TYPE##$SPC1}"}"; )
 			trap '-' $sig;
 		fi
 		if ((OPTW))
@@ -3744,8 +3787,9 @@ fi
 
 # Notes:
 # - Debug command performance by line in Bash:
-#   set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: '
+## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: '
+## shellcheck.sh -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3760
+# vim=syntax sync minlines=3800

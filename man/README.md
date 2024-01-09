@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.25.7 \| General Commands Manual
+title: CHATGPT.SH(1) v0.26 \| General Commands Manual
 ---
 
 ### NAME
@@ -11,23 +11,23 @@ title: CHATGPT.SH(1) v0.25.7 \| General Commands Manual
 
 ### SYNOPSIS
 
-   **chatgpt.sh** \[`-cc`\|`-d`\|`-qq`\] \[`opt`\]
+   **chatgpt.sh** \[`-cc`\|`-d`\|`-qq`\] \[`opt`..\]
 \[*PROMPT*\|*TEXT_FILE*\]  
-   **chatgpt.sh** `-i` \[`opt`\] \[*X*\|*L*\|*P*\]\[*hd*\] \[*PROMPT*\]
-\#*dall-e-3*  
-   **chatgpt.sh** `-i` \[`opt`\] \[*S*\|*M*\|*L*\] \[*PROMPT*\]  
-   **chatgpt.sh** `-i` \[`opt`\] \[*S*\|*M*\|*L*\] \[*PNG_FILE*\]  
-   **chatgpt.sh** `-i` \[`opt`\] \[*S*\|*M*\|*L*\] \[*PNG_FILE*\]
+   **chatgpt.sh** `-i` \[`opt`..\] \[*X*\|*L*\|*P*\]\[*hd*\]
+\[*PROMPT*\] \#*dall-e-3*  
+   **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PROMPT*\]  
+   **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PNG_FILE*\]  
+   **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PNG_FILE*\]
 \[*MASK_FILE*\] \[*PROMPT*\]  
    **chatgpt.sh** `-TTT` \[-v\] \[`-m`\[*MODEL*\|*ENCODING*\]\]
 \[*INPUT*\|*TEXT_FILE*\]  
-   **chatgpt.sh** `-w` \[`opt`\] \[*AUDIO_FILE*\] \[*LANG*\]
+   **chatgpt.sh** `-w` \[`opt`..\] \[*AUDIO_FILE*\] \[*LANG*\]
 \[*PROMPT*\]  
-   **chatgpt.sh** `-W` \[`opt`\] \[*AUDIO_FILE*\] \[*PROMPT-EN*\]  
-   **chatgpt.sh** `-z` \[`opt`\] \[*OUTFILE*\|*FORMAT*\|*-*\]
+   **chatgpt.sh** `-W` \[`opt`..\] \[*AUDIO_FILE*\] \[*PROMPT-EN*\]  
+   **chatgpt.sh** `-z` \[`opt`..\] \[*OUTFILE*\|*FORMAT*\|*-*\]
 \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
-   **chatgpt.sh** `-cczw` \[`opt`\] \[*LANG*\]  
-   **chatgpt.sh** `-cczW` \[`opt`\]  
+   **chatgpt.sh** `-ccWwz` \[`opt`..\] -- \[`whisper_opt`..\] --
+\[`tts_opt`..\]  
    **chatgpt.sh** `-l` \[*MODEL*\]  
    **chatgpt.sh** `-HHH` \[`/`*HIST_FILE*\|*.*\]  
    **chatgpt.sh** `-HHw`
@@ -140,7 +140,7 @@ the first positional parameter (“*alloy*”, “*echo*”, “*fable*”,
 “*onyx*”, “*nova*”, or “*shimmer*”). Set the second positional parameter
 as the *voice speed* (*0.25* - *4.0*), and, finally the *output file
 name* or the *format*, such as “*./new_audio.mp3*” (“*mp3*”, “*opus*”,
-“*aac*”, and “*flac*”), or “*-*” for stdout. Set `option -zz` to try to
+“*aac*”, and “*flac*”), or “*-*” for stdout. Set `options -vz` to *not*
 play received output.
 
 `Option -y` sets python tiktoken instead of the default script hack to
@@ -225,7 +225,20 @@ however, typing a colon “*:*” at the start of the prompt causes the text
 following it to be appended immediately to the last (response) prompt
 text.
 
-#### 2.4 GPT-4-Vision
+#### 2.4 Voice input (whisper), and voice output (tts)
+
+The *options -ccwz* may be combined to have voice recording input and
+synthesised voice output, specially nice with chat modes. When setting
+*flag -w*, or *flag -z*, the first positional paramenters are read as
+whisper, or tts options. When setting both *flags -wz*, add a double
+hyphen to set first whisper and then tts options.
+
+Set chat mode, plus whisper language and prompt, and the tts voice
+option:
+
+    chatgpt.sh -ccwz  en 'whisper prompt'  --  nova
+
+#### 2.5 GPT-4-Vision
 
 To send an *image*, or *url* to **vision models**, either set the image
 with the `!img` chat command with one or more *filepaths* / *urls*
@@ -241,7 +254,7 @@ prompt interactively:
     [...]
     Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
 
-##### 2.4 Chat Commands
+##### 2.6 Chat Commands
 
 While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “`!`”,
@@ -316,7 +329,7 @@ or “`/`”.
 E.g.: “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”, and “`/s`
 *hist_name*”.
 
-###### 2.4.1 Session Management
+###### 2.6.1 Session Management
 
 The script uses a *TSV file* to record entries, which is kept at the
 script cache directory. A new history file can be created, or an
@@ -343,7 +356,7 @@ In order to change the chat context at run time, the history file may be
 edited with the “`/hist`” command (also for context injection). Delete
 history entries or comment them out with “`#`”.
 
-##### 2.5 Completion Preview / Regeneration
+##### 2.7 Completion Preview / Regeneration
 
 To preview a prompt completion before committing it to history, append a
 forward slash “`/`” to the prompt as the last character. Regenerate it
@@ -719,7 +732,7 @@ Set response streaming.
 Unset response streaming.
 
 **-i** \[*PROMPT*\], **--image**  
-Generate images given a prompt.
+Generate images given a prompt. Set *option -v* to not open response.
 
 **-i** \[*PNG*\]  
 Create variations of a given image.
@@ -846,12 +859,12 @@ Edit prompt in text editor.
 **-y**, **--tik**  
 Set tiktoken for token count (cmpls, chat, python).
 
-**-Y**, **–no-tik** (*defaults*)  
+**-Y**, **--no-tik** (*defaults*)  
 Unset tiktoken use (cmpls, chat, python).
 
-**-zz** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\], **--tts**  
+**-z** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\], **--tts**  
 Synthesise speech from text prompt. Takes a voice name, speed and text
-prompt. Set twice to play.
+prompt. Set *option -v* to not play response.
 
 **-Z**, **--last**  
 Print last response JSON data.

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.25.7 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.26 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.25.7 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.26 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -183,32 +183,30 @@
 Whisper / TTS</div>
 <h3 id="synopsis">SYNOPSIS</h3>
 <div class="line-block">   <strong>chatgpt.sh</strong>
-[<code>-cc</code>|<code>-d</code>|<code>-qq</code>] [<code>opt</code>]
+[<code>-cc</code>|<code>-d</code>|<code>-qq</code>] [<code>opt</code>..]
 [<em>PROMPT</em>|<em>TEXT_FILE</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>X</em>|<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
 #<em>dall-e-3</em><br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PROMPT</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PNG_FILE</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>]
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PNG_FILE</em>]
 [<em>MASK_FILE</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-TTT</code> [-v]
 [<code>-m</code>[<em>MODEL</em>|<em>ENCODING</em>]]
 [<em>INPUT</em>|<em>TEXT_FILE</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-w</code> [<code>opt</code>]
+   <strong>chatgpt.sh</strong> <code>-w</code> [<code>opt</code>..]
 [<em>AUDIO_FILE</em>] [<em>LANG</em>] [<em>PROMPT</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>]
+   <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>..]
 [<em>AUDIO_FILE</em>] [<em>PROMPT-EN</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-z</code> [<code>opt</code>]
+   <strong>chatgpt.sh</strong> <code>-z</code> [<code>opt</code>..]
 [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
 [<em>SPEED</em>] [<em>PROMPT</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-cczw</code> [<code>opt</code>]
-[<em>LANG</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-cczW</code>
-[<code>opt</code>]<br />
+   <strong>chatgpt.sh</strong> <code>-ccWwz</code> [<code>opt</code>..]
+-- [<code>whisper_opt</code>..] -- [<code>tts_opt</code>..]<br />
    <strong>chatgpt.sh</strong> <code>-l</code> [<em>MODEL</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HHH</code>
 [<code>/</code><em>HIST_FILE</em>|<em>.</em>]<br />
@@ -318,7 +316,7 @@ a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 <em>output file name</em> or the <em>format</em>, such as
 “<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>opus</em>”,
 “<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
-<code>option -zz</code> to try to play received output.</p>
+<code>options -vz</code> to <em>not</em> play received output.</p>
 <p><code>Option -y</code> sets python tiktoken instead of the default
 script hack to preview token count. This option makes token count
 preview accurate fast (we fork tiktoken as a coprocess for fast token
@@ -386,7 +384,18 @@ initial character sets the prompt as a <strong>SYSTEM</strong> message.
 In text completions, however, typing a colon “<em>:</em>” at the start
 of the prompt causes the text following it to be appended immediately to
 the last (response) prompt text.</p>
-<h4 id="gpt-4-vision">2.4 GPT-4-Vision</h4>
+<h4 id="voice-input-whisper-and-voice-output-tts">2.4 Voice input
+(whisper), and voice output (tts)</h4>
+<p>The <em>options -ccwz</em> may be combined to have voice recording
+input and synthesised voice output, specially nice with chat modes. When
+setting <em>flag -w</em>, or <em>flag -z</em>, the first positional
+paramenters are read as whisper, or tts options. When setting both
+<em>flags -wz</em>, add a double hyphen to set first whisper and then
+tts options.</p>
+<p>Set chat mode, plus whisper language and prompt, and the tts voice
+option:</p>
+<pre><code>chatgpt.sh -ccwz  en &#39;whisper prompt&#39;  --  nova</code></pre>
+<h4 id="gpt-4-vision">2.5 GPT-4-Vision</h4>
 <p>To send an <em>image</em>, or <em>url</em> to <strong>vision
 models</strong>, either set the image with the <code>!img</code> chat
 command with one or more <em>filepaths</em> / <em>urls</em> separated by
@@ -398,7 +407,7 @@ end of the text prompt interactively:</p>
 
 [...]
 Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg</code></pre>
-<h5 id="chat-commands">2.4 Chat Commands</h5>
+<h5 id="chat-commands">2.6 Chat Commands</h5>
 <p>While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either
 “<code>!</code>”, or “<code>/</code>”.</p>
@@ -729,7 +738,7 @@ entries.</td>
 <div class="line-block">E.g.: “<code>/temp</code> <em>0.7</em>”,
 “<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”, and
 “<code>/s</code> <em>hist_name</em>”.</div>
-<h6 id="session-management">2.4.1 Session Management</h6>
+<h6 id="session-management">2.6.1 Session Management</h6>
 <p>The script uses a <em>TSV file</em> to record entries, which is kept
 at the script cache directory. A new history file can be created, or an
 existing one changed to with command “<code>/session</code>
@@ -752,7 +761,7 @@ file name, such as “<code>/copy</code> [<em>SRC_HIST_FILE</em>]
 be edited with the “<code>/hist</code>” command (also for context
 injection). Delete history entries or comment them out with
 “<code>#</code>”.</p>
-<h5 id="completion-preview-regeneration">2.5 Completion Preview /
+<h5 id="completion-preview-regeneration">2.7 Completion Preview /
 Regeneration</h5>
 <p>To preview a prompt completion before committing it to history,
 append a forward slash “<code>/</code>” to the prompt as the last
@@ -1161,7 +1170,8 @@ Def=<em>1</em>.</p>
 </dd>
 <dt><strong>-i</strong> [<em>PROMPT</em>], <strong>--image</strong></dt>
 <dd>
-<p>Generate images given a prompt.</p>
+<p>Generate images given a prompt. Set <em>option -v</em> to not open
+response.</p>
 </dd>
 <dt><strong>-i</strong> [<em>PNG</em>]</dt>
 <dd>
@@ -1321,17 +1331,17 @@ and start sequences.</p>
 <dd>
 <p>Set tiktoken for token count (cmpls, chat, python).</p>
 </dd>
-<dt><strong>-Y</strong>, <strong>–no-tik</strong>
+<dt><strong>-Y</strong>, <strong>--no-tik</strong>
 (<em>defaults</em>)</dt>
 <dd>
 <p>Unset tiktoken use (cmpls, chat, python).</p>
 </dd>
-<dt><strong>-zz</strong> [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>]
+<dt><strong>-z</strong> [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>]
 [<em>VOICE</em>] [<em>SPEED</em>] [<em>PROMPT</em>],
 <strong>--tts</strong></dt>
 <dd>
 <p>Synthesise speech from text prompt. Takes a voice name, speed and
-text prompt. Set twice to play.</p>
+text prompt. Set <em>option -v</em> to not play response.</p>
 </dd>
 <dt><strong>-Z</strong>, <strong>--last</strong></dt>
 <dd>

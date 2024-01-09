@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.25.7 | General Commands Manual
+% CHATGPT.SH(1) v0.26 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -10,17 +10,16 @@
 
 ### SYNOPSIS
 
-|    **chatgpt.sh** \[`-cc`|`-d`|`-qq`] \[`opt`] \[_PROMPT_|_TEXT_FILE_]
-|    **chatgpt.sh** `-i` \[`opt`] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #_dall-e-3_
-|    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PROMPT_]
-|    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PNG_FILE_]
-|    **chatgpt.sh** `-i` \[`opt`] \[_S_|_M_|_L_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
+|    **chatgpt.sh** \[`-cc`|`-d`|`-qq`] \[`opt`..] \[_PROMPT_|_TEXT_FILE_]
+|    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #_dall-e-3_
+|    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PROMPT_]
+|    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_]
+|    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_]
-|    **chatgpt.sh** `-w` \[`opt`] \[_AUDIO_FILE_] \[_LANG_] \[_PROMPT_]
-|    **chatgpt.sh** `-W` \[`opt`] \[_AUDIO_FILE_] \[_PROMPT-EN_]
-|    **chatgpt.sh** `-z` \[`opt`] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
-|    **chatgpt.sh** `-cczw` \[`opt`] \[_LANG_]
-|    **chatgpt.sh** `-cczW` \[`opt`]
+|    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_] \[_LANG_] \[_PROMPT_]
+|    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_] \[_PROMPT-EN_]
+|    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
+|    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[`whisper_opt`..] \-- \[`tts_opt`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_|_._]
 |    **chatgpt.sh** `-HHw`
@@ -132,7 +131,7 @@ the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
 "_nova_", or "_shimmer_"). Set the second positional parameter as the
 _voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or
 the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_",
-and "_flac_"), or "_-_" for stdout. Set `option -zz` to try to play received output.
+and "_flac_"), or "_-_" for stdout. Set `options -vz` to _not_ play received output.
 
 `Option -y` sets python tiktoken instead of the default script hack
 to preview token count. This option makes token count preview
@@ -194,16 +193,19 @@ see <https://platform.openai.com/examples>.
 
 #### 2. Chat Mode
 
+
 ##### 2.1 Text Completions Chat
 
 Set `option -c` to start chat mode of text completions. It keeps
 a history file, and keeps new questions in context. This works
 with a variety of models. Set `option -E` to exit on response.
 
+
 ##### 2.2 Native Chat Completions
 
 Set the double `option -cc` to start chat completions mode. Turbo
 models are also the best option for many non-chat use cases.
+
 
 ##### 2.3 Q & A Format
 
@@ -218,8 +220,20 @@ causes the text following it to be appended immediately to the last
 (response) prompt text.
 
 
+#### 2.4 Voice input (whisper), and voice output (tts)
 
-#### 2.4 GPT-4-Vision
+The *options -ccwz* may be combined to have voice recording input and
+synthesised voice output, specially nice with chat modes.
+When setting *flag -w*, or *flag -z*, the first positional paramenters are read as
+whisper, or tts  options. When setting both *flags -wz*,
+add a double hyphen to set first whisper and then tts options.
+
+Set chat mode, plus whisper language and prompt, and the tts voice option:
+
+    chatgpt.sh -ccwz  en 'whisper prompt'  --  nova
+
+
+#### 2.5 GPT-4-Vision
 
 To send an _image_, or _url_ to **vision models**, either set the image
 with the `!img` chat command with one or more _filepaths_ / _urls_
@@ -237,7 +251,7 @@ text prompt interactively:
     Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
 
 
-##### 2.4 Chat Commands
+##### 2.6 Chat Commands
 
 While in chat mode, the following commands can be typed in the
 new prompt to set a new parameter. The command operator
@@ -318,7 +332,7 @@ may be either "`!`", or "`/`".
 | E.g.: "`/temp` _0.7_", "`!mod`_gpt-4_", "`-p` _0.2_", and "`/s` _hist_name_".
 
 
-###### 2.4.1 Session Management
+###### 2.6.1 Session Management
 
 The script uses a _TSV file_ to record entries, which is kept at the script
 cache directory. A new history file can be created, or an existing one
@@ -346,7 +360,7 @@ edited with the "`/hist`" command (also for context injection).
 Delete history entries or comment them out with "`#`".
 
 
-##### 2.5 Completion Preview / Regeneration
+##### 2.7 Completion Preview / Regeneration
 
 To preview a prompt completion before committing it to history,
 append a forward slash "`/`" to the prompt as the last character.
@@ -811,6 +825,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 **-i** \[_PROMPT_], **\--image**
 
 : Generate images given a prompt.
+  Set _option -v_ to not open response.
 
 
 **-i** \[_PNG_]
@@ -985,15 +1000,15 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Set tiktoken for token count (cmpls, chat, python).
 
 
-**-Y**, **--no-tik**  (_defaults_)
+**-Y**, **\--no-tik**  (_defaults_)
 
 : Unset tiktoken use (cmpls, chat, python).
 
 
-**-zz** \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_], **\--tts**
+**-z** \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_], **\--tts**
 
 : Synthesise speech from text prompt. Takes a voice name, speed and text prompt.
-  Set twice to play.
+  Set _option -v_ to not play response.
 
 
 **-Z**, **\--last**
