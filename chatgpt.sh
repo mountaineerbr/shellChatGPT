@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.27.5  jan/2024  by mountaineerbr  GPL+3
+# v0.27.6  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1032,11 +1032,11 @@ function prev_tohistf
 #usage: token_prevf [string]
 function token_prevf
 {
-	__printbf '(tiktoken)'
+	((OPTTIK)) && __printbf '(tiktoken)'
 	start_tiktokenf
 	TKN_PREV=$(__tiktokenf "${*}")
 	((TKN_PREV+=TKN_ADJ))
-	__printbf '          '
+	((OPTTIK)) && __printbf '          '
 }
 
 #send to tiktoken coproc
@@ -2515,7 +2515,7 @@ function custom_prf
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
 			|| { typeset OPTCTRD=2; __cmdmsgf $'\nPrompter <Ctrl-D>' 'one-shot' ;}
-			read_mainf -i "$INSTRUCTION" INSTRUCTION
+			__printbf '>'; read_mainf -i "$INSTRUCTION" INSTRUCTION;
 			((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
 		fi </dev/tty
 
