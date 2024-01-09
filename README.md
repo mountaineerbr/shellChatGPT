@@ -10,7 +10,7 @@ Chat completions with streaming.
 ## 🚀 Features
 
 - Text and chat completions, [**gtp-4-vision** support](#gpt-4-vision).
-- **Voice in** (whisper) and **voice out** (TTS) [chat modes](#voice-in-and-out-chat-completions).
+- **Voice in** (whisper) and **voice out** (TTS) [chat / REPL modes](#voice-in-and-out-chat-completions).
 - Set _multiline_ prompt, flush with \<ctrl-d> (optional), bracketed paste in bash
 - _Follow up_ conversations, _preview/regenerate_ responses
 - Manage _sessions_, _continue_ from last session, _print out_ session
@@ -386,12 +386,12 @@ Generate transcription from voice recording, set Portuguese as the language to t
     chatgpt.sh -w pt
 
 
-Also works to transcribe from one language to another.
+This also works to transcribe from one language to another.
 
-Transcribe any language audio **to japanese** (_prompt_ must be in
+Transcribe any language audio input **to japanese** (_prompt_ must be in
 the same language as the input audio language):
 
-    chatgpt.sh -w ja "An interview."
+    chatgpt.sh -w ja "A job interview is currently being done."
 
 
 Translate audio file or voice recording in any language to English:

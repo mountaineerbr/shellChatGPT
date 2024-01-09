@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.27.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.27.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.27.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.27.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -195,9 +195,6 @@ Whisper / TTS</div>
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PNG_FILE</em>]
 [<em>MASK_FILE</em>] [<em>PROMPT</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-TTT</code> [-v]
-[<code>-m</code>[<em>MODEL</em>|<em>ENCODING</em>]]
-[<em>INPUT</em>|<em>TEXT_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-w</code> [<code>opt</code>..]
 [<em>AUDIO_FILE</em>] [<em>LANG</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>..]
@@ -208,6 +205,9 @@ Whisper / TTS</div>
    <strong>chatgpt.sh</strong> <code>-ccWwz</code> [<code>opt</code>..]
 -- [<code>whisper_arg</code>..] -- [<code>tts_arg</code>..]<br />
    <strong>chatgpt.sh</strong> <code>-l</code> [<em>MODEL</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-TTT</code> [-v]
+[<code>-m</code>[<em>MODEL</em>|<em>ENCODING</em>]]
+[<em>INPUT</em>|<em>TEXT_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HHH</code>
 [<code>/</code><em>HIST_FILE</em>|<em>.</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HHw</code></div>
@@ -298,15 +298,16 @@ an <em>AUDIO</em> file. Optionally, set a <em>TWO-LETTER</em> input
 language (<em>ISO-639-1</em>) as the second argument. A PROMPT may also
 be set to guide the model’s style, or continue a previous audio segment.
 The text prompt should match the audio language.</p>
+<p>Note that <code>option -w</code> can also be set to <strong>translate
+audio</strong> input to any text language to the target language.</p>
 <p><code>Option -W</code> <strong>translates audio</strong> stream to
 <strong>English text</strong>. A PROMPT in English may be set to guide
 the model as the second positional argument.</p>
 <p>Set these options twice, e.g. <code>-ww</code>, and <code>-WW</code>,
 to have phrase-level timestamps.</p>
-<p>Combine <code>-wW</code> <strong>with</strong> <code>-cc</code> to
-start <strong>chat with voice input</strong> (Whisper) support. Output
-may be piped to a voice synthesiser to have a full voice in and out
-experience, or set, additionally, <code>-z</code> to enable
+<p>Combine <code>options -wW</code> <strong>with</strong>
+<code>options -cc</code> to start <strong>chat with voice input</strong>
+(Whisper) support. Additionally, set <code>option -z</code> to enable
 <strong>text-to-speech</strong> (TTS) models and voice out.</p>
 <p><code>Option -z</code> synthesises voice from text (TTS models). Set
 a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
@@ -386,12 +387,12 @@ of the prompt causes the text following it to be appended immediately to
 the last (response) prompt text.</p>
 <h4 id="voice-input-whisper-and-voice-output-tts">2.4 Voice input
 (whisper), and voice output (tts)</h4>
-<p>The <em>options -ccwz</em> may be combined to have voice recording
-input and synthesised voice output, specially nice with chat modes. When
-setting <em>flag -w</em>, or <em>flag -z</em>, the first positional
-paramenters are read as whisper, or tts arguments. When setting both
-<em>flags -wz</em>, add a double hyphen to set first whisper, and then
-tts arguments.</p>
+<p>The <code>options -ccwz</code> may be combined to have voice
+recording input and synthesised voice output, specially nice with chat
+modes. When setting <code>flag -w</code>, or <code>flag -z</code>, the
+first positional paramenters are read as whisper, or tts arguments. When
+setting both <code>flags -wz</code>, add a double hyphen to set first
+whisper, and then tts arguments.</p>
 <p>Set chat mode, plus whisper language and prompt, and the tts voice
 option argument:</p>
 <pre><code>chatgpt.sh -ccwz  en &#39;whisper prompt&#39;  --  nova</code></pre>
@@ -900,12 +901,14 @@ with <code>-@</code>. Choose the best result amongst many results to
 continue the out-painting process step-wise.</p>
 <h3 id="audio-whisper">AUDIO / WHISPER</h3>
 <h4 id="transcriptions">1. Transcriptions</h4>
-<p>Transcribes audio file or voice record into the input language. Set a
+<p>Transcribes audio file or voice record into the set language. Set a
 <em>two-letter</em> <em>ISO-639-1</em> language code (<em>en</em>,
 <em>es</em>, <em>ja</em>, or <em>zh</em>) as the positional argument
 following the input audio file. A prompt may also be set as last
 positional parameter to help guide the model. This prompt should match
 the audio language.</p>
+<p>Note that if the audio language is different from the set language
+code, output will be on the language code (translation).</p>
 <h4 id="translations">2. Translations</h4>
 <p>Translates audio into <strong>English</strong>. An optional text to
 guide the model’s style or continue a previous audio segment is optional
@@ -1231,7 +1234,8 @@ heeds <code>options -ccm</code>.</p>
 [<em>PROMPT</em>], <strong>--transcribe</strong></dt>
 <dd>
 <p>Transcribe audio file into text. LANG is optional. A prompt that
-matches the audio language is optional.</p>
+matches the audio language is optional. Audio will be transcribed or
+translated to the target LANG.</p>
 <p>Set twice to get phrase-level timestamps.</p>
 </dd>
 <dt><strong>-W</strong> [<em>AUD</em>] [<em>PROMPT-EN</em>],

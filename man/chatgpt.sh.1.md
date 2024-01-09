@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.27.1 | General Commands Manual
+% CHATGPT.SH(1) v0.27.2 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -15,12 +15,12 @@
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PROMPT_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
-|    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_]
 |    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_] \[_PROMPT-EN_]
 |    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
 |    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[`whisper_arg`..] \-- \[`tts_arg`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
+|    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_]
 |    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_|_._]
 |    **chatgpt.sh** `-HHw`
 
@@ -114,6 +114,9 @@ an _AUDIO_ file. Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
 as the second argument. A PROMPT may also be set to guide the model's style,
 or continue a previous audio segment. The text prompt should match the audio language.
 
+Note that `option -w` can also be set to **translate audio** input to any
+text language to the target language.
+
 `Option -W` **translates audio** stream to **English text**. A PROMPT in
 English may be set to guide the model as the second positional
 argument.
@@ -121,10 +124,8 @@ argument.
 Set these options twice, e.g. `-ww`, and `-WW`, to have phrase-level
 timestamps.
 
-Combine `-wW` **with** `-cc` to start **chat with voice input** (Whisper)
-support. Output may be piped to a voice synthesiser to have a
-full voice in and out experience, or set, additionally, `-z` to enable
-**text-to-speech** (TTS) models and voice out.
+Combine `options -wW` **with** `options -cc` to start **chat with voice input** (Whisper)
+support. Additionally, set `option -z` to enable **text-to-speech** (TTS) models and voice out.
 
 `Option -z` synthesises voice from text (TTS models). Set a _voice_ as
 the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
@@ -222,10 +223,10 @@ causes the text following it to be appended immediately to the last
 
 #### 2.4 Voice input (whisper), and voice output (tts)
 
-The *options -ccwz* may be combined to have voice recording input and
+The `options -ccwz` may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes.
-When setting *flag -w*, or *flag -z*, the first positional paramenters are read as
-whisper, or tts  arguments. When setting both *flags -wz*,
+When setting `flag -w`, or `flag -z`, the first positional paramenters are read as
+whisper, or tts  arguments. When setting both `flags -wz`,
 add a double hyphen to set first whisper, and then tts arguments.
 
 Set chat mode, plus whisper language and prompt, and the tts voice option argument:
@@ -529,11 +530,14 @@ many results to continue the out-painting process step-wise.
 
 #### 1. Transcriptions
 
-Transcribes audio file or voice record into the input language.
+Transcribes audio file or voice record into the set language.
 Set a _two-letter_ _ISO-639-1_ language code (_en_, _es_, _ja_, or _zh_) as
 the positional argument following the input audio file. A prompt
 may also be set as last positional parameter to help guide the
 model. This prompt should match the audio language.
+
+Note that if the audio language is different from the set language code,
+output will be on the language code (translation).
 
 
 #### 2. Translations
@@ -886,6 +890,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 :     Transcribe audio file into text. LANG is optional.
       A prompt that matches the audio language is optional.
+      Audio will be transcribed or translated to the target LANG.
       
       Set twice to get phrase-level timestamps.
 

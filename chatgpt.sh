@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.27.1  jan/2024  by mountaineerbr  GPL+3
+# v0.27.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -138,12 +138,12 @@ Synopsis
 	${0##*/} -i [opt..] [S|M|L] [PROMPT]
 	${0##*/} -i [opt..] [S|M|L] [PNG_FILE]
 	${0##*/} -i [opt..] [S|M|L] [PNG_FILE] [MASK_FILE] [PROMPT]
-	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE]
 	${0##*/} -w [opt..] [AUDIO_FILE] [LANG] [PROMPT]
 	${0##*/} -W [opt..] [AUDIO_FILE] [PROMPT-EN]
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 	${0##*/} -ccWwz [opt..] -- [whisper_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
+	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE]
 	${0##*/} -HHH [/HIST_FILE|.]
 	${0##*/} -HHw
 
@@ -190,8 +190,8 @@ Description
 	for dall-e-3. Dall-e-3 also accepts the \`hd' parameter for image
 	quality, set it such as \`Lhd', or \`1792x1024hd'.
 
-	Option -w transcribes audio and option -W translates audio to
-	English text. Set these options twice to have phrase-level
+	Option -w transcribes audio to any language, and option -W translates
+       	audio to English text. Set these options twice to have phrase-level
 	timestamps, e.g. -ww, and -WW.
 
 	Option -z synthesises voice from text (TTS models). Set a voice as

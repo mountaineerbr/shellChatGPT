@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.27.1 | General Commands Manual
+CHATGPT.SH(1) v0.27.2 | General Commands Manual
 mountaineerbr
 January 2024
 
@@ -13,12 +13,12 @@ SYNOPSIS
    chatgpt.sh -i [opt..] [S|M|L] [PROMPT]
    chatgpt.sh -i [opt..] [S|M|L] [PNG_FILE]
    chatgpt.sh -i [opt..] [S|M|L] [PNG_FILE] [MASK_FILE] [PROMPT]
-   chatgpt.sh -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE]
    chatgpt.sh -w [opt..] [AUDIO_FILE] [LANG] [PROMPT]
    chatgpt.sh -W [opt..] [AUDIO_FILE] [PROMPT-EN]
    chatgpt.sh -z [opt..] [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
    chatgpt.sh -ccWwz [opt..] -- [whisper_arg..] -- [tts_arg..]
    chatgpt.sh -l [MODEL]
+   chatgpt.sh -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE]
    chatgpt.sh -HHH [/HIST_FILE|.]
    chatgpt.sh -HHw
 
@@ -107,16 +107,18 @@ set a TWO-LETTER input language (ISO-639-1) as the second argument. A
 PROMPT may also be set to guide the model’s style, or continue a
 previous audio segment. The text prompt should match the audio language.
 
+Note that option -w can also be set to translate audio input to any text
+language to the target language.
+
 Option -W translates audio stream to English text. A PROMPT in English
 may be set to guide the model as the second positional argument.
 
 Set these options twice, e.g. -ww, and -WW, to have phrase-level
 timestamps.
 
-Combine -wW with -cc to start chat with voice input (Whisper) support.
-Output may be piped to a voice synthesiser to have a full voice in and
-out experience, or set, additionally, -z to enable text-to-speech (TTS)
-models and voice out.
+Combine options -wW with options -cc to start chat with voice input
+(Whisper) support. Additionally, set option -z to enable text-to-speech
+(TTS) models and voice out.
 
 Option -z synthesises voice from text (TTS models). Set a voice as the
 first positional parameter (“alloy”, “echo”, “fable”, “onyx”, “nova”, or
@@ -477,11 +479,14 @@ AUDIO / WHISPER
 
 1. Transcriptions
 
-Transcribes audio file or voice record into the input language. Set a
+Transcribes audio file or voice record into the set language. Set a
 two-letter ISO-639-1 language code (en, es, ja, or zh) as the positional
 argument following the input audio file. A prompt may also be set as
 last positional parameter to help guide the model. This prompt should
 match the audio language.
+
+Note that if the audio language is different from the set language code,
+output will be on the language code (translation).
 
 2. Translations
 
@@ -753,7 +758,8 @@ Script Modes
 -w [AUD] [LANG] [PROMPT], --transcribe
 
     Transcribe audio file into text. LANG is optional. A prompt that
-    matches the audio language is optional.
+    matches the audio language is optional. Audio will be transcribed or
+    translated to the target LANG.
 
     Set twice to get phrase-level timestamps.
 
