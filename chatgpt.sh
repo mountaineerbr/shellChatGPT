@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.26  jan/2024  by mountaineerbr  GPL+3
+# v0.26.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -3278,7 +3278,7 @@ elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	whisperf "$@" &&
 	if ((OPTZ)) && [[ -n $WHISPER_OUT ]]
 	then 	MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
-		echo >&2; ttsf "$WHISPER_OUT";
+		echo >&2; ttsf ${ZARGS[@]} "$WHISPER_OUT";
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
 then 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")";
