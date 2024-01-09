@@ -649,7 +649,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 **-@** \[\[*VAL%*\]*COLOUR*\], **--alpha**=\[\[*VAL%*\]*COLOUR*\]  
 Set transparent colour of image mask. Def=*black*.
 
-Fuzz intensity can be set with \[VAL%\]. Def=*0%*.
+Fuzz intensity can be set with \[*VAL%*\]. Def=*0%*.
 
 **-Nill**  
 Unset model max response (chat cmpls only).

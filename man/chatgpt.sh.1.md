@@ -694,7 +694,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 :      Set transparent colour of image mask. Def=_black_.
 
-       Fuzz intensity can be set with [VAL%]. Def=_0%_.
+       Fuzz intensity can be set with \[_VAL%_]. Def=_0%_.
 
 
 **-Nill**
