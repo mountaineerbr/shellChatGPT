@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.27.4  jan/2024  by mountaineerbr  GPL+3
+# v0.27.5  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1269,7 +1269,7 @@ function cmd_runf
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
 		-h*|h*|help*|-\?*|\?*)
-			sed -n -e 's/^\t*//' -e '/^\s*------ /,/^\s*------ /p' <<<"$HELP" | less -S
+			sed -n -e 's/^\t*//' -e '/^[[:space:]]*------ /,/^[[:space:]]*------ /p' <<<"$HELP" | less -S
 			xskip=1
 			;;
 		-H|H|history|hist)
@@ -1443,8 +1443,8 @@ function cmd_runf
 			typeset IFS dry; IFS=$'\n';
 			[[ ${n:=${*//[!0-9]}} = 0* || $* = [/!]* ]] \
 			&& n=${n##*([/!0])} dry=4; ((n>0)) || n=1
-			if var=($(grep -n -e '^\s*[^#]' "$FILECHAT" \
-				| tail -n $n | cut -c 1-160 | sed -e 's/\s/ /g'))
+			if var=($(grep -n -e '^[[:space:]]*[^#]' "$FILECHAT" \
+				| tail -n $n | cut -c 1-160 | sed -e 's/[[:space:]]/ /g'))
 			then
 				((n<${#var[@]})) || n=${#var[@]}
 				wc=$((COLUMNS>50 ? COLUMNS-6+dry : 60))
@@ -3671,7 +3671,7 @@ else
 		set_optsf
 
 		if ((EPN==6))
-		then 	BLOCK="\"messages\": [$(sed -e '/^\\s*$/d' <<<"$*" | sed -e '$s/,\\s*$//')],"
+		then 	BLOCK="\"messages\": [$(sed -e '/^[[:space:]]*$/d' <<<"$*" | sed -e '$s/,[[:space:]]*$//')],"
 		else 	BLOCK="\"prompt\": \"${*}\","
 		fi
 		BLOCK="{
