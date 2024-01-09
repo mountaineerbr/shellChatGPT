@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.26.2  jan/2024  by mountaineerbr  GPL+3
+# v0.26.4  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1922,7 +1922,7 @@ function whisperf
 	fi;
 	check_optrangef "$OPTT" 0 1.0 Temperature
 	
-	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@"
+	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 	for var
 	do    [[ $var = *([$IFS]) ]] && shift || break;
 	done; var=; args=("$@");
@@ -2040,7 +2040,7 @@ function ttsf
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
-	((${#})) || [[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@"
+	((${#})) || [[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
 	for var
 	do    [[ $var = *([$IFS]) ]] && shift || break;
 	done; var=;
@@ -3181,7 +3181,7 @@ do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
 done; unset arg init;
 
-if ((OPTW+OPTZ))  #handle options for combined modes for chat + whisper + tts
+if ((OPTW+OPTZ))  #handle options of combined modes in chat + whisper + tts
 then 	n=1; for arg
 	do 	[[ ${arg:0:4} = -- ]] && argn=(${argn[@]} $n); ((++n));
 	done; #map double hyphens `--'
@@ -3207,10 +3207,11 @@ then 	n=1; for arg
 		then 	ZARGS=("$@");
 		fi; set -- ;
 	fi
-	((${#})) && { 	var=$* var=${var:0:128}; __cmdmsgf 'Text Prompt' "$var [..]"; }
+	((${#WARGS[@]})) && ((${#ZARGS[@]})) && ((${#})) && {
+	  var=$* p=${var:128} var=${var:0:128}; __cmdmsgf 'Text Prompt' "${var}${p:+ [..]}" ;}
 	((${#WARGS[@]})) && __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-unset}"
 	((${#ZARGS[@]})) && __cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
-	unset n ii var arg argn;
+	unset n p ii var arg argn;
 fi
 
 mkdir -p "$CACHEDIR" || { 	_sysmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
@@ -3281,16 +3282,16 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 	tiktokenf "$*" || ! __warmsgf \
 	  "Err:" "Make sure python tiktoken module is installed: \`pip install tiktoken\`"
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
-then 	[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
+then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 	whisperf "$@" &&
 	if ((OPTZ)) && [[ -n $WHISPER_OUT ]]
 	then 	echo >&2; set -- ;
 	       	MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
-		[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+		[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
 		ttsf "$@" "$WHISPER_OUT";
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
-then 	[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+then 	[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")";
 	[[ -t 0 ]] || set -- "$@" "$(escapef "$(<$STDIN)")"
 	ttsf "$@"
@@ -3482,7 +3483,7 @@ else
 							then 	REPLY=$(
 								set --; MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
 								set_model_epnf "$MOD_AUDIO";
-								[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@"
+								[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 								whisperf "$FILEINW" "$@";
 							)
 							else 	case $? in 196) 	unset OPTW REPLY; continue 1;; 199) 	EDIT=1; continue 1;; esac;
@@ -3776,7 +3777,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			sig=INT; trap '' $sig;
 			( OPTV= MOD=$MOD_SPEECH;
 			set_model_epnf "$MOD_SPEECH"; set --;
-			[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+			[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
 			ttsf "$@" "${ans##"${A_TYPE##$SPC1}"}"; )
 			trap '-' $sig;
 		fi
@@ -3800,7 +3801,7 @@ fi
 # Notes:
 # - Debug command performance by line in Bash:
 ## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: '
-## shellcheck.sh -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
+## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
