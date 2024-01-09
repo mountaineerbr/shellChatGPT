@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.27  jan/2024  by mountaineerbr  GPL+3
+# v0.27.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1006,9 +1006,9 @@ function push_tohistf
 	typeset string token time
 	string=$1; ((${#string})) || return; unset CKSUM_OLD
 	token=$2; ((token>0)) || {
-		start_tiktokenf;    __printbf '(tiktoken)';
+		start_tiktokenf;    ((OPTTIK)) && __printbf '(tiktoken)';
 		token=$(__tiktokenf "${string}");
-		((token+=TKN_ADJ)); __printbf '          '; };
+		((token+=TKN_ADJ)); ((OPTTIK)) && __printbf '          '; };
 	time=${3:-$(date -Iseconds 2>/dev/null||date +"%Y-%m-%dT%H:%M:%S%z")}
 	printf '%s%.22s\t%d\t"%s"\n' "$INT_RES" "$time" "$token" "$string" >> "$FILECHAT"
 }
