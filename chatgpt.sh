@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.27.6  jan/2024  by mountaineerbr  GPL+3
+# v0.27.7  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -2428,7 +2428,7 @@ function awesomef
 	((CMD_CHAT)) ||
 	if __clr_ttystf; ((OPTX))  #edit chosen awesome prompt
 	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
-		printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
+		printf '%s\n\n' "$INSTRUCTION" >&2 ;
 	else 	read_mainf -i "$INSTRUCTION" INSTRUCTION
 		((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
 	fi </dev/tty
@@ -2512,7 +2512,7 @@ function custom_prf
 		__clr_ttystf;
 		if ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
-			printf '%s\n\n' "$INSTRUCTION" >&2 ;sleep 1
+			printf '%s\n\n' "$INSTRUCTION" >&2 ;
 		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
 			|| { typeset OPTCTRD=2; __cmdmsgf $'\nPrompter <Ctrl-D>' 'one-shot' ;}
 			__printbf '>'; read_mainf -i "$INSTRUCTION" INSTRUCTION;
