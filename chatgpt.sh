@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.27.7  jan/2024  by mountaineerbr  GPL+3
+# v0.28  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1054,7 +1054,7 @@ function get_tiktokenf
 	while IFS= read -r
 		((!${#REPLY}))
 	do 	((++m)); ((m>128)) && break
-		((m%32)) || sleep 0.1s
+		((m%32)) || sleep 0.1
 	done <&"${COPROC[0]}"
 	if ((!${#REPLY}))
 	then  	! __warmsgf 'Err:' 'get_tiktokenf()'
@@ -2117,9 +2117,23 @@ function ttsf
 		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
 		((OPTV)) || [[ ! -s $FOUT ]] || {
 			((CHAT_ENV)) || __sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
-			${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
-			trap "kill -- $pid" $sig;
-			wait $pid; trap '-' $sig;
+		while 	${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
+		do 	trap "kill -- $pid" $sig;
+			wait $pid; var=$?; trap '-' $sig;
+			case "$var" in
+				0) 	:;;
+				*) 	wait $pid; __warmsgf $'\nReplay?' '[N/y] ' '';
+					var=$(SPIN_CHARS=("8" 7 6 5 4 3 2 1 0); SPIN_INDEX=$((${#SPIN_CHARS[@]}-1));
+						while __spinf; do sleep 1; done & trap "kill -- $!" EXIT &>/dev/null;
+						__read_charf -t "8" || ! echo >&2) &&
+					case "$var" in
+						[PpRrYy]|[$' \t\e'])
+							continue;
+					esac;
+					;;
+			esac;
+		       	break;
+		done;
 		}
 		((++i)); FOUT=${FOUT%-*}-${i}.${OPTZ_FMT};
 		xinput=${xinput:max};
