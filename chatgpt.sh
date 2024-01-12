@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.28.1  jan/2024  by mountaineerbr  GPL+3
+# v0.28.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -1214,8 +1214,8 @@ function set_maxtknf
 function cmd_runf
 {
 	typeset var wc args xskip n
-	[[ ${1:0:256} = *([$IFS:])[/!-]?* ]] || return;
-	((${#1}<1024)) || return;
+	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]?* ]] || return;
+	((${#1}+${#2}<1024)) || return;
 	printf "${NC}" >&2;
 
 	set -- "${1##*([$IFS:])?([/!])}" "${@:2}";
@@ -2821,7 +2821,7 @@ function session_copyf
 function session_mainf
 {
 	typeset name file optsession args arg break msg
-	name="${*}"               ;((${#name}<320)) || return
+	name="${*}"               ;((${#name}<512)) || return
 	name="${name##*([$IFS])}" ;[[ $name = [/!]* ]] || return
 	name="${name##?([/!])*([$IFS])}"
 
