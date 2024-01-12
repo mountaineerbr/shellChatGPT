@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.28  jan/2024  by mountaineerbr  GPL+3
+# v0.28.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -123,7 +123,7 @@ I_TYPE="[insert]"
 # Globs
 SPC="*([$IFS])"
 SPC1="*(\\\\[ntrvf]|[$IFS])"
-NL=$'\n'
+NL=$'\n' BS=$'\b'
 
 UAG='user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36'  #chrome on win10
 SIG_TRAP="INT HUP TERM EXIT"
@@ -1215,7 +1215,7 @@ function cmd_runf
 {
 	typeset var wc args xskip n
 	[[ ${1:0:256} = *([$IFS:])[/!-]?* ]] || return;
-	((${#1}<768)) || return;
+	((${#1}<1024)) || return;
 	printf "${NC}" >&2;
 
 	set -- "${1##*([$IFS:])?([/!])}" "${@:2}";
@@ -1737,7 +1737,7 @@ function _mediachatf
 {
 	typeset var spc i;
 	TRUNC_IND= spc='*(['$' \t\n\r'']|\[tnr])';
-	((CMD_CHAT)) || { 	((${#1}>180)) && set -- "${1:${#1}-180}" ;}
+	((CMD_CHAT)) || { 	((${#1}>1024)) && set -- "${1:${#1}-1024}" ;}
 	i=${#1};
 
 	set -- "${1%%\|${spc}}";
