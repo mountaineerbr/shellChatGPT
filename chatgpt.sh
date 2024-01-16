@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.28.2  jan/2024  by mountaineerbr  GPL+3
+# v0.28.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
 
 # OpenAI API key
@@ -191,7 +191,7 @@ Description
 	quality, set it such as \`Lhd', or \`1792x1024hd'.
 
 	Option -w transcribes audio to any language, and option -W translates
-       	audio to English text. Set these options twice to have phrase-level
+	audio to English text. Set these options twice to have phrase-level
 	timestamps, e.g. -ww, and -WW.
 
 	Option -z synthesises voice from text (TTS models). Set a voice as
@@ -341,7 +341,7 @@ Options
 		Set transparent colour of image mask. Def=black.
 		Fuzz intensity can be set with [VAL%]. Def=0%.
 	-Nill
-	        Unset model max response (chat cmpls only).
+		Unset model max response (chat cmpls only).
 	-NUM
 	-M [NUM[/NUM]], --max=[NUM[-NUM]]
 		Set maximum number of \`response tokens'. Def=$OPTMAX.
@@ -1425,7 +1425,7 @@ function cmd_runf
 			  [[ $* = $SPC ]] || WARGS=("$@"); xskip=1;
 			  __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
 			fi; __cmdmsgf 'Whisper Chat' $(_onoff $OPTW);
-		       	((OPTW)) || unset OPTW WSKIP SKIP;
+			((OPTW)) || unset OPTW WSKIP SKIP;
 			;;
 		-z*|tts*|speech*)
 			set -- "${*##@(-z*([zZ])|tts|speech)$SPC}"
@@ -1434,7 +1434,7 @@ function cmd_runf
 				[[ $* = $SPC ]] || ZARGS=("$@"); xskip=1;
 				__cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
 			fi; __cmdmsgf 'TTS Chat' $(_onoff $OPTZ);
-		       	((OPTZ)) || unset OPTZ SKIP;
+			((OPTZ)) || unset OPTZ SKIP;
 			;;
 		-Z|last)
 			lastjsonf >&2
@@ -1865,7 +1865,7 @@ function record_confirmf
 #usage: recordf [filename]
 function recordf
 {
-	typeset termux pid sig ret REPLY
+	typeset termux pid sig ret
 
 	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
 
@@ -1873,7 +1873,7 @@ function recordf
 	$REC_CMD "$1" & pid=$! sig="INT";
 	trap "rec_killf $pid $termux" $sig;
 	
-	case "${REPLY:=$(__read_charf)}" in
+	case "$(__read_charf)" in
 		[OoQqWw]) ret=196  #whisper off
 			;;
 		[Ee]|$'\e') 	ret=199  #text edit (single-shot)
@@ -1946,9 +1946,10 @@ function whisperf
 		esac
 	fi
 	
-	if [[ -e $1 && $1 = *@([Mm][Pp][34]|[Mm][Pp][Gg]|[Mm][Pp][Ee][Gg]|[Mm][Pp][Gg][Aa]|[Mm]4[Aa]|[Ww][Aa][Vv]|[Ww][Ee][Bb][Mm]) ]] #mp3|mp4|mpeg|mpga|m4a|wav|webm
+	var='@([Mm][Pp][34]|[Mm][Pp][Gg]|[Mm][Pp][Ee][Gg]|[Mm][Pp][Gg][Aa]|[Mm]4[Aa]|[Ww][Aa][Vv]|[Ww][Ee][Bb][Mm])'
+	if [[ -e $1 && $1 = *${var} ]] #mp3|mp4|mpeg|mpga|m4a|wav|webm
 	then 	file="$1"; shift;
-	elif (($#)) && [[ -e ${@:${#}} && ${@:${#}} = *@([Mm][Pp][34]|[Mm][Pp][Gg]|[Mm][Pp][Ee][Gg]|[Mm][Pp][Gg][Aa]|[Mm]4[Aa]|[Ww][Aa][Vv]|[Ww][Ee][Bb][Mm]) ]]
+	elif (($#)) && [[ -e ${@:${#}} && ${@:${#}} = *${var} ]]
 	then 	file="${@:${#}}"; set -- "${@:1:$((${#}-1))}";
 	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "${1:-nill}" >&2
 		return 1
@@ -2119,19 +2120,20 @@ function ttsf
 			((CHAT_ENV)) || __sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
 		while 	${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
 		do 	trap "kill -- $pid" $sig;
-			wait $pid; var=$?; trap '-' $sig;
+			wait $pid; var=$?; trap '-' $sig; typeset SPIN_CHARS;
 			case "$var" in
-				0) 	:;;
-				*) 	wait $pid; __warmsgf $'\nReplay?' '[N/y] ' '';
-					var=$(SPIN_CHARS=("8" 7 6 5 4 3 2 1 0); SPIN_INDEX=$((${#SPIN_CHARS[@]}-1));
-						while __spinf; do sleep 1; done & trap "kill -- $!" EXIT &>/dev/null;
-						__read_charf -t "8" || ! echo >&2) &&
-					case "$var" in
-						[PpRrYy]|[$' \t\e'])
-							continue;
-					esac;
-					;;
+				0) 	SPIN_CHARS=("3" 2 1 0);;
+				*) 	SPIN_CHARS=("8" 7 6 5 4 3 2 1 0); wait $pid;;
 			esac;
+			__warmsgf $'\nReplay?' '[N/y/w] ' '';
+			var=$(SPIN_INDEX=$((${#SPIN_CHARS[@]}-1));
+			  while __spinf; do sleep 1; done & trap "kill -- $!" EXIT &>/dev/null;
+			  __read_charf -t "${SPIN_CHARS[0]}" || ! echo >&2) &&
+			    case "$var" in
+			    	[RrYy]|[$'\t\e']) 	continue 1;;
+			    	[PpWw]|$' ') printf '%s' waiting.. >&2; __read_charf >/dev/null;
+				       	continue 1;;  #wait until key press
+			    esac;
 		       	break;
 		done;
 		}
@@ -3180,7 +3182,7 @@ fi
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
 	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
-     		if ((${#})) && [[ ! -f $1 ]]
+		if ((${#})) && [[ ! -f $1 ]]
 		then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 			__sysmsgf "Prompt:" "~$TKN_PREV tokens"
 		fi
@@ -3301,7 +3303,7 @@ then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then .segments[].text else .text end" "$FILE") \
 		&& ((${#WHISPER_OUT}))
 	then 	echo >&2; set -- ;
-	       	MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
+		MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
 		[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
 		ttsf "$@" "$(escapef "$WHISPER_OUT")";
 	fi
@@ -3356,7 +3358,7 @@ else
 			elif ((!${#}))
 			then 	unset REPLY
 				printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request, or append user prompt: ' >&2
-			  	case "$(__read_charf)" in 	?) SKIP=1 EDIT=1 OPTAWE= ;; 	*) JUMP=1;; esac
+				case "$(__read_charf)" in 	?) SKIP=1 EDIT=1 OPTAWE= ;; 	*) JUMP=1;; esac
 			fi
 		else 	custom_prf "$@"
 			case $? in
@@ -3435,7 +3437,7 @@ else
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	history -c; history -r;  #set -o history;
-	  	[[ -s $HISTFILE ]] &&
+		[[ -s $HISTFILE ]] &&
 		case "$BASH_VERSION" in  #avoid bash4 hanging
 			[0-3]*|4.[01]*) 	:;;
 			*) 	REPLY_OLD=$(trim_leadf "$(fc -ln -1 | cut -c1-1000)" "*([$IFS])");;
