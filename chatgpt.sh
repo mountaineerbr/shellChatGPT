@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.28.4  jan/2024  by mountaineerbr  GPL+3
+# v0.28.5  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1930,7 +1930,7 @@ function whisperf
 	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 	for var
 	do    [[ $var = *([$IFS]) ]] && shift || break;
-	done; var=; args=("$@");
+	done; var= ; args=("$@");
 
 	#set language ISO-639-1 (two letters)
 	if __set_langf "$1"
@@ -2049,7 +2049,7 @@ function ttsf
 	((${#})) || [[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
 	for var
 	do    [[ $var = *([$IFS]) ]] && shift || break;
-	done; var=;
+	done; var= ;
 	
 	if ((!CHAT_ENV))
 	then 	#set speech voice, out file format, and speed
@@ -2535,8 +2535,7 @@ function custom_prf
 		if ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;
-		else 	[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) \
-			|| { typeset OPTCTRD=2; __cmdmsgf $'\nPrompter <Ctrl-D>' 'one-shot' ;}
+		else 	#[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) || { typeset OPTCTRD=2; __cmdmsgf $'\nPrompter <Ctrl-D>' 'one-shot' ;}
 			__printbf '>'; read_mainf -i "$INSTRUCTION" INSTRUCTION;
 			((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
 		fi </dev/tty
@@ -2744,27 +2743,32 @@ function session_name_choosef
 #pick and print a session from hist file
 function session_sub_printf
 {
-	typeset REPLY file time token string buff buff_end index search sopt cl m n
+	typeset REPLY reply file time token string buff buff_end index regex skip sopt cl ok m n
 	file="${1}" ;[[ -s $file ]] || return
-	FILECHAT_OLD="$file" search="$REGEX"
+	FILECHAT_OLD="$file" regex="$REGEX"
  
-	while IFS= read -r
-	do 	__spinf
+	while ((skip)) || IFS= read -r
+	do 	__spinf; skip= ;
 		if [[ ${REPLY} = *([$IFS])\#* ]]
 		then 	continue
 		elif [[ ${REPLY} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]]
 		then
 for ((m=1;m<2;++m))
 do 	__spinf 	#grep for user regex
-			if ((${search:+1}))
-			then
-				[[ $search = -?* ]] && sopt="${search%% *}" search="${search#* }"
-				grep $sopt "${search}" <<<" " >/dev/null
-				(($?<2)) || return 1
-				buff_end="regex: ${search}" 
-				((OPTK)) || cl='--color=always'
-				grep $cl $sopt "${search}" \
-				< <(_unescapef "$(cut -f1,3- -d$'\t' <<<"$buff")") >&2 || buff=
+			if ((${regex:+1}))
+			then 	if ((!ok))
+				then 	[[ $regex = -?* ]] && sopt="${regex%% *}" regex="${regex#* }"
+					grep $sopt "${regex}" <<<" " >/dev/null
+					(($?<2)) || return 1; ((OPTK)) || cl='--color=always';
+					
+					_sysmsgf 'regex': "\`${regex}'";
+					if ! grep -q $cl $sopt "${regex}" "$file" 1>&2 2>/dev/null;  #fast check for regex match in current file
+					then 	grep -n -o $cl $sopt "${regex}" "${file%/*}"/*"${file##*.}" 1>&2 2>/dev/null; #grep other files
+						__warmsgf 'Err:' "No match at \`$file'";
+					       	buff= ; break 2;
+					fi; ok=1;
+				fi;
+				grep $cl $sopt "${regex}" < <(_unescapef "$(cut -f2,3- -d$'\t' <<<"$buff")") >&2 || buff=
 			else
 				for ((n=0;n<10;++n))
 				do 	__spinf
@@ -2779,12 +2783,16 @@ do 	__spinf 	#grep for user regex
 			  printf -- '---\n%.640s\n---\n' "$(_unescapef "${buff_end:${index:-0}}")" >&2
 		
 			  ((OPTPRINT)) && break 2
-			  ((${search:+1})) && _sysmsgf "Is this the right session?" '[Y/n/a] ' '' ||
-			  _sysmsgf "Is this the tail of the right session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
-			  case "$(__read_charf)" in
-			  	[]GgSsRr/?:\;]) 	_sysmsgf 'grep:' '<-opt> <regex> <enter>'
-					__clr_ttystf; read -r -e -i "$search" search </dev/tty;
-					continue
+			  if ((${regex:+1}))
+			  then 	_sysmsgf "Right session?" '[Y/n/a] ' ''
+			  else 	_sysmsgf "Tail of the right session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
+			  fi; reply=$(__read_charf);
+			  
+			  case "$reply" in
+			  	[]GgSsRr/?:\;-]|[$' \t']) _sysmsgf 'grep:' '<-opt> <regex> <enter>'
+					__clr_ttystf; read -r -e -i "${regex:-${reply//[!-]}}" regex </dev/tty;
+					skip=1 ok=  #REPLY=BREAK; 
+					continue 2
 					;;
 			  	[NnOo]|$'\e') 	false
 					;;
@@ -2795,12 +2803,12 @@ do 	__spinf 	#grep for user regex
 			  esac
 			}
 done
-			unset REPLY time token string buff buff_end index cl m n
+			unset REPLY reply time token string buff buff_end index cl m n
 			continue
 		fi
 		buff="${REPLY##\#}"${buff:+$'\n'}"${buff}"
 	done < <( 	tac -- "$file" && {
-			((OPTHH+OPTPRINT)) || __warmsgf '(end of hist file)' ;}
+			((OPTPRINT)) || __warmsgf '(end of hist file)' ;}
 			echo BREAK;
 		); __printbf ' '
 	[[ -n ${buff} ]] && printf '%s\n' "$buff"
@@ -3536,9 +3544,7 @@ else
 					then
 						REPLY=$(cat);
 					else
-						[[ $REPLY != *$'\n'* ]] || ((OPTCTRD)) || {
-						  OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot' ;}
-
+						#[[ $REPLY != *$'\n'* ]] || ((OPTCTRD)) || { OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot' ;}
 						read_mainf -i "$REPLY" REPLY;
 					fi </dev/tty
 					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])') && echo >&2
@@ -3571,18 +3577,18 @@ else
 					[[ $REPLY = $SPC:* ]] || ((RETRY+OPTV)) \
 					|| new_prompt_confirmf ed whisper
 					case $? in
-						201) 	break 2;;            #abort
-						200) 	WSKIP=1 ;continue;;  #redo
-						199) 	WSKIP=1 EDIT=1; continue;;   #edit
+						201) 	break 2;;  #abort
+						200) 	WSKIP=1; printf '\n%s\n' '--- redo ---'; continue;;  #redo
+						199) 	WSKIP=1 EDIT=1; printf '\n%s\n' '--- edit ---'; continue;;  #edit
 						198) 	((OPTX)) || OPTX=2
 							((OPTX==2)) && printf '\n%s\n' '--- text editor one-shot ---' >&2
-							set -- ;continue 2;; #text editor one-shot
+							set -- ;continue 2;;
 						197) 	EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
 							((OPTCTRD==2)) && printf '\n%s\n' '--- prompter <ctr-d> one-shot ---' >&2
-							REPLY="$REPLY"$'\n'; set -- ;continue;; #multiline one-shot  #A#
-						196) 	WSKIP=1 EDIT=1 OPTW= ; continue 2;;   #whisper off
-						0) 	:;;                  #yes
-						*) 	unset REPLY; set -- ;break;; #no
+							REPLY="$REPLY"$'\n'; set -- ;continue;;  #multiline one-shot  #A#
+						196) 	WSKIP=1 EDIT=1 OPTW= ; continue 2;;  #whisper off
+						0) 	:;;  #yes
+						*) 	unset REPLY; set -- ;break;;  #no
 					esac
 
 					if ((RETRY))
@@ -3831,4 +3837,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3840
+# vim=syntax sync minlines=3860
