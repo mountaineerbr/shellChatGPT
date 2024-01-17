@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.28 \| General Commands Manual
+title: CHATGPT.SH(1) v0.28.4 \| General Commands Manual
 ---
 
 ### NAME
@@ -562,8 +562,11 @@ Personal OpenAI API key.
 **CLIP_CMD**  
 Clipboard set command, e.g. “*xsel* *-b*”, “*pbcopy*”.
 
+**PLAY_CMD**  
+Audio player command, e.g. “*mpv –no-video –vo=null*”.
+
 **REC_CMD**  
-Audio recording command, e.g. “*sox*”.
+Audio recorder command, e.g. “*sox -d*”.
 
 **VISUAL**
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.28.3  jan/2024  by mountaineerbr  GPL+3
-set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist; export COLUMNS;
+# v0.28.4  jan/2024  by mountaineerbr  GPL+3
+set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
+export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
 # OpenAI API key
 #OPENAI_API_KEY=
@@ -51,12 +52,12 @@ OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 #OPTZ_SPEED=   #0.25 - 4.0
 # TTS out file format
 OPTZ_FMT=opus   #mp3, opus, aac, flac
-# Clipboard set command, e.g. "xsel -b", "pbcopy"
-#CLIP_CMD=""
-# Recorder command, e.g. "sox"
+# Recorder command, e.g. "sox -d"
 #REC_CMD=""
 # Media player command, e.g. "cvlc"
 #PLAY_CMD=""
+# Clipboard set command, e.g. "xsel -b", "pbcopy"
+#CLIP_CMD=""
 # Inject restart text
 #RESTART=""
 # Inject   start text
@@ -240,7 +241,9 @@ Environment
 
 	CLIP_CMD 	Clipboard set command, e.g. \`xsel -b', \`pbcopy'.
 
-	REC_CMD 	Audio recording command, e.g. \`sox'.
+	PLAY_CMD 	Audio player command, e.g. \`mpv --no-video --vo=null'.
+
+	REC_CMD 	Audio recorder command, e.g. \`sox -d'.
 
 	VISUAL
 	EDITOR 		Text editor for external prompt editing.
@@ -1866,17 +1869,19 @@ function record_confirmf
 function recordf
 {
 	typeset termux pid sig ret
+	case "$REC_CMD" in
+	       	termux*) termux=1;;
+		false) 	return 1;;
+	esac
+	[[ -e $1 ]] && rm -- "$1"  #del out file before writing
 
-	[[ -e $1 ]] && rm -- "$1"  #remove file before writing to it
-
-	[[ $REC_CMD = termux* ]] && termux=1;
 	$REC_CMD "$1" & pid=$! sig="INT";
 	trap "rec_killf $pid $termux" $sig;
 	
 	case "$(__read_charf)" in
-		[OoQqWw]) ret=196  #whisper off
+		[OoQqWw])   ret=196  #whisper off
 			;;
-		[Ee]|$'\e') 	ret=199  #text edit (single-shot)
+		[Ee]|$'\e') ret=199  #text edit (single-shot)
 			;;
 		[RrSs]) rec_killf $pid $termux; wait $pid;  #redo, quit
 			trap '-' $sig;
@@ -2118,6 +2123,7 @@ function ttsf
 		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
 		((OPTV)) || [[ ! -s $FOUT ]] || {
 			((CHAT_ENV)) || __sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
+			case "$PLAY_CMD" in false) 	return $ret;; esac;
 		while 	${PLAY_CMD} "$FOUT" & pid=$! sig="INT";
 		do 	trap "kill -- $pid" $sig;
 			wait $pid; var=$?; trap '-' $sig; typeset SPIN_CHARS;
@@ -2559,6 +2565,7 @@ function set_clipcmdf
 	then 	CLIP_CMD='xsel -b'
 	elif command -v xclip
 	then 	CLIP_CMD='xclip -selection clipboard'
+	else 	CLIP_CMD='false'
 	fi >/dev/null 2>&1
 }
 
@@ -2580,6 +2587,7 @@ function set_playcmdf
 	then 	PLAY_CMD='ffplay -nodisp'
 	elif command -v afplay  #macos
 	then 	PLAY_CMD='afplay'
+	else 	PLAY_CMD='false'
 	fi >/dev/null 2>&1
 }  #streaming: ffplay -nodisp -, cvlc -
 
@@ -2593,8 +2601,9 @@ function set_reccmdf
 	then 	REC_CMD='sox -d'
 	elif command -v arecord  #alsa utils
 	then 	REC_CMD='arecord -i'
-	else 	#ffmpeg
-		REC_CMD='ffmpeg_recf'
+	elif command -v ffmpeg
+	then 	REC_CMD='ffmpeg_recf'
+	else 	REC_CMD='false'
 	fi >/dev/null 2>&1
 }
 
@@ -3464,8 +3473,8 @@ else
 				179|180) :;;        #jumps
 				200) 	continue;;  #redo
 				201) 	break 1;;   #abort
-				*) 	while REPLY="$(<"$FILETXT")"
-						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}"
+				*) 	while REPLY=$(<"$FILETXT"); (($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
+						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}" | tail -n $((LINES-2))
 					do 	((OPTV)) || new_prompt_confirmf
 						case $? in
 							201) 	break 2;;  #abort

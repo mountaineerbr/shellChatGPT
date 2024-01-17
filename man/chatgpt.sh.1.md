@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.28 | General Commands Manual
+% CHATGPT.SH(1) v0.28.4 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -596,9 +596,14 @@ Setting **temperature** has an effect, the higher the more random.
 :    Clipboard set command, e.g. "_xsel_ _-b_", "_pbcopy_".
 
 
+**PLAY_CMD**
+
+:    Audio player command, e.g. "_mpv --no-video --vo=null_".
+
+
 **REC_CMD**
 
-:    Audio recording command, e.g. "_sox_".
+:    Audio recorder command, e.g. "_sox -d_".
 
 
 **VISUAL**
