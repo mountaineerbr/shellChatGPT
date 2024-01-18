@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.28.5  jan/2024  by mountaineerbr  GPL+3
+# v0.29  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -498,9 +498,9 @@ function set_model_epnf
 					*search*) 	EPN=5 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		text-*|*turbo-instruct*|*moderation*) 	case "$1" in
+		text-*|*turbo-instruct*|text*moderation*) 	case "$1" in
 					*embedding*|*similarity*|*search*) 	EPN=5 OPTEMBED=1;;
-					*moderation*) 	EPN=1 OPTEMBED=1;;
+					text*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
 		gpt-4*|gpt-3.5*|gpt-*|*turbo*) 		EPN=6 EPN6=6  OPTB= OPTBB=
@@ -728,18 +728,11 @@ function __read_charf
 	return $ret
 }
 
-#main user input read, and bracketed paste
+#main user input read
 #usage: read_mainf [read_opt].. VARIABLE_NAME
 function read_mainf
 {
-	typeset ret
-	#this can prevent pasted characters from being interpreted as editing commands
-	set -o ${READLINEOPT:-emacs}; bind 'set enable-bracketed-paste on';
-
-	IFS= read -r -e -d $'\r' ${OPTCTRD:+-d $'\04'} "$@"; ret=$?;
-	
-	set +o ${READLINEOPT:-emacs};
-	return $ret
+	IFS= read -r -e -d $'\r' ${OPTCTRD:+-d $'\04'} "$@"
 }
 #https://www.reddit.com/r/bash/comments/ppp6a2/is_there_a_way_to_paste_multiple_lines_where_read/
 
@@ -859,7 +852,7 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || cat -- "$FILE"
 	else 	jq -r '.data[].id' "$FILE" | sort
-	fi && printf '%s\n' moderation ||  #text-moderation-latest text-moderation-stable
+	fi && printf '%s\n' text-moderation-latest text-moderation-stable ||
 	! __warmsgf 'err:' 'model list'
 }
 
@@ -1544,7 +1537,7 @@ function cmd_runf
 			done ;__clr_lineupf $((12+1+55))  #!#
 			((${#args[@]})) && shell_histf "!${args[*]}"
 			;;
-		[/!]session*|session*|list*|copy*|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
+		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
 			echo Session and History >&2
 			session_mainf /"${args[@]}"
 			;;
@@ -2131,18 +2124,18 @@ function ttsf
 				0) 	SPIN_CHARS=("3" 2 1 0);;
 				*) 	SPIN_CHARS=("8" 7 6 5 4 3 2 1 0); wait $pid;;
 			esac;
-			__warmsgf $'\nReplay?' '[N/y/w] ' '';
+			__warmsgf $'\nReplay?' '[N/y/w] ' '';  #!#
 			var=$(SPIN_INDEX=$((${#SPIN_CHARS[@]}-1));
 			  while __spinf; do sleep 1; done & trap "kill -- $!" EXIT &>/dev/null;
-			  __read_charf -t "${SPIN_CHARS[0]}" || ! echo >&2) &&
+			  __read_charf -t "${SPIN_CHARS[0]}" || ! echo >&2) && {
 			    case "$var" in
-			    	[RrYy]|[$'\t\e']) 	continue 1;;
+			    	[RrYy]|[$'\t\e']) continue 1;;
 			    	[PpWw]|$' ') printf '%s' waiting.. >&2; __read_charf >/dev/null;
 				       	continue 1;;  #wait until key press
 			    esac;
+			}; __clr_lineupf 16;  #!#
 		       	break;
-		done;
-		}
+		done ;}
 		((++i)); FOUT=${FOUT%-*}-${i}.${OPTZ_FMT};
 		xinput=${xinput:max};
 		((${#xinput})) && ((!ret)) || break 1;
@@ -2186,11 +2179,11 @@ function imggenf
 		DALLE3_OPT="\"model\": \"$MOD_IMAGE\", \"quality\": \"${OPTS_HD:-standard}\"," OPTN=1
 	fi
 	BLOCK="{
-	\"prompt\": \"${*:?IMG PROMPT ERR}\",
-	\"size\": \"$OPTS\", $DALLE3_OPT
-	\"n\": $OPTN,
-	\"response_format\": \"$OPTI_FMT\"
-	}"  #dall-e-2: n<=10, dall-e-3: n==1
+\"prompt\": \"${*:?IMG PROMPT ERR}\",
+\"size\": \"$OPTS\", $DALLE3_OPT
+\"n\": $OPTN,
+\"response_format\": \"$OPTI_FMT\"
+}"  #dall-e-2: n<=10, dall-e-3: n==1
 	promptf
 }
 
@@ -2380,18 +2373,21 @@ function __is_rgbf
 function embedf
 {
 	BLOCK="{
-		\"model\": \"$MOD\",
-		\"input\": \"${*:?INPUT ERR}\",
-		\"temperature\": $OPTT, $OPTP_OPT
-		\"max_tokens\": $OPTMAX,
-		\"n\": $OPTN
-	}"
+\"model\": \"$MOD\",
+\"input\": \"${*:?INPUT ERR}\",
+\"temperature\": $OPTT, $OPTP_OPT
+\"max_tokens\": $OPTMAX,
+\"n\": $OPTN
+}"
 	promptf
 }
 
 function moderationf
 {
-	BLOCK="{ \"input\": \"${*:?INPUT ERR}\" }"
+	BLOCK="{
+\"model\": \"$MOD\",
+\"input\": \"${*:?INPUT ERR}\"
+}"
 	_promptf
 }
 
@@ -2535,8 +2531,7 @@ function custom_prf
 		if ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;
-		else 	#[[ $INSTRUCTION != *$'\n'* ]] || ((OPTCTRD)) || { typeset OPTCTRD=2; __cmdmsgf $'\nPrompter <Ctrl-D>' 'one-shot' ;}
-			__printbf '>'; read_mainf -i "$INSTRUCTION" INSTRUCTION;
+		else 	__printbf '>'; read_mainf -i "$INSTRUCTION" INSTRUCTION;
 			((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
 		fi </dev/tty
 
@@ -2743,8 +2738,8 @@ function session_name_choosef
 #pick and print a session from hist file
 function session_sub_printf
 {
-	typeset REPLY reply file time token string buff buff_end index regex skip sopt cl ok m n
-	file="${1}" ;[[ -s $file ]] || return
+	typeset REPLY reply file time token string buff buff_end index regex skip sopt copt ok m n
+	[[ -s ${file:=$1} ]] || return; [[ $file = */* ]] || [[ ! -e "./$file" ]] || file="./$file";
 	FILECHAT_OLD="$file" regex="$REGEX"
  
 	while ((skip)) || IFS= read -r
@@ -2754,23 +2749,23 @@ function session_sub_printf
 		elif [[ ${REPLY} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]]
 		then
 for ((m=1;m<2;++m))
-do 	__spinf 	#grep for user regex
+do 	__spinf 	#grep session with user regex
 			if ((${regex:+1}))
 			then 	if ((!ok))
 				then 	[[ $regex = -?* ]] && sopt="${regex%% *}" regex="${regex#* }"
-					grep $sopt "${regex}" <<<" " >/dev/null
-					(($?<2)) || return 1; ((OPTK)) || cl='--color=always';
+					grep $sopt "${regex}" <<<" " >/dev/null  #test user syntax
+					(($?<2)) || return 1; ((OPTK)) || copt='--color=always';
 					
 					_sysmsgf 'regex': "\`${regex}'";
-					if ! grep -q $cl $sopt "${regex}" "$file" 1>&2 2>/dev/null;  #fast check for regex match in current file
-					then 	grep -n -o $cl $sopt "${regex}" "${file%/*}"/*"${file##*.}" 1>&2 2>/dev/null; #grep other files
+					if ! grep -q $copt $sopt "${regex}" "$file" 1>&2 2>/dev/null;  #grep regex match in current file
+					then 	grep -n -o $copt $sopt "${regex}" "${file%/*}"/*"${file##*.}" 1>&2 2>/dev/null  #grep other files
 						__warmsgf 'Err:' "No match at \`$file'";
 					       	buff= ; break 2;
 					fi; ok=1;
 				fi;
-				grep $cl $sopt "${regex}" < <(_unescapef "$(cut -f2,3- -d$'\t' <<<"$buff")") >&2 || buff=
+				grep $copt $sopt "${regex}" < <(_unescapef "$(cut -f1,3- -d$'\t' <<<"$buff")") >&2 || buff= ;
 			else
-				for ((n=0;n<10;++n))
+				for ((n=0;n<12;++n))
 				do 	__spinf
 					IFS=$'\t' read -r time token string || break
 					string="${string##[\"]}" string="${string%%[\"]}"
@@ -2778,32 +2773,37 @@ do 	__spinf 	#grep for user regex
 				done <<<"${buff}"
 			fi
 			
-			[[ -n $buff ]] && {
-			  ((${#buff_end}>640)) && ((index=${#buff_end}-640)) || index=0
-			  printf -- '---\n%.640s\n---\n' "$(_unescapef "${buff_end:${index:-0}}")" >&2
-		
-			  ((OPTPRINT)) && break 2
+			((${#buff})) && {
+			  if ((${#buff_end}))
+			  then 	((${#buff_end}>672)) && ((index=${#buff_end}-672)) || index= ;
+				printf -- '---\n%s%s\n---\n' "${index:+[..]}" "$(_unescapef "${buff_end:${index:-0}}")" >&2;
+			  fi
+			  ((OPTPRINT)) && break 2;
+
 			  if ((${regex:+1}))
 			  then 	_sysmsgf "Right session?" '[Y/n/a] ' ''
 			  else 	_sysmsgf "Tail of the right session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
-			  fi; reply=$(__read_charf);
-			  
+			  fi;
+			  reply=$(__read_charf);
 			  case "$reply" in
-			  	[]GgSsRr/?:\;-]|[$' \t']) _sysmsgf 'grep:' '<-opt> <regex> <enter>'
+			  	[]GgSsRr/?:\;-]|[$' \t']) _sysmsgf 'grep:' '<-opt> <regex> <enter>';
 					__clr_ttystf; read -r -e -i "${regex:-${reply//[!-]}}" regex </dev/tty;
-					skip=1 ok=  #REPLY=BREAK; 
-					continue 2
+					skip=1 ok= ;
+					continue 2;
 					;;
-			  	[NnOo]|$'\e') 	false
+			  	[NnOo]|$'\e') ((${regex:+1})) && printf '%s\n' '---' >&2;
+				       	false;
 					;;
-				[AaQq]) 	echo abort >&2; return 201
+				[AaQq]) echo abort >&2;
+				       	return 201;
 					;;
-				*) 	break 2
+				*) 	((${regex:+1})) && printf '%s\n' '---' >&2;
+				       	break 2;
 					;;
 			  esac
 			}
 done
-			unset REPLY reply time token string buff buff_end index cl m n
+			unset REPLY reply time token string buff buff_end index m n
 			continue
 		fi
 		buff="${REPLY##\#}"${buff:+$'\n'}"${buff}"
@@ -2832,7 +2832,8 @@ function session_copyf
 
 	buff=$(session_sub_printf "$src") \
 	&& if [[ -f "$dest" ]] ;then 	[[ "$(<"$dest")" != *"${buff}" ]] || return 0 ;fi \
-	&& FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break \
+	&& FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null \
+	&& _sysmsgf 'SESSION FORK' \
 	&& printf '%s\n' "$buff" >> "$dest" \
 	&& printf '%s\n' "$dest"
 }
@@ -2875,10 +2876,10 @@ function session_mainf
 			unset name
 			;;
 		#copy session from hist option: /copy
-		copy*|c\ *)
+		copy*|cp\ *|c\ *)
 			_cmdmsgf 'Session' 'copy'
 			optsession=3
-			set -- "${1##*([/!])@(copy|c)*([$IFS])}" "${@:2}" #two args
+			set -- "${1##*([/!])@(copy|cp|c)*([$IFS])}" "${@:2}" #two args
 			set -- "${@/\~\//"$HOME"\/}"
 			;;
 		#change to, or create a hist file session
@@ -2926,21 +2927,22 @@ function session_mainf
 		_cmdmsgf 'Session' "$msg ${break:+ + session break}"
 
 		#break session?
-		((OPTRESUME==1)) || {
+		if ((OPTRESUME==1))  #print snippet of tail session
+		then 	((break)) || OPTPRINT=1 session_sub_printf "${file:-$FILECHAT}" >/dev/null
+		else
 		  [[ -f "$file" ]] &&
 		    if ((break))  || {
 		    	_sysmsgf 'Break session?' '[N/ys] ' ''
 		    	case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
-		    }
+		        }
 		    then 	FILECHAT="$file" cmd_runf /break
-		    else 	#print snippet of tail session
-		    	((break)) || OPTPRINT=1 session_sub_printf "${file:-$FILECHAT}" >/dev/null
 		    fi
-		}
+		fi
 	fi
 
-	[[ ${file:-$FILECHAT} = "${FILECHAT}" ]] || _sysmsgf 'Changed to:' "${file:-$FILECHAT}"
-	FILECHAT="${file:-$FILECHAT}"
+	[[ ${file:-$FILECHAT} = "$FILECHAT" ]] && msg=Current || msg=Change;
+	_sysmsgf "History $msg:" "${file:-$FILECHAT}"$'\n';
+       	FILECHAT="${file:-$FILECHAT}";
 }
 function session_sub_fifof
 {
@@ -3129,11 +3131,16 @@ typeset -l VOICEZ  #lowercase vars
 typeset -l OPTZ_FMT
 
 [[ $BASH_VERSION = [5-9]* ]] || ((OPTV)) || __warmsgf 'Warning:' 'Bash 5+ required';
+set -o ${READLINEOPT:-emacs}; 
+bind 'set enable-bracketed-paste on';
 
 #map models
 if [[ -n $OPTMARG ]]
 then 	((OPTI+OPTII)) && MOD_IMAGE=$OPTMARG  #image
-else 	if ((OPTC>1))  #chat
+	case "$MOD" in moderation|mod|oderation|od) 	MOD="text-moderation-stable";; esac;
+	[[ $MOD = *moderation* ]] && unset OPTC OPTW OPTWW OPTZ OPTI OPTII MTURN OPTRESUME OPTCMPL OPTEMBED
+else
+	if ((OPTC>1))  #chat
 	then 	MOD=$MOD_CHAT
 	elif ((OPTW)) && ((!MTURN))  #whisper endpoint
 	then 	MOD=$MOD_AUDIO
@@ -3414,7 +3421,7 @@ else
 	#session cmds
 	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
 	then 	case "$1" in
-			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy) )
+			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )
 				session_mainf "$1" "${@:2:1}" && set -- "${@:3}";;
 			*) 	session_mainf "$1" && set -- "${@:2}";;
 		esac
@@ -3541,11 +3548,8 @@ else
 
 					__clr_ttystf;
 					if ((CATPR)) && ((!EDIT))
-					then
-						REPLY=$(cat);
-					else
-						#[[ $REPLY != *$'\n'* ]] || ((OPTCTRD)) || { OPTCTRD=2; __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot' ;}
-						read_mainf -i "$REPLY" REPLY;
+					then 	REPLY=$(cat);
+					else 	read_mainf ${REPLY:+-i "$REPLY"} REPLY;
 					fi </dev/tty
 					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])') && echo >&2
 				fi; printf "${NC}" >&2;
@@ -3578,8 +3582,8 @@ else
 					|| new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;  #abort
-						200) 	WSKIP=1; printf '\n%s\n' '--- redo ---'; continue;;  #redo
-						199) 	WSKIP=1 EDIT=1; printf '\n%s\n' '--- edit ---'; continue;;  #edit
+						200) 	WSKIP=1; printf '\n%s\n' '--- redo ---' >&2; continue;;  #redo
+						199) 	WSKIP=1 EDIT=1; printf '\n%s\n' '--- edit ---' >&2; continue;;  #edit
 						198) 	((OPTX)) || OPTX=2
 							((OPTX==2)) && printf '\n%s\n' '--- text editor one-shot ---' >&2
 							set -- ;continue 2;;
