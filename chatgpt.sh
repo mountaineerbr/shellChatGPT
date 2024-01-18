@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.29  jan/2024  by mountaineerbr  GPL+3
+# v0.29.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3133,6 +3133,7 @@ typeset -l OPTZ_FMT
 [[ $BASH_VERSION = [5-9]* ]] || ((OPTV)) || __warmsgf 'Warning:' 'Bash 5+ required';
 set -o ${READLINEOPT:-emacs}; 
 bind 'set enable-bracketed-paste on';
+bind '"\C-j": "\C-v\C-j"'  #CTRL-J for newline (instead of accept-line)
 
 #map models
 if [[ -n $OPTMARG ]]
