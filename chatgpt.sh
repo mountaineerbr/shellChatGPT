@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.29.3  jan/2024  by mountaineerbr  GPL+3
+# v0.29.4  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2762,7 +2762,7 @@ do 	__spinf 	#grep session with user regex
 					_sysmsgf 'regex': "\`${regex}'";
 					if ! grep -q $copt $sopt "${regex}" "$file" 1>&2 2>/dev/null;  #grep regex match in current file
 					then 	grep -n -o $copt $sopt "${regex}" "${file%/*}"/*"${file##*.}" 1>&2 2>/dev/null  #grep other files
-						__warmsgf 'Err:' "No match at \`$file'";
+						__warmsgf 'Err:' "No match at \`${file/"$HOME"/"~"}'";
 					       	buff= ; break 2;
 					fi; ok=1;
 				fi;
@@ -2944,8 +2944,8 @@ function session_mainf
 	fi
 
 	[[ ${file:-$FILECHAT} = "$FILECHAT" ]] && msg=Current || msg=Change;
-	_sysmsgf "History $msg:" "${file:-$FILECHAT}"$'\n';
-       	FILECHAT="${file:-$FILECHAT}";
+       	FILECHAT="${file:-$FILECHAT}"; _sysmsgf "History $msg:" "${FILECHAT/"$HOME"/"~"}"$'\n';
+       	return 0
 }
 function session_sub_fifof
 {
