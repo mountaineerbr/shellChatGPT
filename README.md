@@ -389,8 +389,8 @@ The prompt should match the audio language:
 This also works to transcribe from one language to another.
 
 
-*2.* Transcribe any language audio input **to Japanese** (_prompt_ must be in
-the same language as the input audio language):
+*2.* Transcribe any language audio input **to Japanese** (_prompt_ should be in
+the same language as the input audio language, preferably):
 
     chatgpt.sh -w ja "A job interview is currently being done."
 
