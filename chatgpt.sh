@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.29.1  jan/2024  by mountaineerbr  GPL+3
+# v0.29.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -609,8 +609,8 @@ function promptf
 	trap '-' $sig;
 
 	if ((OPTCLIP)) || [[ ! -t 1 ]]
-	then 	typeset out ;out=$(
-			((STREAM)) && set -- -j
+	then 	typeset out; out=$(
+			((STREAM)) && set -- -j "$@"
 			prompt_pf -r "$@" "$FILE"
 		)
 		((!OPTCLIP)) || (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
@@ -1275,8 +1275,9 @@ function cmd_runf
 		-HH|-HHH*|HH|HHH*|request|req)
 			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
 			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= set_histf
-			printf "\\n---\\n" >&2
-			usr_logf "$(unescapef "$HIST\\n---")" >&2
+			var=$( usr_logf "$(unescapef "$HIST")" )
+			printf "\\n---\\n%s\\n---\\n" "$var" >&2
+			((OPTCLIP)) && ${CLIP_CMD:-false} <<<"$var" && echo 'Clipboard set!' >&2
 			;;
 		j|jump)
 			__cmdmsgf 'Jump:' 'append response primer'
@@ -1289,15 +1290,17 @@ function cmd_runf
 			return 180
 			;;
 		-L*|log*)
-			((++OPTLOG)) ;((OPTLOG%=2))
-			((OPTLOG)) || set --
-			set -- "${*##@(-L|log)$SPC}"
-			if [[ -d "$*" ]]
-			then 	USRLOG="${*%%/}/${USRLOG##*/}"
-			else 	USRLOG="${*:-${USRLOG}}"
-			fi
-			[[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
-			_cmdmsgf $'\nLog file' "<${USRLOG}>"
+			((++OPTLOG)); ((OPTLOG%=2));
+			__cmdmsgf 'Logging' $(_onoff $OPTLOG);
+			((OPTLOG)) && {
+			  set -- "${*##@(-L|log)$SPC}"
+			  if [[ -d "$*" ]]
+			  then 	USRLOG="${*%%/}/${USRLOG##*/}"
+			  else 	USRLOG="${*:-${USRLOG}}"
+			  fi
+			  [[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
+			  _cmdmsgf 'Log file' "<${USRLOG/"$HOME"/"~"}>";
+		  	};
 			;;
 		media*|img*|url*)
 			set -- "${*##@(media|img|url)*([$IFS])}";
@@ -3050,8 +3053,8 @@ do
 			then 	USRLOG="${OPTARG%%/}/${USRLOG##*/}"
 			else 	USRLOG="${OPTARG:-${USRLOG}}"
 			fi
-			[[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
-			_sysmsgf 'Log File' "<${USRLOG}>";;
+			USRLOG="${USRLOG/\~\//"$HOME"\/}"
+			_sysmsgf 'Log File' "<${USRLOG/"$HOME"/"~"}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
@@ -3434,7 +3437,7 @@ else
 	then 	INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		shell_histf "$INSTRUCTION"
 		if ((OPTC && OPTRESUME)) || ((OPTCMPL==1 || OPTRESUME==1))
-		then 	:
+		then 	INSTRUCTION="${INSTRUCTION:-$INSTRUCTION_CHAT}"
 		else 	break_sessionf
 			((OPTC)) && INSTRUCTION="${INSTRUCTION:-$INSTRUCTION_CHAT}"
 			if [[ ${INSTRUCTION} != ?(:)*([$IFS]) ]]
