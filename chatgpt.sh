@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.29.2  jan/2024  by mountaineerbr  GPL+3
+# v0.29.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3436,10 +3436,10 @@ else
 	if ((MTURN+OPTRESUME))
 	then 	INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		shell_histf "$INSTRUCTION"
+		((OPTC)) && INSTRUCTION="${INSTRUCTION:-$INSTRUCTION_CHAT}"
 		if ((OPTC && OPTRESUME)) || ((OPTCMPL==1 || OPTRESUME==1))
-		then 	INSTRUCTION="${INSTRUCTION:-$INSTRUCTION_CHAT}"
+		then 	:
 		else 	break_sessionf
-			((OPTC)) && INSTRUCTION="${INSTRUCTION:-$INSTRUCTION_CHAT}"
 			if [[ ${INSTRUCTION} != ?(:)*([$IFS]) ]]
 			then 	push_tohistf "$(escapef ":${INSTRUCTION}")"
 				_sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | STREAM= foldf >&2
