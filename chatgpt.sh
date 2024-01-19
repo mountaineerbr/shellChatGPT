@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.29.4  jan/2024  by mountaineerbr  GPL+3
+# v0.29.5  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -597,7 +597,7 @@ function promptf
 		fi | prompt_printf
 	else
 		printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
-		((RETRY>1)) || COLUMNS=$((COLUMNS-2)) _promptf || exit; printf "${NC}" >&2;
+		((RETRY>1)) || COLUMNS=$((COLUMNS-3)) _promptf || exit; printf "${NC}" >&2;
 		if ((OPTI))
 		then 	prompt_imgprintf
 		else 	prompt_printf
