@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.30  jan/2024  by mountaineerbr  GPL+3
+# v0.30.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1658,17 +1658,13 @@ function edf
 #(un)escape from/to json (bash truncates input on \000)
 function _escapef
 {
-	tr -d '\000' <<<"$*" | sed 's/\\/\\\\/g;' \
-	| sed -e  's/\r/\\r/g;   s/\t/\\t/g;       s/"/\\"/g;' \
-	    -e $'s/\a/\\\\a/g; s/\f/\\\\f/g;     s/\b/\\\\b/g;' \
-	    -e $'s/\v/\\\\v/g; s/\e/\\\\u001b/g; s/[\03\04]//g;' \
-	| if [[ $* = *$'\n'* ]]
-	then 	sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'
-	else 	cat  #bsd sed fix
-	fi
+	sed 's/\\/\\\\/g; s/$/\\n/' <<<"$*"  \
+	| sed -e '$s/\\n$//; s/\r/\\r/g; s/\t/\\t/g; s/"/\\"/g;'  \
+	    -e $'s/\a/\\\\a/g; s/\f/\\\\f/g; s/\b/\\\\b/g;'  \
+	    -e $'s/\v/\\\\v/g; s/\e/\\\\u001b/g; s/[\03\04]//g;'  \
+	| tr -d '\n\000'
 }  #fallback
-#https://stackoverflow.com/questions/1251999/how-can-i-replace-each-newline-n-with-a-space-using-sed
-function _unescapef { 	printf -- "${*//\%/%%}" ;}  #fallback
+function _unescapef { 	printf -- '%b' "$*" ;}  #fallback
 
 function unescapef {
 	((${#1})) || return
@@ -1786,8 +1782,9 @@ function foldf
 
 		while IFS= read -r -d ' ' && REPLY=$REPLY' ' || ((${#REPLY}))
 		do
-			r=${REPLY//$'\e['*([0-9;])m};  #delete ansi codes
+			r=$REPLY;
 			r=${r//$'\t'/        };  #fix for tabs
+	    ((OPTK)) || r=${r//$'\e['*([0-9;])m};  #delete ansi codes
 			#LC_CTYPE=C;  #character encoding locale
 			
 			[[ $r = *$'\n'* ]] && x=${r##*$'\n'} r=${r%%$'\n'*};
@@ -3612,7 +3609,7 @@ else
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0
 					[[ ${REPLY:ind} = */*([$IFS]) ]] && ((!OPTW)) #preview / regen cmds
 				then
-					((RETRY)) && prev_tohistf "$REPLY_OLD"  #record previous reply
+					((RETRY)) && prev_tohistf "$(escapef "$REPLY_OLD")"  #record previous reply
 					[[ $REPLY = /* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					REPLY=$(sed 's/\/.*$//' <<<"$REPLY") REPLY_OLD="$REPLY"
 					RETRY=1 BCYAN="${Color8}" MEDIA_IND=1;
@@ -3639,7 +3636,7 @@ else
 					then 	if [[ "$REPLY" = "$REPLY_OLD" ]]
 						then 	RETRY=2 BCYAN="${Color9}"
 						else 	#record prev resp
-							prev_tohistf "$REPLY_OLD"
+							prev_tohistf "$(escapef "$REPLY_OLD")"
 						fi ;REPLY_OLD="$REPLY"
 					fi
 				else
