@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.29.6  jan/2024  by mountaineerbr  GPL+3
+# v0.30  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -544,7 +544,7 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	curl "$@" -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl "$@" -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -594,13 +594,14 @@ function promptf
 		then 	cat -- "$FILE"
 		else 	printf "${BYELLOW}%s\\b${NC}" "X" >&2;
 			_promptf || exit;
-		fi | prompt_printf | foldf
+		fi | prompt_printf
 	else
 		printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
-		((RETRY>1)) || COLUMNS=$((COLUMNS-3)) _promptf || exit; printf "${NC}" >&2;
+		((RETRY>1)) || COLUMNS=$((COLUMNS-3)) _promptf || exit;
+	       	printf "${NC}" >&2;
 		if ((OPTI))
 		then 	prompt_imgprintf
-		else 	prompt_printf | foldf
+		else 	prompt_printf
 		fi
 	fi & pid=$! sig="INT"  #catch <CTRL-C>
 	
@@ -615,6 +616,7 @@ function promptf
 		)
 		((!OPTCLIP)) || (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
 		[[ -t 1 ]] || printf '%s\n' "$out" >&2  #pipe + stderr
+		return 0
 	fi
 }
 
@@ -760,7 +762,7 @@ function prompt_printf
 	  byellow + ( (.text//(.message.content)//(.delta.content)//empty ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if .finish_reason != \"stop\" then (if .finish_reason != null then red+\"(\"+.finish_reason+\")\"+reset else null end) else null end,
-	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf ;} ||
+	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf ;} | foldf ||
 
 	prompt_pf -r ${stream:+-j --unbuffered} "$@" 2>/dev/null
 }
@@ -829,7 +831,7 @@ function prompt_audiof
 {
 	((OPTVV)) && echo "Whisper model: ${MOD_AUDIO:-unset},  Temp: ${OPTT:-unset}${*:+,  }${*}" >&2
 
-	curl -\# ${OPTV:+-Ss} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: multipart/form-data' \
@@ -845,13 +847,13 @@ function prompt_audiof
 
 function list_modelsf
 {
-	curl -f -L "$API_HOST/models${1:+/}${1}" \
+	curl -\# -L "$API_HOST/models${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-o "$FILE" &&
 
 	if [[ -n $1 ]]
-	then  	jq . "$FILE" || cat -- "$FILE"
-	else 	jq -r '.data[].id' "$FILE" | sort
+	then  	jq . "$FILE" || ! cat -- "$FILE"
+	else 	jq -r '.data[].id' "$FILE" | sort || ! cat -- "$FILE"
 	fi && printf '%s\n' text-moderation-latest text-moderation-stable ||
 	! __warmsgf 'err:' 'model list'
 }
@@ -1780,8 +1782,7 @@ function foldf
 {
 	if ((COLUMNS<18)) || [[ ! -t 1 ]]
 	then 	cat
-	else
-		typeset REPLY r x n;
+	else 	typeset REPLY r x n;
 
 		while IFS= read -r -d ' ' && REPLY=$REPLY' ' || ((${#REPLY}))
 		do
@@ -1807,7 +1808,7 @@ function foldf
 			((n += ${#r}));
 			((${#x})) && n=${#x} x= ;
 		done
-	fi
+	fi; return 0;
 }
 
 #check if a value if within a fp range
@@ -1893,7 +1894,7 @@ function recordf
 	typeset termux pid sig ret
 	case "$REC_CMD" in
 	       	termux*) termux=1;;
-		false) 	return 1;;
+		false) 	return 196;;
 	esac
 	[[ -e $1 ]] && rm -- "$1"  #del out file before writing
 
@@ -2006,22 +2007,26 @@ function whisperf
 			\"\\t\" + \"Lang: \(.language)\" +
 			\"\\t\" + \"Dur: \(.duration|seconds_to_time_string)\" +
 			\"\\n\", (.segments[]| \"[\" + yellow + \"\(.start|seconds_to_time_string)\" + reset + \"]\" +
-			bpurple + .text + reset)" "$FILE" \
-		|| jq -r 'if .segments then (.segments[] | (.start|tostring) + .text) else .text end' "$FILE" || cat -- "$FILE" ;}
+			bpurple + .text + reset)" "$FILE" | foldf \
+		|| jq -r 'if .segments then (.segments[] | (.start|tostring) + (.text//empty)) else (.text//empty) end' "$FILE" || cat -- "$FILE" ;}
 	else
 		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "${JQCOLNULL} ${JQCOL} ${JQDATE}
-		  bpurple + .text + reset" "$FILE" \
-		|| jq -r '.text' "$FILE" || cat -- "$FILE" ;}
+		bpurple + (.text//empty) + reset" "$FILE" | foldf \
+		|| jq -r '.text//empty' "$FILE" || cat -- "$FILE" ;}
 	fi &&
-	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + .text) else .text end" "$FILE" || cat -- "$FILE") &&
-		  ((!CHAT_ENV)) && [[ -d ${FILEWHISPERLOG%/*} ]] &&  #rec whisper output
-		  printf '\n====\n%s\n\n%s\n' "$(date -R 2>/dev/null||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG" &&
-		  _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
+	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + (.text//empty)) else (.text//empty) end" "$FILE" || cat -- "$FILE") &&
+		((${#WHISPER_OUT}))
+	then
+		((!CHAT_ENV)) && [[ -d ${FILEWHISPERLOG%/*} ]] &&  #log output
+		printf '\n====\n%s\n\n%s\n' "$(date -R 2>/dev/null||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG" &&
+		_sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
 
-		((OPTCLIP && !CHAT_ENV))
-	then 	(${CLIP_CMD:-false} <<<"$WHISPER_OUT" &)  #clipboard
+		((OPTCLIP && !CHAT_ENV)) && (${CLIP_CMD:-false} <<<"$WHISPER_OUT" &);  #clipboard
+		:;
+	else 	false;
 	fi || {
+		jq . "$FILE" >&2 2>/dev/null
 		__warmsgf 'err:' 'whisper response'
 		printf 'Retry request? Y/n ' >&2;
 		case "$(__read_charf)" in
@@ -2048,7 +2053,7 @@ end;"
 #request tts prompt
 function prompt_ttsf
 {
-	curl -N -Ss -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -N -Ss -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -2129,6 +2134,7 @@ function ttsf
 			esac
 		done </dev/tty; __clr_lineupf $((4+1+33+${#var}));  #!#
 		wait $pid; ret=$?; trap '-' $sig;
+		jq . "$FOUT" >&2 2>/dev/null && ret=1  #only if response is json
 
 		case $ret in
 			0|1[2-9][0-9]|2[0-5][0-9]) 	:;;
@@ -2164,7 +2170,8 @@ function ttsf
 			    esac;
 			}; __clr_lineupf 16;  #!#
 		       	break;
-		done ;}
+		done
+		}
 		((++i)); FOUT=${FOUT%-*}-${i}.${OPTZ_FMT};
 		xinput=${xinput:max};
 		((${#xinput})) && ((!ret)) || break 1;
@@ -2219,7 +2226,7 @@ function imggenf
 #image variations
 function prompt_imgvarf
 {
-	curl -\# ${OPTV:+-Ss} -f -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
 		-F response_format="$OPTI_FMT" \
@@ -3353,8 +3360,8 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 	  "Err:" "Make sure python tiktoken module is installed: \`pip install tiktoken\`"
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
-	whisperf "$@" | foldf &&
-	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then .segments[].text else .text end" "$FILE") \
+	whisperf "$@" &&
+	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE") \
 		&& ((${#WHISPER_OUT}))
 	then 	echo >&2; set -- ;
 		MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
@@ -3557,13 +3564,16 @@ else
 								[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 								whisperf "$FILEINW" "$@";
 							)
-							else 	case $? in 196) 	unset OPTW REPLY; continue 1;; 199) 	EDIT=1; continue 1;; esac;
+							else 	case $? in
+							       		196) 	unset OPTW REPLY; continue 1;;
+								       	199) 	EDIT=1; continue 1;;
+							       	esac;
 								echo record abort >&2;
 							fi;
 							;;
-						196) 	unset OPTW REPLY; continue 1;
+						196) 	unset OPTW REPLY; continue 1;  #whisper off
 							;;
-						199) 	EDIT=1; continue 1;
+						199) 	EDIT=1; continue 1;  #text edit
 							;;
 						*) 	unset REPLY; continue 1;
 							;;
@@ -3871,4 +3881,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3880
+# vim=syntax sync minlines=3900
