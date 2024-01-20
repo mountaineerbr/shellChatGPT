@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.29.5  jan/2024  by mountaineerbr  GPL+3
+# v0.29.6  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -594,13 +594,13 @@ function promptf
 		then 	cat -- "$FILE"
 		else 	printf "${BYELLOW}%s\\b${NC}" "X" >&2;
 			_promptf || exit;
-		fi | prompt_printf
+		fi | prompt_printf | foldf
 	else
 		printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
 		((RETRY>1)) || COLUMNS=$((COLUMNS-3)) _promptf || exit; printf "${NC}" >&2;
 		if ((OPTI))
 		then 	prompt_imgprintf
-		else 	prompt_printf
+		else 	prompt_printf | foldf
 		fi
 	fi & pid=$! sig="INT"  #catch <CTRL-C>
 	
@@ -690,9 +690,9 @@ function block_printf
 		printf '\n%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"; OPTAWE= SKIP=
 		printf '\n%s\n' '<Enter> continue, <Ctrl-D> redo, <Ctrl-C> exit'
 		typeset REPLY; __clr_ttystf; read </dev/tty || return 200;
-	else 	((STREAM)) && set -- -j
+	else 	((STREAM)) && set -- -j "$@"
 		jq -r "$@" '.instruction//empty, .input//empty,
-		.prompt//(.messages[]|.role+": "+.content)//empty' <<<"$BLOCK" | STREAM= foldf
+		.prompt//(.messages[]|.role+": "+.content)//empty' <<<"$BLOCK" | foldf
 		((!OPTC)) || printf ' '
 	fi >&2
 }
@@ -742,7 +742,7 @@ function prompt_printf
 	typeset stream
 	
 	if ((STREAM))
-	then 	typeset OPTC OPTV; stream=1;
+	then 	typeset OPTC OPTV; stream=$STREAM;
 	else 	set -- "$FILE"
 		((OPTBB)) && jq -r '.choices[].logprobs//empty' "$@" >&2
 	fi
@@ -757,10 +757,10 @@ function prompt_printf
 
 	{ jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
 	  (.choices[1].index as \$sep | .choices[] |
-	  byellow + ( (.text//(.message.content)//(.delta.content) ) |
+	  byellow + ( (.text//(.message.content)//(.delta.content)//empty ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if .finish_reason != \"stop\" then (if .finish_reason != null then red+\"(\"+.finish_reason+\")\"+reset else null end) else null end,
-	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf ;} | foldf ||
+	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf ;} ||
 
 	prompt_pf -r ${stream:+-j --unbuffered} "$@" 2>/dev/null
 }
@@ -864,7 +864,7 @@ function pick_modelf
 	((${#MOD_LIST[@]})) || MOD_LIST=($(list_modelsf))
 	if [[ ${REPLY:=$1} = +([0-9]) ]] && ((REPLY && REPLY <= ${#MOD_LIST[@]}))
 	then 	mod=${MOD_LIST[REPLY-1]}  #pick model by number from the model list
-	else 	__clr_ttystf;
+	else 	__clr_ttystf; REPLY=${REPLY//[!0-9]};
 		while ! ((REPLY && REPLY <= ${#MOD_LIST[@]}))
 		do 	echo $'\nPick model:' >&2;
 			select mod in ${MOD_LIST[@]:-err}
@@ -1257,7 +1257,7 @@ function cmd_runf
 			break_sessionf
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  push_tohistf "$(escapef ":${INSTRUCTION_OLD:-$INSTRUCTION}")"
-			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | STREAM= foldf >&2
+			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			}; unset CKSUM_OLD MAX_PREV WCHAT_C; xskip=1;
 			;;
 		-g|-G|stream|no-stream)
@@ -1778,9 +1778,35 @@ function usr_logf
 #wrap text at spaces rather than mid-word
 function foldf
 {
-	if ((!STREAM)) && ((COLUMNS>16)) && [[ -t 1 ]]
-	then 	fold -s -w $COLUMNS 2>/dev/null || cat
-	else 	cat
+	if ((COLUMNS<18)) || [[ ! -t 1 ]]
+	then 	cat
+	else
+		typeset REPLY r x n;
+
+		while IFS= read -r -d ' ' && REPLY=$REPLY' ' || ((${#REPLY}))
+		do
+			r=${REPLY//$'\e['*([0-9;])m};  #delete ansi codes
+			r=${r//$'\t'/        };  #fix for tabs
+			#LC_CTYPE=C;  #character encoding locale
+			
+			[[ $r = *$'\n'* ]] && x=${r##*$'\n'} r=${r%%$'\n'*};
+
+			if (( ${#r}>COLUMNS ))  #REPLY alone is bigger than COLUMNS
+			then
+				((n = ( (n+${#r})%COLUMNS + COLUMNS)%COLUMNS )); r= ;
+				#modulus as (a%b + b)%b to avoid negative remainder.
+				printf '%s' "$REPLY";
+			elif (( n+${#r}>COLUMNS ))
+			then
+			       	n= ;
+				printf '\n%s' "$REPLY";
+			else
+				(( n+${#r}==COLUMNS )) && r= n= ;
+				printf '%s' "$REPLY";
+			fi
+			((n += ${#r}));
+			((${#x})) && n=${#x} x= ;
+		done
 	fi
 }
 
@@ -3327,7 +3353,7 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 	  "Err:" "Make sure python tiktoken module is installed: \`pip install tiktoken\`"
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
-	whisperf "$@" &&
+	whisperf "$@" | foldf &&
 	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then .segments[].text else .text end" "$FILE") \
 		&& ((${#WHISPER_OUT}))
 	then 	echo >&2; set -- ;
@@ -3442,7 +3468,7 @@ else
 		else 	break_sessionf
 			if [[ ${INSTRUCTION} != ?(:)*([$IFS]) ]]
 			then 	push_tohistf "$(escapef ":${INSTRUCTION}")"
-				_sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | STREAM= foldf >&2
+				_sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | foldf >&2
 			fi
 		fi
 		INSTRUCTION_OLD="$INSTRUCTION"
@@ -3450,7 +3476,7 @@ else
 	elif [[ ${INSTRUCTION} = ?(:)*([$IFS]) ]]
 	then 	unset INSTRUCTION
 	fi
-	[[ ${INSTRUCTION} != ?(:)*([$IFS]) ]] && _sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | STREAM= foldf >&2
+	[[ ${INSTRUCTION} != ?(:)*([$IFS]) ]] && _sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | foldf >&2
 	
 	# fix: bash: enable multiline cmd history, v0.18.0 aug/23.
 	if ((OPTC+OPTCMPL+OPTRESUME)) && ((!DISABLE_BASH_FIX)) \
@@ -3541,7 +3567,7 @@ else
 							;;
 						*) 	unset REPLY; continue 1;
 							;;
-					esac; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" >&2;
+					esac; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" | foldf >&2;
 				else
 
 					if ((OPTCMPL)) && ((MAIN_LOOP || OPTCMPL==1)) \
@@ -3845,4 +3871,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3860
+# vim=syntax sync minlines=3880

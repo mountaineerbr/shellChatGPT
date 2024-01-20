@@ -1,7 +1,7 @@
 # Maintainer: lilikoi <jamilbio20@gmail.com>
 pkgname='chatgpt.sh-git'
 _pkgname='chatgpt.sh'
-pkgver=0.100.r2
+pkgver=0.100.r3
 pkgrel=1
 pkgdesc='Shell wrapper for text and chat completions, DALL-E, Whisper, and awesome-chatgpt-prompts(-zh).'
 url='https://gitlab.com/fenixdragao/shellchatgpt'
@@ -12,9 +12,10 @@ depends=('bash' 'curl' 'jq')
 makedepends=('git')
 optdepends=(
 	'imagemagick: edit input images'
-	'sox: audio record'
-	'ffmpeg: audio record'
-	'coreutils: wrap output at spaces (fold)'
+	'sox: audio recorder / player'
+	'ffmpeg: audio recorder'
+	'mpv: audio player'
+	#'coreutils: wrap output at spaces (fold)'
 	'xdg-utils: open images (xdg-open, open)'
 	'xsel: copy output to clipboard'
 	'xclip: copy output to clipboard'
