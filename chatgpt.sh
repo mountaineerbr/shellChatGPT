@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.30.1  jan/2024  by mountaineerbr  GPL+3
+# v0.30.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1658,10 +1658,10 @@ function edf
 #(un)escape from/to json (bash truncates input on \000)
 function _escapef
 {
-	sed 's/\\/\\\\/g; s/$/\\n/' <<<"$*"  \
-	| sed -e '$s/\\n$//; s/\r/\\r/g; s/\t/\\t/g; s/"/\\"/g;'  \
+	sed -e 's/\\/\\\\/g; s/$/\\n/' -e '$s/\\n$//'  \
+	    -e 's/\r/\\r/g; s/\t/\\t/g; s/"/\\"/g;'  \
 	    -e $'s/\a/\\\\a/g; s/\f/\\\\f/g; s/\b/\\\\b/g;'  \
-	    -e $'s/\v/\\\\v/g; s/\e/\\\\u001b/g; s/[\03\04]//g;'  \
+	    -e $'s/\v/\\\\v/g; s/\e/\\\\u001b/g; s/[\03\04]//g;' <<<"$*" \
 	| tr -d '\n\000'
 }  #fallback
 function _unescapef { 	printf -- '%b' "$*" ;}  #fallback
@@ -2989,6 +2989,8 @@ function session_sub_fifof
 }
 
 
+#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #return when sourced
+
 #parse opts
 optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:TouUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
@@ -3482,12 +3484,6 @@ else
 	fi
 	[[ ${INSTRUCTION} != ?(:)*([$IFS]) ]] && _sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | foldf >&2
 	
-	# fix: bash: enable multiline cmd history, v0.18.0 aug/23.
-	if ((OPTC+OPTCMPL+OPTRESUME)) && ((!DISABLE_BASH_FIX)) \
-		&& [[ $(sed -n 1p -- "$HISTFILE" 2>/dev/null )\#10 != \#[0-9]* ]]
-	then 	(echo >&2; set -x; sed -i -e 's/^/#10\n/' "$HISTFILE")
-	fi
-
 	#warnings and tips
 	((OPTCTRD)) && __warmsgf $'\n' '* <Ctrl-V> + <Ctrl-J> for newline * '
 	((OPTCTRD+CATPR)) && __warmsgf $'\n' '* <Ctrl-D> to flush input * '
