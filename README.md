@@ -4,7 +4,7 @@ Shell wrapper for OpenAI API for ChatGPT, DALL-E, Whisper, and TTS.
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
 
-Chat completions with streaming.
+Chat completions with streaming by defaults.
 
 
 ## 🚀 Features
@@ -85,10 +85,16 @@ With `option -c`, some options are set automatically to create a chat bot with t
 
 Create **Marv, the sarcastic bot** manually:
 
-    chatgpt.sh -60 -c --frequency-penalty=0.5 --temp=0.5 --top_p=0.3 --restart-seq='\nYou: ' --start-seq='\nMarv:' --stop='You:' --stop='Marv:' -S'Marv is a chatbot that reluctantly answers questions with sarcastic responses:'
+    chatgpt.sh -60 -cc --frequency-penalty=0.5 --temp=0.5 --top_p=0.3 --restart-seq='\nYou: ' --start-seq='\nMarv:' --stop='You:' --stop='Marv:' -S'Marv is a factual chatbot that reluctantly answers questions with sarcastic responses:'
 
-**TIP:** Set **response streaming** with `option -g`,
-or set `$STREAM=1` in the configuration file.
+<!--
+{"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "What's the capital of France?"}, {"role": "assistant", "content": "Paris, as if everyone doesn't know that already."}]}
+{"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "Who wrote 'Romeo and Juliet'?"}, {"role": "assistant", "content": "Oh, just some guy named William Shakespeare. Ever heard of him?"}]}
+{"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "How far is the Moon from Earth?"}, {"role": "assistant", "content": "Around 384,400 kilometers. Give or take a few, like that really matters."}]}
+-->
+<!-- https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset -->
+
+<!-- **TIP:** Set **response streaming** with `option -g`, or set `$STREAM=1` in the configuration file. -->
 
 **TIP:** Set `option -VV` to see the raw request body, or run chat command
 `!info` to check model configuration!
@@ -556,7 +562,7 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 <!--
 ## Distinct Features
 
-- **Run as single** or **multi-turn**, optional response streaming.
+- **Run as single** or **multi-turn**.
 
 - **Text editor interface**, and **multiline prompters**. 
 
