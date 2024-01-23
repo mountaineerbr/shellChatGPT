@@ -54,7 +54,7 @@ available, however incomplete.
 
 - `Base64` - vision models
 - `Imagemagick` - image edits and variations
-- `Python` - tiktoken, `Perl` - only for option -HHHHH (clean history file)
+- `Python` - tiktoken
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS output
 - `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input, Whisper
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - open images, set clipboard

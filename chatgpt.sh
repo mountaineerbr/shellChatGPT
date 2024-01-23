@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.31  jan/2024  by mountaineerbr  GPL+3
+# v0.31.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -888,10 +888,9 @@ function lastjsonf
 #set up context from history file ($HIST and $HIST_C)
 function set_histf
 {
-	typeset time token string max_prev q_type a_type role rest media_ind com sub ind herr nl x r n;
-	(( media_ind = ${#MEDIA_CHAT[@]} + ${#MEDIA_CHAT_CMD[@]} ));
+	typeset time token string max_prev q_type a_type role rest com sub ind herr nl x r n;
 	typeset -a MEDIA_CHAT MEDIA_CHAT_CMD;
-	[[ -s $FILECHAT ]] || return; HIST= HIST_C= MEDIA_IND=1;
+	[[ -s $FILECHAT ]] || return; HIST= HIST_C= ;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
 	q_type=${Q_TYPE##$SPC1} a_type=${A_TYPE##$SPC1}
@@ -980,7 +979,6 @@ function set_histf
 		fi
 	done < <(tac -- "$FILECHAT")
 	__printbf ' ' #__spinf() end
-	((MEDIA_IND+=media_ind))
 	((MAX_PREV+=3)) # chat cmpls, every reply is primed with <|start|>assistant<|message|>
 	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns 
 	
@@ -1303,6 +1301,9 @@ function cmd_runf
 		media*|img*|url*)
 			set -- "${*##@(media|img|url)*([$IFS])}";
 			CMD_CHAT=1 _mediachatf "|${1##\|}"
+			((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}";
+			_sysmsgf "img #?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_IND_CMD[@]}))\
+ --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
 			;;
 		models*)
 			list_modelsf "${*##models*([$IFS])}" | less >&2
@@ -1543,7 +1544,7 @@ function cmd_runf
 			session_mainf /"${args[@]}"
 			;;
 		r|regenerate|regen|[$IFS]|[/!]|'')  #regenerate last response
-			REGEN=1 SKIP=1 PSKIP=1 EDIT=1 REPLY= MEDIA_IND=1;
+			REGEN=1 SKIP=1 PSKIP=1 EDIT=1 REPLY= MEDIA_IND=() MEDIA_IND_CMD=();
 			if ((!BAD_RES)) && [[ -f "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
 			then 	# comment out two lines from tail
@@ -1553,12 +1554,15 @@ function cmd_runf
 			fi
 			;;
 		replay|rep)
-			for var in "${REPLAY_FILES[@]}"
-			do 	${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
-				trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
-				wait $pid;
-			done;
-			trap 'exit' INT;
+			if ((${#REPLAY_FILES[@]}))
+			then 	for var in "${REPLAY_FILES[@]}"
+				do 	${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
+					trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
+					wait $pid;
+				done;
+				trap 'exit' INT;
+			else 	__warmsgf 'Err:' 'No TTS audio file to play'
+			fi
 			;;
 		q|quit|exit|bye)
 			send_tiktokenf '/END_TIKTOKEN/' && wait
@@ -1715,7 +1719,7 @@ function fmt_ccf
 	typeset var
 	[[ ${1} != *([$IFS]) ]] || return
 	
-	if ((${#MEDIA_CHAT[@]}+${#MEDIA_CHAT_CMD[@]}))
+	if ((${#MEDIA_CHAT[@]}+${#MEDIA_CHAT_CMD[@]})) && [[ $MOD = *vision* ]]
 	then
 		printf '{ "role": "%s", "content": [ { "type": "text", "text": "%s" }' "${2:-user}" "$1";
 		for var in "${MEDIA_CHAT[@]}" "${MEDIA_CHAT_CMD[@]}"
@@ -1758,9 +1762,11 @@ function _mediachatf
 		then
 			if ((CMD_CHAT))
 			then 	MEDIA_CHAT_CMD=("${MEDIA_CHAT_CMD[@]}" "$var")
-			else 	MEDIA_CHAT=("$var" "${MEDIA_CHAT[@]}")
-			fi; _sysmsgf "img #${MEDIA_IND:=1} --" "${var:0: COLUMNS-15}$([[ -n ${var: COLUMNS-15} ]] && echo ...)"; #"img #10 --" 
-			((++MEDIA_IND)); set -- "${1%\|*}";
+				MEDIA_IND_CMD=("${MEDIA_IND_CMD[@]}" "$var");
+			else 	MEDIA_CHAT=("$var" "${MEDIA_CHAT[@]}")  #read by fmt_ccf()
+				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
+			fi;
+			set -- "${1%\|*}";
 			((TRUNC_IND = i - ${#1}));  #truncation on TRUNC_IND>0
 		else
 			__warmsgf 'err: invalid --' "${var:0: COLUMNS-20}$([[ -n ${var: COLUMNS-20} ]] && echo ...)";
@@ -2081,7 +2087,7 @@ function prompt_ttsf
 #speech synthesis (tts)
 function ttsf
 {
-	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid var n m i r
+	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid var n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -3153,8 +3159,8 @@ do
 	esac ;OPTARG=
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA_CHAT MEDIA_CHAT_CMD init buff var n s
-typeset -a PIDS MEDIA_CHAT MEDIA_CHAT_CMD WARGS ZARGS
+unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA_CHAT MEDIA_CHAT_CMD MEDIA_IND MEDIA_IND_CMD init buff var n s
+typeset -a PIDS MEDIA_CHAT MEDIA_CHAT_CMD MEDIA_IND MEDIA_IND_CMD WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
 set -o ${READLINEOPT:-emacs}; 
@@ -3631,7 +3637,7 @@ else
 					((RETRY)) && prev_tohistf "$(escapef "$REPLY_OLD")"  #record previous reply
 					[[ $REPLY = /* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					REPLY=$(sed 's/\/.*$//' <<<"$REPLY") REPLY_OLD="$REPLY"
-					RETRY=1 BCYAN="${Color8}" MEDIA_IND=1;
+					RETRY=1 BCYAN="${Color8}" MEDIA_IND=() MEDIA_IND_CMD=();
 				elif [[ -n $REPLY ]]
 				then
 					[[ $REPLY = $SPC:* ]] || ((RETRY+OPTV)) \
@@ -3656,6 +3662,7 @@ else
 						then 	RETRY=2 BCYAN="${Color9}"
 						else 	#record prev resp
 							prev_tohistf "$(escapef "$REPLY_OLD")"
+							MEDIA_IND=() MEDIA_IND_CMD=();
 						fi ;REPLY_OLD="$REPLY"
 					fi
 				else
@@ -3728,7 +3735,7 @@ else
 				SUFFIX=$(sed "\$s/^.*${i}//" <<<"$*")
 				set -- "$(sed "\$s/${i}.*//" <<<"$*")"; unset i;
 				#SUFFIX="${*##*"${I_TYPE}"}"; set -- "${*%%"${I_TYPE}"*}"
-			else 	__warmsgf "Err: insert mode:" "bad endpoint (chat cmpls)"
+			else 	__warmsgf "Err: insert mode:" "wrong endpoint (chat cmpls)"
 			fi;
 			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE}}"
 		else 	unset SUFFIX
@@ -3757,6 +3764,11 @@ else
 				else 	set -- "${ESC}"
 				fi
 			fi ;unset rest role
+			
+			for media in "${MEDIA_IND[@]}" "${MEDIA_IND_CMD[@]}"
+			do 	((media_i++))
+				_sysmsgf "img #${media_i} --" "${media:0: COLUMNS-15}$([[ -n ${media: COLUMNS-15} ]] && echo ...)";
+			done; unset media media_i;
 		fi
 		
 		set_optsf
@@ -3852,10 +3864,12 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
 			unset HIST_TIME
 		elif ((MTURN))
 		then
-			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES MEDIA_CHAT
+			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES MEDIA_CHAT  MEDIA_IND  MEDIA_IND_CMD;
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
-		fi; unset MEDIA_CHAT MEDIA_CHAT_CMD;
+		fi;
+		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_IND_CMD[@]}));
+	       	unset MEDIA_CHAT  MEDIA_CHAT_CMD  MEDIA_IND  MEDIA_IND_CMD;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
@@ -3895,4 +3909,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=3900
+# vim=syntax sync minlines=4000
