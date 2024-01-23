@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.30 \| General Commands Manual
+title: CHATGPT.SH(1) v0.31 \| General Commands Manual
 ---
 
 ### NAME
@@ -271,6 +271,8 @@ or “`/`”.
 | `!i`   | `!info`                  | Information on model and session settings.             |
 | `!j`   | `!jump`                  | Jump to request, append start seq primer (text cmpls). |
 | `!!j`  | `!!jump`                 | Jump to request, no response priming.                  |
+| `!r`   | `!regen`                 | Regenerate last response.                              |
+| `!rep` | `!replay`                | Replay last TTS audio response.                        |
 | `!sh`  | `!shell` \[*CMD*\]       | Run shell, or *command*, and edit output.              |
 | `!!sh` | `!!shell` \[*CMD*\]      | Run interactive shell (with *command*) and exit.       |
 
@@ -290,7 +292,6 @@ or “`/`”.
 | `-xx`  | `!!ed`            | Single-shot text editor.                                  |
 | `-y`   | `!tik`            | Toggle python tiktoken use.                               |
 | `!q`   | `!quit`           | Exit. Bye.                                                |
-| `!r`   | `!regen`          | Regenerate last response.                                 |
 | `!?`   | `!help`           | Print a help snippet.                                     |
 
 | Model   | Settings                |                                             |

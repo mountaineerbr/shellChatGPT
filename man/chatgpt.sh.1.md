@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.30 | General Commands Manual
+% CHATGPT.SH(1) v0.31 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -268,6 +268,8 @@ may be either "`!`", or "`/`".
       `!i`    `!info`                    Information on model and session settings.
       `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
      `!!j`    `!!jump`                   Jump to request, no response priming.
+      `!r`    `!regen`                   Regenerate last response.
+    `!rep`    `!replay`                  Replay last TTS audio response.
      `!sh`    `!shell`     \[_CMD_]      Run shell, or _command_, and edit output.
     `!!sh`    `!!shell`    \[_CMD_]      Run interactive shell (with _command_) and exit.
   --------    -----------------------    ----------------------------------------------------------
@@ -288,7 +290,6 @@ may be either "`!`", or "`/`".
      `-xx`    `!!ed`                     Single-shot text editor.
       `-y`    `!tik`                     Toggle python tiktoken use.
       `!q`    `!quit`                    Exit. Bye.
-      `!r`    `!regen`                   Regenerate last response.
       `!?`    `!help`                    Print a help snippet.
   --------    -----------------------    ----------------------------------------------------------
 

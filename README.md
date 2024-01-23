@@ -11,7 +11,7 @@ Chat completions with streaming by defaults.
 
 - Text and chat completions, [**gtp-4-vision** support](#gpt-4-vision).
 - **Voice in** (whisper) and **voice out** (TTS) [chat / REPL modes](#voice-in-and-out-chat-completions).
-- Set _multiline_ prompt, flush with \<ctrl-d> (optional), bracketed paste in bash
+- Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash
 - _Follow up_ conversations, _preview/regenerate_ responses
 - Manage _sessions_, _continue_ from last session, _print out_ session
 - Custom prompts, easily create prompts and re-use them!
@@ -47,6 +47,8 @@ Optionally, download and set the config file [`~/.chatgpt.conf`](https://gitlab.
 - `Bash` <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
 - `cURL`, and `JQ`
 
+_OBS:_ There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/blob/zsh/chatgpt.zsh)
+available, however incomplete.
 
 #### Optional Packages for Specific Features
 
@@ -562,7 +564,7 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 <!--
 ## Distinct Features
 
-- **Run as single** or **multi-turn**.
+- **Run as single** or **multi-turn**, response streaming on by defaults.
 
 - **Text editor interface**, and **multiline prompters**. 
 
