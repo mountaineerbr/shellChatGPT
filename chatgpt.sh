@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.31.4  jan/2024  by mountaineerbr  GPL+3
+# v0.31.5  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1343,7 +1343,7 @@ function cmd_runf
 			;;
 		-s*|stop*)
 			set -- "${*##@(-s|stop)$SPC}"
-			STOPS=("$(unescapef "${*}")" "${STOPS[@]}")
+			((${#1})) && STOPS=("$(unescapef "${*}")" "${STOPS[@]}")
 			__cmdmsgf 'Stop Sequences' "${STOPS[*]}"
 			;;
 		-?(S)*([$' \t'])[.,]*)
@@ -1570,7 +1570,7 @@ function cmd_runf
 			;;
 		*) 	return 1
 			;;
-	esac; echo >&2
+	esac;
 	if ((OPTX)) && ((!(REGEN+xskip) )) 
 	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
 		__read_charf >/dev/null;
@@ -1886,8 +1886,8 @@ function set_optsf
 	done; PIDS=(${pids[@]});
 }
 
-function restart_compf { RESTART=$(escapef "$(unescapef "${*:-$RESTART}")") RESTART_OLD="$RESTART" ;}
-function start_compf {     START=$(escapef "$(unescapef "${*:-$START}")")   START_OLD="$START" ;}
+function restart_compf { ((${#1})) && RESTART=$(escapef "$(unescapef "${*:-$RESTART}")") RESTART_OLD="$RESTART" ;}
+function start_compf { ((${#1})) && START=$(escapef "$(unescapef "${*:-$START}")")   START_OLD="$START" ;}
 
 function record_confirmf
 {
@@ -3551,12 +3551,12 @@ else
 			case $? in
 				179|180) :;;        #jumps
 				200) 	continue;;  #redo
-				201) 	break 1;;   #abort
+				201) 	false;;   #abort
 				*) 	while REPLY=$(<"$FILETXT"); (($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}" | tail -n $((LINES-2))
 					do 	((OPTV)) || new_prompt_confirmf
 						case $? in
-							201) 	break 2;;  #abort
+							201) 	break 1;;  #abort
 							200) 	continue 2;;  #redo
 							19[6789]) 	edf "${REPLY:-$*}" || break 2;;  #edit
 							0) 	set -- "$REPLY" ; break;;  #yes
