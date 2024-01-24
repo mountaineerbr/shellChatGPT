@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.31.1  jan/2024  by mountaineerbr  GPL+3
+# v0.31.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1302,7 +1302,7 @@ function cmd_runf
 			set -- "${*##@(media|img|url)*([$IFS])}";
 			CMD_CHAT=1 _mediachatf "|${1##\|}"
 			((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}";
-			_sysmsgf "img #?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_IND_CMD[@]}))\
+			_sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_IND_CMD[@]}))\
  --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
 			;;
 		models*)
@@ -3634,10 +3634,11 @@ else
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0
 					[[ ${REPLY: ind} = */*([$IFS]) ]] && ((!OPTW)) #preview / regen cmds
 				then
-					((RETRY)) && prev_tohistf "$(escapef "$REPLY_OLD")"  #record previous reply
+					((RETRY)) && [[ $REPLY_OLD != "$REPLY" ]] && 
+					  prev_tohistf "$(escapef "$REPLY_OLD")"
 					[[ $REPLY = /* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
-					REPLY=$(sed 's/\/.*$//' <<<"$REPLY") REPLY_OLD="$REPLY"
-					RETRY=1 BCYAN="${Color8}" MEDIA_IND=() MEDIA_IND_CMD=();
+					[[ $REPLY = */*([$IFS]) ]] && REPLY=$(trim_trailf "$REPLY" $'\/*')
+					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}" MEDIA_IND=() MEDIA_IND_CMD=();
 				elif [[ -n $REPLY ]]
 				then
 					[[ $REPLY = $SPC:* ]] || ((RETRY+OPTV)) \
@@ -3723,7 +3724,7 @@ else
 		if [[ $MOD = *vision* ]]
 		then 	((${#}<2)) || set -- "$*";
 			_mediachatf "$1";
-			((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}";
+			((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}" && REPLY=$*
 			((MTURN)) &&
 			for var in "${MEDIA_CHAT_CMD[@]}"
 			do 	REC_OUT+="| $var"
