@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.31.5  jan/2024  by mountaineerbr  GPL+3
+# v0.31.6  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1372,7 +1372,7 @@ function cmd_runf
 			then 	set_clipcmdf;
 				set -- "$(hist_lastlinef)"; [[ $* != *([$IFS]) ]] &&
 				unescapef "$*" | ${CLIP_CMD:-false} &&
-				  printf "${NC}Clipboard Set -- %.*s..${CYAN}" $((COLUMNS-20>20?COLUMNS-20:20)) "$*" >&2;
+				  printf "${NC}Clipboard Set -- %.*s..${CYAN}\\n" $((COLUMNS-20>20?COLUMNS-20:20)) "$*" >&2;
 			fi
 			;;
 		-q|insert)
