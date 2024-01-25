@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.31.6  jan/2024  by mountaineerbr  GPL+3
+# v0.32  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -775,7 +775,7 @@ function prompt_pf
 	done
 	set -- "(.choices//empty|.[$INDEX]|.text//(.message.content)//(.delta.content)//empty)//.data//empty" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
-	{ jq "$@" && _p_suffixf ;} || cat -- "$@" 2>/dev/null
+	{ jq "$@" && _p_suffixf ;} || ! cat -- "$@" >&2 2>/dev/null
 }
 #https://stackoverflow.com/questions/57298373/print-colored-raw-output-with-jq-on-terminal
 #https://stackoverflow.com/questions/40321035/  #gsub(\"^[\\n\\t]\"; \"\")
@@ -822,8 +822,8 @@ function prompt_imgprintf
 			((OPTV)) ||  __openf "$fout" || function __openf { : ;}
 			((++n, ++m)); ((n<50)) || break;
 		done
-		((n)) || { 	cat -- "$FILE" ;false ;}
-	else 	jq -r '.data[].url' "$FILE" || cat -- "$FILE"
+		((n)) || ! cat -- "$FILE" >&2;
+	else 	jq -r '.data[].url' "$FILE" || ! cat -- "$FILE" >&2;
 	fi &&
 	jq -r 'if .data[].revised_prompt then "\nREVISED PROMPT: "+.data[].revised_prompt else empty end' "$FILE" >&2
 }
@@ -1556,7 +1556,9 @@ function cmd_runf
 		replay|rep)
 			if ((${#REPLAY_FILES[@]}))
 			then 	for var in "${REPLAY_FILES[@]}"
-				do 	${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
+				do 	[[ -e $var ]] || continue
+					du -h "$var" >&2 2>/dev/null
+					${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
 					trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 					wait $pid;
 				done;
@@ -2025,14 +2027,14 @@ function whisperf
 			\"\\t\" + \"Dur: \(.duration|seconds_to_time_string)\" +
 			\"\\n\", (.segments[]| \"[\" + yellow + \"\(.start|seconds_to_time_string)\" + reset + \"]\" +
 			bpurple + .text + reset)" "$FILE" | foldf \
-		|| jq -r 'if .segments then (.segments[] | (.start|tostring) + (.text//empty)) else (.text//empty) end' "$FILE" || cat -- "$FILE" ;}
+		|| jq -r 'if .segments then (.segments[] | (.start|tostring) + (.text//empty)) else (.text//empty) end' "$FILE" || ! cat -- "$FILE" >&2 ;}
 	else
 		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "${JQCOLNULL} ${JQCOL} ${JQDATE}
 		bpurple + (.text//empty) + reset" "$FILE" | foldf \
-		|| jq -r '.text//empty' "$FILE" || cat -- "$FILE" ;}
+		|| jq -r '.text//empty' "$FILE" || ! cat -- "$FILE" >&2 ;}
 	fi &&
-	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + (.text//empty)) else (.text//empty) end" "$FILE" || cat -- "$FILE") &&
+	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + (.text//empty)) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
 	then
 		((!CHAT_ENV)) && [[ -d ${FILEWHISPERLOG%/*} ]] &&  #log output
@@ -2087,7 +2089,7 @@ function prompt_ttsf
 #speech synthesis (tts)
 function ttsf
 {
-	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid var n m i
+	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid var secs ok n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -2138,21 +2140,24 @@ function ttsf
 		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play now ' '';  #!#
 
 		prompt_ttsf "${input:-$*}" &
-		pid=$!;  #catch <CTRL-C>
+		pid=$! secs=$SECONDS;
 		trap "trap 'exit' INT; kill -- $pid 2>/dev/null; return;" INT;
-		while __spinf
+		while __spinf; ok=
 			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
 		do 	var=$(NO_CLR=1 __read_charf -t 0.3) &&
 			case "$var" in
 				[Pp]|' '|''|$'\t')
-					__read_charf -t 1.4  >/dev/null 2>&1
+					ok=1
+					((SECONDS>secs+3)) ||
+					__read_charf -t 1  >/dev/null 2>&1
 					break 1;;
 				[CcEeKkQqSs]|$'\e')
+					ok=1
 					kill -- $pid 2>/dev/null;
 					break 1;;
 			esac
 		done </dev/tty; __clr_lineupf $((4+1+33+${#var}));  #!#
-		wait $pid; ret=$?;
+		((ok)) || wait $pid; ret=$?;
 	       	trap 'exit' INT
 		jq . "$FOUT" >&2 2>/dev/null && ret=1  #only if response is json
 
@@ -2167,7 +2172,7 @@ function ttsf
 				esac
 		esac
 
-	[[ $FOUT = "-"* ]] || { 
+	[[ $FOUT = "-"* ]] || [[ ! -e $FOUT ]] || { 
 		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
 		((OPTV)) || [[ ! -s $FOUT ]] || {
 			((CHAT_ENV)) || __sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
@@ -3394,7 +3399,7 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 	whisperf "$@" &&
-	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE") \
+	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) \
 		&& ((${#WHISPER_OUT}))
 	then 	echo >&2; set -- ;
 		MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
