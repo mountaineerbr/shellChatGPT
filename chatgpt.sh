@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.32.3  jan/2024  by mountaineerbr  GPL+3
+# v0.33  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3531,20 +3531,13 @@ else
 	echo >&2  #!#
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
-	then 	# bash: fix broken multiline history, v0.32.2  jan/2024.
-		if [[ -s $HISTFILE ]] && [[ "$(sed -n 1p -- "$HISTFILE" 2>/dev/null)" != \#[0-9]* ]]
-		then 	( cd "$CACHEDIR" 2>/dev/null || exit;
-			__warmsgf 'Warning:' 'Bash multiline history fix';
-			sed -i -e '1s/^/#42\n:/' "$HISTFILE"; )
-		fi  #first line of history must be "#[timestamp]"
-
-		history -c; history -r;  #set -o history;
+	then 	history -c; history -r; history -w;  #prune & fix history file
 		[[ -s $HISTFILE ]] &&
 		case "$BASH_VERSION" in  #avoid bash4 hanging
 			[0-3]*|4.[01]*) 	:;;
 			*) 	REPLY_OLD=$(trim_leadf "$(fc -ln -1 | cut -c1-1000)" "*([$IFS])");;
 		esac
-		shell_histf "$*"
+		shell_histf "$*";
 	fi
 	cmd_runf "$@" && set --
 
