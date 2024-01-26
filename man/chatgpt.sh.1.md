@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.34 | General Commands Manual
+% CHATGPT.SH(1) v0.34.1 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -263,7 +263,7 @@ may be either "`!`", or "`/`".
   --------    -----------------------    ----------------------------------------------------------
      `-S.`    `-.`         \[_NAME_]     Load and edit custom prompt.
      `-S/`    `-S%`        \[_NAME_]     Load and edit awesome prompt (zh).
-      `-Z`    `!last`                    Print last response json.
+      `-Z`    `!last`                    Print last response JSON.
     `!img`    `!url`  \[_FILE_|_URL_]    Append image / url to prompt.
       `!i`    `!info`                    Information on model and session settings.
       `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
@@ -551,6 +551,11 @@ Setting **temperature** has an effect, the higher the more random.
 
 
 ### ENVIRONMENT
+
+**BLOCK_USR**
+
+: Extra options for the request JSON block
+  (e.g. "_\"seed\": 33, \"dimensions\": 1024_").
 
 
 **CHATGPTRC**

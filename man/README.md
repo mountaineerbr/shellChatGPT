@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.34 \| General Commands Manual
+title: CHATGPT.SH(1) v0.34.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -266,7 +266,7 @@ or “`/`”.
 |:-------|:-------------------------|--------------------------------------------------------|
 | `-S.`  | `-.` \[*NAME*\]          | Load and edit custom prompt.                           |
 | `-S/`  | `-S%` \[*NAME*\]         | Load and edit awesome prompt (zh).                     |
-| `-Z`   | `!last`                  | Print last response json.                              |
+| `-Z`   | `!last`                  | Print last response JSON.                              |
 | `!img` | `!url` \[*FILE*\|*URL*\] | Append image / url to prompt.                          |
 | `!i`   | `!info`                  | Information on model and session settings.             |
 | `!j`   | `!jump`                  | Jump to request, append start seq primer (text cmpls). |
@@ -532,6 +532,10 @@ positional argument. This prompt should be in English.
 Setting **temperature** has an effect, the higher the more random.
 
 ### ENVIRONMENT
+
+**BLOCK_USR**  
+Extra options for the request JSON block (e.g. “*"seed": 33,
+"dimensions": 1024*”).
 
 **CHATGPTRC**
 

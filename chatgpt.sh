@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.34  jan/2024  by mountaineerbr  GPL+3
+# v0.34.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -219,6 +219,9 @@ See Also
 
 
 Environment
+	BLOCK_USR 	Extra options for the request JSON block
+			(e.g. \`\"seed\": 33, \"dimensions\": 1024').
+
 	CHATGPTRC
 	CONFFILE 	Path to user chatgpt.sh configuration.
 			Defaults=\"${CHATGPTRC:-${CONFFILE:-"$HOME/.chatgpt.conf"}}\"
@@ -258,7 +261,7 @@ Chat Commands
     --- Misc Commands ---------------------------------------------
        -S.     -.       [NAME]   Load and edit custom prompt.
        -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
-       -Z      !last             Print last response json.
+       -Z      !last             Print last response JSON.
       !img     !url  [FILE|URL]  Append image / url to prompt.
        !i      !info             Info on model and session settings.
        !j      !jump             Jump to request, append response primer.
@@ -2246,7 +2249,7 @@ function imggenf
 \"prompt\": \"${*:?IMG PROMPT ERR}\",
 \"size\": \"$OPTS\", $DALLE3_OPT
 \"n\": $OPTN,
-\"response_format\": \"$OPTI_FMT\"
+\"response_format\": \"$OPTI_FMT\"${BLOCK_USR:+,$NL}$BLOCK_USR
 }"  #dall-e-2: n<=10, dall-e-3: n==1
 	promptf
 }
@@ -2441,7 +2444,7 @@ function embedf
 \"input\": \"${*:?INPUT ERR}\",
 \"temperature\": $OPTT, $OPTP_OPT
 \"max_tokens\": $OPTMAX,
-\"n\": $OPTN
+\"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
 	promptf
 }
@@ -2450,7 +2453,7 @@ function moderationf
 {
 	BLOCK="{
 \"model\": \"$MOD\",
-\"input\": \"${*:?INPUT ERR}\"
+\"input\": \"${*:?INPUT ERR}\"${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
 	_promptf
 }
@@ -3789,7 +3792,7 @@ $BLOCK $OPTSUFFIX_OPT
 \"model\": \"$MOD\", \"temperature\": $OPTT,
 $( ((OPTMAX_NILL && EPN==6)) || echo "\"max_tokens\": $OPTMAX," )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT
-$OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN
+$OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
 
 		#response colours for jq
