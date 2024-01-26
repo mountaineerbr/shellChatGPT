@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.32  jan/2024  by mountaineerbr  GPL+3
+# v0.32.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2841,7 +2841,7 @@ do 	__spinf 	#grep session with user regex
 			((${#buff})) && {
 			  if ((${#buff_end}))
 			  then 	((${#buff_end}>672)) && ((index=${#buff_end}-672)) || index= ;
-				printf -- '---\n%s%s\n---\n' "${index:+[..]}" "$(_unescapef "${buff_end:${index:-0}}")" >&2;
+				printf -- '===\n%s%s\n---\n' "${index:+[..]}" "$(_unescapef "${buff_end:${index:-0}}")" | foldf >&2;
 			  fi
 			  ((OPTPRINT)) && break 2;
 
