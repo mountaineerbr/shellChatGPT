@@ -3532,10 +3532,10 @@ else
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	# bash: fix broken multiline history, v0.32.2  jan/2024.
-		if [[ -s $HISTFILE ]] && [[ $(sed -n 1p -- "$HISTFILE" 2>/dev/null)\#42 != \#[0-9]* ]]
+		if [[ -s $HISTFILE ]] && [[ "$(sed -n 1p -- "$HISTFILE" 2>/dev/null)" != \#[0-9]* ]]
 		then 	( cd "$CACHEDIR" 2>/dev/null || exit;
 			__warmsgf 'Warning:' 'Bash multiline history fix';
-			sed -i -e '1s/^/#42\n/' "$HISTFILE"; )
+			sed -i -e '1s/^/#42\n:/' "$HISTFILE"; )
 		fi  #first line of history must be "#[timestamp]"
 
 		history -c; history -r;  #set -o history;
