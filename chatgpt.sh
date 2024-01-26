@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.32.1  jan/2024  by mountaineerbr  GPL+3
-set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist;
+# v0.32.2  jan/2024  by mountaineerbr  GPL+3
+set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
 # OpenAI API key
@@ -3522,14 +3522,21 @@ else
 	then 	unset INSTRUCTION
 	fi
 	[[ ${INSTRUCTION} != ?(:)*([$IFS]) ]] && _sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | foldf >&2
-	
+
 	#warnings and tips
 	((OPTCTRD)) && __warmsgf $'\n' '* <Ctrl-V> + <Ctrl-J> for newline * '
 	((OPTCTRD+CATPR)) && __warmsgf $'\n' '* <Ctrl-D> to flush input * '
 	echo >&2  #!#
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
-	then 	history -c; history -r;  #set -o history;
+	then 	# bash: fix broken multiline history, v0.32.2  jan/2024.
+		if [[ -s $HISTFILE ]] && [[ $(sed -n 1p -- "$HISTFILE" 2>/dev/null)\#42 != \#[0-9]* ]]
+		then 	( cd "$CACHEDIR" 2>/dev/null || exit;
+			__warmsgf 'Warning:' 'Bash multiline history fix';
+			sed -i -e '1s/^/#42\n/' "$HISTFILE"; )
+		fi  #first line of history must be "#[timestamp]"
+
+		history -c; history -r;  #set -o history;
 		[[ -s $HISTFILE ]] &&
 		case "$BASH_VERSION" in  #avoid bash4 hanging
 			[0-3]*|4.[01]*) 	:;;
