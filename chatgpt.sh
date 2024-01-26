@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.33.2  jan/2024  by mountaineerbr  GPL+3
+# v0.34  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1206,7 +1206,7 @@ function cmd_runf
 {
 	typeset var wc xskip pid n
 	typeset -a args
-	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]?* ]] || return;
+	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]* ]] || return;
 	((${#1}+${#2}<1024)) || return;
 	printf "${NC}" >&2;
 
@@ -1543,9 +1543,9 @@ function cmd_runf
 			echo Session and History >&2
 			session_mainf /"${args[@]}"
 			;;
-		r|regenerate|regen|[$IFS]|[/!]|'')  #regenerate last response
+		r|''|[/!]|regenerate|regen|[$IFS])  #regenerate last response
 			REGEN=1 SKIP=1 PSKIP=1 EDIT=1 REPLY= MEDIA_IND=() MEDIA_IND_CMD=();
-			if ((!BAD_RES)) && [[ -f "$FILECHAT" ]] &&
+			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
 			then 	# comment out two lines from tail
 				wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
@@ -3638,11 +3638,11 @@ else
 					else 	((SKIP)) || REPLY=
 					fi; set --; continue 2
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0
-					[[ ${REPLY: ind} = */*([$IFS]) ]] && ((!OPTW)) #preview / regen cmds
+					[[ ${REPLY: ind} = */*([$IFS]) ]]  #preview / regen cmds
 				then
 					((RETRY)) && [[ $REPLY_OLD != "$REPLY" ]] && 
 					  prev_tohistf "$(escapef "$REPLY_OLD")"
-					[[ $REPLY = /* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
+					[[ $REPLY = *([$IFS])/* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					[[ $REPLY = */*([$IFS]) ]] && REPLY=$(trim_trailf "$REPLY" $'\/*')
 					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}" MEDIA_IND=() MEDIA_IND_CMD=();
 				elif [[ -n $REPLY ]]
