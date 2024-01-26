@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.33  jan/2024  by mountaineerbr  GPL+3
+# v0.33.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1453,8 +1453,7 @@ function cmd_runf
 					for ((n=n;n>0;n--))
 					do 	set -- -e "${var[${#var[@]}-n]%%:*} s/^/#/" "$@"
 					done
-					( cd "$CACHEDIR" 2>/dev/null;
-					sed -i "$@" "$FILECHAT"; )
+					sed -i "$@" "$FILECHAT";
 				fi
 			fi
 			;;
@@ -1550,8 +1549,7 @@ function cmd_runf
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
 			then 	# comment out two lines from tail
 				wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
-				&& ( cd "$CACHEDIR" 2>/dev/null;
-				sed -i -e "$((wc-1)),${wc} s/^/#/" "$FILECHAT"; )
+				&& sed -i -e "$((wc-1)),${wc} s/^/#/" "$FILECHAT";
 				unset CKSUM_OLD
 			fi
 			;;
@@ -3031,7 +3029,7 @@ function cleanupf
        	do 	kill -- $pid 2>/dev/null;
        	done;
 	wait ${PIDS[@]}  &>/dev/null;
-       	echo $'\n[exit]' >&2;
+       	echo $'[exit]' >&2;
 }
 
 
