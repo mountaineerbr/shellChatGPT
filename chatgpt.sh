@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.34.1  jan/2024  by mountaineerbr  GPL+3
+# v0.34.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2877,7 +2877,7 @@ done
 		fi
 		buff="${REPLY##\#}"${buff:+$'\n'}"${buff}"
 	done < <( 	tac -- "$file" && {
-			((OPTPRINT)) || __warmsgf '(end of hist file)' ;}
+			((OPTPRINT+OPTHH)) || __warmsgf '(end of hist file)' ;}
 			echo BREAK;
 		); __printbf ' '
 	[[ -n ${buff} ]] && printf '%s\n' "$buff"
@@ -3362,17 +3362,16 @@ then  #whisper log
 	else 	__edf "$FILEWHISPERLOG"
 	fi; _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
 elif ((OPTHH))  #edit history/pretty print last session
-then
-	[[ $INSTRUCTION = [.,]* ]] && OPTRESUME=1 custom_prf
-	if [[ $* = .* ]]
-	then 	OPTRESUME=1 session_mainf /s"${@}"
-	else 	OPTRESUME=1 session_mainf "${@}"
+then 	OPTRESUME=1 
+	if [[ $INSTRUCTION = [.,]* ]]
+	then 	custom_prf
+	elif [[ $* != $SPC ]] && [[ $* != *($SPC)/* ]]
+	then 	set -- /session"$@"
 	fi
-	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
+	session_mainf "${@}"
 
 	if ((OPTHH>1))
-	then
-		((OPTC || EPN==6)) && OPTC=2
+	then 	((OPTC || EPN==6)) && OPTC=2
 		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1
 		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
 		MODMAX=65536 set_histf ''
@@ -3382,6 +3381,7 @@ then
 	then 	__edf "$FILECHAT"
 	else 	cat -- "$FILECHAT"
 	fi
+	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
 elif ((OPTFF))
 then 	if [[ -s "$CONFFILE" ]] && ((OPTFF<2))
 	then 	__edf "$CONFFILE"
