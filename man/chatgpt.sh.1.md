@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.35.2 | General Commands Manual
+% CHATGPT.SH(1) v0.35.4 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -264,11 +264,12 @@ may be either "`!`", or "`/`".
      `-S.`    `-.`         \[_NAME_]     Load and edit custom prompt.
      `-S/`    `-S%`        \[_NAME_]     Load and edit awesome prompt (zh).
       `-Z`    `!last`                    Print last response JSON.
+       `!`    `!r`, `!regen`             Regenerate last response.
+      `!!`    `!rr`                      Regenerate response, edit prompt first.
     `!img`    `!url`  \[_FILE_|_URL_]    Append image / url to prompt.
       `!i`    `!info`                    Information on model and session settings.
       `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
      `!!j`    `!!jump`                   Jump to request, no response priming.
-      `!r`    `!regen`                   Regenerate last response.
     `!rep`    `!replay`                  Replay last TTS audio response.
      `!sh`    `!shell`     \[_CMD_]      Run shell, or _command_, and edit output.
     `!!sh`    `!!shell`    \[_CMD_]      Run interactive shell (with _command_) and exit.

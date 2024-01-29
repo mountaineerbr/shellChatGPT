@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.35.2 \| General Commands Manual
+title: CHATGPT.SH(1) v0.35.4 \| General Commands Manual
 ---
 
 ### NAME
@@ -267,11 +267,12 @@ or “`/`”.
 | `-S.`  | `-.` \[*NAME*\]          | Load and edit custom prompt.                           |
 | `-S/`  | `-S%` \[*NAME*\]         | Load and edit awesome prompt (zh).                     |
 | `-Z`   | `!last`                  | Print last response JSON.                              |
+| `!`    | `!r`, `!regen`           | Regenerate last response.                              |
+| `!!`   | `!rr`                    | Regenerate response, edit prompt first.                |
 | `!img` | `!url` \[*FILE*\|*URL*\] | Append image / url to prompt.                          |
 | `!i`   | `!info`                  | Information on model and session settings.             |
 | `!j`   | `!jump`                  | Jump to request, append start seq primer (text cmpls). |
 | `!!j`  | `!!jump`                 | Jump to request, no response priming.                  |
-| `!r`   | `!regen`                 | Regenerate last response.                              |
 | `!rep` | `!replay`                | Replay last TTS audio response.                        |
 | `!sh`  | `!shell` \[*CMD*\]       | Run shell, or *command*, and edit output.              |
 | `!!sh` | `!!shell` \[*CMD*\]      | Run interactive shell (with *command*) and exit.       |
