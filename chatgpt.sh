@@ -1492,7 +1492,6 @@ function cmd_runf
 				((OPTC)) && printf '%s' "${START:-$A_TYPE}"   || printf '%s' "${START:-unset}")\"" \
 			stop-seqs    "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
 			history-file "${FILECHAT/"$HOME"/"~"}"  >&2
-			#printf '\033[1A' >&2  #one line up <https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html>
 			;;
 		-u|multi|multiline|-uu*(u)|[/!]multi|[/!]multiline)
 			case "$*" in
