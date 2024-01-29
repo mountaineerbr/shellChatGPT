@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.35 | General Commands Manual
+% CHATGPT.SH(1) v0.35.2 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -560,6 +560,8 @@ Setting **temperature** has an effect, the higher the more random.
 ### ENVIRONMENT
 
 **BLOCK_USR**
+
+**BLOCK_USR_TTS**
 
 : Extra options for the request JSON block
   (e.g. "_\"seed\": 33, \"dimensions\": 1024_").

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.35.1  jan/2024  by mountaineerbr  GPL+3
+# v0.35.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -219,7 +219,9 @@ See Also
 
 
 Environment
-	BLOCK_USR 	Extra options for the request JSON block
+	BLOCK_USR
+	BLOCK_USR_TTS
+			Extra options for the request JSON block
 			(e.g. \`\"seed\": 33, \"dimensions\": 1024').
 
 	CHATGPTRC
@@ -838,7 +840,7 @@ function prompt_imgprintf
 
 function prompt_audiof
 {
-	((OPTVV)) && echo "Whisper model: ${MOD_AUDIO:-unset},  Temp: ${OPTT:-unset}${*:+,  }${*}" >&2
+	((OPTVV)) && __warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTT:-unset}${*:+,  }${*}" >&2
 
 	curl -\# ${OPTV:+-Ss} -L "$API_HOST${ENDPOINTS[EPN]}" \
 		-X POST \
@@ -2084,12 +2086,8 @@ function prompt_ttsf
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
-		-d "{
-\"model\": \"${MOD_SPEECH}\",
-\"input\": \"${*}\",
-\"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
-\"response_format\": \"${OPTZ_FMT}\"
-}" 		-o "$FOUT"
+		-d "$BLOCK" \
+		-o "$FOUT"
 }
 #disable curl progress-bar because of `chunk transfer encoding'
 
@@ -2143,7 +2141,13 @@ function ttsf
 			__sysmsgf 'Text Prompt:' "${xinput:0: COLUMNS-17}$([[ -n ${xinput: COLUMNS-17} ]] && echo ...)";
 		fi; REPLAY_FILES=("${REPLAY_FILES[@]}" "$FOUT");
 		
-		((OPTVV)) && _sysmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}"
+		BLOCK="{
+\"model\": \"${MOD_SPEECH}\",
+\"input\": \"${*}\",
+\"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
+\"response_format\": \"${OPTZ_FMT}\"${BLOCK_USR_TTS:+,$NL}$BLOCK_USR_TTS
+}"
+		((OPTVV)) && __warmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}, Block: ${BLOCK}"
 		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play now ' '';  #!#
 
 		prompt_ttsf "${input:-$*}" &
