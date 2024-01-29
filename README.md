@@ -592,7 +592,7 @@ _see_ [tkn-cnt.py](https://github.com/mountaineerbr/scripts/blob/main/tkn-cnt.py
 - OpenAI **API version 1** is the focus of the present project implementation,
 but not all features of the API will be covered.
 
-- Bash shell truncates input on `\\000` (null).
+- Bash shell truncates input on `\000` (null).
 
 - Bash "read command" may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain
