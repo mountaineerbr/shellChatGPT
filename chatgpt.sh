@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.35.2  jan/2024  by mountaineerbr  GPL+3
+# v0.35.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1552,8 +1552,13 @@ function cmd_runf
 			echo Session and History >&2
 			session_mainf /"${args[@]}"
 			;;
-		r|''|[/!]|regenerate|regen|[$IFS])  #regenerate last response
-			REGEN=1 SKIP=1 PSKIP=1 EDIT=1 REPLY= MEDIA_IND=() MEDIA_IND_CMD=();
+		r|rr|''|[/!]|regenerate|regen|[$IFS])  #regenerate last response
+			SKIP=1 EDIT=1 MEDIA_IND=() MEDIA_IND_CMD=();
+			case "$*" in
+				rr|[/!]) REGEN=2;  #edit prompt
+				       		((OPTX)) && REGEN=1;;
+				*) 	 REGEN=1 PSKIP=1 REPLY= ;;
+		       	esac
 			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
 			then 	# comment out two lines from tail
@@ -3555,7 +3560,11 @@ else
 
 	while :
 	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
-		((REGEN)) && { 	set -- "${REPLY_OLD:-$*}" ;unset REGEN ;}
+		if ((REGEN>1))
+		then 	unset REGEN;
+		elif ((REGEN))
+		then 	set -- "${REPLY_OLD:-$*}"; unset REGEN;
+		fi
 		((OPTAWE)) || {  #awesome 1st pass skip
 
 		#prompter pass-through
