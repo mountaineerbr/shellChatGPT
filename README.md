@@ -449,7 +449,7 @@ or ask it in comments to optimise the following code, for example.
 - Set `$OPENAI_API_KEY` with your OpenAI API key.
 
 - Optionally, set `$CHATGPTRC` with path to the configuration file (run
-`chatgpt.sh -F` to generate a template configuration file.
+`chatgpt.sh -FF` to download a template configuration file.
 Defaults location = `~/.chatgpt.conf`.
 
 
@@ -460,7 +460,7 @@ To save and then edit the template configuration file, run:
 
 ```
     #save a copy of the conf file:
-    chatgpt.sh -F > ~/.chatgpt.conf
+    chatgpt.sh -FF > ~/.chatgpt.conf
     
     #edit with text editor or simply:
     chatgpt.sh -F
