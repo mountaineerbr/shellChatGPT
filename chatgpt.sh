@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.35  jan/2024  by mountaineerbr  GPL+3
+# v0.35.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1492,7 +1492,7 @@ function cmd_runf
 				((OPTC)) && printf '%s' "${START:-$A_TYPE}"   || printf '%s' "${START:-unset}")\"" \
 			stop-seqs    "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
 			history-file "${FILECHAT/"$HOME"/"~"}"  >&2
-			printf '\033[1A' >&2  #one line up <https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html>
+			#printf '\033[1A' >&2  #one line up <https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html>
 			;;
 		-u|multi|multiline|-uu*(u)|[/!]multi|[/!]multiline)
 			case "$*" in

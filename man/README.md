@@ -609,7 +609,7 @@ and may be set with colour-named variables or raw escape sequences
 
 ### OPTIONAL PACKAGES
 
-Optional Packages for Specific Features
+Optional packages for specific features.
 
 - `Base64` - vision models
 - `Imagemagick` - image edits and variations
