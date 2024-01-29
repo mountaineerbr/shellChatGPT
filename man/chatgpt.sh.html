@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.34.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.35 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.34.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.35 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -815,18 +815,25 @@ class="uri">https://github.com/openai/openai-cookbook/blob/main/techniques_to_im
 <li><a href="https://platform.openai.com/docs/"
 class="uri">https://platform.openai.com/docs/</a></li>
 </ul>
-<h3 id="code-completions-discontinued">CODE COMPLETIONS
-<em>(discontinued)</em></h3>
-<p>Codex models are discontinued. Use davinci or <em>gpt-3.5+
-models</em> for coding tasks.</p>
-<!-- Turn comments into code, complete the next line or function in
-context, add code comments, and rewrite code for efficiency,
-amongst other functions. -->
-<p>Start with a comment with instructions, data or code. To create
-useful completions it’s helpful to think about what information a
-programmer would need to perform a task.</p>
-<h3 id="text-edits-discontinued">TEXT EDITS <em>(discontinued)</em></h3>
 <!--
+### CODE COMPLETIONS _(discontinued)_
+
+Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
+
+-- 
+Turn comments into code, complete the next line or function in
+context, add code comments, and rewrite code for efficiency,
+amongst other functions.
+--
+
+Start with a comment with instructions, data or code. To create
+useful completions it's helpful to think about what information
+a programmer would need to perform a task. 
+-->
+<!--
+### TEXT EDITS  _(discontinued)_
+
+--
 This endpoint is set with models with **edit** in their name or
 `option -e`. Editing works by setting INSTRUCTION on how to modify
 a prompt and the prompt proper.
@@ -836,8 +843,11 @@ of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
 to the completions endpoint. 
 
-Alternatively, -->
-<p>Use <em>gpt-4+ models</em> and the right instructions.</p>
+Alternatively,
+--
+
+Use _gpt-4+ models_ and the right instructions.
+-->
 <h3 id="escaping-new-lines-and-tabs">ESCAPING NEW LINES AND TABS</h3>
 <p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
 specially in restart, start and stop sequences (<em>v0.18+</em>)!</p>
@@ -1001,14 +1011,13 @@ and background colours can be set with <em>$On_Yellow</em>,
 <p>Theme colours are named variables from <code>Colour1</code> to about
 <code>Colour11</code>, and may be set with colour-named variables or raw
 escape sequences (these must not change cursor position).</p>
-<h3 id="required-packages-optional-packages">REQUIRED PACKAGES, OPTIONAL
-PACKAGES</h3>
+<h3 id="required-packages">REQUIRED PACKAGES</h3>
 <ul>
 <li><code>Bash</code></li>
 <li><code>cURL</code>, and <code>JQ</code></li>
 </ul>
-<h4 id="optional-packages-for-specific-features">Optional Packages for
-Specific Features</h4>
+<h3 id="optional-packages">OPTIONAL PACKAGES</h3>
+<p>Optional Packages for Specific Features</p>
 <ul>
 <li><code>Base64</code> - vision models</li>
 <li><code>Imagemagick</code> - image edits and variations</li>
@@ -1022,6 +1031,13 @@ Specific Features</h4>
 - open images, set clipboard</li>
 </ul>
 <h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
+<p>The script objective is to implement most features of OpenAI API
+version 1 but not all endpoints, or options will be covered.</p>
+<p>Bash “read command” may not correctly display input buffers larger
+than the TTY screen size during editing. However, input buffers remain
+unaffected. Use the text editor interface for big prompt editing.</p>
+<p>Bash truncates input on “\000” (null).</p>
+<p>Garbage in, garbage out. An idiot savant.</p>
 <!-- NOT ANYMORE
 Input sequences _\\n_, and _\\t_ must be double escaped to be treated
 literally, otherwise these will be interpreted as escaped newlines,
@@ -1037,7 +1053,6 @@ up to 32k tokens. -->
 <!-- OBVIOUSLY, ALREADY MENTIONED
 Instruction prompts are required for the model to even know that
 it should answer questions. -->
-<p>Garbage in, garbage out. An idiot savant.</p>
 <!--
 `Zsh` does not read history file in non-interactive mode.
 
@@ -1167,13 +1182,10 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Start new multi-turn session in plain text completions.</p>
 </dd>
-</dl>
-<!-- 
-**-e**, **--edit**
-
-: _Text edits models are discontinued._ -->
-<!-- Set Edit mode. Model def=_text-davinci-edit-001_. -->
-<dl>
+<dt><strong>-e</strong>, <strong>–edit</strong></dt>
+<dd>
+<p>Edit first input from stdin, or file read (cmpls/chat).</p>
+</dd>
 <dt><strong>-E</strong>, <strong>–exit</strong></dt>
 <dd>
 <p>Exit on first run (even with options -cc).</p>
@@ -1349,12 +1361,12 @@ and start sequences.</p>
 </dd>
 <dt><strong>-y</strong>, <strong>--tik</strong></dt>
 <dd>
-<p>Set tiktoken for token count (cmpls, chat, python).</p>
+<p>Set tiktoken for token count (cmpls/chat, python).</p>
 </dd>
 <dt><strong>-Y</strong>, <strong>--no-tik</strong>
 (<em>defaults</em>)</dt>
 <dd>
-<p>Unset tiktoken use (cmpls, chat, python).</p>
+<p>Unset tiktoken use (cmpls/chat, python).</p>
 </dd>
 <dt><strong>-z</strong> [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>]
 [<em>VOICE</em>] [<em>SPEED</em>] [<em>PROMPT</em>],

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.34.2  jan/2024  by mountaineerbr  GPL+3
+# v0.35  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -389,6 +389,8 @@ Options
 		Continue from (resume) last session (cmpls/chat).
 	-d, --text
 		Start new multi-turn session in plain text completions.
+	-e, --edit
+		Edit first input from stdin, or file read (cmpls/chat).
 	-E, --exit
 		Exit on first run (even with -cc).
 	-g, --stream  (defaults)
@@ -466,9 +468,9 @@ Options
 	-x, --editor
 		Edit prompt in text editor.
 	-y, --tik
-		Set tiktoken for token count (cmpls, chat).
+		Set tiktoken for token count (cmpls/chat).
 	-Y, --no-tik  (defaults)
-		Unset tiktoken use (cmpls, chat).
+		Unset tiktoken use (cmpls/chat).
 	-z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT], --tts
 		Synthesise speech from text prompt, set -v to not play.
 	-Z, --last
@@ -646,12 +648,15 @@ function __clr_lineupf
 
 # spin.bash -- provide a `spinning wheel' to show progress
 #  Copyright 1997 Chester Ramey (adapted)
+SPIN_CHARS=(⣟ ⣯ ⣷ ⣾ ⣽ ⣻ ⢿ ⡿)
 SPIN_CHARS=(\| \\ - /)
 function __spinf
 {
 	((++SPIN_INDEX)); ((SPIN_INDEX%=${#SPIN_CHARS[@]}));
 	printf "%s\\b" "${SPIN_CHARS[SPIN_INDEX]}" >&2;
 }
+#avoid animations on pipelines
+[[ -t 1 ]] || function __spinf { : ;}
 
 #print input and backspaces for all chars
 function __printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
@@ -2590,7 +2595,7 @@ function custom_prf
 	_sysmsgf 'Hist   File:' "${FILECHAT/"$HOME"/"~"}"
 	_sysmsgf 'Prompt File:' "${file/"$HOME"/"~"}"
 	_cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
-	{ 	[[ ! -t 1 ]] || ((OPTEXIT)) || ((!MTURN)) ;} && skip=1
+	#{ 	[[ ! -t 1 ]] || ((OPTEXIT)) || ((!MTURN)) ;} && skip=1
 
 	if { 	[[ $msg = *[Cc][Rr][Ee][Aa][Tt][Ee]* ]] && INSTRUCTION="$*" ret=200 ;} ||
 		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || (( (MTURN+CHAT_ENV) && OPTRESUME!=1 && skip==0))
@@ -3111,9 +3116,9 @@ do
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		d) 	OPTCMPL=1;;
-		e) 	__warmsgf 'Err:' 'Text edits models are discontinued'; exit 2;;  #also del --edit long option
+		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTEXIT API_HOST GPTCHATKEY READLINEOPT;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTE OPTEXIT API_HOST GPTCHATKEY READLINEOPT;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -3397,8 +3402,7 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 	((OPTTIKTOKEN>2)) || __sysmsgf 'Language Model:' "$MOD"
 	((${#})) || [[ -t 0 ]] || set -- "-"
 	[[ -f $* ]] && [[ -t 0 ]] && exec 0<"$*" && set -- "-"  #exec max one file
-	tiktokenf "$*" || ! __warmsgf \
-	  "Err:" "Make sure python tiktoken module is installed: \`pip install tiktoken\`"
+	tiktokenf "$*" || ! __warmsgf "Err:" "Python / tiktoken"
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 	whisperf "$@" &&
@@ -3482,7 +3486,7 @@ else
 		#chatbot must sound like a human, shouldnt be lobotomised
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 :Marv is a chatbot that reluctantly answers questions with sarcastic responses:
-		OPTA="${OPTA:-0.5}" OPTT="${OPTT:-0.7}"  #!#
+		OPTA="${OPTA:-0.6}" OPTT="${OPTT:-0.8}"  #!#
 		STOPS+=("${Q_TYPE//$SPC1}" "${A_TYPE//$SPC1}")
 	else 	((EPN==6)) || __sysmsgf 'Text Completions'
 	fi
@@ -3540,7 +3544,8 @@ else
 		esac
 		shell_histf "$*";
 	fi
-	cmd_runf "$@" && set --
+	cmd_runf "$@" && set -- ;
+	((OPTE && ${#})) && { 	REPLY=$* EDIT=1 SKIP= WSKIP=; set -- ;}  #option -e, edit first user input
 
 	#load stdin again?
 	((${#})) || [[ -t 0 ]] || set -- "$(<$STDIN)"

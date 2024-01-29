@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.34.1 | General Commands Manual
+% CHATGPT.SH(1) v0.35 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -415,22 +415,27 @@ See detailed info on settings for each endpoint at:
  - <https://platform.openai.com/docs/>
 
 
+<!--
 ### CODE COMPLETIONS _(discontinued)_
 
 Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
 
-<!-- Turn comments into code, complete the next line or function in
+-- 
+Turn comments into code, complete the next line or function in
 context, add code comments, and rewrite code for efficiency,
-amongst other functions. -->
+amongst other functions.
+--
 
 Start with a comment with instructions, data or code. To create
 useful completions it's helpful to think about what information
 a programmer would need to perform a task. 
+-->
 
-
-### TEXT EDITS  _(discontinued)_
 
 <!--
+### TEXT EDITS  _(discontinued)_
+
+--
 This endpoint is set with models with **edit** in their name or
 `option -e`. Editing works by setting INSTRUCTION on how to modify
 a prompt and the prompt proper.
@@ -440,9 +445,11 @@ of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
 to the completions endpoint. 
 
-Alternatively, -->
+Alternatively,
+--
 
 Use _gpt-4+ models_ and the right instructions.
+-->
 
 
 ### ESCAPING NEW LINES AND TABS
@@ -643,12 +650,15 @@ and may be set with colour-named variables or
 raw escape sequences (these must not change cursor position).
 
 
-### REQUIRED PACKAGES, OPTIONAL PACKAGES
+### REQUIRED PACKAGES
 
 - `Bash`
 - `cURL`, and `JQ`
 
-#### Optional Packages for Specific Features
+
+### OPTIONAL PACKAGES
+
+Optional Packages for Specific Features
 
 - `Base64` - vision models
 - `Imagemagick` - image edits and variations
@@ -659,6 +669,17 @@ raw escape sequences (these must not change cursor position).
 
 
 ### BUGS AND LIMITS
+
+The script objective is to implement most features of OpenAI
+API version 1 but not all endpoints, or options will be covered.
+
+Bash "read command" may not correctly display input buffers larger than
+the TTY screen size during editing. However, input buffers remain
+unaffected. Use the text editor interface for big prompt editing.
+
+Bash truncates input on "\\000" (null).
+
+Garbage in, garbage out. An idiot savant.
 
 <!-- NOT ANYMORE
 Input sequences _\\n_, and _\\t_ must be double escaped to be treated
@@ -679,8 +700,6 @@ up to 32k tokens. -->
 <!-- OBVIOUSLY, ALREADY MENTIONED
 Instruction prompts are required for the model to even know that
 it should answer questions. -->
-
-Garbage in, garbage out. An idiot savant.
 
 <!--
 `Zsh` does not read history file in non-interactive mode.
@@ -814,12 +833,9 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Start new multi-turn session in plain text completions.
 
 
-<!-- 
 **-e**, **--edit**
 
-: _Text edits models are discontinued._ -->
-
-<!-- Set Edit mode. Model def=_text-davinci-edit-001_. -->
+: Edit first input from stdin, or file read (cmpls/chat).
 
 
 **-E**, **--exit**
@@ -1013,12 +1029,12 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-y**, **\--tik**
 
-: Set tiktoken for token count (cmpls, chat, python).
+: Set tiktoken for token count (cmpls/chat, python).
 
 
 **-Y**, **\--no-tik**  (_defaults_)
 
-: Unset tiktoken use (cmpls, chat, python).
+: Unset tiktoken use (cmpls/chat, python).
 
 
 **-z** \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_], **\--tts**

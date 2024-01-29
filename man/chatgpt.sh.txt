@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.34.1 | General Commands Manual
+CHATGPT.SH(1) v0.35 | General Commands Manual
 mountaineerbr
 January 2024
 
@@ -388,19 +388,6 @@ See detailed info on settings for each endpoint at:
 
 -   https://platform.openai.com/docs/
 
-CODE COMPLETIONS (discontinued)
-
-Codex models are discontinued. Use davinci or gpt-3.5+ models for coding
-tasks.
-
-Start with a comment with instructions, data or code. To create useful
-completions it’s helpful to think about what information a programmer
-would need to perform a task.
-
-TEXT EDITS (discontinued)
-
-Use gpt-4+ models and the right instructions.
-
 ESCAPING NEW LINES AND TABS
 
 Input sequences “\n” and “\t” are only treated specially in restart,
@@ -578,10 +565,12 @@ Theme colours are named variables from Colour1 to about Colour11, and
 may be set with colour-named variables or raw escape sequences (these
 must not change cursor position).
 
-REQUIRED PACKAGES, OPTIONAL PACKAGES
+REQUIRED PACKAGES
 
 -   Bash
 -   cURL, and JQ
+
+OPTIONAL PACKAGES
 
 Optional Packages for Specific Features
 
@@ -595,6 +584,15 @@ Optional Packages for Specific Features
     set clipboard
 
 BUGS AND LIMITS
+
+The script objective is to implement most features of OpenAI API version
+1 but not all endpoints, or options will be covered.
+
+Bash “read command” may not correctly display input buffers larger than
+the TTY screen size during editing. However, input buffers remain
+unaffected. Use the text editor interface for big prompt editing.
+
+Bash truncates input on “\000” (null).
 
 Garbage in, garbage out. An idiot savant.
 
@@ -698,6 +696,10 @@ Script Modes
 -d, --text
 
     Start new multi-turn session in plain text completions.
+
+-e, –edit
+
+    Edit first input from stdin, or file read (cmpls/chat).
 
 -E, –exit
 
@@ -864,11 +866,11 @@ Script Settings
 
 -y, --tik
 
-    Set tiktoken for token count (cmpls, chat, python).
+    Set tiktoken for token count (cmpls/chat, python).
 
 -Y, --no-tik (defaults)
 
-    Unset tiktoken use (cmpls, chat, python).
+    Unset tiktoken use (cmpls/chat, python).
 
 -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT], --tts
 

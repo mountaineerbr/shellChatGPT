@@ -41,7 +41,7 @@ Just download the stand-alone [`chatgpt.sh`](https://gitlab.com/fenixdragao/shel
 Optionally, download and set the config file [`~/.chatgpt.conf`](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf).
 
 
-### ✔️ Required packages
+### ✔️ Required Packages
 
 - [OpenAI GPTChat key](https://platform.openai.com/account/api-keys)
 - `Bash` <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
@@ -50,7 +50,10 @@ Optionally, download and set the config file [`~/.chatgpt.conf`](https://gitlab.
 _OBS:_ There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/blob/zsh/chatgpt.zsh)
 available, however incomplete.
 
-#### Optional Packages for Specific Features
+
+### Optional Packages 
+
+These are required for specific features.
 
 - `Base64` - vision models
 - `Imagemagick` - image edits and variations
@@ -206,9 +209,9 @@ works with model `gpt-3.5-turbo-instruct`.
 <!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
 
 
+<!--
 ### Text Edits  _(discontinued)_
 
-<!--
 Choose an `edit` model or set `option -e` to use this endpoint.
 Two prompts are accepted, an instruction prompt and
 an input prompt (optional):
@@ -218,12 +221,15 @@ an input prompt (optional):
     chatgpt.sh -e "Shell code to move files to trash bin." ""
 
 Edits works great with INSTRUCTION and an empty prompt (e.g. to create
-some code based on instruction only). -->
+some code based on instruction only).
+
+---
 
 Use _gpt-4+ models_ and the right instructions.
 
 The last working shell script version that works with this endpoint
 is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978e6f7630a3a6ebffc1efbe5a49b60bead4c).
+-->
 
 
 ## ⚙️ Prompts
@@ -428,12 +434,14 @@ _OBS:_ get phrasal-level timestamps setting `option -w` or `option -W` twice.
 ![Transcribe audio with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
 
 
+<!-- 
 ### Code Completions (Codex, _discontinued_)
 
 Codex models are discontinued. Use models davinci, or gpt-3.5+.
 
 Start with a commented out code or instruction for the model,
 or ask it in comments to optimise the following code, for example.
+-->
 
 
 ## 🌎 Environment
@@ -581,11 +589,19 @@ _see_ [tkn-cnt.py](https://github.com/mountaineerbr/scripts/blob/main/tkn-cnt.py
 
 ## ⚠️ Limitations
 
-- OpenAI **API v1** is the focus of the present project implementation.
+- OpenAI **API version 1** is the focus of the present project implementation,
+but not all features of the API will be covered.
+
+- Bash shell truncates input on `\\000` (null).
+
+- Bash "read command" may not correctly display input buffers larger than
+the TTY screen size during editing. However, input buffers remain
+unaffected. Use the text editor interface for big prompt editing.
+
+- Garbage in, garbage out. An idiot savant.
 
 - See _BUGS AND LIMITS_ section in the [man page](man/README.md).
 
-- Bash shell truncates input on `\000` (null).
 
 <!--
 - User input must double escape `\n` and `\t` to have them as literal sequences.

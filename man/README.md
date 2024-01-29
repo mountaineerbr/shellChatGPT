@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.34.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.35 \| General Commands Manual
 ---
 
 ### NAME
@@ -408,22 +408,21 @@ See detailed info on settings for each endpoint at:
 
 - <https://platform.openai.com/docs/>
 
-### CODE COMPLETIONS *(discontinued)*
-
-Codex models are discontinued. Use davinci or *gpt-3.5+ models* for
-coding tasks.
-
-<!-- Turn comments into code, complete the next line or function in
-context, add code comments, and rewrite code for efficiency,
-amongst other functions. -->
-
-Start with a comment with instructions, data or code. To create useful
-completions it’s helpful to think about what information a programmer
-would need to perform a task.
-
-### TEXT EDITS *(discontinued)*
-
 <!--
+### CODE COMPLETIONS _(discontinued)_
+&#10;Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
+&#10;-- 
+Turn comments into code, complete the next line or function in
+context, add code comments, and rewrite code for efficiency,
+amongst other functions.
+--
+&#10;Start with a comment with instructions, data or code. To create
+useful completions it's helpful to think about what information
+a programmer would need to perform a task. 
+-->
+<!--
+### TEXT EDITS  _(discontinued)_
+&#10;--
 This endpoint is set with models with **edit** in their name or
 `option -e`. Editing works by setting INSTRUCTION on how to modify
 a prompt and the prompt proper.
@@ -431,9 +430,10 @@ a prompt and the prompt proper.
 of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
 to the completions endpoint. 
-&#10;Alternatively, -->
-
-Use *gpt-4+ models* and the right instructions.
+&#10;Alternatively,
+--
+&#10;Use _gpt-4+ models_ and the right instructions.
+-->
 
 ### ESCAPING NEW LINES AND TABS
 
@@ -602,12 +602,14 @@ Theme colours are named variables from `Colour1` to about `Colour11`,
 and may be set with colour-named variables or raw escape sequences
 (these must not change cursor position).
 
-### REQUIRED PACKAGES, OPTIONAL PACKAGES
+### REQUIRED PACKAGES
 
 - `Bash`
 - `cURL`, and `JQ`
 
-#### Optional Packages for Specific Features
+### OPTIONAL PACKAGES
+
+Optional Packages for Specific Features
 
 - `Base64` - vision models
 - `Imagemagick` - image edits and variations
@@ -621,6 +623,17 @@ and may be set with colour-named variables or raw escape sequences
   open images, set clipboard
 
 ### BUGS AND LIMITS
+
+The script objective is to implement most features of OpenAI API version
+1 but not all endpoints, or options will be covered.
+
+Bash “read command” may not correctly display input buffers larger than
+the TTY screen size during editing. However, input buffers remain
+unaffected. Use the text editor interface for big prompt editing.
+
+Bash truncates input on “\000” (null).
+
+Garbage in, garbage out. An idiot savant.
 
 <!-- NOT ANYMORE
 Input sequences _\\n_, and _\\t_ must be double escaped to be treated
@@ -637,9 +650,6 @@ up to 32k tokens. -->
 <!-- OBVIOUSLY, ALREADY MENTIONED
 Instruction prompts are required for the model to even know that
 it should answer questions. -->
-
-Garbage in, garbage out. An idiot savant.
-
 <!--
 `Zsh` does not read history file in non-interactive mode.
 &#10;`Ksh93` mangles multibyte characters when re-editing input prompt
@@ -730,10 +740,8 @@ Continue from (resume) last session (cmpls/chat).
 **-d**, **--text**  
 Start new multi-turn session in plain text completions.
 
-<!-- 
-**-e**, **--edit**
-&#10;: _Text edits models are discontinued._ -->
-<!-- Set Edit mode. Model def=_text-davinci-edit-001_. -->
+**-e**, **–edit**  
+Edit first input from stdin, or file read (cmpls/chat).
 
 **-E**, **–exit**  
 Exit on first run (even with options -cc).
@@ -871,10 +879,10 @@ Set twice to dump raw request block (debug).
 Edit prompt in text editor.
 
 **-y**, **--tik**  
-Set tiktoken for token count (cmpls, chat, python).
+Set tiktoken for token count (cmpls/chat, python).
 
 **-Y**, **--no-tik** (*defaults*)  
-Unset tiktoken use (cmpls, chat, python).
+Unset tiktoken use (cmpls/chat, python).
 
 **-z** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\], **--tts**  
 Synthesise speech from text prompt. Takes a voice name, speed and text
