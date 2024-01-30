@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.35.5  jan/2024  by mountaineerbr  GPL+3
+# v0.36  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -336,7 +336,7 @@ Chat Commands
 
 	After a response has been written to the history file, regenerate
 	it with command \`!regen' or type in a single exclamation mark or
-	forward slash in the new empty prompt (twice for editing last
+	forward slash in the new empty prompt (twice for editing the
        	prompt before request).
 
 	Type in a backslash \`\\' as the last character of the input line
@@ -1459,7 +1459,7 @@ function cmd_runf
 			lastjsonf >&2
 			;;
 		[/!]k*|k*)  #kill num hist entries
-			typeset IFS dry; IFS=$'\n';
+			typeset IFS dry; IFS=$'\n' RETRY= ;
 			[[ ${n:=${*//[!0-9]}} = 0* || $* = [/!]* ]] \
 			&& n=${n##*([/!0])} dry=4; ((n>0)) || n=1
 			if var=($(grep -n -e '^[[:space:]]*[^#]' "$FILECHAT" \
@@ -2119,7 +2119,7 @@ function ttsf
 	do    [[ $var = *([$IFS]) ]] && shift || break;
 	done; var= ;
 	
-	if ((!CHAT_ENV)) || ((CHAT_ENV && ${#ZARGS[@]}))
+	if ((!CHAT_ENV)) || ((${#ZARGS[@]}))
 	then 	#set speech voice, out file format, and speed
 		__set_ttsf "$3" && set -- "${@:1:2}" "${@:4}"
 		__set_ttsf "$2" && set -- "${@:1:1}" "${@:3}"
@@ -3761,7 +3761,7 @@ else
 		if [[ $MOD = *vision* ]]
 		then 	((${#}<2)) || set -- "$*";
 			_mediachatf "$1";
-			((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}" && REPLY=$*
+			((TRUNC_IND)) && REPLY_OLD=$* && set -- "${1:0:${#1}-TRUNC_IND}";
 			((MTURN)) &&
 			for var in "${MEDIA_CHAT_CMD[@]}"
 			do 	REC_OUT+="| $var"
