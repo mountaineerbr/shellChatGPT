@@ -47,7 +47,7 @@ Optionally, download and set the config file [`~/.chatgpt.conf`](https://gitlab.
 - `Bash` <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
 - `cURL`, and `JQ`
 
-_OBS:_ There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/blob/zsh/chatgpt.zsh)
+_OBS:_ There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh)
 available, however incomplete.
 
 

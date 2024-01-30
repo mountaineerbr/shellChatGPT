@@ -220,8 +220,7 @@ See Also
 
 Environment
 	BLOCK_USR
-	BLOCK_USR_TTS
-			Extra options for the request JSON block
+	BLOCK_USR_TTS 	Extra options for the request JSON block
 			(e.g. \`\"seed\": 33, \"dimensions\": 1024').
 
 	CHATGPTRC
