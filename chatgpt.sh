@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.35.4  jan/2024  by mountaineerbr  GPL+3
+# v0.35.5  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -335,8 +335,9 @@ Chat Commands
 	Regenerate it again or flush / accept the prompt and response.
 
 	After a response has been written to the history file, regenerate
-	it with command \`!regen' or type in a single forward slash in
-	the new empty prompt.
+	it with command \`!regen' or type in a single exclamation mark or
+	forward slash in the new empty prompt (twice for editing last
+       	prompt before request).
 
 	Type in a backslash \`\\' as the last character of the input line
 	to append a literal newline, or press <CTRL-V> + <CTRL-J>.
@@ -1297,6 +1298,7 @@ function cmd_runf
 			return 180
 			;;
 		-L*|log*)
+			((OPTLOG)) && [[ $* != $SPC ]] && OPTLOG= ;
 			((++OPTLOG)); ((OPTLOG%=2));
 			__cmdmsgf 'Logging' $(_onoff $OPTLOG);
 			((OPTLOG)) && {
@@ -1418,11 +1420,18 @@ function cmd_runf
 			__cmdmsgf 'Tiktoken' $(_onoff $OPTTIK)
 			;;
 		-w*|-W*|[Ww]*|rec*|whisper*)
-			if ((++OPTW)); ((OPTW%=2))
+			[[ $* = -W* ]] && var=translate;
+			set -- "${*##@(-[wW][wW]|-[wW]|[Ww]|rec|whisper)$SPC}";
+
+			((OPTW+OPTWW)) && [[ $* != $SPC ]] && OPTW= OPTWW= ;
+			if [[ $var = translate ]]
+			then 	((++OPTWW)); OPTW= ;
+			else 	((++OPTW)); OPTWW= ;
+			fi
+			((OPTW%=2)); ((OPTWW%=2));
+			if ((OPTW+OPTWW))
 			then
 			  set_reccmdf
-			  [[ $* = -W* ]] && OPTW=2
-			  set -- "${*##@(-[wW][wW]|-[wW]|[Ww]|rec|whisper)$SPC}"
 
 			  var="${*##$SPC}"
 			  [[ $var = [a-z][a-z][$IFS]*[[:graph:]]* ]] \
@@ -1433,11 +1442,12 @@ function cmd_runf
 
 			  [[ $* = $SPC ]] || WARGS=("$@"); xskip=1;
 			  __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
-			fi; __cmdmsgf 'Whisper Chat' $(_onoff $OPTW);
+			fi; __cmdmsgf 'Whisper Chat' $(_onoff $((OPTW+OPTWW)) );
 			((OPTW)) || unset OPTW WSKIP SKIP;
 			;;
 		-z*|tts*|speech*)
 			set -- "${*##@(-z*([zZ])|tts|speech)$SPC}"
+			((OPTZ)) && [[ $* != $SPC ]] && OPTZ= ;
 			if ((++OPTZ)); ((OPTZ%=2))
 			then 	set_playcmdf;
 				[[ $* = $SPC ]] || ZARGS=("$@"); xskip=1;
@@ -1855,7 +1865,7 @@ function set_optsf
 	typeset s n p
 	typeset -a pids
 	((OPTI+OPTEMBED)) || {
-	  ((OPTW)) || {
+	  ((OPTW+OPTZ && !CHAT_ENV)) || {
 	    check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
 	    check_optrangef "$OPTAA"  -2.0 2.0 'Frequency-penalty'
 	    ((OPTB)) && check_optrangef "${OPTB:-$OPTN}"  "$OPTN" 50 'Best_of'
@@ -2109,7 +2119,7 @@ function ttsf
 	do    [[ $var = *([$IFS]) ]] && shift || break;
 	done; var= ;
 	
-	if ((!CHAT_ENV))
+	if ((!CHAT_ENV)) || ((CHAT_ENV && ${#ZARGS[@]}))
 	then 	#set speech voice, out file format, and speed
 		__set_ttsf "$3" && set -- "${@:1:2}" "${@:4}"
 		__set_ttsf "$2" && set -- "${@:1:1}" "${@:3}"
