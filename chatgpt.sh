@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.36  jan/2024  by mountaineerbr  GPL+3
+# v0.36.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1459,7 +1459,7 @@ function cmd_runf
 			lastjsonf >&2
 			;;
 		[/!]k*|k*)  #kill num hist entries
-			typeset IFS dry; IFS=$'\n' RETRY= ;
+			typeset IFS dry; IFS=$'\n'; ((RETRY)) && BCYAN="${Color9}" RETRY= ;
 			[[ ${n:=${*//[!0-9]}} = 0* || $* = [/!]* ]] \
 			&& n=${n##*([/!0])} dry=4; ((n>0)) || n=1
 			if var=($(grep -n -e '^[[:space:]]*[^#]' "$FILECHAT" \
