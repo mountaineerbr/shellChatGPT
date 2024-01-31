@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.36 | General Commands Manual
+% CHATGPT.SH(1) v0.36.3 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -311,15 +311,16 @@ may be either "`!`", or "`/`".
       `-t`    `!temp`      \[_VAL_]      Set temperature.
       `-w`    `!rec`      \[_ARGS_]      Toggle voice chat mode (whisper),
                                            optionally set arguments to whisper.
+    `!blk`    `!block`    \[_ARGS_]      Set and add custom options to JSON request.
   --------    -----------------------    --------------------------------------------
 
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
-      `-c`    `!new`                                   Start new session.
       `-H`    `!hist`                                  Edit history in editor.
      `-HH`    `!req`                                   Print context request immediately (see `option -V`),
                                                        set `-HHH` to also print commented out history entries.
       `-L`    `!log`       \[_FILEPATH_]               Save to log file.
+     `!br`    `!new`, `!break`                         Start new session (session break).
      `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
                                                          Prompts "_pr_", Awesome "_awe_", or all files "_._".
    `!grep`    `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
@@ -591,6 +592,13 @@ Setting **temperature** has an effect, the higher the more random.
 **INSTRUCTION_CHAT**
 
 :    Initial initial instruction, or system message for chat mode.
+
+
+<!--
+**OLLAMA_API_HOST**
+
+: Ollama host URL (used with `option -O`).
+-->
 
 
 **OPENAI_API_HOST**
@@ -996,6 +1004,13 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 **-o**, **\--clipboard**
 
 : Copy response to clipboard.
+
+
+<!--
+**-O**, **\--ollama**
+
+: Make requests to Ollama server (cmpls/chat).
+-->
 
 
 **-u**, **\--multi**

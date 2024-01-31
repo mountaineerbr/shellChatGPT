@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.36 \| General Commands Manual
+title: CHATGPT.SH(1) v0.36.3 \| General Commands Manual
 ---
 
 ### NAME
@@ -312,14 +312,15 @@ or “`/`”.
 | `-t`    | `!temp` \[*VAL*\]       | Set temperature.                            |
 | `-w`    | `!rec` \[*ARGS*\]       | Toggle voice chat mode (whisper),           |
 |         |                         | optionally set arguments to whisper.        |
+| `!blk`  | `!block` \[*ARGS*\]     | Set and add custom options to JSON request. |
 
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|
-| `-c`    | `!new`                                 | Start new session.                                         |
 | `-H`    | `!hist`                                | Edit history in editor.                                    |
 | `-HH`   | `!req`                                 | Print context request immediately (see `option -V`),       |
 |         |                                        | set `-HHH` to also print commented out history entries.    |
 | `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                          |
+| `!br`   | `!new`, `!break`                       | Start new session (session break).                         |
 | `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*,                     |
 |         |                                        | Prompts “*pr*”, Awesome “*awe*”, or all files “*.*”.       |
 | `!grep` | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail. |
@@ -556,6 +557,11 @@ Initial initial instruction, or system message.
 
 **INSTRUCTION_CHAT**  
 Initial initial instruction, or system message for chat mode.
+
+<!--
+**OLLAMA_API_HOST**
+&#10;: Ollama host URL (used with `option -O`).
+-->
 
 **OPENAI_API_HOST**
 
@@ -858,6 +864,11 @@ Set log file. *FILEPATH* is required.
 
 **-o**, **--clipboard**  
 Copy response to clipboard.
+
+<!--
+**-O**, **\--ollama**
+&#10;: Make requests to Ollama server (cmpls/chat).
+-->
 
 **-u**, **--multi**  
 Toggle multiline prompter, \<*CTRL-D*\> flush.

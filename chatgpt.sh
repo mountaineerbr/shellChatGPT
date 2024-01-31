@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.36.2  jan/2024  by mountaineerbr  GPL+3
+# v0.36.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -304,12 +304,13 @@ Chat Commands
        -t      !temp     [VAL]   Set temperature.
        -w      !rec     [ARGS]   Toggle voice chat mode (whisper).
        -z      !tts     [ARGS]   Toggle tts chat mode (speech out).
+     !blk      !block   [ARGS]   Set and add options to JSON request.
     --- Session Management ----------------------------------------
-       -c      !new              Start new session (session break).
        -H      !hist             Edit raw history file in editor.
       -HH      !req              Print context request immediately (see -V),
                                  set -HHH to also print commented out entries.
        -L      !log  [FILEPATH]  Save to log file (pretty-print).
+      !br      !new, !break      Start new session (session break).
       !ls      !list    [GLOB]   List History files with name glob,
                                  Prompts \`pr', Awesome \`awe', or all \`.'.
       !grep    !sub    [REGEX]   Search sessions and copy to tail.
@@ -699,7 +700,7 @@ function trimf
 function block_printf
 {
 	if ((OPTVV>1))
-	then 	[[ ${BLOCK:0:10} = @* ]] && cat -- "${BLOCK##@}" | less -S >&2
+	then 	[[ ${BLOCK:0:10} = @* ]] && cat -- "${BLOCK##@}" | less >&2
 		printf '\n%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK"; OPTAWE= SKIP=
 		printf '\n%s\n' '<Enter> continue, <Ctrl-D> redo, <Ctrl-C> exit'
 		typeset REPLY; __clr_ttystf; read </dev/tty || return 200;
@@ -762,15 +763,14 @@ function prompt_printf
 	if ((OPTEMBED))
 	then 	jq -r '(.data),
 		(.model//"'"$MOD"'"//"?")+" ("+(.object//"?")+") ["
-		+(.usage.prompt_tokens//"?"|tostring)+" + "
-		+(.usage.completion_tokens//"?"|tostring)+" = "
+		+(.usage.prompt_tokens//"?"|tostring)+" / "
 		+(.usage.total_tokens//"?"|tostring)+" tkns]"' "$@" >&2
 		return
 	fi
 
 	{ jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
-	  (.choices[1].index as \$sep | .choices[] |
-	  byellow + ( (.text//(.message.content)//(.delta.content)//empty ) |
+	  (.choices[1].index as \$sep | if .choices then .choices[] else . end |
+	  byellow + ( (.text//(.message.content)//(.delta.content)//.response//empty ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if .finish_reason != \"stop\" then (if .finish_reason != null then red+\"(\"+.finish_reason+\")\"+reset else null end) else null end,
 	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf ;} | foldf ||
@@ -784,7 +784,7 @@ function prompt_pf
 	for var
 	do 	[[ -f $var ]] || { 	opt+=("$var"); shift ;}
 	done
-	set -- "(.choices//empty|.[$INDEX]|.text//(.message.content)//(.delta.content)//empty)//.data//empty" "$@"
+	set -- "(if .choices then (.choices[$INDEX]) else . end |.text//(.message.content)//(.delta.content)//.response//empty)//.data//empty" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
 	{ jq "$@" && _p_suffixf ;} || ! cat -- "$@" >&2 2>/dev/null
 }
@@ -1260,12 +1260,26 @@ function cmd_runf
 			OPTB="${*:-$OPTB}"
 			__cmdmsgf 'Best_Of' "$OPTB"
 			;;
-		-[cCdD]|break|br|new)
+		-[cC])
+			OPTC=1 EPN=0 OPTCMPL= ;
+			__cmdmsgf "Endpoint[$EPN]:" 'Text Completions';
+			;;
+		-[cC][cC])
+			OPTC=2 EPN=6 OPTCMPL= ;
+			__cmdmsgf "Endpoint[$EPN]:" 'Chat Completions';
+			;;
+		break|br|new)
 			break_sessionf
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  push_tohistf "$(escapef ":${INSTRUCTION_OLD:-$INSTRUCTION}")"
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			}; unset CKSUM_OLD MAX_PREV WCHAT_C; xskip=1;
+			;;
+		block*|blk*)
+			set -- "${*##@(block|blk)$SPC}"
+			__printbf '>';
+		       	read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
+			__cmdmsgf $'\nUser Block:' "${BLOCK_USR:-unset}";
 			;;
 		-g|-G|stream|no-stream)
 			((++STREAM)) ;((STREAM%=2))
@@ -1485,6 +1499,7 @@ function cmd_runf
 			model-cap    "${MODMAX:-?}" \
 			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
 			context-prev "${MAX_PREV:-?}" \
+			token-rate   "${TKN_RATE[0]:-?} tkn/sec of ${TKN_RATE[1]:-?} tkns" \
 			tiktoken     "${OPTTIK:-0}" \
 			temperature  "${OPTT:-0}" \
 			pres-penalty "${OPTA:-unset}" \
@@ -1899,7 +1914,7 @@ function set_optsf
 		then 	OPTSTOP="\"stop\":${OPTSTOP},"
 		elif ((n))
 		then 	OPTSTOP="\"stop\":[${OPTSTOP}],"
-		fi ;STOPS_OLD=("${STOPS[@]}")
+		fi; STOPS_OLD=("${STOPS[@]}");
 	fi #https://help.openai.com/en/articles/5072263-how-do-i-use-stop-sequences
 	((EPN==6)) || {
 	  [[ "$RESTART" = "$RESTART_OLD" ]] || restart_compf
@@ -2469,7 +2484,7 @@ function embedf
 \"max_tokens\": $OPTMAX,
 \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
-	promptf
+	promptf 2>&1
 }
 
 function moderationf
@@ -3265,6 +3280,21 @@ then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url
 	unset STREAM
 fi
 
+#custom host api url
+if ((${#OPENAI_API_HOST_TEXT})) && OPENAI_API_HOST=$OPENAI_API_HOST_TEXT
+	[[ $OPENAI_API_HOST != *([$IFS]) ]]  #custom host url / endpoint
+then
+	if [[ $OPENAI_API_HOST != *[$IFS] ]]
+	then  #fixed endpoint
+		unset ENDPOINTS; function set_model_epnf { 	false ;}
+		((${#OPENAI_API_HOST_TEXT})) && EPN=0 || EPN=6
+	#else #keep endpoint auto select
+	fi; API_HOST=${API_HOST%%*([/$IFS])}; set_model_epnf "$MOD";
+	_sysmsgf "HOST URL / endpoint:" "$API_HOST${ENDPOINTS[EPN]}"
+else 	
+	unset OPENAI_API_HOST OPENAI_API_HOST_TEXT
+fi
+
 #set ``model endpoint'' and ``model capacity''
 [[ -n $EPN ]] || set_model_epnf "$MOD"
 ((MODMAX)) || model_capf "$MOD"
@@ -3276,19 +3306,6 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 
 #set other options
 set_optsf
-if ((${#OPENAI_API_HOST_TEXT})) && OPENAI_API_HOST=$OPENAI_API_HOST_TEXT
-	[[ $OPENAI_API_HOST != *([$IFS]) ]]  #custom host url / endpoint
-then
-	if [[ $OPENAI_API_HOST != *[$IFS] ]]
-	then  #fixed endpoint
-		unset ENDPOINTS; function set_model_epnf { 	false ;}
-		((${#OPENAI_API_HOST_TEXT})) && EPN=0 || EPN=6
-	#else #keep endpoint auto select
-	fi; API_HOST=${API_HOST%%*([/$IFS])}
-	_sysmsgf "HOST URL / endpoint:" "$API_HOST${ENDPOINTS[EPN]}"
-else 	
-	unset OPENAI_API_HOST OPENAI_API_HOST_TEXT
-fi
 
 #load stdin
 if [[ -n $TERMUX_VERSION ]]
@@ -3829,6 +3846,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 		fi; ((OPTC)) && echo >&2
 
 		#request and response prompts
+		SECONDS_REQ=$SECONDS;
 		if ((${#BLOCK}>32000))  #32KB
 		then 	buff="${FILE%.*}.block.json"
 			printf '%s\n' "$BLOCK" >"$buff"
@@ -3846,7 +3864,8 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 				tkn_ans=$( ((EPN==6)) && unset A_TYPE;
 					__tiktokenf "${A_TYPE}${ans}");
 				((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD;
-			else 	tkn=($(jq -r '.usage.prompt_tokens//"0",
+			else
+				tkn=($(jq -r '.usage.prompt_tokens//"0",
 					.usage.completion_tokens//"0",
 					(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$FILE") )
 				unset ans buff n
@@ -3856,7 +3875,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 					ans="${ans}"${ans:+${buff:+\\n---\\n}}"${buff}"
 				done
 			fi
-			
+
 			if [[ -z "$ans" ]] && ((RET_PRF<120))
 			then 	jq 'if .error then . else empty end' "$FILE" >&2 || cat -- "$FILE" >&2
 				__warmsgf "(response empty)"
@@ -3874,7 +3893,8 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
 				fi  #adjust context err
-			fi; unset BAD_RES PSKIP ESC_OLD;
+			fi;
+		       	unset BAD_RES PSKIP ESC_OLD;
 			((${#tkn[@]}>2||STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
 			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]
@@ -3910,6 +3930,13 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
+		
+		unset TKN_RATE;  #estimate token generation rate
+		if 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]  #((OPTTIK || !STREAM))
+		then 	((SECONDS==SECONDS_REQ)) && ((--SECONDS_REQ));
+			TKN_RATE=($(( ${tkn[1]:-$tkn_ans} / (SECONDS-SECONDS_REQ) )) "${tkn[1]:-$tkn_ans}")
+		fi >&2 #2>/dev/null
+			
 		if ((OPTW)) && ((!OPTZ))
 		then
 			SLEEP_WORDS=$(wc -w <<<"${ans}");
@@ -3946,4 +3973,4 @@ fi
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
 
-# vim=syntax sync minlines=4000
+# vim=syntax sync minlines=1200

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.36 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.36.3 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.36 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.36.3 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -656,6 +656,11 @@ flush.</td>
 <td style="text-align: left;"></td>
 <td>optionally set arguments to whisper.</td>
 </tr>
+<tr class="even">
+<td style="text-align: left;"><code>!blk</code></td>
+<td style="text-align: left;"><code>!block</code> [<em>ARGS</em>]</td>
+<td>Set and add custom options to JSON request.</td>
+</tr>
 </tbody>
 </table>
 <table>
@@ -668,30 +673,31 @@ flush.</td>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>-c</code></td>
-<td style="text-align: left;"><code>!new</code></td>
-<td>Start new session.</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;"><code>-H</code></td>
 <td style="text-align: left;"><code>!hist</code></td>
 <td>Edit history in editor.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-HH</code></td>
 <td style="text-align: left;"><code>!req</code></td>
 <td>Print context request immediately (see <code>option -V</code>),</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"></td>
 <td style="text-align: left;"></td>
 <td>set <code>-HHH</code> to also print commented out history
 entries.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-L</code></td>
 <td style="text-align: left;"><code>!log</code> [<em>FILEPATH</em>]</td>
 <td>Save to log file.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!br</code></td>
+<td style="text-align: left;"><code>!new</code>,
+<code>!break</code></td>
+<td>Start new session (session break).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!ls</code></td>
@@ -965,6 +971,11 @@ more random.</p>
 <p>Initial initial instruction, or system message for chat mode.</p>
 </dd>
 </dl>
+<!--
+**OLLAMA_API_HOST**
+
+: Ollama host URL (used with `option -O`).
+-->
 <p><strong>OPENAI_API_HOST</strong></p>
 <dl>
 <dt><strong>OPENAI_API_HOST_TEXT</strong></dt>
@@ -1336,6 +1347,13 @@ and start sequences.</p>
 <dd>
 <p>Copy response to clipboard.</p>
 </dd>
+</dl>
+<!--
+**-O**, **\--ollama**
+
+: Make requests to Ollama server (cmpls/chat).
+-->
+<dl>
 <dt><strong>-u</strong>, <strong>--multi</strong></dt>
 <dd>
 <p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
