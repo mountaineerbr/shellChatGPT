@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.36.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.37 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.36.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.37 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -232,8 +232,8 @@ last history session.</p>
 “<em>[insert]</em>” must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.
-Insert mode works with model <code>gpt-3.5-turbo-instruct</code>.</p>
-<!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
+Insert mode works with model <code>gpt-3.5-turbo-instruct</code>.
+<!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer --></p>
 <p>Positional arguments are read as a single <strong>PROMPT</strong>.
 Model <strong>INSTRUCTION</strong> is usually optional and can be set
 with <code>option -S</code>.</p>
@@ -323,26 +323,38 @@ script hack to preview token count. This option makes token count
 preview accurate fast (we fork tiktoken as a coprocess for fast token
 queries). Useful for rebuilding history context independently from the
 original model used to generate responses.</p>
+<p>The moderation endpoint can be accessed by setting the model name to
+<em>text-moderation-latest</em>.</p>
 <p>Stdin is supported when there is no positional arguments left after
 option parsing. Stdin input sets a single PROMPT.</p>
 <p>While <em>cURL</em> is in the middle of transmitting a request, or
 receiving a response, &lt;<em>CTRL-C</em>&gt; may be pressed once to
 interrupt the call.</p>
 <p>Press &lt;<em>CTRL-\</em>&gt; to exit from the script, even if
-recording, requesting, or playing tts.</p>
+recording, requesting, or playing TTS.</p>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh</em>”.</p>
 <p>A personal OpenAI API is required, set it with
 <code>option -K</code>. See also <strong>ENVIRONMENT
 section</strong>.</p>
-<p>The moderation endpoint can be accessed by setting the model name to
-<em>moderation</em> (latest model).</p>
-<p>See the online man page and script usage examples at: <a
-href="https://github.com/mountaineerbr/shellChatGPT/tree/main"
-class="uri">https://github.com/mountaineerbr/shellChatGPT/tree/main</a>.</p>
+<p>This script also supports warping LocalAI and Ollama APIs.</p>
+<p>For LocalAI integration, set environment
+<strong>$OPENAI_API_HOST</strong> with the server URL.
+<!-- LocalAI only tested with text and chat completion models (vision), not tested with all the API endpoints --></p>
+<p>For Ollama, set <code>option -O</code>, and set
+<strong>$OLLAMA_API_HOST</strong> if the server URL is different from
+the defaults.</p>
+<p>Note that model management (downloading and setting up) must follow
+the LocalAI and Ollama API software guidelines.</p>
+<p>Command “<code>!block</code> [<em>args</em>]” may be run to set raw
+model options in JSON syntax acording to each API. Alternativelly, set
+envar <strong>$BLOCK_USR</strong>.</p>
 <p>For complete model and settings information, refer to OpenAI API docs
 at <a href="https://platform.openai.com/docs/"
 class="uri">https://platform.openai.com/docs/</a>.</p>
+<p>See the online man page and <code>chatgpt.sh</code> usage examples
+at: <a href="https://gitlab.com/fenixdragao/shellchatgpt"
+class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
 <h3 id="text-chat-completions">TEXT / CHAT COMPLETIONS</h3>
 <h4 id="text-completions">1. Text completions</h4>
 <p>Given a prompt, the model will return one or more predicted
@@ -386,14 +398,14 @@ In text completions, however, typing a colon “<em>:</em>” at the start
 of the prompt causes the text following it to be appended immediately to
 the last (response) prompt text.</p>
 <h4 id="voice-input-whisper-and-voice-output-tts">2.4 Voice input
-(whisper), and voice output (tts)</h4>
+(Whisper), and voice output (TTS)</h4>
 <p>The <code>options -ccwz</code> may be combined to have voice
 recording input and synthesised voice output, specially nice with chat
 modes. When setting <code>flag -w</code>, or <code>flag -z</code>, the
-first positional paramenters are read as whisper, or tts arguments. When
+first positional paramenters are read as Whisper, or TTS arguments. When
 setting both <code>flags -wz</code>, add a double hyphen to set first
-whisper, and then tts arguments.</p>
-<p>Set chat mode, plus whisper language and prompt, and the tts voice
+Whisper, and then TTS arguments.</p>
+<p>Set chat mode, plus Whisper language and prompt, and the TTS voice
 option argument:</p>
 <pre><code>chatgpt.sh -ccwz  en &#39;whisper prompt&#39;  --  nova</code></pre>
 <h4 id="gpt-4-vision">2.5 GPT-4-Vision</h4>
@@ -649,12 +661,12 @@ flush.</td>
 <tr class="even">
 <td style="text-align: left;"><code>-w</code></td>
 <td style="text-align: left;"><code>!rec</code> [<em>ARGS</em>]</td>
-<td>Toggle voice chat mode (whisper),</td>
+<td>Toggle Whisper. Optionally, set arguments.</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td>optionally set arguments to whisper.</td>
+<td style="text-align: left;"><code>-z</code></td>
+<td style="text-align: left;"><code>!tts</code> [<em>ARGS</em>]</td>
+<td>Toggle TTS chat mode (speech out).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!blk</code></td>
@@ -970,18 +982,17 @@ more random.</p>
 <dd>
 <p>Initial initial instruction, or system message for chat mode.</p>
 </dd>
+<dt><strong>OLLAMA_API_HOST</strong></dt>
+<dd>
+<p>Ollama host URL (used with <code>option -O</code>).</p>
+</dd>
 </dl>
-<!--
-**OLLAMA_API_HOST**
-
-: Ollama host URL (used with `option -O`).
--->
 <p><strong>OPENAI_API_HOST</strong></p>
 <dl>
-<dt><strong>OPENAI_API_HOST_TEXT</strong></dt>
+<dt><strong>OPENAI_API_HOST_FIXED</strong></dt>
 <dd>
-<p>Custom host URL with an endpoint, or append a space to the end of the
-string to keep endpoint auto-selection.</p>
+<p>Custom host URL. The <em>STATIC</em> parameter disables endpoint
+auto-selection.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_KEY</strong></p>
@@ -1347,13 +1358,10 @@ and start sequences.</p>
 <dd>
 <p>Copy response to clipboard.</p>
 </dd>
-</dl>
-<!--
-**-O**, **\--ollama**
-
-: Make requests to Ollama server (cmpls/chat).
--->
-<dl>
+<dt><strong>-O</strong>, <strong>--ollama</strong></dt>
+<dd>
+<p>Make requests to Ollama server (cmpls/chat).</p>
+</dd>
 <dt><strong>-u</strong>, <strong>--multi</strong></dt>
 <dd>
 <p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>

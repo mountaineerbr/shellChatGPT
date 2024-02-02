@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.36.3  jan/2024  by mountaineerbr  GPL+3
+# v0.37  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -113,7 +113,8 @@ HISTCONTROL=erasedups:ignoredups
 HISTSIZE=512 SAVEHIST=512 HISTTIMEFORMAT='%F %T '
 
 # API URL / endpoint
-API_HOST="${OPENAI_API_HOST_TEXT:-${OPENAI_API_HOST:-https://api.openai.com/v1}}"
+[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
+API_HOST="${OPENAI_API_HOST:-https://api.openai.com}";
 
 # Def hist, txt chat types
 Q_TYPE="\\nQ: "
@@ -234,10 +235,12 @@ Environment
 	INSTRUCTION_CHAT
 			Initial instruction, or system message (chat mode).
 
+	OLLAMA_API_HOST Ollama host URL (option -O).
+
 	OPENAI_API_HOST
-	OPENAI_API_HOST_TEXT
-			Custom host URL with an endpoint, or append a
-			space to keep endpoint auto-selection.
+	OPENAI_API_HOST_STATIC
+			Custom host URL. The STATIC parameter disables
+			endpoint auto-selection.
 
 	OPENAI_KEY
 	OPENAI_API_KEY  Personal OpenAI API key.
@@ -302,8 +305,8 @@ Chat Commands
        -R      !start    [SEQ]   Set start sequence.
        -s      !stop     [SEQ]   Set one stop sequence.
        -t      !temp     [VAL]   Set temperature.
-       -w      !rec     [ARGS]   Toggle voice chat mode (whisper).
-       -z      !tts     [ARGS]   Toggle tts chat mode (speech out).
+       -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
+       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk      !block   [ARGS]   Set and add options to JSON request.
     --- Session Management ----------------------------------------
        -H      !hist             Edit raw history file in editor.
@@ -460,6 +463,8 @@ Options
 		Set log file. FILEPATH is required.
 	-o, --clipboard
 		Copy response to clipboard.
+	-O, --ollama
+		Request to Ollama server (cmpls/chat).
 	-u, --multi
 		Toggle multiline prompter, <CTRL-D> flush.
 	-U, --cat
@@ -481,17 +486,18 @@ Options
 		Print last response JSON data."
 
 ENDPOINTS=(
-	/completions               #0
-	/moderations               #1
-	/edits                     #2   2024-01-04 -> chat/completions
-	/images/generations        #3
-	/images/variations         #4
-	/embeddings                #5
-	/chat/completions          #6
-	/audio/transcriptions      #7
-	/audio/translations        #8
-	/images/edits              #9
-	/audio/speech              #10
+	/v1/completions               #0
+	/v1/moderations               #1
+	/v1/edits                     #2  -> chat/completions
+	/v1/images/generations        #3
+	/v1/images/variations         #4
+	/v1/embeddings                #5
+	/v1/chat/completions          #6
+	/v1/audio/transcriptions      #7
+	/v1/audio/translations        #8
+	/v1/images/edits              #9
+	/v1/audio/speech              #10
+	/v1/models                    #11
 )
 #https://platform.openai.com/docs/{deprecations/,models/,model-index-for-researchers/}
 #https://help.openai.com/en/articles/{6779149,6643408}
@@ -553,7 +559,7 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	curl "$@" -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl "$@" -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -607,7 +613,7 @@ function promptf
 	else
 		printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
 		((RETRY>1)) || COLUMNS=$((COLUMNS-3)) _promptf || exit;
-	       	printf "${NC}" >&2;
+		printf "${NC}" >&2;
 		if ((OPTI))
 		then 	prompt_imgprintf
 		else 	prompt_printf
@@ -843,7 +849,7 @@ function prompt_audiof
 {
 	((OPTVV)) && __warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTT:-unset}${*:+,  }${*}" >&2
 
-	curl -\# ${OPTV:+-Ss} -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: multipart/form-data' \
@@ -859,9 +865,8 @@ function prompt_audiof
 
 function list_modelsf
 {
-	curl -\# -L "$API_HOST/models${1:+/}${1}" \
-		-H "Authorization: Bearer $OPENAI_API_KEY" \
-		-o "$FILE" &&
+	curl -\# -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
+		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! cat -- "$FILE"
@@ -976,7 +981,7 @@ function set_histf
 			esac
 
 			#vision
-			if ((!OPTHH)) && [[ $MOD = *vision* ]]
+			if ((!OPTHH)) && { 	[[ $MOD = *vision* ]] || ((OLLAMA)) ;}
 			then 	MEDIA_CHAT=(); _mediachatf "$stringc"
 				((TRUNC_IND)) && stringc=${stringc:0:${#stringc}-TRUNC_IND};
 			fi
@@ -994,7 +999,10 @@ function set_histf
 	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns 
 	
 	#first system/instruction: add extra newlines and delete $S_TYPE  (txt cmpls) 
-	[[ $role = system ]] && HIST="${HIST:${#rest}:${#stringc}}\\n${HIST:${#rest}+${#stringc}}"
+	[[ $role = system ]] &&	if ((OLLAMA))
+	then 	HIST="${HIST:${#rest}+${#stringc}}"  #delete first system message for ollama
+	else 	HIST="${HIST:${#rest}:${#stringc}}\\n${HIST:${#rest}+${#stringc}}"
+	fi
 
 	((!OPTC)) || [[ $HIST = "$stringc"*(\\n) ]] ||  #hist contains only one/system prompt?
 	HIST=$(trim_trailf "$HIST" "*(\\\\[ntrvf])")  #del multiple trailing nl
@@ -1262,11 +1270,15 @@ function cmd_runf
 			;;
 		-[cC])
 			OPTC=1 EPN=0 OPTCMPL= ;
-			__cmdmsgf "Endpoint[$EPN]:" 'Text Completions';
+			__cmdmsgf "Endpoint[$EPN]:" "Chat Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
 			;;
 		-[cC][cC])
 			OPTC=2 EPN=6 OPTCMPL= ;
-			__cmdmsgf "Endpoint[$EPN]:" 'Chat Completions';
+			__cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
+			;;
+		-[dD])
+			OPTC= EPN=0 OPTCMPL=1 ;
+			__cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
 			;;
 		break|br|new)
 			break_sessionf
@@ -1278,7 +1290,7 @@ function cmd_runf
 		block*|blk*)
 			set -- "${*##@(block|blk)$SPC}"
 			__printbf '>';
-		       	read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
+			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
 			__cmdmsgf $'\nUser Block:' "${BLOCK_USR:-unset}";
 			;;
 		-g|-G|stream|no-stream)
@@ -1322,7 +1334,7 @@ function cmd_runf
 			  fi
 			  [[ "$USRLOG" = '~'* ]] && USRLOG="${HOME}${USRLOG##\~}"
 			  _cmdmsgf 'Log file' "<${USRLOG/"$HOME"/"~"}>";
-		  	};
+			};
 			;;
 		media*|img*|url*)
 			set -- "${*##@(media|img|url)*([$IFS])}";
@@ -1495,6 +1507,7 @@ function cmd_runf
 			echo >&2
 			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
 			$([[ -n $OPENAI_API_HOST ]] && echo host-url "${API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
+			$([[ -n $OLLAMA_API_HOST ]] && echo ollama-url "${OLLAMA_API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
 			model-name   "${MOD:-?}" \
 			model-cap    "${MODMAX:-?}" \
 			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
@@ -1527,7 +1540,7 @@ function cmd_runf
 					((OPTCTRD==2)) && __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot';;
 				*) 	((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
 					__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD)
-					((OPTCTRD)) && __warmsgf $'\n' '* <Ctrl-V> + <Ctrl-J> for newline * ';;
+					((OPTCTRD)) && __warmsgf '*' '<Ctrl-V> + <Ctrl-J> for newline * ';;
 			esac
 			;;
 		-U|-UU*(U))
@@ -1542,7 +1555,7 @@ function cmd_runf
 			set -- "${*##[/!-]}"
 			if [[ $* = cat*[!$IFS]* ]]
 			then 	cmd_runf /sh "${@}"
-			else 	__warmsgf '' '* Press <Ctrl-D> to flush * '
+			else 	__warmsgf '*' 'Press <Ctrl-D> to flush * '
 				STDERR=/dev/null  cmd_runf /sh cat </dev/tty
 			fi; xskip=1
 			;;
@@ -1580,10 +1593,9 @@ function cmd_runf
 		r|rr|''|[/!]|regenerate|regen|[$IFS])  #regenerate last response
 			SKIP=1 EDIT=1 MEDIA_IND=() MEDIA_IND_CMD=();
 			case "$*" in
-				rr|[/!]) REGEN=2;  #edit prompt
-				       		((OPTX)) && REGEN=1;;
-				*) 	 REGEN=1 PSKIP=1 REPLY= ;;
-		       	esac
+				rr|[/!]) REGEN=2; ((OPTX)) && REGEN=1;;  #edit prompt
+				*) 	REGEN=1 PSKIP=1 REPLY= ;;
+			esac
 			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
 			then 	# comment out two lines from tail
@@ -1611,7 +1623,7 @@ function cmd_runf
 			;;
 		*) 	return 1
 			;;
-	esac;
+	esac; ((OPTCMPL)) && echo >&2;
 	if ((OPTX)) && ((!(REGEN+xskip) )) 
 	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
 		__read_charf >/dev/null;
@@ -1760,22 +1772,46 @@ function fmt_ccf
 	typeset var
 	[[ ${1} != *([$IFS]) ]] || return
 	
-	if ((${#MEDIA_CHAT[@]}+${#MEDIA_CHAT_CMD[@]})) && [[ $MOD = *vision* ]]
+	if ! ((${#MEDIA_CHAT[@]}+${#MEDIA_CHAT_CMD[@]}))
+	then
+		printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
+	elif [[ $MOD = *vision* ]]
 	then
 		printf '{ "role": "%s", "content": [ { "type": "text", "text": "%s" }' "${2:-user}" "$1";
 		for var in "${MEDIA_CHAT[@]}" "${MEDIA_CHAT_CMD[@]}"
 		do
 			if [[ $var = *([$IFS]) ]]
-			then 	false;
+			then 	continue;
 			elif [[ -f $var ]] && [[ -s $var ]]
 			then 	printf ',\n{ "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,%s" } }' "$(base64 "$var" | tr -d $'\n')";
 			else 	printf ',\n{ "type": "image_url", "image_url": { "url": "%s" } }' "$var";
 			fi
 		done;
 		printf '%s\n' ' ] }';
-	else
-		printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
+	elif ((OLLAMA))
+	then
+		printf '{ "role": "%s", "content": "%s",\n' "${2:-user}" "$1";
+		ollama_mediaf && printf '%s' ' }'
 	fi
+}
+
+#set media for ollama *generation endpoint*
+function ollama_mediaf
+{
+	typeset var n
+	set -- "${MEDIA_CHAT[@]}" "${MEDIA_CHAT_CMD[@]}";
+	((${#})) || return;
+	printf '\n"images": ['
+	for var
+	do 	((++n))
+		if [[ $var = *([$IFS]) ]]
+		then 	continue;
+		elif [[ -f $var ]] && [[ -s $var ]]
+		then 	printf '"%s"' "$(base64 "$var" | tr -d $'\n')";
+			((n < ${#})) && printf '%s' ',';
+		fi
+	done;
+       	printf '%s' ']'
 }
 
 #get files and urls from input
@@ -1847,7 +1883,7 @@ function foldf
 				printf '%s' "$REPLY";
 			elif (( n+${#r}>COLUMNS ))
 			then
-			       	n= ;
+				n= ;
 				printf '\n%s' "$REPLY";
 			else
 				(( n+${#r}==COLUMNS )) && r= n= ;
@@ -1899,7 +1935,10 @@ function set_optsf
 	  ((OPTBB)) && OPTBB_OPT="\"logprobs\": $OPTBB," || unset OPTBB OPTBB_OPT; } 2>/dev/null
 	[[ -n $OPTP ]] && OPTP_OPT="\"top_p\": $OPTP," || unset OPTP_OPT
 	[[ -n $SUFFIX ]] && OPTSUFFIX_OPT="\"suffix\": \"$(escapef "$SUFFIX")\"," || unset OPTSUFFIX_OPT
-	((STREAM)) && STREAM_OPT="\"stream\": true," || unset STREAM STREAM_OPT
+	if ((STREAM))
+	then 	STREAM_OPT="\"stream\": true,";
+	else 	STREAM_OPT="\"stream\": false,"; unset STREAM;
+	fi
 	((OPTV<1)) && unset OPTV
 	
 	if ((${#STOPS[@]})) && [[ "${STOPS[*]}" != "${STOPS_OLD[*]:-%#}" ]]
@@ -1947,7 +1986,7 @@ function recordf
 {
 	typeset termux pid ret
 	case "$REC_CMD" in
-	       	termux*) termux=1;;
+		termux*) termux=1;;
 		false) 	return 196;;
 	esac
 	[[ -e $1 ]] && rm -- "$1"  #del out file before writing
@@ -1962,7 +2001,7 @@ function recordf
 			;;
 		[RrSs]) rec_killf $pid $termux;  #redo, quit
 			trap 'exit' INT;
-		       	wait $pid;
+			wait $pid;
 			OPTV=4 WSKIP= record_confirmf;
 			recordf "$@"; return;
 			;;
@@ -2112,7 +2151,7 @@ end;"
 #request tts prompt
 function prompt_ttsf
 {
-	curl -N -Ss -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -N -Ss -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -2178,7 +2217,7 @@ function ttsf
 \"response_format\": \"${OPTZ_FMT}\"${BLOCK_USR_TTS:+,$NL}$BLOCK_USR_TTS
 }"
 		((OPTVV)) && __warmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}, Block: ${BLOCK}"
-		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play now ' '';  #!#
+		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play ' '';  #!#
 
 		prompt_ttsf "${input:-$*}" &
 		pid=$! secs=$SECONDS;
@@ -2197,9 +2236,9 @@ function ttsf
 					kill -- $pid 2>/dev/null;
 					break 1;;
 			esac
-		done </dev/tty; __clr_lineupf $((4+1+33+${#var}));  #!#
+		done </dev/tty; __clr_lineupf $((4+1+29+${#var}));  #!#
 		((ok)) || wait $pid; ret=$?;
-	       	trap 'exit' INT
+		trap 'exit' INT
 		jq . "$FOUT" >&2 2>/dev/null && ret=1  #only if response is json
 
 		case $ret in
@@ -2295,7 +2334,7 @@ function imggenf
 #image variations
 function prompt_imgvarf
 {
-	curl -\# ${OPTV:+-Ss} -L "$API_HOST${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
 		-F response_format="$OPTI_FMT" \
@@ -2866,7 +2905,7 @@ do 	__spinf 	#grep session with user regex
 					if ! grep -q $copt $sopt "${regex}" "$file" 1>&2 2>/dev/null;  #grep regex match in current file
 					then 	grep -n -o $copt $sopt "${regex}" "${file%/*}"/*"${file##*.}" 1>&2 2>/dev/null  #grep other files
 						__warmsgf 'Err:' "No match at \`${file/"$HOME"/"~"}'";
-					       	buff= ; break 2;
+						buff= ; break 2;
 					fi; ok=1;
 				fi;
 				grep $copt $sopt "${regex}" < <(_unescapef "$(cut -f1,3- -d$'\t' <<<"$buff")") >&2 || buff= ;
@@ -2892,22 +2931,22 @@ do 	__spinf 	#grep session with user regex
 			  fi;
 			  reply=$(__read_charf);
 			  case "$reply" in
-			  	[]GgSsRr/?:\;-]|[$' \t']) _sysmsgf 'grep:' '<-opt> <regex> <enter>';
+				[]GgSsRr/?:\;-]|[$' \t']) _sysmsgf 'grep:' '<-opt> <regex> <enter>';
 					__clr_ttystf;
 					read -r -e -i "${regex:-${reply//[!-]}}" regex </dev/tty;
 					skip=1 ok= ;
 					continue 2;
 					;;
-			  	[NnOo]|$'\e') ((${regex:+1})) && printf '%s\n' '---' >&2;
-				       	false;
+				[NnOo]|$'\e') ((${regex:+1})) && printf '%s\n' '---' >&2;
+					false;
 					;;
 				[AaQq]) echo abort >&2;
-				       	return 201;
+					return 201;
 					;;
 				*) 	((${regex:+1})) && printf '%s\n' '---' >&2;
-				       	break 2;
+					break 2;
 					;;
-			  esac
+			esac
 			}
 done
 			unset REPLY reply time token string buff buff_end index m n
@@ -3040,8 +3079,8 @@ function session_mainf
 		else
 		  [[ -f "$file" ]] &&
 		    if ((break))  || {
-		    	_sysmsgf 'Break session?' '[N/ys] ' ''
-		    	case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
+			_sysmsgf 'Break session?' '[N/ys] ' ''
+			case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
 		        }
 		    then 	FILECHAT="$file" cmd_runf /break
 		    fi
@@ -3078,7 +3117,7 @@ function cleanupf
 
 unset OPTMM STOPS
 #parse opts
-optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:TouUvVxwWyYzZ0123456789@:/,:.:-:"
+optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
 do
 	if [[ $opt = - ]]  #long options
@@ -3094,7 +3133,7 @@ do
 			J:synth-voice  'k:no-colo*' \
 			K:api-key   l:list-model   l:list-models \
 			L:log       m:model        m:mod   n:results \
-			o:clipboard    o:clip    p:top-p  p:top  \
+			o:clipboard  o:clip  O:ollama  p:top-p  p:top  \
 			q:insert  r:restart-sequence  r:restart-seq  r:restart \
 			R:start-sequence  R:start-seq  R:start \
 			s:stop      S:instruction  t:temperature \
@@ -3151,7 +3190,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTE OPTEXIT API_HOST GPTCHATKEY READLINEOPT;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTE OPTEXIT API_HOST OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC GPTCHATKEY READLINEOPT;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -3179,6 +3218,7 @@ do
 		k) 	OPTK=1;;
 		K) 	OPENAI_API_KEY="$OPTARG";;
 		o) 	OPTCLIP=1;;
+		O) 	OLLAMA=1;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX));;
 		r) 	RESTART="$OPTARG";;
@@ -3260,7 +3300,9 @@ then 	((OPTI+OPTII)) && MOD_IMAGE=$OPTMARG  #image
 	case "$MOD" in moderation|mod|oderation|od) 	MOD="text-moderation-stable";; esac;
 	[[ $MOD = *moderation* ]] && unset OPTC OPTW OPTWW OPTZ OPTI OPTII MTURN OPTRESUME OPTCMPL OPTEMBED
 else
-	if ((OPTC>1))  #chat
+	if ((OLLAMA))
+	then 	MOD=llama2  #llama2:latest
+	elif ((OPTC>1))  #chat
 	then 	MOD=$MOD_CHAT
 	elif ((OPTW)) && ((!MTURN))  #whisper endpoint
 	then 	MOD=$MOD_AUDIO
@@ -3280,19 +3322,59 @@ then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url
 	unset STREAM
 fi
 
-#custom host api url
-if ((${#OPENAI_API_HOST_TEXT})) && OPENAI_API_HOST=$OPENAI_API_HOST_TEXT
-	[[ $OPENAI_API_HOST != *([$IFS]) ]]  #custom host url / endpoint
-then
-	if [[ $OPENAI_API_HOST != *[$IFS] ]]
-	then  #fixed endpoint
-		unset ENDPOINTS; function set_model_epnf { 	false ;}
-		((${#OPENAI_API_HOST_TEXT})) && EPN=0 || EPN=6
-	#else #keep endpoint auto select
-	fi; API_HOST=${API_HOST%%*([/$IFS])}; set_model_epnf "$MOD";
-	_sysmsgf "HOST URL / endpoint:" "$API_HOST${ENDPOINTS[EPN]}"
-else 	
-	unset OPENAI_API_HOST OPENAI_API_HOST_TEXT
+#ollama fun
+if ((OLLAMA))
+then 	function list_modelsf
+	{
+		if ((${#}))
+		then 	curl -\# -L "${OLLAMA_API_HOST}/api/show" -d "{\"name\": \"$1\"}" -o "$FILE" &&
+			{ jq . "$FILE" || ! cat -- "$FILE" ;}
+			ollama show "$1" --modelfile  2>/dev/null;
+		else 	{
+			  printf '\nName\tFamily\tFormat\tParam\tQLvl\tSize\tModification\n'
+			  curl -s -L "${OLLAMA_API_HOST}/api/tags" -o "$FILE" &&
+			  { jq -r '.models[]|.name?+"\t"+(.details.family)?+"\t"+(.details.format)?+"\t"+(.details.parameter_size)?+"\t"+(.details.quantization_level)?+"\t"+((.size/1000000)|tostring)?+"MB\t"+.modified_at?' "$FILE" || ! cat -- "$FILE" ;}
+			} | { 	column -t -s $'\t' 2>/dev/null || ! cat -- "$FILE" ;}  #tsv
+		fi
+	}
+	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
+	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST="http://localhost:11434";
+	
+	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf;
+	_sysmsgf "OLLAMA URL / endpoint:" "$OLLAMA_API_HOST${ENDPOINTS[EPN]}";
+else
+	unset OLLAMA OLLAMA_API_HOST;
+fi
+
+#host url / endpoint
+if [[ $OPENAI_API_HOST != *([$IFS]) ]] || ((OLLAMA))
+then 	API_HOST=${API_HOST%%*([/$IFS])};
+	((OLLAMA)) ||
+	function list_modelsf
+	{
+		if ((${#}))
+		then 	curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
+			{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
+		else 	curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
+			{ jq . "$FILE" || ! cat -- "$FILE" ;}
+		fi
+	}  #https://localai.io/models/
+	function set_model_epnf
+       	{
+		if ((OPTC>1))
+		then 	OPTCMPL= EPN=6;
+		elif ((OPTC))
+		then 	OPTCMPL= EPN=0;
+		elif ((OPTCMPL))
+		then 	OPTC= EPN=0;
+		fi
+	}
+       	set_model_epnf "$MOD";
+      	#disable endpoint auto select?
+	[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
+	_sysmsgf "HOST URL / endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
+else
+	unset OPENAI_API_HOST
 fi
 
 #set ``model endpoint'' and ``model capacity''
@@ -3325,6 +3407,7 @@ then  #text editor
 	fi
 fi
 
+#tips and warnings
 if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
 	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
@@ -3391,7 +3474,18 @@ command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 trap 'cleanupf; exit;' EXIT
 trap 'exit' HUP QUIT KILL TERM
 
-if ((OPTHH&&OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN) )) && [[ -f $FILEWHISPERLOG ]]
+if ((OPTZZ))  #last response json
+then 	lastjsonf;
+elif ((OPTL))  #model list
+then 	((!${#} && ${#OPTMARG})) && set -- "$OPTMARG";
+	list_modelsf "$@";
+elif ((OPTFF))
+then 	if [[ -s "$CONFFILE" ]] && ((OPTFF<2))
+	then 	__edf "$CONFFILE";
+	else 	curl -f -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
+		CONFFILE=stdout;
+	fi; _sysmsgf 'Conf File:' "$CONFFILE";
+elif ((OPTHH && OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN) )) && [[ -f $FILEWHISPERLOG ]]
 then  #whisper log
 	if ((OPTHH>1))
 	then 	while IFS= read -r || [[ -n $REPLY ]]
@@ -3422,18 +3516,15 @@ then 	OPTRESUME=1
 	else 	cat -- "$FILECHAT"
 	fi
 	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
-elif ((OPTFF))
-then 	if [[ -s "$CONFFILE" ]] && ((OPTFF<2))
-	then 	__edf "$CONFFILE"
-	else 	curl -f -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf"
-		CONFFILE=stdout
-	fi; _sysmsgf 'Conf File:' "$CONFFILE"
-elif ((OPTZZ))      #last response json
-then 	lastjsonf
-elif ((OPTL))      #model list
-then 	list_modelsf "$@"
 elif ((OPTTIKTOKEN))
-then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:1:${#}-1}" "$(<"${@:${#}}")"; elif [[ ! -t 0 ]]; then 	__tiktokenf "$(cat)"; else 	__tiktokenf "$*"; fi; exit ;}  #option -Y (debug)
+then 	if ((OPTYY))
+	then 	if ((${#})) && [[ -f ${@:${#}} ]]
+       		then 	__tiktokenf "${@:1:${#}-1}" "$(<"${@:${#}}")";
+       		elif [[ ! -t 0 ]]
+       		then 	__tiktokenf "$(cat)";
+       		else 	__tiktokenf "$*";
+		fi; exit;
+	fi  #option -Y (debug)
 	((OPTTIKTOKEN>2)) || __sysmsgf 'Language Model:' "$MOD"
 	((${#})) || [[ -t 0 ]] || set -- "-"
 	[[ -f $* ]] && [[ -t 0 ]] && exec 0<"$*" && set -- "-"  #exec max one file
@@ -3441,8 +3532,8 @@ then 	((OPTYY)) && { 	if ((${#})) && [[ -f ${@:${#}} ]]; then 	__tiktokenf "${@:
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
 	whisperf "$@" &&
-	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) \
-		&& ((${#WHISPER_OUT}))
+	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) &&
+		((${#WHISPER_OUT}))
 	then 	echo >&2; set -- ;
 		MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
 		[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
@@ -3566,8 +3657,8 @@ else
 	[[ ${INSTRUCTION} != ?(:)*([$IFS]) ]] && _sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | foldf >&2
 
 	#warnings and tips
-	((OPTCTRD)) && __warmsgf $'\n' '* <Ctrl-V> + <Ctrl-J> for newline * '
-	((OPTCTRD+CATPR)) && __warmsgf $'\n' '* <Ctrl-D> to flush input * '
+	((OPTCTRD)) && __warmsgf '*' '<Ctrl-V> + <Ctrl-J> for newline * '
+	((OPTCTRD+CATPR)) && __warmsgf '*' '<Ctrl-D> to flush input * '
 	echo >&2  #!#
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
@@ -3644,9 +3735,9 @@ else
 								whisperf "$FILEINW" "$@";
 							)
 							else 	case $? in
-							       		196) 	unset WSKIP OPTW REPLY; continue 1;;
-								       	199) 	EDIT=1; continue 1;;
-							       	esac;
+									196) 	unset WSKIP OPTW REPLY; continue 1;;
+									199) 	EDIT=1; continue 1;;
+								esac;
 								echo record abort >&2;
 							fi;;
 						196) 	unset WSKIP OPTW REPLY; continue 1;;  #whisper off
@@ -3774,7 +3865,7 @@ else
 		fi
 
 		#vision
-		if [[ $MOD = *vision* ]]
+		if [[ $MOD = *vision* ]] || ((OLLAMA))  #how to know whether ollama model is multimodal?
 		then 	((${#}<2)) || set -- "$*";
 			_mediachatf "$1";
 			((TRUNC_IND)) && REPLY_OLD=$* && set -- "${1:0:${#1}-TRUNC_IND}";
@@ -3831,13 +3922,30 @@ else
 		then 	BLOCK="\"messages\": [$(sed -e '/^[[:space:]]*$/d' <<<"$*" | sed -e '$s/,[[:space:]]*$//')],"
 		else 	BLOCK="\"prompt\": \"${*}\","
 		fi
-		BLOCK="{
+
+		if ((OLLAMA))
+		then
+			BLOCK="{
+$( ((EPN!=6)) && ollama_mediaf && printf '%s' ',')
+$( ((EPN!=6)) && echo "\"system\": \"$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")\"," )
+$BLOCK
+\"model\": \"$MOD\", $STREAM_OPT 
+\"options\": {
+  $( ((OPTMAX_NILL)) && "\"num_predict\": -2" || echo "\"num_predict\": $OPTMAX" ),
+  \"temperature\": $OPTT, \"num_ctx\": $MODMAX,
+  $OPTA_OPT $OPTAA_OPT $OPTP_OPT
+  $OPTB_OPT $OPTBB_OPT ${OPTSTOP%%,}${BLOCK_USR:+,$NL}$BLOCK_USR
+  }
+}"
+		else
+			BLOCK="{
 $BLOCK $OPTSUFFIX_OPT
 \"model\": \"$MOD\", \"temperature\": $OPTT,
 $( ((OPTMAX_NILL && EPN==6)) || echo "\"max_tokens\": $OPTMAX," )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT
 $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
+		fi
 
 		#response colours for jq
 		if ((RETRY==1))
@@ -3847,24 +3955,29 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 
 		#request and response prompts
 		SECONDS_REQ=$SECONDS;
+		((OLLAMA)) && api_host=$API_HOST API_HOST=$OLLAMA_API_HOST;
 		if ((${#BLOCK}>32000))  #32KB
 		then 	buff="${FILE%.*}.block.json"
 			printf '%s\n' "$BLOCK" >"$buff"
 			BLOCK="@${buff}" promptf
 		else 	promptf
-		fi; RET_PRF=$?; unset buff;
+		fi; RET_PRF=$?;
+		((OLLAMA)) && API_HOST=$api_host;
+		unset buff api_host;
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
 		(( (RET_PRF>120 && !STREAM) || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B#
 		((RET_PRF>120)) && INT_RES='#'; REPLY_OLD="${REPLY:-$*}";
 
 		#record to hist file
 		if 	if ((STREAM))  #no token information in response
-			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}  #del x; unescaped str;
+			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}
 				ans=$(escapef "$ans")
-				tkn_ans=$( ((EPN==6)) && unset A_TYPE;
-					__tiktokenf "${A_TYPE}${ans}");
-				((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD;
+				((OLLAMA)) || {
+				  tkn_ans=$( ((EPN==6)) && unset A_TYPE; __tiktokenf "${A_TYPE}${ans}");
+				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD
+				}
 			else
+				((OLLAMA)) ||
 				tkn=($(jq -r '.usage.prompt_tokens//"0",
 					.usage.completion_tokens//"0",
 					(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$FILE") )
@@ -3874,6 +3987,10 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 					((${#buff}>1)) && buff=${buff:1:${#buff}-2}  #del lead and trail ""
 					ans="${ans}"${ans:+${buff:+\\n---\\n}}"${buff}"
 				done
+			fi
+			if ((OLLAMA))
+			then 	tkn=($(jq -r -s '.[-1]|.prompt_eval_count//"0", .eval_count//"0", .created_at//"0", (.eval_count/(.eval_duration/1000000000)?)//"0"' "$FILE") )
+				((STREAM)) && ((MAX_PREV+=tkn[1]));
 			fi
 
 			if [[ -z "$ans" ]] && ((RET_PRF<120))
@@ -3889,13 +4006,13 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 					then    ESC_OLD=$ESC
 					  ((HERR+=HERR_DEF*2)) ;BAD_RES=1 PSKIP=1; set --
 					  __warmsgf "Adjusting context:" -$((HERR_DEF+HERR))%
-					 ((HERR<HERR_DEF*4)) && _sysmsgf '' "* Set \`option -y' to use Tiktoken! * "
+					  ((HERR<HERR_DEF*4)) && _sysmsgf '' "* Set \`option -y' to use Tiktoken! * "
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
 				fi  #adjust context err
 			fi;
-		       	unset BAD_RES PSKIP ESC_OLD;
-			((${#tkn[@]}>2||STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
+			unset BAD_RES PSKIP ESC_OLD;
+			((${#tkn[@]}>2 || STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
 			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]
 			then 	Color200=${NC} __warmsgf \
@@ -3926,17 +4043,18 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 			set -- ;continue
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_IND_CMD[@]}));
-	       	unset MEDIA_CHAT  MEDIA_CHAT_CMD  MEDIA_IND  MEDIA_IND_CMD;
+		unset MEDIA_CHAT  MEDIA_CHAT_CMD  MEDIA_IND  MEDIA_IND_CMD;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
 		
-		unset TKN_RATE;  #estimate token generation rate
-		if 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]  #((OPTTIK || !STREAM))
+		if ((OLLAMA))  #estimate token generation rate
+		then 	TKN_RATE=("${tkn[3]}" "${tkn[1]}")
+		elif 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]  #((OPTTIK || !STREAM))
 		then 	((SECONDS==SECONDS_REQ)) && ((--SECONDS_REQ));
-			TKN_RATE=($(( ${tkn[1]:-$tkn_ans} / (SECONDS-SECONDS_REQ) )) "${tkn[1]:-$tkn_ans}")
-		fi >&2 #2>/dev/null
-			
+			TKN_RATE=( $(( ${tkn[1]:-${tkn_ans:-0}} / (SECONDS-SECONDS_REQ) ))  "${tkn[1]:-$tkn_ans}" )
+		fi >&2
+
 		if ((OPTW)) && ((!OPTZ))
 		then
 			SLEEP_WORDS=$(wc -w <<<"${ans}");
@@ -3972,5 +4090,6 @@ fi
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
+# - The number of tokens in streaming, may be had counting how many JSON objects received
 
 # vim=syntax sync minlines=1200

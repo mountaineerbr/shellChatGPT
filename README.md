@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI API for ChatGPT, DALL-E, Whisper, and TTS.
+Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI and Ollama integration.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
@@ -9,46 +9,46 @@ Chat completions with streaming by defaults.
 
 ## 🚀 Features
 
-- Text and chat completions, [**gtp-4-vision** support](#gpt-4-vision).
-- **Voice in** (whisper) and **voice out** (TTS) [chat / REPL modes](#voice-in-and-out-chat-completions).
-- Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash
-- _Follow up_ conversations, _preview/regenerate_ responses
-- Manage _sessions_, _continue_ from last session, _print out_ session
-- Custom prompts, easily create prompts and re-use them!
-- Integration with [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts) and [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-- Insert mode of text completions <!-- _(deprecated ?)_ -->
-- Fast and accurately count chat tokens with _tiktoken_ (requires python, set `option -y`)
-- Personalise colour scheme
-- _Generate images_ from text input
+- Text and chat completions with [**gtp-4-vision** support](#gpt-4-vision)
+- **Text editor interface**, _Bash readline_, and _cat_ input modes
+- **Preview**, and  **regenerate responses**
+- **Manage sessions**, _print out_ previous sessions
+- Instruction prompt manager, easily create and set the initial system prompt
+- Voice in (**Whisper**) and voice out (**TTS**) [chat / REPL mode](#voice-in-and-out-chat-completions) (`options -cczw`)
+- Integration with [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts),
+   [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh),
+   [mudler's LocalAI](#localai), and
+   [Ollama](#ollama)
+- _Tiktoken_ for accurate tokenization (optional)
+- Colour scheme personalisation, and a configuration file
+- Stdin and text file as input support
+- Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users).
+
+<!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
+<!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
+<!-- - Insert mode of text completions --> <!-- _(deprecated ?)_ -->
+<!-- - Choose amongst all available models from a pick list (`option -m.`) -->
+<!-- - *Lots of* command line options -->
+<!-- - Converts response base64 JSON data to PNG image locally -->
+
+
+### More Features
+
+- _Generate images_ from text input (`option -i`)
 - _Generate variations_ of images
-- _Edit images_, easily generate an alpha mask
+- _Edit images_ with `imagmagick` (optional to generate alpha mask)
 - _Transcribe audio_ from various languages (`option -w`)
 - _Translate audio_ into English text (`option -W`)
 - _Text-to-speeech_ functionality (`option -z`)
-- Record a prompt voice, hear the answer back from the AI (`options -cczw`).
-- Choose amongst all available models from a pick list (`option -m.`)
-- *Lots of* command line options
-- Converts response base64 JSON data to PNG image locally
-- Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users).
 
 
 ## ✨ Getting Started
 
-### 💾 Installation
-
-Just download the stand-alone [`chatgpt.sh`](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/chatgpt.sh) and make it executable or clone this repo.
-
-Optionally, download and set the config file [`~/.chatgpt.conf`](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf).
-
 
 ### ✔️ Required Packages
 
-- [OpenAI GPTChat key](https://platform.openai.com/account/api-keys)
 - `Bash` <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
 - `cURL`, and `JQ`
-
-_OBS:_ There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh)
-available, however incomplete.
 
 
 ### Optional Packages 
@@ -63,10 +63,37 @@ These are required for specific features.
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - open images, set clipboard
 
 
+### 💾 Installation
+
+**A.** Download the stand-alone
+[`chatgpt.sh` script](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/chatgpt.sh)
+and make it executable:
+
+    wget https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/chatgpt.sh
+
+    chmod +x ./chatgpt.sh
+
+
+**B.** Or clone this repo:
+
+    git clone https://gitlab.com/fenixdragao/shellchatgpt.git
+
+
+**C.** Optionally, download and set the configuration file
+[`~/.chatgpt.conf`](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf):
+
+    #save copy:
+    chatgpt.sh -FF >> ~/.chatgpt.conf
+    
+    #edit:
+    chatgpt.sh -F
+
+
+<!--
 ### 🔥 Usage
 
-- Set your OpenAI API key with the environment variable `$OPENAI_API_KEY`,
-  or set `option -K [KEY]`, or set the configuration file.
+- Set your [OpenAI GPTChat key](https://platform.openai.com/account/api-keys)
+   with the environment variable `$OPENAI_API_KEY`, or set `option -K [KEY]`, or set the configuration file.
 - Just write your prompt as positional arguments after setting options!
 - Chat mode may be configured with Instruction or not.
 - Set temperature value with `-t [VAL]` (0.0 to 2.0), defaults=0.
@@ -74,9 +101,9 @@ These are required for specific features.
 - Some models require a single `prompt` while others `instruction` and `input` prompts.
 - To generate images, set `option -i` and write your prompt.
 - Make a variation of an image, set -i and an image path for upload.
+-->
 
-
-## Script Modes and Examples
+### 🔥 Usage Examples 🔥
 
 ![Chat cmpls with prompt confirmation](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_verb.gif)
 
@@ -101,14 +128,6 @@ Create **Marv, the sarcastic bot** manually:
 
 <!-- **TIP:** Set **response streaming** with `option -g`, or set `$STREAM=1` in the configuration file. -->
 
-**TIP:** Set `option -VV` to see the raw request body, or run chat command
-`!info` to check model configuration!
-
-
-Complete text in multi-turn:
-
-    chatgpt.sh -d -S'The following is a newspaper article.' "It all starts when FBI agents arrived at the governor house and"
-
 
 ### 💬  Native Chat Completions
 
@@ -117,7 +136,7 @@ Start a new session in chat mode, and set a different temperature (*gpt-3.5 and 
     chatgpt.sh -cc -t0.7
 
 
-#### GPT-4-Vision
+#### Vision Models (GPT-4-Vision)
 
 To send an `image` / `url` to vision models, start the script and then either
 set the image with the `!img` chat command with one or more filepaths / urls
@@ -135,15 +154,21 @@ Alternatively, set the image paths / urls at the end of the prompt interactively
     Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
 
 
+**TIP:** Run chat command `!info` to check model configuration!
+
+**DEBUG:** Set `option -VV` to see the raw JSON request body.
+
+
 ### Voice In and Out + Chat Completions
 
-🗣️ Chat completion with **voice as input**:
+🗣️ Chat completion with **Whisper**:
 
     chatgpt.sh -ccw
 
 Chat in Portuguese with voice in and out:
 
     chatgpt.sh -cczw pt
+
 
 <!-- **TIP**: Set _-vv_ to have auto sleep for reading time of last response,
 and less verbose in voice input chat! *Only without option -z!* -->
@@ -182,14 +207,15 @@ One-shot text completion:
 
     chatgpt.sh "Hello there! What is your name?"
 
-Multi-turn text completion with Curie model:
+
+**NOTE:** For multiturn, set `option -d`.
 
 
-    chatgpt.sh -d -m 'text-curie-001' "List biggest cities in the world."
-
-_For better results,_ ***set an instruction/system prompt***:
+***Set an instruction prompt*** for better results:
     
-    chatgpt.sh -d -S'You are an AI assistant.'  "List biggest cities in the world."
+    chatgpt.sh -d -S'The following is a newspaper article.' "It all starts when FBI agents arrived at the governor house and"
+
+    chatgpt.sh -d -S'You are an AI assistant.'  "The list below contain the 10 biggest cities in the w"
 
 
 ### Insert Mode of Text Completions  <!-- _(deprecated)_ -->
@@ -200,14 +226,12 @@ string `[insert]` where the model should insert text:
     chatgpt.sh -q 'It was raining when [insert] tomorrow.'
 
 
-**NOTE:** This example works with _no instruction_ prompt set!
+**NOTE:** This example works with _no instruction_ prompt!
 An instruction prompt in this mode may interfere with insert completions.
 
 **NOTE:** [Insert mode](https://openai.com/blog/gpt-3-edit-insert)
-works with model `gpt-3.5-turbo-instruct`.
-
+works with model `gpt-3.5-turbo-instruct`. This endpoint _may deprecate_.
 <!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
-
 
 <!--
 ### Text Edits  _(discontinued)_
@@ -223,7 +247,6 @@ an input prompt (optional):
 Edits works great with INSTRUCTION and an empty prompt (e.g. to create
 some code based on instruction only).
 
----
 
 Use _gpt-4+ models_ and the right instructions.
 
@@ -234,7 +257,7 @@ is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978
 
 ## ⚙️ Prompts
 
-Unless the chat `option -c` or `-cc` are set, _no_ instruction is
+Unless the chat `option -c` or `-cc` are set, _no instruction_ is
 given to the language model. On chat mode, if no instruction is set,
 minimal instruction is given, and some options set, such as increasing
 temp and presence penalty, in order to un-lobotomise the bot.
@@ -243,36 +266,35 @@ Prompt engineering is an art on itself. Study carefully how to
 craft the best prompts to get the most out of text, code and
 chat completions models.
 
-Note that the model's steering and capabilities require prompt engineering
+The model steering and capabilities require prompt engineering
 to even know that it should answer the questions.
+
+<!--
+**NOTE:** Heed your own instruction (or system prompt), as it
+may refer to both *user* and *assistant* roles.
+-->
 
 
 ### ⌨️  Custom Prompts
 
 Set a one-shot instruction prompt with `option -S`:
 
-
     chatgpt.sh -cc -S 'You are a PhD psycologist student.' 
 
     chatgpt.sh -ccS'You are a professional software programmer.'
 
 
-To create or load a personal prompt template file,
-set `option -S` with the operator dot and the name of the prompt
-as argument:
-
+To create or load a prompt template file, set `option -S` with the
+operator dot and the name of the prompt as argument:
 
     chatgpt.sh -cc -S.psycologist 
 
-    chatgpt.sh -cc -S.software_programmer
+    chatgpt.sh -cc -S..software_programmer
 
 
 This will load the custom prompt, or create it if it does not yet exist.
-
-<!--
-**Obs:** heed your own instruction (or system prompt), as it
-may refer to both *user* and *assistant* roles.
--->
+In the second example, single-shot editing will be skiped after loading
+prompt _software_programmer_.
 
 
 ### 🔌 Awesome Prompts
@@ -296,7 +318,18 @@ _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 
 ## 💡  Notes and Tips
 
+- There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh),
+  but it will not be updated.
 
+- Run chat commands with either _operator_ `!` or `/`.
+
+- Edit live history entries with command `!hist`, for context injection.
+
+- Add operator forward slash `/` to the end of prompt to trigger **preview mode**.
+
+- One can regenerate a response typing in a new prompt a single slash `/`.
+
+<!--
 - Generally, my evaluation on models prefers using `davinci`, or
 `text-davinci-003` for less instruction intensive tasks, such as
 brainstorming. The newer models, `gpt-3.5-turbo-instruct`, may be
@@ -308,33 +341,24 @@ be more creative and better at tasks at general, than
 newer iterations of the same models. So, that is why we default to
 `gpt-3.5-turbo-0301`, and, reccomend the model `gpt-4-0314`.
 
-<!--
+
 https://www.refuel.ai/blog-posts/gpt-3-5-turbo-model-comparison
 https://www.reddit.com/r/ChatGPT/comments/14u51ug/difference_between_gpt432k_and_gpt432k0314/
 https://www.reddit.com/r/ChatGPT/comments/14km5xy/anybody_else_notice_that_gpt40314_was_replaced_by/
 https://www.reddit.com/r/ChatGPT/comments/156drme/gpt40314_is_better_than_gpt40613_at_generating/
 https://stackoverflow.com/questions/75810740/openai-gpt-4-api-what-is-the-difference-between-gpt-4-and-gpt-4-0314-or-gpt-4-0
--->
+
 
 - The original base models `davinci` and `curie`,
 and to some extent, their forks `text-davinci-003` and `text-curie-001`,
 generate very interesting responses (good for
 [brainstorming](https://github.com/mountaineerbr/shellChatGPT/discussions/16#discussioncomment-5811670]))!
 
-
 - Write your customised instruction as plain text file and set that file
 name as the instruction prompt.
 
 - When instruction and/or first prompt are the name of file, the file
 will be read and its contents set as input, accordingly.
-
-- Run chat commands with either _operator_ `!` or `/`.
-
-- Edit live history entries with command `!hist`, for context injection.
-
-- Add operator forward slash `/` to the end of prompt to trigger **preview mode**.
-
-- One can regenerate a response typing in a new prompt a single slash `/`.
 
 - Set clipboard with the latest response with `option -o`.
 
@@ -348,9 +372,10 @@ optionally set instruction for the new session:
     ```
 
   This will create a history file named `computing.tsv` in the cache directory.
+-->
 
 
-## More Script Modes and Examples
+## More Examples and Script Modes (Endpoints)
 
 ### 🖼️ Image Generations
 
@@ -382,7 +407,7 @@ Generate image variation:
 
 ![Showing off Image Edits - Inpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits2.gif)
 
-![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png)
+<!-- ![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png) -->
 
 
 ### 🔊 Audio Transcriptions / Translations
@@ -395,7 +420,7 @@ The prompt should match the audio language:
     chatgpt.sh -w path/to/audio.mp3 "en" "This is a poem about X."
 
 
-*1.* Generate transcription from voice recording, set Portuguese as the language to transcribe to:
+**1.** Generate transcription from voice recording, set Portuguese as the language to transcribe to:
 
     chatgpt.sh -w pt
 
@@ -403,32 +428,32 @@ The prompt should match the audio language:
 This also works to transcribe from one language to another.
 
 
-*2.* Transcribe any language audio input **to Japanese** (_prompt_ should be in
+**2.** Transcribe any language audio input **to Japanese** (_prompt_ should be in
 the same language as the input audio language, preferably):
 
     chatgpt.sh -w ja "A job interview is currently being done."
 
 
-*3.1* Translate English audio input to Japanese, and generate audio output from text.
+**3.1** Translate English audio input to Japanese, and generate audio output from text.
 
     chatgpt.sh -wz ja "Getting directions to famous places in the city."
 
 
-*3.2* Also doing it conversely, this gives an opportunity to (manual)
+**3.2** Also doing it conversely, this gives an opportunity to (manual)
 conversation turns of two speakers of different languages. Below,
 a Japanese speaker can translate its voice and generate audio in the target language.
 
     chatgpt.sh -wz en "Providing directions to famous places in the city."
 
 
-*4.* Translate audio file or voice recording from any language to English:
+**4.** Translate audio file or voice recording from any language to English:
 
     chatgpt.sh -W [audio_file]
 
     chatgpt.sh -W
 
 
-_OBS:_ get phrasal-level timestamps setting `option -w` or `option -W` twice.
+**NOTE:** Generate phrasal-level timestamps double setting `option -ww`, or `option -WW`.
 
 
 ![Transcribe audio with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
@@ -443,7 +468,7 @@ Start with a commented out code or instruction for the model,
 or ask it in comments to optimise the following code, for example.
 -->
 
-
+<!--
 ## 🌎 Environment
 
 - Set `$OPENAI_API_KEY` with your OpenAI API key.
@@ -451,21 +476,7 @@ or ask it in comments to optimise the following code, for example.
 - Optionally, set `$CHATGPTRC` with path to the configuration file (run
 `chatgpt.sh -FF` to download a template configuration file.
 Defaults location = `~/.chatgpt.conf`.
-
-
-## Configuration File
-
-To save and then edit the template configuration file, run:
-
-
-```
-    #save a copy of the conf file:
-    chatgpt.sh -FF > ~/.chatgpt.conf
-    
-    #edit with text editor or simply:
-    chatgpt.sh -F
-```
-
+-->
 
 <!--
 ## 🐚 Shell Interpreters
@@ -506,47 +517,45 @@ in Arch Linux and derivative distros.
 This PKGBUILD generates the package `chatgpt.sh-git`.
 Below is an installation example with just the PKGBUILD.
 
+    cd $(mktemp -d)
+    
+    wget https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/PKGBUILD
+     
+    makepkg
+        
+    pacman -U chatgpt.sh-git*.pkg.tar.zst
 
-```
-cd $(mktemp -d)
-
-wget https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/PKGBUILD
-
-makepkg
-
-pacman -U chatgpt.sh-git*.pkg.tar.zst
-```
 
 <!--
-There is a [*PKGBUILD*](https://aur.archlinux.org/packages/chatgpt.sh) entry available to install the package
-in Arch Linux and derivative distros.
+There is a [*PKGBUILD*](https://aur.archlinux.org/packages/chatgpt.sh)
+entry available to install the package in Arch Linux and derivative distros.
 -->
 
 
 ## Termux Users
 
-## Optional Deps
+
+### Optional Dependencies
 
 For recording audio (Whisper, `option -w`), we reccomend `termux-microphone-record`, and
 for playing audio (TTS, `option -z`), install `play-audio`.
 
 To set the clipboard, it is required `termux-clipboard-set`.
 
+
 ### Tiktoken
 
-To run `tiktoken` with `options -T -y`, be sure to have your system
-updated and installed with `python`, `rust`, and `rustc-dev` packages
-for building python `tiktoken`.
+Under Termux, make sure to have your system updated and installed with
+`python`, `rust`, and `rustc-dev` packages for building `tiktoken`.
 
-```
-pkg update
+    pkg update
+    
+    pkg upgrade
+    
+    pkg install python rust rustc-dev
+    
+    pip install tiktoken
 
-pkg upgrade
-
-pkg install python rust rustc-dev
-
-pip install tiktoken
-```
 
 <!--
 Users of Termux may have some difficulty compiling the original Ksh93 under Termux.
@@ -561,13 +570,91 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 -->
 
 
+## LocalAI
+
+Make sure you have got [mudler's LocalAI](https://github.com/mudler/LocalAI),
+server set up and running.
+
+The server can be run as a docker container or a
+[binary can be downloaded](https://github.com/mudler/LocalAI/releases).
+Check LocalAI tutorials
+[Container Images](https://localai.io/basics/getting_started/#container-images),
+and [Run Models Manually](https://localai.io/docs/getting-started/manual)
+for an idea on how to install, download a model and set it up.
+
+**NOTE:** Model management (downloading and setting up) must follow
+the API software guidelines.
+
+     ┌───────────────────────────────────────────────────┐
+     │                   Fiber v2.50.0                   │
+     │               http://127.0.0.1:8080               │
+     │       (bound on host 0.0.0.0 and port 8080)       │
+     │                                                   │
+     │ Handlers ............. 1  Processes ........... 1 │
+     │ Prefork ....... Disabled  PID ..................1 │
+     └───────────────────────────────────────────────────┘
+
+
+With the LocalAI server running and the URL and port at hand,
+we need editing the script configuration file `.chatgpt.conf`.
+
+    vim ~/.chatgpt.conf
+
+    # OR
+
+    chatgpt.sh -F
+
+
+Set the following variable:
+
+    # ~/.chatgpt.conf
+    
+    OPENAI_API_HOST="http://127.0.0.1:8080"
+
+
+Finally, when running `chatgpt.sh`, set the model name:
+
+    chatgpt.sh -cc -m luna-ai-llama2
+
+
+Setting some stop sequences may be needed to prevent the
+model from generating text past context:
+
+    chatgpt.sh -cc -m luna-ai-llama2  -s'### Response:'  -s'### User:'
+
+
+And that's it!
+<!-- LocalAI only tested with text and chat completion models (vision), not tested with all the API endpoints -->
+
+
+## Ollama
+
+Visit [Ollama repository](https://github.com/ollama/ollama/),
+and follow the instructions to install, download models, and set up
+the server.
+
+After having Ollama server running, set `option -O`, and the name of
+the model in `chatgpt.sh`:
+
+    chatgpt.sh -cc -O -m llama2
+
+
+If Ollama server URL is not the defaults `http://localhost:11434`,
+edit `chatgpt.sh` configuration file, and set the following variable:
+
+    # ~/.chatgpt.conf
+    
+    OLLAMA_API_HOST="http://192.168.0.3:11434"
+
+
 ## 🎯  Project Objectives
 
-- Implement most nice features from OpenAI API.
+- Implement nice features from OpenAI API version 1.
 
 - Provide the closest API defaults.
 
 - Let the user customise defaults (as homework).
+
 
 <!--
 ## Distinct Features
@@ -589,8 +676,10 @@ _see_ [tkn-cnt.py](https://github.com/mountaineerbr/scripts/blob/main/tkn-cnt.py
 
 ## ⚠️ Limitations
 
-- OpenAI **API version 1** is the focus of the present project implementation,
-but not all features of the API will be covered.
+- OpenAI **API version 1** is the focus of the present project implementation.
+Not all features of the API will be covered.
+
+- See _BUGS AND LIMITS_ section in the [man page](man/README.md).
 
 - Bash shell truncates input on `\000` (null).
 
@@ -599,8 +688,6 @@ the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
 
 - Garbage in, garbage out. An idiot savant.
-
-- See _BUGS AND LIMITS_ section in the [man page](man/README.md).
 
 
 <!--
@@ -623,6 +710,44 @@ Alternatively, a help page snippet can be printed with `chatgpt.sh -h`.
 [edshamis](https://www.github.com/edshamis)
 
 
+## Acknowledgements
+
+The following projects are worth remarking.
+They were studied during development of this script and used as referencial code sources.
+
+1. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
+2. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
+3. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
+4. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
+5. [mudler's LocalAI](https://github.com/mudler/LocalAI)
+6. [Ollama](https://github.com/ollama/ollama/)
+7. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+8. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+<!-- https://huggingface.co/ -->
+
+
+<!--
+NOTES
+
+Issue: provide basic chat interface
+https://github.com/mudler/LocalAI/issues/1535
+
+
+Issue: OpenAI compatibility: Images edits and variants #921
+Now that the groundwork for diffusers support has been done, this is a tracker for implementing variations and edits of the OpenAI spec:
+
+    https://platform.openai.com/docs/guides/images/variations
+    https://platform.openai.com/docs/guides/images/edits
+
+Variations can be likely guided by prompt with img2img and https://github.com/LambdaLabsML/lambda-diffusers#stable-diffusion-image-variations
+
+Edits can be implemented with huggingface/diffusers#1825
+https://github.com/mudler/LocalAI/issues/921
+
+
+-->
+
+
 <br />
 
 Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mountaineerbr/shellChatGPT/discussions/1)!
@@ -640,6 +765,12 @@ Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mo
 _Mirror_
 
 <https://github.com/mountaineerbr/shellChatGPT>
+
+<!--
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=mountaineerbr/shellChatGPT&type=Date)](https://star-history.com/#mountaineerbr/shellChatGPT&Date)
+-->
 
 <br />
 <p align="center">

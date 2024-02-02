@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.36.3 | General Commands Manual
+% CHATGPT.SH(1) v0.37 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -49,7 +49,6 @@ in the middle of the input prompt. Insert mode works completing
 between the end of the text preceding the flag, and ends completion
 with the succeeding text after the flag.
 Insert mode works with model `gpt-3.5-turbo-instruct`.
-
 <!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
 
 Positional arguments are read as a single **PROMPT**. Model **INSTRUCTION**
@@ -140,6 +139,9 @@ accurate fast (we fork tiktoken as a coprocess for fast token queries).
 Useful for rebuilding history context independently from the original
 model used to generate responses.
 
+The moderation endpoint can be accessed by setting the model name
+to _text-moderation-latest_.
+
 Stdin is supported when there is no positional arguments left
 after option parsing. Stdin input sets a single PROMPT.
 
@@ -147,7 +149,7 @@ While _cURL_ is in the middle of transmitting a request, or receiving
 a response, \<_CTRL-C_\> may be pressed once to interrupt the call.
 
 Press \<_CTRL-\\_> to exit from the script, even if recording,
-requesting, or playing tts.
+requesting, or playing TTS.
 
 User configuration is kept at "_~/.chatgpt.conf_".
 Script cache is kept at "_~/.cache/chatgptsh_".
@@ -155,14 +157,27 @@ Script cache is kept at "_~/.cache/chatgptsh_".
 A personal OpenAI API is required, set it with `option -K`.
 See also **ENVIRONMENT section**.
 
-The moderation endpoint can be accessed by setting the model name
-to _moderation_ (latest model).
+This script also supports warping LocalAI and Ollama APIs.
 
-See the online man page and script usage examples at:
-<https://github.com/mountaineerbr/shellChatGPT/tree/main>.
+For LocalAI integration, set environment **$OPENAI_API_HOST**
+with the server URL.
+<!-- LocalAI only tested with text and chat completion models (vision), not tested with all the API endpoints -->
+
+For Ollama, set `option -O`, and set **$OLLAMA_API_HOST** if
+the server URL is different from the defaults.
+
+Note that model management (downloading and setting up) must
+follow the LocalAI and Ollama API software guidelines.
+
+Command "`!block` \[_args_]" may be run to set raw model options
+in JSON syntax acording to each API.
+Alternativelly, set envar **$BLOCK_USR**.
 
 For complete model and settings information, refer to OpenAI
 API docs at <https://platform.openai.com/docs/>.
+
+See the online man page and `chatgpt.sh` usage examples at:
+<https://gitlab.com/fenixdragao/shellchatgpt>.
 
 
 ### TEXT / CHAT COMPLETIONS
@@ -221,15 +236,15 @@ causes the text following it to be appended immediately to the last
 (response) prompt text.
 
 
-#### 2.4 Voice input (whisper), and voice output (tts)
+#### 2.4 Voice input (Whisper), and voice output (TTS)
 
 The `options -ccwz` may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes.
 When setting `flag -w`, or `flag -z`, the first positional paramenters are read as
-whisper, or tts  arguments. When setting both `flags -wz`,
-add a double hyphen to set first whisper, and then tts arguments.
+Whisper, or TTS  arguments. When setting both `flags -wz`,
+add a double hyphen to set first Whisper, and then TTS arguments.
 
-Set chat mode, plus whisper language and prompt, and the tts voice option argument:
+Set chat mode, plus Whisper language and prompt, and the TTS voice option argument:
 
     chatgpt.sh -ccwz  en 'whisper prompt'  --  nova
 
@@ -309,8 +324,8 @@ may be either "`!`", or "`/`".
       `-R`    `!start`     \[_SEQ_]      Set start sequence.
       `-s`    `!stop`      \[_SEQ_]      Set one stop sequence.
       `-t`    `!temp`      \[_VAL_]      Set temperature.
-      `-w`    `!rec`      \[_ARGS_]      Toggle voice chat mode (whisper),
-                                           optionally set arguments to whisper.
+      `-w`    `!rec`      \[_ARGS_]      Toggle Whisper. Optionally, set arguments.
+      `-z`    `!tts`      \[_ARGS_]      Toggle TTS chat mode (speech out).
     `!blk`    `!block`    \[_ARGS_]      Set and add custom options to JSON request.
   --------    -----------------------    --------------------------------------------
 
@@ -594,19 +609,16 @@ Setting **temperature** has an effect, the higher the more random.
 :    Initial initial instruction, or system message for chat mode.
 
 
-<!--
 **OLLAMA_API_HOST**
 
 : Ollama host URL (used with `option -O`).
--->
 
 
 **OPENAI_API_HOST**
 
-**OPENAI_API_HOST_TEXT**
+**OPENAI_API_HOST_FIXED**
 
-:    Custom host URL with an endpoint, or append a space to the end of
-     the string to keep endpoint auto-selection.
+: Custom host URL. The _STATIC_ parameter disables endpoint auto-selection.
 
 
 **OPENAI_KEY**
@@ -1006,11 +1018,9 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Copy response to clipboard.
 
 
-<!--
 **-O**, **\--ollama**
 
 : Make requests to Ollama server (cmpls/chat).
--->
 
 
 **-u**, **\--multi**
