@@ -154,13 +154,15 @@ ENVIRONMENT section.
 This script also supports warping LocalAI and Ollama APIs.
 
 For LocalAI integration, set environment $OPENAI_API_HOST with the
-server URL.
+server URL. List models with option -l, or run /models. in chat mode.
+Install models with -l or /models and install \[_gallery_@_model_name_].
+Defaults gallery is HuggingFace.
 
 For Ollama, set option -O, and set $OLLAMA_API_HOST if the server URL is
 different from the defaults.
 
 Note that model management (downloading and setting up) must follow the
-LocalAI and Ollama API software guidelines.
+Ollama project guidelines and own methods.
 
 Command “!block [args]” may be run to set raw model options in JSON
 syntax acording to each API. Alternativelly, set envar $BLOCK_USR.
@@ -275,7 +277,7 @@ or “/”.
   Script   Settings and UX   
   -------- ----------------- -------------------------------------------------------
   -g       !stream           Toggle response streaming.
-  -l       !models           List language model names.
+  -l       !models [NAME]    List language models or show model details.
   -o       !clip             Copy responses to clipboard.
   -u       !multi            Toggle multiline prompter. <CTRL-D> flush.
   -uu      !!multi           Multiline, one-shot. <CTRL-D> flush.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.37.3  jan/2024  by mountaineerbr  GPL+3
+# v0.37.4  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -277,7 +277,7 @@ Chat Commands
      !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
     --- Script Settings and UX ------------------------------------
        -g      !stream           Toggle response streaming.
-       -l      !models           List language model names.
+       -l      !models  [NAME]   List language models or model details.
        -o      !clip             Copy responses to clipboard.
        -u      !multi            Toggle multiline, ctrl-d flush.
        -uu    !!multi            Multiline, one-shot, ctrl-d flush.
@@ -870,9 +870,10 @@ function list_modelsf
 
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! cat -- "$FILE"
-	else 	jq -r '.data[].id' "$FILE" | sort || ! cat -- "$FILE"
-	fi && printf '%s\n' text-moderation-latest text-moderation-stable ||
-	! __warmsgf 'err:' 'model list'
+	else 	jq -r '.data[].id' "$FILE" | sort \
+		&& printf '%s\n' text-moderation-latest text-moderation-stable \
+		|| ! cat -- "$FILE"
+	fi || ! __warmsgf 'Err:' 'Model list'
 }
 
 function pick_modelf
@@ -889,7 +890,7 @@ function pick_modelf
 			select mod in ${MOD_LIST[@]:-err}
 			do 	break;
 			done </dev/tty; REPLY=${REPLY//[$' \t\b\r']}
-			[[ \ ${MOD_LIST[*]}\  = *\ "$REPLY"\ * ]] && mod=$REPLY && break;
+			[[ \ ${MOD_LIST[*]:-err}\  = *\ "$REPLY"\ * ]] && mod=$REPLY && break;
 		done;  #pick model by number or name
 	fi; MOD=${mod:-$MOD};
 }
@@ -1343,8 +1344,12 @@ function cmd_runf
 			_sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_IND_CMD[@]}))\
  --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
 			;;
-		models*)
-			list_modelsf "${*##models*([$IFS])}" | less >&2
+		-l*|models|models\ ?*|model\ [Ii]nstall*|[Ii]nstall*)
+			set -- "${*##@(-l|models|model\ )*([$IFS])}";
+			if [[ $1 = *[Ii]nstall* ]]
+			then 	list_modelsf "$*";
+			else 	list_modelsf "$*" | less >&2;
+			fi
 			;;
 		-m*|model*|mod*)
 			set -- "${*##@(-m|model|mod)}"; set -- "${1//[$IFS]}"
@@ -3352,11 +3357,35 @@ then 	API_HOST=${API_HOST%%*([/$IFS])};
 	((OLLAMA)) ||
 	function list_modelsf  #LocalAI only
 	{
-		if ((${#}))
-		then 	curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
+		if [[ $* = [Ii]nstall* ]]  #install a model
+		then
+			typeset response job_id block proc msg_old msg
+			set -- "$*"; set -- "${1##[Ii]nstall$SPC}";
+			if [[ $1 = *.yaml ]]
+			then
+				block="{\"url\": \"$1\"}";
+			else
+				[[ $1 = *@* ]] || set -- "huggingface@$1";
+				block="{\"id\": \"$1\"}";
+			fi; echo >&2;
+			( trap 'printf "%s\\a\\n" " The job is still running server-side!" >&2; exit 1;' HUP QUIT KILL TERM;
+			response=$(curl -\# -L -H "Content-Type: application/json" "${API_HOST}/models/apply" -d "$block")
+			job_id=$(jq -r '.uuid' <<<"$response")
+			while proc=$(curl -s -L "${API_HOST}/models/jobs/$job_id") && [[ -n $proc ]] || break
+				[[ $(jq -r '.processed' <<<"$proc") != "true" ]]
+			do
+				msg=$(jq -r '"progress: "+.downloaded_size?+" / "+.file_size?+"\t"+(.progress|tostring)?+" %"' <<<"$proc");
+				__clr_lineupf ${#msg_old}; printf '%s\n' "$msg" >&2; msg_old=$msg;
+				sleep 1;
+			done;
+			jq -r '.error//empty,.message//empty,"Job completed"' <<<"$proc" >&2; )
+		elif ((${#}))
+		then
+			curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
 			{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
-		else 	curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
-			{ jq -r '.[].name//empty' "$FILE" || ! cat -- "$FILE" ;}
+		else
+			curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
+			{ jq -r '.[].name//empty' "$FILE" | sed -e 's/__/\//g' || ! cat -- "$FILE" ;}
 		fi
 	}  #https://localai.io/models/
 	#GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}, {"url": "github:go-skynet/model-gallery/huggingface.yaml","name":"huggingface"}]'
@@ -3478,7 +3507,7 @@ trap 'exit' HUP QUIT KILL TERM
 if ((OPTZZ))  #last response json
 then 	lastjsonf;
 elif ((OPTL))  #model list
-then 	((!${#} && ${#OPTMARG})) && set -- "$OPTMARG";
+then
 	list_modelsf "$@";
 elif ((OPTFF))
 then 	if [[ -s "$CONFFILE" ]] && ((OPTFF<2))

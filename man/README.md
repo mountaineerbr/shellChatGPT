@@ -171,14 +171,16 @@ A personal OpenAI API is required, set it with `option -K`. See also
 This script also supports warping LocalAI and Ollama APIs.
 
 For LocalAI integration, set environment **\$OPENAI_API_HOST** with the
-server URL.
+server URL. List models with `option -l`, or run `/models`. in chat
+mode. Install models with `-l` or `/models` and
+`install \[_gallery_@_model_name_]`. Defaults gallery is HuggingFace.
 <!-- LocalAI only tested with text and chat completion models (vision), not tested with all the API endpoints -->
 
 For Ollama, set `option -O`, and set **\$OLLAMA_API_HOST** if the server
 URL is different from the defaults.
 
 Note that model management (downloading and setting up) must follow the
-LocalAI and Ollama API software guidelines.
+Ollama project guidelines and own methods.
 
 Command “`!block` \[*args*\]” may be run to set raw model options in
 JSON syntax acording to each API. Alternativelly, set envar
@@ -292,23 +294,23 @@ or “`/`”.
 | `!sh`  | `!shell` \[*CMD*\]       | Run shell, or *command*, and edit output.              |
 | `!!sh` | `!!shell` \[*CMD*\]      | Run interactive shell (with *command*) and exit.       |
 
-| Script | Settings and UX   |                                                           |
-|:-------|:------------------|-----------------------------------------------------------|
-| `-g`   | `!stream`         | Toggle response streaming.                                |
-| `-l`   | `!models`         | List language model names.                                |
-| `-o`   | `!clip`           | Copy responses to clipboard.                              |
-| `-u`   | `!multi`          | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
-| `-uu`  | `!!multi`         | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
-| `-U`   | `-UU`             | Toggle cat prompter, or set one-shot. \<*CTRL-D*\> flush. |
-| `-`    | `!cat` \[*FILE*\] | Cat prompter as one-shot, or cat file.                    |
-| `-V`   | `!context`        | Print context before request (see `option -HH`).          |
-| `-VV`  | `!debug`          | Dump raw request block and confirm.                       |
-| `-v`   | `!ver`            | Toggle verbose modes.                                     |
-| `-x`   | `!ed`             | Toggle text editor interface.                             |
-| `-xx`  | `!!ed`            | Single-shot text editor.                                  |
-| `-y`   | `!tik`            | Toggle python tiktoken use.                               |
-| `!q`   | `!quit`           | Exit. Bye.                                                |
-| `!?`   | `!help`           | Print a help snippet.                                     |
+| Script | Settings and UX      |                                                           |
+|:-------|:---------------------|-----------------------------------------------------------|
+| `-g`   | `!stream`            | Toggle response streaming.                                |
+| `-l`   | `!models` \[*NAME*\] | List language models or show model details.               |
+| `-o`   | `!clip`              | Copy responses to clipboard.                              |
+| `-u`   | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
+| `-uu`  | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
+| `-U`   | `-UU`                | Toggle cat prompter, or set one-shot. \<*CTRL-D*\> flush. |
+| `-`    | `!cat` \[*FILE*\]    | Cat prompter as one-shot, or cat file.                    |
+| `-V`   | `!context`           | Print context before request (see `option -HH`).          |
+| `-VV`  | `!debug`             | Dump raw request block and confirm.                       |
+| `-v`   | `!ver`               | Toggle verbose modes.                                     |
+| `-x`   | `!ed`                | Toggle text editor interface.                             |
+| `-xx`  | `!!ed`               | Single-shot text editor.                                  |
+| `-y`   | `!tik`               | Toggle python tiktoken use.                               |
+| `!q`   | `!quit`              | Exit. Bye.                                                |
+| `!?`   | `!help`              | Print a help snippet.                                     |
 
 | Model   | Settings                |                                             |
 |:--------|:------------------------|---------------------------------------------|

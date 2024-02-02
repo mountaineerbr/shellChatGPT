@@ -250,13 +250,18 @@ This script also supports warping LocalAI and Ollama APIs.
 .PP
 For LocalAI integration, set environment \f[B]$OPENAI_API_HOST\f[R] with
 the server URL.
+List models with \f[CR]option \-l\f[R], or run \f[CR]/models\f[R].
+in chat mode.
+Install models with \f[CR]\-l\f[R] or \f[CR]/models\f[R] and
+\f[CR]install \[rs][_gallery_\[at]_model_name_]\f[R].
+Defaults gallery is HuggingFace.
 .PP
 For Ollama, set \f[CR]option \-O\f[R], and set
 \f[B]$OLLAMA_API_HOST\f[R] if the server URL is different from the
 defaults.
 .PP
 Note that model management (downloading and setting up) must follow the
-LocalAI and Ollama API software guidelines.
+Ollama project guidelines and own methods.
 .PP
 Command \[lq]\f[CR]!block\f[R] [\f[I]args\f[R]]\[rq] may be run to set
 raw model options in JSON syntax acording to each API.
@@ -476,9 +481,9 @@ T}
 T{
 \f[CR]\-l\f[R]
 T}@T{
-\f[CR]!models\f[R]
+\f[CR]!models\f[R] [\f[I]NAME\f[R]]
 T}@T{
-List language model names.
+List language models or show model details.
 T}
 T{
 \f[CR]\-o\f[R]
