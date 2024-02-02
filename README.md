@@ -626,6 +626,11 @@ model from generating text past context:
     chatgpt.sh -cc -m luna-ai-llama2  -s'### Response:'  -s'### User:'
 
 
+_Alternatively_, set `$OPENAI_API_HOST` on invocation:
+
+    OPENAI_API_HOST="http://127.0.0.1:8080" chatgpt.sh -cc -m luna-ai-llama2
+
+
 And that's it!
 <!-- LocalAI only tested with text and chat completion models (vision), not tested with all the API endpoints -->
 
