@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.37.1  jan/2024  by mountaineerbr  GPL+3
+# v0.37.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2901,7 +2901,7 @@ do 	__spinf 	#grep session with user regex
 					grep $sopt "${regex}" <<<" " >/dev/null  #test user syntax
 					(($?<2)) || return 1; ((OPTK)) || copt='--color=always';
 					
-					_sysmsgf 'regex': "\`${regex}'";
+					_sysmsgf 'Regex': "\`${regex}'";
 					if ! grep -q $copt $sopt "${regex}" "$file" 1>&2 2>/dev/null;  #grep regex match in current file
 					then 	grep -n -o $copt $sopt "${regex}" "${file%/*}"/*"${file##*.}" 1>&2 2>/dev/null  #grep other files
 						__warmsgf 'Err:' "No match at \`${file/"$HOME"/"~"}'";
@@ -3341,7 +3341,7 @@ then 	function list_modelsf
 	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST="http://localhost:11434";
 	
 	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf;
-	_sysmsgf "OLLAMA URL / endpoint:" "$OLLAMA_API_HOST${ENDPOINTS[EPN]}";
+	_sysmsgf "OLLAMA URL / Endpoint:" "$OLLAMA_API_HOST${ENDPOINTS[EPN]}";
 else
 	unset OLLAMA OLLAMA_API_HOST;
 fi
@@ -3359,6 +3359,7 @@ then 	API_HOST=${API_HOST%%*([/$IFS])};
 			{ jq . "$FILE" || ! cat -- "$FILE" ;}
 		fi
 	}  #https://localai.io/models/
+	#GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}, {"url": "github:go-skynet/model-gallery/huggingface.yaml","name":"huggingface"}]'
 	function set_model_epnf
        	{
 		if ((OPTC>1))
@@ -3372,7 +3373,7 @@ then 	API_HOST=${API_HOST%%*([/$IFS])};
        	set_model_epnf "$MOD";
       	#disable endpoint auto select?
 	[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
-	_sysmsgf "HOST URL / endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
+	_sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
 else
 	unset OPENAI_API_HOST
 fi
@@ -3880,7 +3881,7 @@ else
 				SUFFIX=$(sed "\$s/^.*${i}//" <<<"$*")
 				set -- "$(sed "\$s/${i}.*//" <<<"$*")"; unset i;
 				#SUFFIX="${*##*"${I_TYPE}"}"; set -- "${*%%"${I_TYPE}"*}"
-			else 	__warmsgf "Err: insert mode:" "wrong endpoint (chat cmpls)"
+			else 	__warmsgf "Err: Insert mode:" "wrong endpoint (chat cmpls)"
 			fi;
 			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE}}"
 		else 	unset SUFFIX
