@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.37  jan/2024  by mountaineerbr  GPL+3
+# v0.37.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1775,6 +1775,10 @@ function fmt_ccf
 	if ! ((${#MEDIA_CHAT[@]}+${#MEDIA_CHAT_CMD[@]}))
 	then
 		printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
+	elif ((OLLAMA))
+	then
+		printf '{"role": "%s", "content": "%s",\n' "${2:-user}" "$1";
+		ollama_mediaf && printf '%s' ' }'
 	elif [[ $MOD = *vision* ]]
 	then
 		printf '{ "role": "%s", "content": [ { "type": "text", "text": "%s" }' "${2:-user}" "$1";
@@ -1788,10 +1792,6 @@ function fmt_ccf
 			fi
 		done;
 		printf '%s\n' ' ] }';
-	elif ((OLLAMA))
-	then
-		printf '{ "role": "%s", "content": "%s",\n' "${2:-user}" "$1";
-		ollama_mediaf && printf '%s' ' }'
 	fi
 }
 

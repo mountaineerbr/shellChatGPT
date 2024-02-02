@@ -82,7 +82,7 @@ and make it executable:
 **C.** Optionally, download and set the configuration file
 [`~/.chatgpt.conf`](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf):
 
-    #save copy:
+    #save configuration template:
     chatgpt.sh -FF >> ~/.chatgpt.conf
     
     #edit:
@@ -600,7 +600,7 @@ we need editing the script configuration file `.chatgpt.conf`.
 
     vim ~/.chatgpt.conf
 
-    # OR
+    # Or
 
     chatgpt.sh -F
 
