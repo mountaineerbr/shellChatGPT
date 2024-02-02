@@ -400,7 +400,7 @@ Generate image variation:
 
 #### Outpaint - make a mask from the black colour:
 
-![Showing off Image Edits - Outpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits.gif)
+![Showing off Image Edits  -  Outpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits0.gif)
 
 
 #### Inpaint - add a bat in the night sky:
