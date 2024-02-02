@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.37.2  jan/2024  by mountaineerbr  GPL+3
+# v0.37.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3350,13 +3350,13 @@ fi
 if [[ $OPENAI_API_HOST != *([$IFS]) ]] || ((OLLAMA))
 then 	API_HOST=${API_HOST%%*([/$IFS])};
 	((OLLAMA)) ||
-	function list_modelsf
+	function list_modelsf  #LocalAI only
 	{
 		if ((${#}))
 		then 	curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
 			{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
 		else 	curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
-			{ jq . "$FILE" || ! cat -- "$FILE" ;}
+			{ jq -r '.[].name//empty' "$FILE" || ! cat -- "$FILE" ;}
 		fi
 	}  #https://localai.io/models/
 	#GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}, {"url": "github:go-skynet/model-gallery/huggingface.yaml","name":"huggingface"}]'
