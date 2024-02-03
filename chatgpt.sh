@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.37.7  jan/2024  by mountaineerbr  GPL+3
+# v0.38  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3965,9 +3965,10 @@ $BLOCK
 \"model\": \"$MOD\", $STREAM_OPT 
 \"options\": {
   $( ((OPTMAX_NILL)) && "\"num_predict\": -2" || echo "\"num_predict\": $OPTMAX" ),
-  \"temperature\": $OPTT, \"num_ctx\": $MODMAX,
+  \"temperature\": $OPTT,
   $OPTA_OPT $OPTAA_OPT $OPTP_OPT
-  $OPTB_OPT $OPTBB_OPT ${OPTSTOP%%,}${BLOCK_USR:+,$NL}$BLOCK_USR
+  $OPTB_OPT $OPTBB_OPT $OPTSTOP
+  \"num_ctx\": $MODMAX${BLOCK_USR:+,$NL}$BLOCK_USR
   }
 }"
 		else
@@ -3976,7 +3977,8 @@ $BLOCK $OPTSUFFIX_OPT
 \"model\": \"$MOD\", \"temperature\": $OPTT,
 $( ((OPTMAX_NILL && EPN==6)) || echo "\"max_tokens\": $OPTMAX," )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT
-$OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
+$OPTB_OPT $OPTBB_OPT $OPTSTOP
+\"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
 		fi
 
