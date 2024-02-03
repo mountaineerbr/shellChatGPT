@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.38.2  jan/2024  by mountaineerbr  GPL+3
+# v0.38.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -11,15 +11,15 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="gpt-3.5-turbo-0301"  #"gpt-4-0314"
+MOD_CHAT="${MOD_CHAT:-gpt-3.5-turbo-0301}"  #"gpt-4-0314"
 # Image model (generations)
-MOD_IMAGE="dall-e-3"
+MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
 # Whisper model (STT)
-MOD_AUDIO="whisper-1"
+MOD_AUDIO="${MOD_AUDIO:-whisper-1}"
 # Speech model (TTS)
-MOD_SPEECH="tts-1"   #"tts-1-hd"
+MOD_SPEECH="${MOD_SPEECH:-tts-1}"   #"tts-1-hd"
 # Ollama model
-MOD_OLLAMA="llama2"  #"llama2-uncensored:latest"
+MOD_OLLAMA="${MOD_OLLAMA:-llama2}"  #"llama2-uncensored:latest"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Prompter flush with <CTRL-D> (multiline bash)
@@ -237,6 +237,12 @@ Environment
 	INSTRUCTION_CHAT
 			Initial instruction, or system message (chat mode).
 
+	MOD_CHAT
+	MOD_IMAGE
+	MOD_AUDIO
+	MOD_SPEECH
+	MOD_OLLAMA 	Set defaults model for each endpoint.
+	
 	OLLAMA_API_HOST Ollama host URL (option -O).
 
 	OPENAI_API_HOST

@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.38 | General Commands Manual
+% CHATGPT.SH(1) v0.38.3 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -620,6 +620,19 @@ Setting **temperature** has an effect, the higher the more random.
 **INSTRUCTION_CHAT**
 
 :    Initial initial instruction, or system message for chat mode.
+
+
+**MOD_CHAT**
+
+**MOD_IMAGE**
+
+**MOD_AUDIO**
+
+**MOD_SPEECH**
+
+**MOD_OLLAMA**
+
+: Set the defaults model for each endpoint.
 
 
 **OLLAMA_API_HOST**
