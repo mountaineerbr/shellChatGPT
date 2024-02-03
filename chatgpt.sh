@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.38.1  jan/2024  by mountaineerbr  GPL+3
+# v0.38.2  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -532,7 +532,14 @@ function set_model_epnf
 		*) 		#fallback
 				case "$1" in
 					*-embedding*|*-similarity*|*-search*) 	EPN=5 OPTEMBED=1;;
-					*) 	EPN=0;;  #defaults
+					*) 	EPN=0;
+						if ((OPTC>1))
+						then 	OPTCMPL= EPN=6;
+						elif ((OPTC))
+						then 	OPTCMPL= EPN=0;
+						elif ((OPTCMPL))
+						then 	OPTC= EPN=0;
+						fi;;  #defaults
 				esac;;
 	esac
 }
@@ -3349,7 +3356,7 @@ then 	function list_modelsf
 	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
 	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST="http://localhost:11434";
 	
-	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf;
+	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf "$MOD";
 	_sysmsgf "OLLAMA URL / Endpoint:" "$OLLAMA_API_HOST${ENDPOINTS[EPN]}";
 else
 	unset OLLAMA OLLAMA_API_HOST;
@@ -3393,16 +3400,6 @@ then 	API_HOST=${API_HOST%%*([/$IFS])};
 		fi
 	}  #https://localai.io/models/
 	#GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}, {"url": "github:go-skynet/model-gallery/huggingface.yaml","name":"huggingface"}]'
-	function set_model_epnf
-       	{
-		if ((OPTC>1))
-		then 	OPTCMPL= EPN=6;
-		elif ((OPTC))
-		then 	OPTCMPL= EPN=0;
-		elif ((OPTCMPL))
-		then 	OPTC= EPN=0;
-		fi
-	}
        	set_model_epnf "$MOD";
       	#disable endpoint auto select?
 	[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
