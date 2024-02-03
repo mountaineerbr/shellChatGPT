@@ -19,7 +19,7 @@ MOD_AUDIO="whisper-1"
 # Speech model (TTS)
 MOD_SPEECH="tts-1"   #"tts-1-hd"
 # Ollama model
-MOD_OLLAMA="llama2"  #"llama2:latest"
+MOD_OLLAMA="llama2"  #"llama2-uncensored:latest"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Prompter flush with <CTRL-D> (multiline bash)
