@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.38.4  jan/2024  by mountaineerbr  GPL+3
+# v0.38.5  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -514,7 +514,8 @@ function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
 	case "$1" in
-		*dalle-e*|*stable*diffusion*) ((OPTII)) && EPN=4 || EPN=3;; #variations or generations
+	       	#image variations or generations (cannot check for edits from here)
+		*dalle-e*|*stable*diffusion*) ((OPTII)) && EPN=4 || EPN=3;;
 		tts-*|*-tts-*) 	EPN=10;;
 		*whisper*) 		((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	case "$1" in
@@ -538,12 +539,12 @@ function set_model_epnf
 		*) 		#fallback
 				case "$1" in
 					*-embedding*|*-similarity*|*-search*) 	EPN=5 OPTEMBED=1;;
-					*) 	if ((OPTC>1))
+					*) 	if ((OPTCMPL))
+						then 	OPTC= EPN=0;
+						elif ((OPTC>1))
 						then 	OPTCMPL= EPN=6;
 						elif ((OPTC))
 						then 	OPTCMPL= EPN=0;
-						elif ((OPTCMPL))
-						then 	OPTC= EPN=0;
 						else 	EPN=0;
 						fi;;  #defaults
 				esac; return 1;;
@@ -3328,6 +3329,8 @@ then 	((OPTI+OPTII)) && MOD_IMAGE=$OPTMARG  #default models for functions
 else
 	if ((OLLAMA))
 	then 	MOD=$MOD_OLLAMA
+	elif ((OPTCMPL))
+	then 	:;
 	elif ((OPTC>1))  #chat
 	then 	MOD=$MOD_CHAT
 	elif ((OPTW)) && ((!MTURN))  #whisper endpoint
