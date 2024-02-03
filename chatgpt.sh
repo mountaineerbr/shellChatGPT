@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.37.5  jan/2024  by mountaineerbr  GPL+3
+# v0.37.6  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -18,6 +18,8 @@ MOD_IMAGE="dall-e-3"
 MOD_AUDIO="whisper-1"
 # Speech model (TTS)
 MOD_SPEECH="tts-1"   #"tts-1-hd"
+# Ollama model
+MOD_OLLAMA="llama2"  #"llama2:latest"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Prompter flush with <CTRL-D> (multiline bash)
@@ -3306,7 +3308,7 @@ then 	((OPTI+OPTII)) && MOD_IMAGE=$OPTMARG  #image
 	[[ $MOD = *moderation* ]] && unset OPTC OPTW OPTWW OPTZ OPTI OPTII MTURN OPTRESUME OPTCMPL OPTEMBED
 else
 	if ((OLLAMA))
-	then 	MOD=llama2  #llama2:latest
+	then 	MOD=$MOD_OLLAMA
 	elif ((OPTC>1))  #chat
 	then 	MOD=$MOD_CHAT
 	elif ((OPTW)) && ((!MTURN))  #whisper endpoint
