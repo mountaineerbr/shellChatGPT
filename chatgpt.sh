@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.38  jan/2024  by mountaineerbr  GPL+3
+# v0.38.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3303,7 +3303,9 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${GPTCHATKEY:-${OPENAI_API_KEY:?
 
 #map models
 if [[ -n $OPTMARG ]]
-then 	((OPTI+OPTII)) && MOD_IMAGE=$OPTMARG  #image
+then 	((OPTI+OPTII)) && MOD_IMAGE=$OPTMARG  #default models for functions
+	((OPTW && !(OPTC+OPTCMPL+MTURN) )) && MOD_AUDIO=$OPTMARG
+	((OPTZ && !(OPTC+OPTCMPL+MTURN) )) && MOD_SPEECH=$OPTMARG
 	case "$MOD" in moderation|mod|oderation|od) 	MOD="text-moderation-stable";; esac;
 	[[ $MOD = *moderation* ]] && unset OPTC OPTW OPTWW OPTZ OPTI OPTII MTURN OPTRESUME OPTCMPL OPTEMBED
 else
