@@ -471,6 +471,126 @@ Start with a commented out code or instruction for the model,
 or ask it in comments to optimise the following code, for example.
 -->
 
+
+## LocalAI
+
+### LocalAI Server
+
+Make sure you have got [mudler's LocalAI](https://github.com/mudler/LocalAI),
+server set up and running.
+
+The server can be run as a docker container or a
+[binary can be downloaded](https://github.com/mudler/LocalAI/releases).
+Check LocalAI tutorials
+[Container Images](https://localai.io/basics/getting_started/#container-images),
+and [Run Models Manually](https://localai.io/docs/getting-started/manual)
+for an idea on how to install, download a model and set it up.
+
+     ┌───────────────────────────────────────────────────┐
+     │                   Fiber v2.50.0                   │
+     │               http://127.0.0.1:8080               │
+     │       (bound on host 0.0.0.0 and port 8080)       │
+     │                                                   │
+     │ Handlers ............. 1  Processes ........... 1 │
+     │ Prefork ....... Disabled  PID ..................1 │
+     └───────────────────────────────────────────────────┘
+
+
+### Script Configuration
+
+With the LocalAI server running and the URL and port at hand,
+we need editing the script configuration file `.chatgpt.conf`.
+
+    vim ~/.chatgpt.conf
+
+    # Or
+
+    chatgpt.sh -F
+
+
+Set the following variable:
+
+    # ~/.chatgpt.conf
+    
+    OPENAI_API_HOST="http://127.0.0.1:8080"
+
+
+_Alternatively_, set `$OPENAI_API_HOST` on invocation:
+
+    OPENAI_API_HOST="http://127.0.0.1:8080" chatgpt.sh -cc -m luna-ai-llama2
+
+
+### Running
+
+Finally, when running `chatgpt.sh`, set the model name:
+
+    chatgpt.sh -cc -m luna-ai-llama2
+
+
+Setting some stop sequences may be needed to prevent the
+model from generating text past context:
+
+    chatgpt.sh -cc -m luna-ai-llama2  -s'### Response:'  -s'### User:'
+
+
+And that's it!
+
+
+### Installing Models
+
+Model names may be printed with `chatgpt.sh -l`. A model may be
+supplied as argument, so that only that model details are shown.
+
+
+**NOTE:** Model management (downloading and setting up) must follow
+the LocalAI and Ollama projects guidelines and methods.
+
+<!--
+Install models with `option -l` or chat command `/models`
+and the `install` keyword.
+
+Also supply a [model configuration file URL](https://localai.io/models/#how-to-install-a-model-without-a-gallery),
+or if LocalAI server is configured with Galleries,
+set "_\<GALLERY>_@_\<MODEL_NAME>_".
+Gallery defaults to [HuggingFace](https://huggingface.co/).
+
+    # List models
+    chatgpt.sh -l
+
+    # Install
+    chatgpt.sh -l install huggingface@TheBloke/WizardLM-13B-V1-0-Uncensored-SuperHOT-8K-GGML/wizardlm-13b-v1.0-superhot-8k.ggmlv3.q4_K_M.bin
+
+
+* NOTE: *  I reccomend using LocalAI own binary to install the models!
+-->
+
+For image generation, install Stable Diffusion from the URL
+`github:go-skynet/model-gallery/stablediffusion.yaml`,
+and for audio transcription, download Whisper from the URL
+`github:go-skynet/model-gallery/whisper-base.yaml`.
+<!-- LocalAI was only tested with text and chat completion models (vision) -->
+
+
+## Ollama
+
+Visit [Ollama repository](https://github.com/ollama/ollama/),
+and follow the instructions to install, download models, and set up
+the server.
+
+After having Ollama server running, set `option -O`, and the name of
+the model in `chatgpt.sh`:
+
+    chatgpt.sh -cc -O -m llama2
+
+
+If Ollama server URL is not the defaults `http://localhost:11434`,
+edit `chatgpt.sh` configuration file, and set the following variable:
+
+    # ~/.chatgpt.conf
+    
+    OLLAMA_API_HOST="http://192.168.0.3:11434"
+
+
 <!--
 ## 🌎 Environment
 
@@ -571,119 +691,6 @@ After installing Zsh in Termux, create a symlink with:
 ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bin/ksh
 ````
 -->
-
-
-## LocalAI
-
-### LocalAI Server
-
-Make sure you have got [mudler's LocalAI](https://github.com/mudler/LocalAI),
-server set up and running.
-
-The server can be run as a docker container or a
-[binary can be downloaded](https://github.com/mudler/LocalAI/releases).
-Check LocalAI tutorials
-[Container Images](https://localai.io/basics/getting_started/#container-images),
-and [Run Models Manually](https://localai.io/docs/getting-started/manual)
-for an idea on how to install, download a model and set it up.
-
-     ┌───────────────────────────────────────────────────┐
-     │                   Fiber v2.50.0                   │
-     │               http://127.0.0.1:8080               │
-     │       (bound on host 0.0.0.0 and port 8080)       │
-     │                                                   │
-     │ Handlers ............. 1  Processes ........... 1 │
-     │ Prefork ....... Disabled  PID ..................1 │
-     └───────────────────────────────────────────────────┘
-
-
-### Script Configuration
-
-With the LocalAI server running and the URL and port at hand,
-we need editing the script configuration file `.chatgpt.conf`.
-
-    vim ~/.chatgpt.conf
-
-    # Or
-
-    chatgpt.sh -F
-
-
-Set the following variable:
-
-    # ~/.chatgpt.conf
-    
-    OPENAI_API_HOST="http://127.0.0.1:8080"
-
-
-_Alternatively_, set `$OPENAI_API_HOST` on invocation:
-
-    OPENAI_API_HOST="http://127.0.0.1:8080" chatgpt.sh -cc -m luna-ai-llama2
-
-
-### Running
-
-Finally, when running `chatgpt.sh`, set the model name:
-
-    chatgpt.sh -cc -m luna-ai-llama2
-
-
-Setting some stop sequences may be needed to prevent the
-model from generating text past context:
-
-    chatgpt.sh -cc -m luna-ai-llama2  -s'### Response:'  -s'### User:'
-
-
-And that's it!
-
-
-### Installing Models
-
-Model names may be printed with `chatgpt.sh -l`. A model may be
-supplied as argument, so that only that model details are shown.
-
-Install models by a [model configuration file URL](https://localai.io/models/#how-to-install-a-model-without-a-gallery)
-or, if LocalAI server is configured with Galleries, set "_\<GALLERY>_@_\<MODEL_NAME>_".
-Gallery defaults to [HuggingFace](https://huggingface.co/).
-
-Install the model with `chatgpt.sh -l install [model_name]`,
-or in chat mode, typing `/models install [model_name]`.
-
-    # List models
-    chatgpt.sh -l
-
-    # Install
-    chatgpt.sh -l install huggingface@TheBloke/WizardLM-13B-V1-0-Uncensored-SuperHOT-8K-GGML/wizardlm-13b-v1.0-superhot-8k.ggmlv3.q4_K_M.bin
-
-
-For image generation, install Stable Diffusion from the URL
-`github:go-skynet/model-gallery/stablediffusion.yaml`,
-and for audio transcription, download Whisper from the URL
-`github:go-skynet/model-gallery/whisper-base.yaml`.
-<!-- LocalAI was only tested with text and chat completion models (vision) -->
-
-
-## Ollama
-
-Visit [Ollama repository](https://github.com/ollama/ollama/),
-and follow the instructions to install, download models, and set up
-the server.
-
-**NOTE:** Model management (downloading and setting up) must follow
-the Ollama project guidelines and methods.
-
-After having Ollama server running, set `option -O`, and the name of
-the model in `chatgpt.sh`:
-
-    chatgpt.sh -cc -O -m llama2
-
-
-If Ollama server URL is not the defaults `http://localhost:11434`,
-edit `chatgpt.sh` configuration file, and set the following variable:
-
-    # ~/.chatgpt.conf
-    
-    OLLAMA_API_HOST="http://192.168.0.3:11434"
 
 
 ## 🎯  Project Objectives

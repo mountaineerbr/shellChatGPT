@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.37 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.37.5 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.37 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.37.5 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -340,11 +340,19 @@ section</strong>.</p>
 <p>This script also supports warping LocalAI and Ollama APIs.</p>
 <p>For LocalAI integration, set environment
 <strong>$OPENAI_API_HOST</strong> with the server URL. List models with
-<code>option -l</code>, or run <code>/models</code>. in chat mode.
-Install models with <code>-l</code> or <code>/models</code> and
-<code>install \[_gallery_@_model_name_]</code>. Defaults gallery is
-HuggingFace.
-<!-- LocalAI only tested with text and chat completion models (vision), not tested with all the API endpoints --></p>
+<code>option -l</code>, or run <code>/models</code>. in chat mode.</p>
+<!--
+Install models with `option -l` or chat command `/models`
+and the `install` keyword.
+
+Also supply a _model configuration file URL_ or,
+if LocalAI server is configured with Galleries,
+set "_\<GALLERY>_@_\<MODEL_NAME>_".
+Gallery defaults to HuggingFace.
+
+* NOTE: *  I reccomend using LocalAI own binary to install the models!
+-->
+<!-- LocalAI only tested with text and chat completion models (vision) -->
 <p>For Ollama, set <code>option -O</code>, and set
 <strong>$OLLAMA_API_HOST</strong> if the server URL is different from
 the defaults.</p>

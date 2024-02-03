@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.37.4  jan/2024  by mountaineerbr  GPL+3
+# v0.37.5  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1344,7 +1344,7 @@ function cmd_runf
 			_sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_IND_CMD[@]}))\
  --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
 			;;
-		-l*|models|models\ ?*|model\ [Ii]nstall*|[Ii]nstall*)
+		-l*|models|models\ *|model\ [Ii]nstall*|[Ii]nstall*)
 			set -- "${*##@(-l|models|model\ )*([$IFS])}";
 			if [[ $1 = *[Ii]nstall* ]]
 			then 	list_modelsf "$*";
@@ -1517,7 +1517,7 @@ function cmd_runf
 			model-cap    "${MODMAX:-?}" \
 			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
 			context-prev "${MAX_PREV:-?}" \
-			token-rate   "${TKN_RATE[0]:-?} tkn/sec of ${TKN_RATE[1]:-?} tkns" \
+			token-rate   "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
 			tiktoken     "${OPTTIK:-0}" \
 			temperature  "${OPTT:-0}" \
 			pres-penalty "${OPTA:-unset}" \
@@ -1536,7 +1536,7 @@ function cmd_runf
 			start-seq    "\"$( ((EPN==6)) && echo unavailable && exit;
 				((OPTC)) && printf '%s' "${START:-$A_TYPE}"   || printf '%s' "${START:-unset}")\"" \
 			stop-seqs    "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
-			history-file "${FILECHAT/"$HOME"/"~"}"  >&2
+			history-file "${FILECHAT/"$HOME"/"~"}"  >&2  #2>/dev/null
 			;;
 		-u|multi|multiline|-uu*(u)|[/!]multi|[/!]multiline)
 			case "$*" in
@@ -3368,7 +3368,7 @@ then 	API_HOST=${API_HOST%%*([/$IFS])};
 				[[ $1 = *@* ]] || set -- "huggingface@$1";
 				block="{\"id\": \"$1\"}";
 			fi; echo >&2;
-			( trap 'printf "%s\\a\\n" " The job is still running server-side!" >&2; exit 1;' HUP QUIT KILL TERM;
+			( trap 'printf "%s\\a\\n" " The job is still running server-side!" >&2; exit 1;' HUP QUIT KILL TERM INT;
 			response=$(curl -\# -L -H "Content-Type: application/json" "${API_HOST}/models/apply" -d "$block")
 			job_id=$(jq -r '.uuid' <<<"$response")
 			while proc=$(curl -s -L "${API_HOST}/models/jobs/$job_id") && [[ -n $proc ]] || break
@@ -3385,7 +3385,7 @@ then 	API_HOST=${API_HOST%%*([/$IFS])};
 			{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
 		else
 			curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
-			{ jq -r '.[].name//empty' "$FILE" | sed -e 's/__/\//g' || ! cat -- "$FILE" ;}
+			{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;}
 		fi
 	}  #https://localai.io/models/
 	#GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}, {"url": "github:go-skynet/model-gallery/huggingface.yaml","name":"huggingface"}]'
@@ -4019,7 +4019,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 				done
 			fi
 			if ((OLLAMA))
-			then 	tkn=($(jq -r -s '.[-1]|.prompt_eval_count//"0", .eval_count//"0", .created_at//"0", (.eval_count/(.eval_duration/1000000000)?)//"0"' "$FILE") )
+			then 	tkn=($(jq -r -s '.[-1]|.prompt_eval_count//"0", .eval_count//"0", .created_at//"0", (.eval_duration/1000000000)?, (.eval_count/(.eval_duration/1000000000)?)?' "$FILE") )
 				((STREAM)) && ((MAX_PREV+=tkn[1]));
 			fi
 
@@ -4078,12 +4078,13 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP \"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
 		
-		if ((OLLAMA))  #estimate token generation rate
-		then 	TKN_RATE=("${tkn[3]}" "${tkn[1]}")
-		elif 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]  #((OPTTIK || !STREAM))
+		if ((OLLAMA))  #token generation rate  #0 tokens, #1 secs, #2 rate
+		then 	TKN_RATE=( "${tkn[1]}" "$(printf '%.2f' "${tkn[3]}")" "$(printf '%.2f' "${tkn[4]}")" )
+		elif 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]
 		then 	((SECONDS==SECONDS_REQ)) && ((--SECONDS_REQ));
-			TKN_RATE=( $(( ${tkn[1]:-${tkn_ans:-0}} / (SECONDS-SECONDS_REQ) ))  "${tkn[1]:-$tkn_ans}" )
-		fi >&2
+			TKN_RATE=( "${tkn[1]:-$tkn_ans}" $((SECONDS-SECONDS_REQ))
+			"$(bc <<<"scale=2; ${tkn[1]:-${tkn_ans:-0}} / ($SECONDS-$SECONDS_REQ)")" )
+		fi
 
 		if ((OPTW)) && ((!OPTZ))
 		then

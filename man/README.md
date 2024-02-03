@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.37 \| General Commands Manual
+title: CHATGPT.SH(1) v0.37.5 \| General Commands Manual
 ---
 
 ### NAME
@@ -172,9 +172,18 @@ This script also supports warping LocalAI and Ollama APIs.
 
 For LocalAI integration, set environment **\$OPENAI_API_HOST** with the
 server URL. List models with `option -l`, or run `/models`. in chat
-mode. Install models with `-l` or `/models` and
-`install \[_gallery_@_model_name_]`. Defaults gallery is HuggingFace.
-<!-- LocalAI only tested with text and chat completion models (vision), not tested with all the API endpoints -->
+mode.
+
+<!--
+Install models with `option -l` or chat command `/models`
+and the `install` keyword.
+&#10;Also supply a _model configuration file URL_ or,
+if LocalAI server is configured with Galleries,
+set "_\<GALLERY>_@_\<MODEL_NAME>_".
+Gallery defaults to HuggingFace.
+&#10;* NOTE: *  I reccomend using LocalAI own binary to install the models!
+-->
+<!-- LocalAI only tested with text and chat completion models (vision) -->
 
 For Ollama, set `option -O`, and set **\$OLLAMA_API_HOST** if the server
 URL is different from the defaults.
