@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.38.3  jan/2024  by mountaineerbr  GPL+3
+# v0.38.4  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -115,8 +115,7 @@ HISTCONTROL=erasedups:ignoredups
 HISTSIZE=512 SAVEHIST=512 HISTTIMEFORMAT='%F %T '
 
 # API URL / endpoint
-[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
-API_HOST="${OPENAI_API_HOST:-https://api.openai.com}";
+API_HOST="https://api.openai.com";
 
 # Def hist, txt chat types
 Q_TYPE="\\nQ: "
@@ -515,6 +514,7 @@ function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
 	case "$1" in
+		*dalle-e*|*stable*diffusion*) ((OPTII)) && EPN=4 || EPN=3;; #variations or generations
 		tts-*|*-tts-*) 	EPN=10;;
 		*whisper*) 		((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	case "$1" in
@@ -538,15 +538,15 @@ function set_model_epnf
 		*) 		#fallback
 				case "$1" in
 					*-embedding*|*-similarity*|*-search*) 	EPN=5 OPTEMBED=1;;
-					*) 	EPN=0;
-						if ((OPTC>1))
+					*) 	if ((OPTC>1))
 						then 	OPTCMPL= EPN=6;
 						elif ((OPTC))
 						then 	OPTCMPL= EPN=0;
 						elif ((OPTCMPL))
 						then 	OPTC= EPN=0;
+						else 	EPN=0;
 						fi;;  #defaults
-				esac;;
+				esac; return 1;;
 	esac
 }
 
@@ -1191,7 +1191,7 @@ else:
 #set output image size
 function set_imgsizef
 {
-	if [[ $MOD_IMAGE = *[3-9] ]]
+	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
 	then 	if [[ $1 = *[Hh][Dd]* ]]
 		then 	OPTS_HD="hd";
 			set -- "${1//[Hh][Dd]}";
@@ -1526,8 +1526,8 @@ function cmd_runf
 		i|info)
 			echo >&2
 			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
-			$([[ -n $OPENAI_API_HOST ]] && echo host-url "${API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
-			$([[ -n $OLLAMA_API_HOST ]] && echo ollama-url "${OLLAMA_API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
+			$( ((LOCALAI)) && echo host-url "${API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
+			$( ((OLLAMA)) && echo ollama-url "${OLLAMA_API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
 			model-name   "${MOD:-?}" \
 			model-cap    "${MODMAX:-?}" \
 			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
@@ -2338,14 +2338,18 @@ function __set_speedf
 #image generations
 function imggenf
 {
-	if [[ $MOD_IMAGE = *[3-9] ]]
-	then 	typeset DALLE3_OPT OPTN
-		DALLE3_OPT="\"model\": \"$MOD_IMAGE\", \"quality\": \"${OPTS_HD:-standard}\"," OPTN=1
+	typeset block_x;
+	
+	if ((LOCALAI))
+	then 	block_x="\"model\": \"$MOD_IMAGE\",";
+	elif [[ $MOD_IMAGE = *dall-e*[3-9] ]]
+	then 	block_x="\"model\": \"$MOD_IMAGE\", \"quality\": \"${OPTS_HD:-standard}\",";
 	fi
+	
 	BLOCK="{
 \"prompt\": \"${*:?IMG PROMPT ERR}\",
-\"size\": \"$OPTS\", $DALLE3_OPT
-\"n\": $OPTN,
+\"size\": \"$OPTS\", $block_x
+\"n\": ${OPTN:-1},
 \"response_format\": \"$OPTI_FMT\"${BLOCK_USR:+,$NL}$BLOCK_USR
 }"  #dall-e-2: n<=10, dall-e-3: n==1
 	promptf
@@ -2419,7 +2423,7 @@ function imgvarf
 	## one file (alpha) and one prompt  --  edits
 	## two files, (and one prompt)  --  edits
 	if [[ -e $1 ]] && ((${#} > 1))  #img edits
-	then 	OPTII=1 EPN=9 MOD=image-ed
+	then 	OPTII=1 EPN=9  #MOD=image-ed
 		if ((${#} > 2)) && [[ -e $2 ]]
 		then 	prompt="${@:3}" ;set -- "${@:1:2}" 
 		elif ((${#} > 1)) && [[ ! -e $2 ]]
@@ -2427,7 +2431,7 @@ function imgvarf
 		fi
 		[[ -e $2 ]] && set -- "${@:1:1}" -F mask="@$2"
 	elif [[ -e $1 ]]  #img variations
-	then 	OPTII=1 EPN=4 MOD=image-var
+	then 	OPTII=1 EPN=4  #MOD=image-var
 	fi
 	[[ -n $prompt ]] && set -- "$@" -F prompt="$prompt"
 
@@ -3210,7 +3214,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTE OPTEXIT API_HOST OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC GPTCHATKEY READLINEOPT;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTE OPTEXIT API_HOST OLLAMA_API_HOST OLLAMA LOCALAI OPENAI_API_HOST OPENAI_API_HOST_STATIC GPTCHATKEY READLINEOPT;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -3223,7 +3227,7 @@ do
 			printf '%s\n' "$REPLY" "$HELP"
 			exit;;
 		H) 	((++OPTHH));;
-		i) 	OPTI=1 EPN=3 MOD=image;;
+		i) 	OPTI=1 EPN=3;;  #MOD=image
 		l) 	((++OPTL));;
 		L) 	OPTLOG=1
 			if [[ -d "$OPTARG" ]]
@@ -3330,6 +3334,8 @@ else
 	then 	MOD=$MOD_AUDIO
 	elif ((OPTZ)) && ((!MTURN))  #speech endpoint
 	then 	MOD=$MOD_SPEECH
+	elif ((OPTI+OPTII))
+	then 	MOD=$MOD_IMAGE
 	fi
 fi
 pick_modelf "$MOD"
@@ -3369,8 +3375,10 @@ else
 fi
 
 #host url / endpoint
-if [[ $OPENAI_API_HOST != *([$IFS]) ]] || ((OLLAMA))
-then 	API_HOST=${API_HOST%%*([/$IFS])};
+if [[ $OPENAI_API_HOST_STATIC != *([$IFS]) ]] && OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
+	[[ $OPENAI_API_HOST != *([$IFS]) ]] && LOCALAI=1 || ((OLLAMA))
+then
+	API_HOST=${OPENAI_API_HOST%%*([/$IFS])};
 	((OLLAMA)) ||
 	function list_modelsf  #LocalAI only
 	{
@@ -3405,14 +3413,12 @@ then 	API_HOST=${API_HOST%%*([/$IFS])};
 			{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;}
 		fi
 	}  #https://localai.io/models/
-	#GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}, {"url": "github:go-skynet/model-gallery/huggingface.yaml","name":"huggingface"}]'
        	set_model_epnf "$MOD";
       	#disable endpoint auto select?
 	[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
-	[[ $OPENAI_API_HOST = *([$IFS]) ]] ||
-	_sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
+	((LOCALAI)) && _sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
 else
-	unset OPENAI_API_HOST
+	unset OPENAI_API_HOST OPENAI_API_HOST_STATIC;
 fi
 
 #set ``model endpoint'' and ``model capacity''
@@ -3586,14 +3592,14 @@ elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
 	then 	__sysmsgf 'Image Edits'
 	else 	__sysmsgf 'Image Variations' ;fi
-	if [[ $MOD_IMAGE = *[3-9] ]]
+	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
 	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}"
 	fi
 	imgvarf "$@"
 elif ((OPTI))      #image generations
 then 	__sysmsgf 'Image Generations'
 	__sysmsgf 'Image Model:' "$MOD_IMAGE"
-	if [[ $MOD_IMAGE = *[3-9] ]]
+	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
 	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}"
 	fi
 	imggenf "$@"
