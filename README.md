@@ -406,7 +406,7 @@ Generate image variation:
 
 #### Outpaint - Canvas Extension
 
-![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits.gif)
+![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits0.gif)
 
 In this example, a mask is made from the white colour.
 
