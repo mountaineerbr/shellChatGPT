@@ -14,7 +14,7 @@ Chat completions with streaming by defaults.
 - **Preview**, and  **regenerate responses**
 - **Manage sessions**, _print out_ previous sessions
 - Instruction prompt manager, easily create and set the initial system prompt
-- Voice in (**Whisper**) and voice out (**TTS**) [chat / REPL mode](#voice-in-and-out-chat-completions) (`options -cczw`)
+- Voice in (**Whisper**) and voice out (**TTS**) _chat / REPL mode_ (`options -cczw`)
 - Integration with [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts),
    [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh),
    [mudler's LocalAI](#localai), and
