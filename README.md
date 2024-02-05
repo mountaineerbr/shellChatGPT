@@ -323,9 +323,6 @@ _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 
 ## 💡  Notes and Tips
 
-- There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh),
-  but it will not be updated.
-
 - Run chat commands with either _operator_ `!` or `/`.
 
 - Edit live history entries with command `!hist`, for context injection.
@@ -335,6 +332,10 @@ _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 - One can regenerate a response typing in a new prompt a single slash `/`,
 or `//` to have last prompt edited before new request.
 
+<!--
+- There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh),
+  but it will not be updated.
+-->
 <!--
 - Generally, my evaluation on models prefers using `davinci`, or
 `text-davinci-003` for less instruction intensive tasks, such as
@@ -404,19 +405,19 @@ Generate image variation:
     chatgpt.sh -i path/to/image.png path/to/mask.png "A pink flamingo."
 
 
-#### Outpaint - Canvas Extension
-
-![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits0.gif)
-
-In this example, a mask is made from the white colour.
-
-
 #### Inpaint - Fill in the Gaps
 
 ![Showing off Image Edits - Inpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits2.gif)
 <!-- ![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png) -->
 
 Adding a bat in the night sky.
+
+
+#### Outpaint - Canvas Extension
+
+![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits0.gif)
+
+In this example, a mask is made from the white colour.
 
 
 ### 🔊 Audio Transcriptions / Translations
