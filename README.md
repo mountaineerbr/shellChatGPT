@@ -417,6 +417,8 @@ Adding a bat in the night sky.
 
 ![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits0.gif)
 
+![Extending the Canvas - Displaying Image Edits](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits.gif)
+
 In this example, a mask is made from the white colour.
 
 
