@@ -1883,7 +1883,9 @@ function usr_logf
 
 #wrap text at spaces rather than mid-word
 function foldf
-{
+(
+	set -x; echo COLUMNS=$COLUMNS >&2;
+
 	if ((COLUMNS<18)) || [[ ! -t 1 ]]
 	then 	cat
 	else 	typeset REPLY r x n;
@@ -1913,8 +1915,9 @@ function foldf
 			((n += ${#r}));
 			((${#x})) && n=${#x} x= ;
 		done
-	fi; return 0;
-}
+	#fi; return 0;
+	fi; exit 0;
+) 2>> ~/foldf.log
 
 #check if a value if within a fp range
 #usage: check_optrangef [val] [min] [max]

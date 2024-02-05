@@ -9,7 +9,7 @@ Chat completions with streaming by defaults.
 
 ## 🚀 Features
 
-- Text and chat completions with [**gtp-4-vision** support](#gpt-4-vision)
+- Text and chat completions with **gtp-4-vision** support
 - **Text editor interface**, _Bash readline_, and _cat_ input modes
 - **Preview**, and  **regenerate responses**
 - **Manage sessions**, _print out_ previous sessions
