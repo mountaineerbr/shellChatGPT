@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.38.3 \| General Commands Manual
+title: CHATGPT.SH(1) v0.39 \| General Commands Manual
 ---
 
 ### NAME
@@ -395,8 +395,8 @@ again or flush/accept the prompt and response.
 
 After a response has been written to the history file, **regenerate** it
 with command “`!regen`” or type in a single exclamation mark or forward
-slash in the new empty prompt (twice for editing the prompt before
-request).
+slash “`/`” in the new empty prompt (twice “`//`” for editing the prompt
+before new request).
 
 #### 3. Prompt Engineering and Design
 

@@ -9,16 +9,15 @@ Chat completions with streaming by defaults.
 
 ## 🚀 Features
 
-- Text and chat completions with **gtp-4-vision** support
+- Text and chat completions with [**gtp-4-vision** support](#vision-models-gpt-4-vision)
 - **Text editor interface**, _Bash readline_, and _cat_ input modes
-- **Preview**, and  **regenerate responses**
+- **Preview**, and  [**regenerate responses**](#--notes-and-tips)
 - **Manage sessions**, _print out_ previous sessions
-- Instruction prompt manager, easily create and set the initial system prompt
+- [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
+   easily create and set the initial system prompt
 - Voice in (**Whisper**) and voice out (**TTS**) _chat / REPL mode_ (`options -cczw`)
-- Integration with [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts),
-   [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh),
-   [mudler's LocalAI](#localai), and
-   [Ollama](#ollama)
+- Integration with [awesome-chatgpt-prompts](#-awesome-prompts) (-zh),
+   [mudler's LocalAI](#localai), and [Ollama](#ollama)
 - _Tiktoken_ for accurate tokenization (optional)
 - Colour scheme personalisation, and a configuration file
 - Stdin and text file as input support
@@ -34,10 +33,13 @@ Chat completions with streaming by defaults.
 
 ### More Features
 
-- _Generate images_ from text input (`option -i`)
-- _Generate variations_ of images
-- _Edit images_ with `imagmagick` (optional to generate alpha mask)
-- _Transcribe audio_ from various languages (`option -w`)
+- [_Generate images_](#%EF%B8%8F-image-generations)
+   from text input (`option -i`)
+- [_Generate variations_](#image-variations) of images
+- [_Edit images_](#image-edits),
+   optionally edit with `ImageMagick` (generate alpha mask)
+- [_Transcribe audio_](#-audio-transcriptions-translations)
+   from various languages (`option -w`)
 - _Translate audio_ into English text (`option -W`)
 - _Text-to-speeech_ functionality (`option -z`)
 
@@ -56,7 +58,7 @@ Chat completions with streaming by defaults.
 These are required for specific features.
 
 - `Base64` - image endpoint, vision models
-- `Imagemagick` - image edits and variations
+- `ImageMagick` - image edits and variations
 - `Python` - tiktoken
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS output
 - `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input, Whisper
@@ -330,7 +332,8 @@ _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 
 - Add operator forward slash `/` to the end of prompt to trigger **preview mode**.
 
-- One can regenerate a response typing in a new prompt a single slash `/`.
+- One can regenerate a response typing in a new prompt a single slash `/`,
+or `//` to have last prompt edited before new request.
 
 <!--
 - Generally, my evaluation on models prefers using `davinci`, or
@@ -401,19 +404,19 @@ Generate image variation:
     chatgpt.sh -i path/to/image.png path/to/mask.png "A pink flamingo."
 
 
+#### Outpaint - Canvas Extension
+
+![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits.gif)
+
+In this example, a mask is made from the white colour.
+
+
 #### Inpaint - Fill in the Gaps
 
 ![Showing off Image Edits - Inpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits2.gif)
 <!-- ![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png) -->
 
 Adding a bat in the night sky.
-
-
-#### Outpaint - Canvas Extension
-
-![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits0.gif)
-
-In this example, a mask is made from the white colour.
 
 
 ### 🔊 Audio Transcriptions / Translations
@@ -533,8 +536,11 @@ Finally, when running `chatgpt.sh`, set the model name:
 Setting some stop sequences may be needed to prevent the
 model from generating text past context:
 
-    chatgpt.sh -cc -m luna-ai-llama2  -s'### Response:'  -s'### User:'
+    chatgpt.sh -cc -m luna-ai-llama2  -s'### User:'  -s'### Response:'
 
+
+Optionally set restart and start sequences for text completions
+endpoint (`option -c`), too.
 
 And that's it!
 

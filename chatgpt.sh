@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.38.5  jan/2024  by mountaineerbr  GPL+3
+# v0.39  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1883,9 +1883,7 @@ function usr_logf
 
 #wrap text at spaces rather than mid-word
 function foldf
-(
-	set -x; echo COLUMNS=$COLUMNS >&2;
-
+{
 	if ((COLUMNS<18)) || [[ ! -t 1 ]]
 	then 	cat
 	else 	typeset REPLY r x n;
@@ -1915,9 +1913,8 @@ function foldf
 			((n += ${#r}));
 			((${#x})) && n=${#x} x= ;
 		done
-	#fi; return 0;
-	fi; exit 0;
-) 2>> ~/foldf.log
+	fi; return 0;
+}
 
 #check if a value if within a fp range
 #usage: check_optrangef [val] [min] [max]
@@ -3770,7 +3767,7 @@ else
 				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE: }${NC}" >&2
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
 			do
-				((SKIP+OPTW)) && echo >&2
+				((SKIP+OPTW+${#RESTART})) && echo >&2
 				if ((OPTW)) && ((!EDIT))
 				then 	#auto sleep 3-6 words/sec
 					((OPTV)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))  &>/dev/null
@@ -4007,6 +4004,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 
 		#request and response prompts
 		SECONDS_REQ=$SECONDS;
+		((${#START})) && printf "${YELLOW}%s\\n" "$START" >&2;
 		((OLLAMA)) && api_host=$API_HOST API_HOST=$OLLAMA_API_HOST;
 		if ((${#BLOCK}>32000))  #32KB
 		then 	buff="${FILE%.*}.block.json"
