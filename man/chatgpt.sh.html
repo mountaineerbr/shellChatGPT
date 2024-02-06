@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.39 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.40 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.39 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.40 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -685,6 +685,11 @@ flush.</td>
 <td style="text-align: left;"><code>!block</code> [<em>ARGS</em>]</td>
 <td>Set and add custom options to JSON request.</td>
 </tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-</code></td>
+<td style="text-align: left;"><code>!multimodal</code></td>
+<td>Toggle model as multimodal (image support).</td>
+</tr>
 </tbody>
 </table>
 <table>
@@ -1178,6 +1183,10 @@ Def=<em>1</em>.</p>
 <em>gpt-3.5-turbo-0301</em>.</p>
 <p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
 </dd>
+<dt><strong>--multimodal</strong></dt>
+<dd>
+<p>Set model as multimodal (enable image support).</p>
+</dd>
 <dt><strong>-n</strong> [<em>NUM</em>],
 <strong>--results</strong>=[<em>NUM</em>]</dt>
 <dd>
@@ -1234,11 +1243,11 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Start new multi-turn session in plain text completions.</p>
 </dd>
-<dt><strong>-e</strong>, <strong>–edit</strong></dt>
+<dt><strong>-e</strong>, <strong>--edit</strong></dt>
 <dd>
 <p>Edit first input from stdin, or file read (cmpls/chat).</p>
 </dd>
-<dt><strong>-E</strong>, <strong>–exit</strong></dt>
+<dt><strong>-E</strong>, <strong>--exit</strong></dt>
 <dd>
 <p>Exit on first run (even with options -cc).</p>
 </dd>

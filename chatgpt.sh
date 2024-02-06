@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.39  jan/2024  by mountaineerbr  GPL+3
+# v0.40  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -315,6 +315,7 @@ Chat Commands
        -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
        -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk      !block   [ARGS]   Set and add options to JSON request.
+        -      !multimodal       Toggle model as multimodal (image support).
     --- Session Management ----------------------------------------
        -H      !hist             Edit raw history file in editor.
       -HH      !req              Print context request immediately (see -V),
@@ -379,6 +380,8 @@ Options
 	-m [MOD], --model=[MOD]
 		Set language MODEL name, or set it as \`.' to pick
 		from the list. Def=$MOD, $MOD_CHAT.
+	--multimodal
+ 		Set model as multimodal (enable image support).
 	-n [NUM], --results=[NUM]
 		Set number of results. Def=$OPTN.
 	-p [VAL], --top-p=[VAL]
@@ -514,20 +517,23 @@ function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
 	case "$1" in
-	       	#image variations or generations (cannot check for edits from here)
-		*dalle-e*|*stable*diffusion*) ((OPTII)) && EPN=4 || EPN=3;;
+		#image variations or generations (cannot check for edits from here)
+		*dalle-e*|*stable*diffusion*)
+	       			((OPTII)) && EPN=4 || EPN=3;;
 		tts-*|*-tts-*) 	EPN=10;;
-		*whisper*) 		((OPTWW)) && EPN=8 || EPN=7;;
+		*whisper*) 	((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	case "$1" in
 					*search*) 	EPN=5 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		text-*|*turbo-instruct*|text*moderation*) 	case "$1" in
+		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|text*moderation*|*embedding*|*similarity*|*search*)
+				case "$1" in
 					*embedding*|*similarity*|*search*) 	EPN=5 OPTEMBED=1;;
 					text*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		gpt-4*|gpt-3.5*|gpt-*|*turbo*) 		EPN=6 EPN6=6  OPTB= OPTBB=
+		gpt-4*|gpt-3.5*|gpt-*|*turbo*)
+				EPN=6 EPN6=6  OPTB= OPTBB=
 				((OPTC)) && OPTC=2
 				#set token adjustment per message
 				case "$MOD" in
@@ -538,15 +544,16 @@ function set_model_epnf
 				;;
 		*) 		#fallback
 				case "$1" in
-					*-embedding*|*-similarity*|*-search*) 	EPN=5 OPTEMBED=1;;
+					*embedding*|*similarity*|*search*)
+						EPN=5 OPTEMBED=1;;
 					*) 	if ((OPTCMPL))
 						then 	OPTC= EPN=0;
 						elif ((OPTC>1))
 						then 	OPTCMPL= EPN=6;
 						elif ((OPTC))
 						then 	OPTCMPL= EPN=0;
-						else 	EPN=0;
-						fi;;  #defaults
+						else 	EPN=0;  #defaults
+						fi;;
 				esac; return 1;;
 	esac
 }
@@ -595,11 +602,15 @@ function _promptf
 			chunk=${chunk##*([$' \t'])[Dd][Aa][Tt][Aa]:*([$' \t'])}
 			[[ $chunk = *([$IFS]) ]] && continue
 			[[ $chunk = *([$IFS])\[+([A-Z])\] ]] && continue
-			if ((!n))  #first pass
-			then 	((OPTC&&EPN==0)) && {  #del leading spaces
-					str='text":"'
-					chunk_n="${chunk/${str}+${SPC1##\*}/$str}"
-					[[ $chunk_n = *"${str}"\",* ]] && continue
+			if ((!n))  #first pass, del leading spaces
+			then 	((OPTC)) && {
+					str='content":"';
+					if ((OLLAMA))
+					then 	((EPN==0)) && str='response":"';
+					else 	((EPN==0)) && str='text":"';
+					fi
+					chunk_n="${chunk/${str}+(\\[ntrvf]|[$IFS])/$str}"
+					[[ $chunk_n = *"${str}"\"[\]\},$IFS]* ]] && continue
 				}; ((++n));
 				printf '%s\n' "${chunk_n:-$chunk}"; chunk_n= ;
 			else 	printf '%s\n' "$chunk"
@@ -776,11 +787,11 @@ function read_mainf
 function prompt_printf
 {
 	typeset stream
-	
+
 	if ((STREAM))
 	then 	typeset OPTC OPTV; stream=$STREAM;
 	else 	set -- "$FILE"
-		((OPTBB)) && jq -r '.choices[].logprobs//empty' "$@" >&2
+		((OPTBB)) && jq -r '(.choices[].logprobs)?' "$@" >&2
 	fi
 	if ((OPTEMBED))
 	then 	jq -r '(.data),
@@ -791,8 +802,8 @@ function prompt_printf
 	fi
 
 	{ jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
-	  (.choices[1].index as \$sep | if .choices then .choices[] else . end |
-	  byellow + ( (.text//(.message.content)//(.delta.content)//.response//empty ) |
+	  (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
+	  byellow + ( (.text//.response//(.message.content)//(.delta.content)//empty ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if .finish_reason != \"stop\" then (if .finish_reason != null then red+\"(\"+.finish_reason+\")\"+reset else null end) else null end,
 	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf ;} | foldf ||
@@ -806,7 +817,7 @@ function prompt_pf
 	for var
 	do 	[[ -f $var ]] || { 	opt+=("$var"); shift ;}
 	done
-	set -- "(if .choices then (.choices[$INDEX]) else . end |.text//(.message.content)//(.delta.content)//.response//empty)//.data//empty" "$@"
+	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |.text//.response//(.message.content)//(.delta.content)//empty)//.data?" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
 	{ jq "$@" && _p_suffixf ;} || ! cat -- "$@" >&2 2>/dev/null
 }
@@ -998,7 +1009,7 @@ function set_histf
 			esac
 
 			#vision
-			if ((!OPTHH)) && { 	[[ $MOD = *vision* ]] || ((OLLAMA)) ;}
+			if ((!OPTHH)) && is_visionf "$MOD"
 			then 	MEDIA_CHAT=(); _mediachatf "$stringc"
 				((TRUNC_IND)) && stringc=${stringc:0:${#stringc}-TRUNC_IND};
 			fi
@@ -1017,7 +1028,8 @@ function set_histf
 	
 	#first system/instruction: add extra newlines and delete $S_TYPE  (txt cmpls) 
 	[[ $role = system ]] &&	if ((OLLAMA))
-	then 	HIST="${HIST:${#rest}+${#stringc}}"  #delete first system message for ollama
+	then 	((OPTC && EPN==0)) && [[ $rest = \\n* ]] && rest+=xx  #!#del \n at start of string
+	       	HIST="${HIST:${#rest}+${#stringc}}"  #delete first system message for ollama
 	else 	HIST="${HIST:${#rest}:${#stringc}}\\n${HIST:${#rest}+${#stringc}}"
 	fi
 
@@ -1378,6 +1390,10 @@ function cmd_runf
 			__cmdmsgf 'Model Name' "$MOD"
 			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 			;;
+		multimodal|[/!-]multimodal|--multimodal)
+			((++MULTIMODAL)); ((MULTIMODAL%=2))
+			__cmdmsgf 'Multimodal Model' $(_onoff $MULTIMODAL)
+			;;
 		-n*|results*)
 			[[ $* = -n*[!0-9\ ]* ]] && { 	cmd_runf "-N${*##-n}"; return ;}  #compat with -Nill option
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
@@ -1525,11 +1541,10 @@ function cmd_runf
 			fi
 			;;
 		i|info)
-			echo >&2
 			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
 			$( ((LOCALAI)) && echo host-url "${API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
 			$( ((OLLAMA)) && echo ollama-url "${OLLAMA_API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
-			model-name   "${MOD:-?}" \
+			model-name   "${MOD:-?}$(is_visionf "$MOD" && printf '  %s' '[multimodal]')" \
 			model-cap    "${MODMAX:-?}" \
 			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
 			context-prev "${MAX_PREV:-?}" \
@@ -1644,11 +1659,12 @@ function cmd_runf
 			;;
 		*) 	return 1
 			;;
-	esac; ((OPTCMPL)) && echo >&2;
+	esac; ((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART:-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2;
 	if ((OPTX)) && ((!(REGEN+xskip) )) 
 	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
 		__read_charf >/dev/null;
-	fi; return 0
+	fi;
+       	return 0;
 }
 
 #print msg to stderr
@@ -1800,7 +1816,7 @@ function fmt_ccf
 	then
 		printf '{"role": "%s", "content": "%s",\n' "${2:-user}" "$1";
 		ollama_mediaf && printf '%s' ' }'
-	elif [[ $MOD = *vision* ]]
+	elif is_visionf "$MOD"
 	then
 		printf '{ "role": "%s", "content": [ { "type": "text", "text": "%s" }' "${2:-user}" "$1";
 		for var in "${MEDIA_CHAT[@]}" "${MEDIA_CHAT_CMD[@]}"
@@ -1836,6 +1852,8 @@ function ollama_mediaf
 }
 
 #get files and urls from input
+#will _NOT_ work with whitespace in filename if not pipe-delimited
+#and may not work with mixed pipe- and non-pipe-delimited input
 function _mediachatf
 {
 	typeset var spc i;
@@ -1843,11 +1861,18 @@ function _mediachatf
 	((CMD_CHAT)) || { 	((${#1}>1024)) && set -- "${1:${#1}-1024}" ;}
 	i=${#1};
 
-	set -- "${1%%\|${spc}}";
-	while [[ $1 = *\|*[[:alnum:]]* ]]
+	set -- "${1%%?(\|)${spc}}";
+	while [[ $1 = *\|*[[:alnum:]]* ]] ||
+		[[ -f "$(trim_leadf "$(trimf "$1" "$SPC1")" "|$SPC1")" ]] ||
+		[[ -f "$(sed -n '$s/[[:space:]]*$//; $s/^.*[|\t ][[:space:]]*// p' <<<"$1")" ]]
 	do
-		[[ $1 = *\|*[[:alnum:]]*\|* ]] && var=${1##"${1%${spc}\|*}"} || var=${1##*\|${spc}};
-		var=${var##${spc}\|${spc}} var=${var%%${spc}};
+		if [[ $1 = *\|*[[:alnum:]]*\|* ]]
+		then 	var=${1##"${1%${spc}\|*}"};
+		elif [[ $1 = *\|* ]]
+		then 	var=${1##*\|${spc}};
+		else 	var=${1##"${1%+${spc##\*}*}"};
+		fi
+		var=${var##${spc}*(\|)${spc}}; var=${var%%${spc}};
 
 		# check if var is a file or url and add to array
 		if { [[ -f $var ]] &&  #max: 20MB
@@ -1864,14 +1889,21 @@ function _mediachatf
 			else 	MEDIA_CHAT=("$var" "${MEDIA_CHAT[@]}")  #read by fmt_ccf()
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
-			set -- "${1%\|*}"; set -- "${1%%*([$IFS])}";
+			[[ $1 = *\|* ]] && set -- "${1%\|*}" || set -- "${1%\ *}";
+			set -- "${1%%*([$IFS])}";
 			((TRUNC_IND = i - ${#1}));  #truncation on TRUNC_IND>0
 		else
 			__warmsgf 'err: invalid --' "${var:0: COLUMNS-20}$([[ -n ${var: COLUMNS-20} ]] && echo ...)";
 			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
-			set -- "${1%\|*}";
+			[[ $1 = *\|* ]] && set -- "${1%\|*}" || set -- "${1%\ *}";
 		fi  #https://stackoverflow.com/questions/12199059/
 	done;
+}
+
+#check for multimodal (vision) model
+function is_visionf
+{
+	[[ $1 = *@(vision|llava|cogvlm|cogagent|qwen|detic|codet|kosmos-2|fuyu|instructir|idefics|unival|glamm)* ]] || ((MULTIMODAL))
 }
 
 #create user log
@@ -3155,11 +3187,11 @@ do
 			e:edit      E:exit      f:no-conf    g:stream \
 			G:no-stream h:help      H:hist       i:image \
 			'j:synthesi[sz]e'  j:synth 'J:synthesi[sz]e-voice' \
-			J:synth-voice  'k:no-colo*' \
-			K:api-key   l:list-model   l:list-models \
-			L:log       m:model        m:mod   n:results \
-			o:clipboard  o:clip  O:ollama  p:top-p  p:top  \
-			q:insert  r:restart-sequence  r:restart-seq  r:restart \
+			J:synth-voice  'k:no-colo*'  K:api-key  l:list-model \
+			l:list-models    L:log    m:model    m:mod  \
+			multimodal    n:results    o:clipboard \
+			o:clip  O:ollama  p:top-p  p:top  q:insert  \
+			r:restart-sequence  r:restart-seq  r:restart \
 			R:start-sequence  R:start-seq  R:start \
 			s:stop      S:instruction  t:temperature \
 			t:temp      T:tiktoken   u:multiline  u:multi  U:cat \
@@ -3215,7 +3247,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTE OPTEXIT API_HOST OLLAMA_API_HOST OLLAMA LOCALAI OPENAI_API_HOST OPENAI_API_HOST_STATIC GPTCHATKEY READLINEOPT;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTE OPTEXIT API_HOST OLLAMA_API_HOST OLLAMA LOCALAI OPENAI_API_HOST OPENAI_API_HOST_STATIC GPTCHATKEY READLINEOPT MULTIMODAL;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -3238,6 +3270,7 @@ do
 			USRLOG="${USRLOG/\~\//"$HOME"\/}"
 			_sysmsgf 'Log File' "<${USRLOG/"$HOME"/"~"}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
+		multimodal) 	MULTIMODAL=1;;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		k) 	OPTK=1;;
@@ -3357,9 +3390,9 @@ fi
 if ((OLLAMA))
 then 	function list_modelsf
 	{
-		if ((${#}))
+		if ((${#1}))
 		then 	curl -\# -L "${OLLAMA_API_HOST}/api/show" -d "{\"name\": \"$1\"}" -o "$FILE" &&
-			{ jq . "$FILE" || ! cat -- "$FILE" ;}
+			{ jq . "$FILE" || ! cat -- "$FILE" ;}; echo >&2;
 			ollama show "$1" --modelfile  2>/dev/null;
 		else 	{
 			  printf '\nName\tFamily\tFormat\tParam\tQLvl\tSize\tModification\n'
@@ -3407,7 +3440,7 @@ then
 				sleep 1;
 			done;
 			jq -r '.error//empty,.message//empty,"Job completed"' <<<"$proc" >&2; )
-		elif ((${#}))
+		elif ((${#1}))
 		then
 			curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
 			{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
@@ -3912,7 +3945,7 @@ else
 		fi
 
 		#vision
-		if [[ $MOD = *vision* ]] || ((OLLAMA))  #how to know whether ollama model is multimodal?
+		if is_visionf "$MOD"
 		then 	((${#}<2)) || set -- "$*";
 			_mediachatf "$1";
 			((TRUNC_IND)) && REPLY_OLD=$* && set -- "${1:0:${#1}-TRUNC_IND}";
@@ -3938,6 +3971,7 @@ else
 			if ((EPN==6)); then 	set_histf "${*}"; else 	set_histf "${Q_TYPE}${*}"; fi
 			if ((OPTC)) || [[ -n "${RESTART}" ]]
 			then 	rest="${RESTART:-$Q_TYPE}"
+				((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
 			fi
 			((JUMP)) && set -- && unset rest
 			ESC="${HIST}${rest}$(escapef "${*}")"
@@ -4004,7 +4038,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 
 		#request and response prompts
 		SECONDS_REQ=$SECONDS;
-		((${#START})) && printf "${YELLOW}%s\\n" "$START" >&2;
+		((${#START})) && printf "${YELLOW}%b\\n" "$START" >&2;
 		((OLLAMA)) && api_host=$API_HOST API_HOST=$OLLAMA_API_HOST;
 		if ((${#BLOCK}>32000))  #32KB
 		then 	buff="${FILE%.*}.block.json"

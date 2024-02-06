@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.39 | General Commands Manual
+% CHATGPT.SH(1) v0.40 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -340,6 +340,7 @@ may be either "`!`", or "`/`".
       `-w`    `!rec`      \[_ARGS_]      Toggle Whisper. Optionally, set arguments.
       `-z`    `!tts`      \[_ARGS_]      Toggle TTS chat mode (speech out).
     `!blk`    `!block`    \[_ARGS_]      Set and add custom options to JSON request.
+       `-`    `!multimodal`              Toggle model as multimodal (image support).
   --------    -----------------------    --------------------------------------------
 
   Session     Management
@@ -827,6 +828,11 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
       Set _MODEL_ name as "_._" to pick from the list.
 
 
+**\--multimodal**
+
+: Set model as multimodal (enable image support).
+
+
 **-n** \[_NUM_], **\--results**=\[_NUM_]
 
 : Set number of results. Def=_1_.
@@ -883,12 +889,12 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Start new multi-turn session in plain text completions.
 
 
-**-e**, **--edit**
+**-e**, **\--edit**
 
 : Edit first input from stdin, or file read (cmpls/chat).
 
 
-**-E**, **--exit**
+**-E**, **\--exit**
 
 : Exit on first run (even with options -cc).
 
