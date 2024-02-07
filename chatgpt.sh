@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.40.3  jan/2024  by mountaineerbr  GPL+3
+# v0.40.4  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3759,15 +3759,16 @@ else
 		if ((REGEN>1))
 		then 	unset REGEN;
 		elif ((REGEN))
-		then 	set -- "${REPLY_OLD:-$*}"; unset REGEN;
+		then 	set -- "${REPLY_OLD:-$*}";
+			PSKIP=1; unset REGEN;
 		fi
 		((OPTAWE)) || {  #awesome 1st pass skip
 
 		#prompter pass-through
-		if ((PSKIP)) && [[ -z $* ]] && [[ -n $REPLY ]]
-		then 	set -- "$REPLY"
-		#text editor prompter
+		if ((PSKIP))
+		then 	[[ -z $* ]] && [[ -n $REPLY ]] && set -- "$REPLY";
 		elif ((OPTX))
+		#text editor prompter
 		then 	edf "${@:-$REPLY}"
 			case $? in
 				179|180) :;;        #jumps
