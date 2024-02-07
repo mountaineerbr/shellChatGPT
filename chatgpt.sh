@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.40  jan/2024  by mountaineerbr  GPL+3
+# v0.40.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3680,13 +3680,9 @@ else
 		fi
 	fi
 
+	#load file (last arg)
+	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
 	#text/chat completions
-	if ((${#})) && [[ -f ${@:${#}} ]]
-	then 	if ((OPTX))
-		then 	set -- "${@:1:${#}-1}" "$(<"${@:${#}}")"
-		else 	set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")" )"  #load file (last arg)
-		fi
-	fi
 	if ((OPTC))
 	then 	__sysmsgf 'Chat Completions'
 		#chatbot must sound like a human, shouldnt be lobotomised
@@ -3751,7 +3747,9 @@ else
 		shell_histf "$*";
 	fi
 	cmd_runf "$@" && set -- ;
-	((OPTE && ${#})) && { 	REPLY=$* EDIT=1 SKIP= WSKIP=; set -- ;}  #option -e, edit first user input
+	#option -e, edit first user input
+	((OPTE && OPTX)) && unset OPTE;  #option -x always edits, anyways
+	((OPTE && ${#})) && { 	REPLY=$* EDIT=1 SKIP= WSKIP=; set -- ;}
 
 	#load stdin again?
 	((${#})) || [[ -t 0 ]] || set -- "$(<$STDIN)"
