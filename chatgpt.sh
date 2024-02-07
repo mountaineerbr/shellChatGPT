@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.40.4  jan/2024  by mountaineerbr  GPL+3
+# v0.41  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2095,12 +2095,12 @@ function whisperf
 	typeset file rec var;
 	typeset -a args;
        	unset WHISPER_OUT;
-	if ((!CHAT_ENV))
+	if ((!(CHAT_ENV+MTURN) ))
 	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "$OPTT";
 	fi;
 	check_optrangef "$OPTT" 0 1.0 Temperature
 	
-	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
+	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
 	for var
 	do    [[ $var = *([$IFS]) ]] && shift || break;
 	done; var= ; args=("$@");
@@ -2139,7 +2139,9 @@ function whisperf
 	
 	#set a prompt
 	if [[ ${*} != *([$IFS]) ]]
-	then 	set -- -F prompt="$*";
+	then 	((CHAT_ENV+MTURN)) || { var=$*;
+		  __sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${var: COLUMNS-17} ]] && echo ...)";
+	  	}; set -- -F prompt="$*";
 	elif ((CHAT_ENV+MTURN))
 	then 	var="${WCHAT_C:-$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")}";
 		((${#var})) && set -- -F prompt="$var";
@@ -2220,7 +2222,7 @@ function ttsf
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
-	((${#})) || [[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
+	((${#})) || [[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
 	for var
 	do    [[ $var = *([$IFS]) ]] && shift || break;
 	done; var= ;
@@ -2259,9 +2261,10 @@ function ttsf
 	while input=${xinput:0: max};
 	do
 		if ((!CHAT_ENV))
-		then 	_sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
-			__sysmsgf 'Text Prompt:' "${xinput:0: COLUMNS-17}$([[ -n ${xinput: COLUMNS-17} ]] && echo ...)";
-		fi; REPLAY_FILES=("${REPLAY_FILES[@]}" "$FOUT");
+		then 	var=${xinput//\\\\[nt]/  };
+			_sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
+			__sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${xinput: COLUMNS-17} ]] && echo ...)";
+		fi; REPLAY_FILES=("${REPLAY_FILES[@]}" "$FOUT"); var= ;
 		
 		BLOCK="{
 \"model\": \"${MOD_SPEECH}\",
@@ -3469,22 +3472,23 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 #set other options
 set_optsf
 
-#load stdin
 if [[ -n $TERMUX_VERSION ]]
 then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
 else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
-((${#})) || [[ -t 0 ]] || ((OPTTIKTOKEN+OPTL+OPTZZ)) || set -- "$(<$STDIN)"
 
+#load file and stdin
 if ((OPTX)) && ((OPTEMBED+OPTI+OPTII+OPTZ+OPTTIKTOKEN))
-then  #text editor
-	if ((OPTZ))
-	then 	if ((${#})) && [[ -f ${@:${#}} ]]
-		then 	edf "$(<"${@:${#}}")" && set -- "${@:1:${#}-1}";
-		else 	edf
-		fi && set -- "$@" "$(<"$FILETXT")";
-	else 	edf "$@" && set -- "$(<"$FILETXT")";
-	fi
+then
+	((OPTEMBED+OPTZ)) && ((${#})) && [[ -f ${@:${#}} ]] &&
+	  set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+	{ ((OPTI+OPTII)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
+	  [[ -t 0 ]] || set -- "$@" "$(<$STDIN)";
+	edf "$@" && set -- "$(<"$FILETXT")";
+elif ! ((OPTTIKTOKEN+OPTI+OPTII))
+then
+	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+	[[ -t 0 ]] || ((OPTZZ+OPTL+OPTFF+OPTHH)) || set -- "$@" "$(<$STDIN)";
 fi
 
 #tips and warnings
@@ -3500,7 +3504,7 @@ then 	if ((!OPTHH))
 	fi
 fi
 
-((OPTW+OPTZ+OPTII+OPTI+OPTEMBED)) &&
+(( (OPTII+OPTI+OPTEMBED) || (OPTW+OPTZ && !MTURN) )) &&
 for arg  #!# escape input
 do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
@@ -3536,7 +3540,7 @@ then 	typeset -a argn
 	[[ ${WARGS[*]} = $SPC ]] && unset WARGS;
 	[[ ${ZARGS[*]} = $SPC ]] && unset ZARGS;
 	((${#WARGS[@]})) && ((${#ZARGS[@]})) && ((${#})) && {
-	  var=$* p=${var:128} var=${var:0:128}; __cmdmsgf 'Text Prompt' "${var}${p:+ [..]}" ;}
+	  var=$* p=${var:128} var=${var:0:128}; __cmdmsgf 'Text Prompt' "${var//\\\\[nt]/  }${p:+ [..]}" ;}
 	((${#WARGS[@]})) && __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-unset}"
 	((${#ZARGS[@]})) && __cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
 	unset n p ii var arg argn;
@@ -3610,19 +3614,17 @@ then 	if ((OPTYY))
 	[[ -f $* ]] && [[ -t 0 ]] && exec 0<"$*" && set -- "-"  #exec max one file
 	tiktokenf "$*" || ! __warmsgf "Err:" "Python / tiktoken"
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
-then 	[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
+then 	[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
 	whisperf "$@" &&
 	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
-	then 	echo >&2; set -- ;
+	then 	_sysmsgf $'\nText-To-Speech'; set -- ;
 		MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
-		[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
+		[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
 		ttsf "$@" "$(escapef "$WHISPER_OUT")";
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
-then 	[[ ${ZARGS[*]} = $SPC ]] || set -- "$@" "${ZARGS[@]}";
-	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")";
-	[[ -t 0 ]] || set -- "$@" "$(escapef "$(<$STDIN)")"
+then 	[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
 	ttsf "$@"
 elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
@@ -3643,7 +3645,6 @@ elif ((OPTEMBED))  #embeds
 then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	|| __warmsgf "Warning:" "Not an embedding model -- $MOD"
 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM
-	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(escapef "$(<"${@:${#}}")")"
 	if ((!${#}))
 	then 	__clr_ttystf; echo 'Input:' >&2;
 		read_mainf REPLY </dev/tty
@@ -3680,8 +3681,6 @@ else
 		fi
 	fi
 
-	#load file (last arg)
-	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
 	#text/chat completions
 	if ((OPTC))
 	then 	__sysmsgf 'Chat Completions'
@@ -3751,9 +3750,6 @@ else
 	((OPTE && OPTX)) && unset OPTE;  #option -x always edits, anyways
 	((OPTE && ${#})) && { 	REPLY=$* EDIT=1 SKIP= WSKIP=; set -- ;}
 
-	#load stdin again?
-	((${#})) || [[ -t 0 ]] || set -- "$(<$STDIN)"
-
 	while :
 	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
 		if ((REGEN>1))
@@ -3766,7 +3762,7 @@ else
 
 		#prompter pass-through
 		if ((PSKIP))
-		then 	[[ -z $* ]] && [[ -n $REPLY ]] && set -- "$REPLY";
+		then 	[[ -z $* ]] && [[ -n ${REPLY:-$REPLY_OLD} ]] && set -- "${REPLY:-$REPLY_OLD}";
 		elif ((OPTX))
 		#text editor prompter
 		then 	edf "${@:-$REPLY}"
@@ -3810,7 +3806,7 @@ else
 							then 	REPLY=$(
 								set --; MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
 								set_model_epnf "$MOD_AUDIO";
-								[[ ${WARGS[*]} = $SPC ]] || set -- "$@" "${WARGS[@]}";
+								[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
 								whisperf "$FILEINW" "$@";
 							)
 							else 	case $? in
