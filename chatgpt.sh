@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.41  jan/2024  by mountaineerbr  GPL+3
+# v0.41.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -803,9 +803,9 @@ function prompt_printf
 
 	{ jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
 	  (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
-	  byellow + ( (.text//.response//(.message.content)//(.delta.content)//empty ) |
+	  byellow + ( (.text//.response//(.message.content)//(.delta.content)//\"\" ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
-	  + if .finish_reason != \"stop\" then (if .finish_reason != null then red+\"(\"+.finish_reason+\")\"+reset else null end) else null end,
+	  + if .finish_reason? != \"stop\" then (if .finish_reason? != null then red+\"(\"+.finish_reason+\")\"+reset else null end) else null end,
 	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf ;} | foldf ||
 
 	prompt_pf -r ${stream:+-j --unbuffered} "$@" 2>/dev/null
@@ -817,7 +817,7 @@ function prompt_pf
 	for var
 	do 	[[ -f $var ]] || { 	opt+=("$var"); shift ;}
 	done
-	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |.text//.response//(.message.content)//(.delta.content)//empty)//.data?" "$@"
+	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |.text//.response//(.message.content)//(.delta.content))//.data//\"\"" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
 	{ jq "$@" && _p_suffixf ;} || ! cat -- "$@" >&2 2>/dev/null
 }
