@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.40 | General Commands Manual
+% CHATGPT.SH(1) v0.40-1 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -712,8 +712,8 @@ raw escape sequences (these must not change cursor position).
 Optional packages for specific features.
 
 - `Base64` - vision models
-- `Imagemagick` - image edits and variations
-- `Python` - tiktoken, `Perl` - only for option -HHHHH (clean history file)
+- `ImageMagick` - image edits and variations
+- `Python` - tiktoken
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS output
 - `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input, Whisper
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - open images, set clipboard

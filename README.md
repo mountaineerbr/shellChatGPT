@@ -542,7 +542,7 @@ model from generating text past context:
 
 Optionally set restart and start sequences for text completions
 endpoint (`option -c`), such as `-s'\n### User: '  -s'\n### Response:'`
-(do mind adding newlines *\n*).
+(do mind setting newlines *\n and whitespaces* correctly).
 
 And that's it!
 

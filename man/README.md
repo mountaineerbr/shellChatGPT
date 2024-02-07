@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.40 \| General Commands Manual
+title: CHATGPT.SH(1) v0.40-1 \| General Commands Manual
 ---
 
 ### NAME
@@ -658,9 +658,8 @@ and may be set with colour-named variables or raw escape sequences
 Optional packages for specific features.
 
 - `Base64` - vision models
-- `Imagemagick` - image edits and variations
-- `Python` - tiktoken, `Perl` - only for option -HHHHH (clean history
-  file)
+- `ImageMagick` - image edits and variations
+- `Python` - tiktoken
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS
   output
 - `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input,
