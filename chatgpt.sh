@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.40.2  jan/2024  by mountaineerbr  GPL+3
+# v0.40.3  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1336,7 +1336,7 @@ function cmd_runf
 			;;
 		-HH|-HHH*|HH|HHH*|request|req)
 			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
-			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= set_histf
+			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= OLLAMA= set_histf
 			var=$( usr_logf "$(unescapef "$HIST")" )
 			printf "\\n---\\n%s\\n---\\n" "$var" >&2
 			((OPTCLIP)) && ${CLIP_CMD:-false} <<<"$var" && echo 'Clipboard set!' >&2
@@ -1718,7 +1718,7 @@ function edf
 
 	if ((CHAT_ENV))
 	then 	MAIN_LOOP=1 Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= \
-		set_histf "${rest}${*}"
+		OLLAMA= set_histf "${rest}${*}"
 	fi
 
 	pre="${INSTRUCTION}${INSTRUCTION:+$'\n\n'}""$(unescapef "$HIST")"
@@ -3588,7 +3588,7 @@ then 	OPTRESUME=1
 	then 	((OPTC || EPN==6)) && OPTC=2
 		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1
 		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
-		MODMAX=65536 set_histf ''
+		MODMAX=65536 OLLAMA= set_histf ''
 		usr_logf "$(unescapef "$HIST")"
 		[[ ! -e $FILEFIFO ]] || rm -- "$FILEFIFO"
 	elif [[ -t 1 ]]
