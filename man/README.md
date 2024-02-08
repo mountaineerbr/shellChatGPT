@@ -907,7 +907,7 @@ Set log file. *FILEPATH* is required.
 Enable markdown rendering in response. Software is optional: *bat*,
 *pygmentize*, *glow*, *mdcat*, *mdless*, or *pandoc*.
 
-**–no-md**, **–no-markdown**  
+**--no-md**, **--no-markdown**  
 Disable markdown rendering.
 
 **-o**, **--clipboard**  

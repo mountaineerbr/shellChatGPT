@@ -1054,7 +1054,7 @@ with history, so avoid it.
   _bat_, _pygmentize_, _glow_, _mdcat_, _mdless_, or _pandoc_.
 
 
-**--no-md**, **--no-markdown**
+**\--no-md**, **\--no-markdown**
 
 : Disable markdown rendering.
 
