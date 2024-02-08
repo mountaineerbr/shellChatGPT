@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.41.1  jan/2024  by mountaineerbr  GPL+3
+# v0.42  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -167,10 +167,10 @@ Description
 	Positional arguments are read as a single PROMPT. Optionally set
 	INTRUCTION with option -S.
 
-	In multi-turn, when user prompt begins with a colon \`:', the
-	subsequent text is set as a system message (text and chat cmpls).
-	For text cmpls only, if double colons \`::' are used, the following
-	text will be appended to the previous prompt.
+	In multi-turn interactions, prompts starting with a colon \`:' are
+	prepended as a user message to the request, while double colons
+	\`::' insert the prompt as instruction / system without initiating
+	a new API request.
 
 	With vision models, insert an image to the prompt with chat command
 	\`!img [url|filepath]'. Image urls and files can also be appended
@@ -208,7 +208,7 @@ Description
 	context length (fast).
 
 	Input sequences \`\\n' and \`\\t' are only treated specially in
-	restart, start and stop sequences! (v0.18+)
+	restart, start and stop sequences!
 
 	A personal OpenAI API is required, set environment or option -K.
 
@@ -264,21 +264,25 @@ Environment
 
 
 Chat Commands
-	While in chat mode, the following commands can be typed in the
-	new prompt to set a new parameter. The command operator may be
-	either \`!', or \`/'.
+	In chat mode, commands are introduced with either \`!' or \`/' as
+	operators. These commands allow users to modify their interaction
+	parameters within the chat.
 
     ------    ----------    ---------------------------------------
     --- Misc Commands ---------------------------------------------
+        :     ::       [PROMPT]  Prepend user/system prompt to request.
        -S.     -.       [NAME]   Load and edit custom prompt.
        -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
        -Z      !last             Print last response JSON.
         !      !r, !regen        Regenerate last response.
        !!      !rr               Regenerate response, edit prompt first.
-      !img     !url  [FILE|URL]  Append image / url to prompt.
+      !img     !media [FILE|URL] Append image / url to prompt.
+      !url    !!url      [URL]   Load URL in text editor or skips edit.
        !i      !info             Info on model and session settings.
        !j      !jump             Jump to request, append response primer.
       !!j     !!jump             Jump to request, no response priming.
+      !md      !markdown [SOFTW] Toggle markdown support in response.
+     !!md     !!markdown [SOFTW] Render last response in markdown.
      !rep      !replay           Replay last TTS audio response.
       !sh      !shell    [CMD]   Run shell, or command, and edit output.
      !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
@@ -289,7 +293,7 @@ Chat Commands
        -u      !multi            Toggle multiline, ctrl-d flush.
        -uu    !!multi            Multiline, one-shot, ctrl-d flush.
        -U      -UU               Toggle cat prompter, or set one-shot.
-        -      !cat     [FILE]   Cat prompter (once, ctrd-d), or cat file.
+      !cat     -        [FILE]   Cat prompter (once, ctrd-d), or cat file.
        -V      !context          Print context before request (see -HH).
        -VV     !debug            Dump raw request block and confirm.
        -v      !ver              Toggle verbose modes.
@@ -358,43 +362,43 @@ Chat Commands
 
 Options
 	Model Settings
-	-@ [[VAL%]COLOUR], --alpha=[[VAL%]COLOUR]
+	-@, --alpha  [[VAL%]COLOUR]
 		Set transparent colour of image mask. Def=black.
 		Fuzz intensity can be set with [VAL%]. Def=0%.
 	-Nill
 		Unset model max response (chat cmpls only).
 	-NUM
-	-M [NUM[/NUM]], --max=[NUM[-NUM]]
+	-M, --max  [NUM[-NUM]]
 		Set maximum number of \`response tokens'. Def=$OPTMAX.
 		A second number in the argument sets model capacity.
-	-N [NUM], --modmax=[NUM]
-		Set \`model capacity' tokens. Def=_auto_, fallback=4000.
-	-a [VAL], --presence-penalty=[VAL]
+	-N, --modmax    [NUM]
+		Set \`model capacity' tokens. Def=_auto_, Fallback=4000.
+	-a, --presence-penalty   [VAL]
 		Set presence penalty  (cmpls/chat, -2.0 - 2.0).
-	-A [VAL], --frequency-penalty=[VAL]
+	-A, --frequency-penalty  [VAL]
 		Set frequency penalty (cmpls/chat, -2.0 - 2.0).
-	-b [NUM], --best-of=[NUM]
+	-b, --best-of   [NUM]
 		Set best of, must be greater than opt -n (cmpls). Def=1.
-	-B [NUM], --logprobs=[NUM]
+	-B, --logprobs  [NUM]
 		Request log probabilities, see -Z (cmpls, 0 - 5),
-	-m [MOD], --model=[MOD]
+	-m, --model     [MOD]
 		Set language MODEL name, or set it as \`.' to pick
 		from the list. Def=$MOD, $MOD_CHAT.
 	--multimodal
  		Set model as multimodal (enable image support).
-	-n [NUM], --results=[NUM]
+	-n, --results   [NUM]
 		Set number of results. Def=$OPTN.
-	-p [VAL], --top-p=[VAL]
+	-p, --top-p     [VAL]
 		Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
-	-r [SEQ], --restart=[SEQ]
+	-r, --restart   [SEQ]
 		Set restart sequence string (cmpls).
-	-R [SEQ], --start=[SEQ]
+	-R, --start     [SEQ]
 		Set start sequence string (cmpls).
-	-s [SEQ], --stop=[SEQ]
+	-s, --stop      [SEQ]
 		Set stop sequences, up to 4. Def=\"<|endoftext|>\".
-	-S [INSTRUCTION|FILE], --instruction
+	-S, --instruction  [INSTRUCTION|FILE]
 		Set an instruction prompt. It may be a text file.
-	-t [VAL], --temperature=[VAL]
+	-t, --temperature  [VAL]
 		Set temperature value (cmpls/chat/whisper),
 		(0.0 - 2.0, whisper 0.0 - 1.0). Def=${OPTT:-0}.
 
@@ -414,18 +418,17 @@ Options
 		Set response streaming.
 	-G, --no-stream
 		Unset response streaming.
-	-i [PROMPT], --image
+	-i, --image   [PROMPT]
 		Generate images given a prompt.
-	-i [PNG]
+	-i  [PNG]
 		Create variations of a given image.
-	-i [PNG] [MASK] [PROMPT]
+	-i  [PNG] [MASK] [PROMPT]
 		Edit image with mask, and prompt (required).
 	-qq, --insert
-		Insert text rather than completing only. Use \`[insert]'
-		to indicate where the model should insert text, may be
-		set twice for multi-turn.
+		Insert text mode. Use \`[insert]' tag within the prompt.
+		May be set twice for multi-turn.
 	-S .[PROMPT_NAME][.], -.[PROMPT_NAME][.]
-	-S ,[PROMPT_NAME], -,[PROMPT_NAME]
+	-S ,[PROMPT_NAME],    -,[PROMPT_NAME]
 		Load, search for, or create custom prompt.
 		Set \`..[prompt]' to silently load prompt.
 		Set \`.?' to list prompt template files.
@@ -434,16 +437,15 @@ Options
 	-S %[AWESOME_PROMPT_NAME_ZH]
 		Set or search an awesome-chatgpt-prompt(-zh).
 		Set \`//' or \`%%' to refresh cache. Davinci+ models.
-	-T, --tiktoken
-	-TT
-	-TTT 	Count input tokens with tiktoken, it heeds options -ccm.
-		Set twice to print tokens, thrice to available encodings.
-		Set model or encoding with option -m.
-	-w [AUD] [LANG] [PROMPT], --transcribe
+	-TTT, --tiktoken
+		Count input tokens with Tiktoken. Set twice to print
+		tokens, thrice to available encodings. Set the model
+		or encoding with option -m. It heeds options -ccm.
+	-w, --transcribe  [AUD] [LANG] [PROMPT]
 		Transcribe audio file into text (whisper models).
 		LANG is optional. A prompt that matches the audio language
 		is optional. Set twice to get phrase-level timestamps. 
-	-W [AUD] [PROMPT-EN], --translate
+	-W, --translate   [AUD] [PROMPT-EN]
 		Translate audio file into English text (whisper models).
 		Set twice to get phrase-level timestamps. 
 	
@@ -455,22 +457,24 @@ Options
 	-FF 	Dump template configuration file to stdout.
 	-h, --help
 		Print this help page.
-	-H   [/HIST_FILE], --hist
+	-H, --hist  [/HIST_FILE]
 		Edit history file with text editor or pipe to stdout.
 		A hist file name can be optionally set as argument.
-	-HH  [/HIST_FILE]
-	-HHH [/HIST_FILE]
-		Pretty print last history session to stdout.
-		Heeds -ccdrR to print the specified (re-)start seqs.
+	-HH, -HHH  [/HIST_FILE]
+		Pretty print last history session to stdout (set twice).
 		Set thrice to print commented out hist entries, too.
+		Heeds -ccdrR to print the specified (re-)start seqs.
 	-k, --no-colour
 		Disable colour output. Def=auto.
-	-K [KEY], --api-key
+	-K, --api-key      [KEY]
 		Set OpenAI API key.
-	-l [MOD], --list-models
+	-l, --list-models  [MOD]
 		List models or print details of MODEL.
-	-L [FILEPATH], --log=[FILEPATH]
+	-L, --log   [FILEPATH]
 		Set log file. FILEPATH is required.
+	--markdown  [SOFTWARE]
+		Enable markdown rendering in response. Software may be one
+		of \`bat'/\`pygmentize'/\`glow'/\`mdcat'/\`mdless'/\`pandoc'.
 	-o, --clipboard
 		Copy response to clipboard.
 	-O, --ollama
@@ -490,7 +494,7 @@ Options
 		Set tiktoken for token count (cmpls/chat).
 	-Y, --no-tik  (defaults)
 		Unset tiktoken use (cmpls/chat).
-	-z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT], --tts
+	-z, --tts   [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 		Synthesise speech from text prompt, set -v to not play.
 	-Z, --last
 		Print last response JSON data."
@@ -786,7 +790,7 @@ function read_mainf
 #print response
 function prompt_printf
 {
-	typeset stream
+	typeset stream ret
 
 	if ((STREAM))
 	then 	typeset OPTC OPTV; stream=$STREAM;
@@ -801,14 +805,26 @@ function prompt_printf
 		return
 	fi
 
-	{ jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
+	if ((OPTMD)) && ((MD_CMD_UNBUFF))
+	then
+		JQCOL= JQCOL2= prompt_prettyf "$@" | mdf;
+	else
+		prompt_prettyf "$@" | foldf; ret=$?;
+		if ((OPTMD))
+	      	then 	printf "${NC}\\n" >&2;
+			prompt_pf -r ${stream:+-j --unbuffered} "$@" "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
+		fi
+	fi || prompt_pf -r ${stream:+-j --unbuffered} "$@" "$FILE" 2>/dev/null;
+	return $ret;
+}
+function prompt_prettyf
+{
+	jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
 	  (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
 	  byellow + ( (.text//.response//(.message.content)//(.delta.content)//\"\" ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if .finish_reason? != \"stop\" then (if .finish_reason? != null then red+\"(\"+.finish_reason+\")\"+reset else null end) else null end,
-	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf ;} | foldf ||
-
-	prompt_pf -r ${stream:+-j --unbuffered} "$@" 2>/dev/null
+	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf;
 }
 function prompt_pf
 {
@@ -817,7 +833,7 @@ function prompt_pf
 	for var
 	do 	[[ -f $var ]] || { 	opt+=("$var"); shift ;}
 	done
-	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |.text//.response//(.message.content)//(.delta.content))//.data//\"\"" "$@"
+	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |.text//.response//(.message.content)//(.delta.content))//.data//empty" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
 	{ jq "$@" && _p_suffixf ;} || ! cat -- "$@" >&2 2>/dev/null
 }
@@ -1249,6 +1265,72 @@ function set_maxtknf
 	fi
 }
 
+#set the markdown command
+function set_mdcmdf
+{
+	typeset cmd  md_cmd  md_cmd_browser;
+	typeset -A cmd_map=(
+		[bat]="bat --paging never --language md --wrap auto --style plain"  #unbuffered
+		[pygmentize]="pygmentize -s -l md"  #unbuffered
+		[glow]="glow -p"
+		[mdcat]="mdcat"
+		[mdless]="mdless"
+		[pandoc]="pandoc - -f markdown -t html"
+	)
+	set -- "$(trimf "$*" "$SPC")";
+
+	if ! command -v "${1%% *}" &>/dev/null
+	then 	for cmd in "bat" "pygmentize" "glow" "mdcat" "mdless" "pandoc"
+		do 	command -v $cmd &>/dev/null || continue;
+			set -- $cmd; break;
+		done;
+	fi
+	md_cmd=${cmd_map[$1]:-$1}; 
+
+	case "$md_cmd" in
+		bat*|pygmentize*)  #line-buffer support
+			MD_CMD_UNBUFF=1
+			;;
+		pandoc*)  #pandoc needs markup filter
+			md_cmd_browser="| $(set_browsercmdf)" || unset MD_CMD_UNBUFF md_cmd_browser md_cmd 
+			;;
+		*) 	unset MD_CMD_UNBUFF
+			;;
+	esac;
+	
+	if ((${#md_cmd}))
+	then 	eval "function mdf { 	$md_cmd $md_cmd_browser ;}";
+	else 	unset OPTMD MD_CMD_UNBUFF; ! __warmsgf 'Markdown' 'err';
+	fi
+}
+
+#set a terminal web browser
+function set_browsercmdf
+{
+	typeset cmd;
+	if ((${#BROWSER}))
+	then 	command -v "${BROWSER%% *}" &>/dev/null &&
+		_set_browsercmdf "$BROWSER" || _set_browsercmdf;
+	else 	for cmd in "w3m" "lynx" "elinks" "links" "false"
+		do 	command -v $cmd &>/dev/null || continue;
+			_set_browsercmdf $cmd && break;
+		done;
+	fi
+}
+function _set_browsercmdf
+{
+	typeset stop; ((OPTMD)) && stop='*' || stop='stop';
+	case "$1" in
+		w3m*) 	echo "w3m -T text/html";;
+		lynx*) 	echo "lynx -force_html -nolist"; ((!OPTMD)) || echo "-stdin";;
+		$stop) 	echo "curl -L --progress-bar"; return 1;;
+		elinks*) echo "elinks -force-html -no-references";;
+		links*) echo "links -force-html";;
+		*) 	echo "sed 's/<[^>]*>//g'";
+			return 1;;
+	esac; ((OPTMD)) || echo "-dump";
+}
+
 #check input and run a chat command
 function cmd_runf
 {
@@ -1365,13 +1447,6 @@ function cmd_runf
 			  _cmdmsgf 'Log file' "<${USRLOG/"$HOME"/"~"}>";
 			};
 			;;
-		media*|img*|url*)
-			set -- "${*##@(media|img|url)*([$IFS])}";
-			CMD_CHAT=1 _mediachatf "|${1##\|}"
-			((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}";
-			_sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_IND_CMD[@]}))\
- --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
-			;;
 		-l*|models|models\ *|model\ [Ii]nstall*|[Ii]nstall*)
 			set -- "${*##@(-l|models|model\ )*([$IFS])}";
 			if [[ $1 = *[Ii]nstall* ]]
@@ -1389,6 +1464,45 @@ function cmd_runf
 			send_tiktokenf '/END_TIKTOKEN/'
 			__cmdmsgf 'Model Name' "$MOD"
 			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
+			;;
+		markdown*|md*)
+			set -- "${*##@(markdown|md)$SPC}"
+			((OPTMD)) && [[ $* != $SPC ]] && OPTMD= ;
+			if ((++OPTMD)); ((OPTMD%=2))
+			then 	set_mdcmdf "$*"; xskip=1;
+				__sysmsgf 'MD cmd:' "$(trimf "$(declare -f mdf | sed '1d;2d;$d')" "$SPC")"
+			fi;
+			__cmdmsgf 'Markdown' $(_onoff $OPTMD);
+			((OPTMD)) || unset OPTMD;
+			;;
+		[/!]markdown*|[/!]md*)
+			set -- "${*##[/!]@(markdown|md)$SPC}"
+			set_mdcmdf "$*"; xskip=1;
+			((STREAM)) || unset STREAM;
+			printf "${NC}\\n" >&2;
+			prompt_pf -r ${STREAM:+-j --unbuffered} "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
+			printf "${NC}\\n" >&2;
+			;;
+		url*|[/!]url*)
+			set -- "${*##@(url|[/!]url)*([$IFS])}";
+			if var=$($(OPTMD= set_browsercmdf) "$1") && ((${#var}))
+			then
+				SKIP=1 xskip=1;
+				if [[ ${args[*]} = *([$IFS])[/!]* ]]
+				then  #make request right away
+					REGEN=1 REPLY_OLD=$var REPLY= ;
+				else  #edit text dump
+					EDIT=1 REPLY_OLD=$REPLY REPLY=$var;
+					(($(wc -l <<<"$var") < LINES-1)) || ((OPTX)) || OPTX=2;
+				fi
+			else 	EDIT=1 SKIP=1; echo dump err >&2;
+			fi
+			;;
+		media*|img*)
+			set -- "${*##@(media|img)*([$IFS])}";
+			CMD_CHAT=1 _mediachatf "|${1##\|}"
+			((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}";
+			_sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_IND_CMD[@]})) --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
 			;;
 		multimodal|[/!-]multimodal|--multimodal)
 			((++MULTIMODAL)); ((MULTIMODAL%=2))
@@ -1880,8 +1994,7 @@ function _mediachatf
 				*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] ) :;;
 				*) false;;
 			esac
-		} || [[ $var = [Ww][Ww][Ww].* || $var =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] \
-		|| { [[ $var != [./~]* ]] && curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$var" ;}
+		} || is_linkf "$var"
 		then
 			if ((CMD_CHAT))
 			then 	MEDIA_CHAT_CMD=("${MEDIA_CHAT_CMD[@]}" "$var")
@@ -1898,6 +2011,13 @@ function _mediachatf
 			[[ $1 = *\|* ]] && set -- "${1%\|*}" || set -- "${1%\ *}";
 		fi  #https://stackoverflow.com/questions/12199059/
 	done;
+}
+
+function is_linkf
+{
+	[[ $1 =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] ||
+	[[ $1 = [Ww][Ww][Ww].* ]] || [[ $1 != [./~]* ]] || [[ ! -e $1 ]] || return;
+	curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1"
 }
 
 #check for multimodal (vision) model
@@ -3178,6 +3298,7 @@ function cleanupf
 unset OPTMM STOPS
 #parse opts
 optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
+optstring_long="multimodal markdown:"  #long-option-only options
 while getopts "$optstring" opt
 do
 	if [[ $opt = - ]]  #long options
@@ -3192,7 +3313,7 @@ do
 			'j:synthesi[sz]e'  j:synth 'J:synthesi[sz]e-voice' \
 			J:synth-voice  'k:no-colo*'  K:api-key  l:list-model \
 			l:list-models    L:log    m:model    m:mod  \
-			multimodal    n:results    o:clipboard \
+			multimodal  markdown  markdown:md   n:results  o:clipboard \
 			o:clip  O:ollama  p:top-p  p:top  q:insert  \
 			r:restart-sequence  r:restart-seq  r:restart \
 			R:start-sequence  R:start-seq  R:start \
@@ -3208,11 +3329,15 @@ do
 		done
 
 		case "$OPTARG" in
-			$name|$name=)
-				if [[ $optstring = *"$opt":* ]]
+			$name) 	if [[ ${optstring}${optstring_long} = *"$opt":* ]]
 				then 	OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
-				fi;;
+				else 	OPTARG=
+				fi
+				;;
+			$name=) OPTARG="${@:$OPTIND:1}"
+				OPTIND=$((OPTIND+1))
+				;;
 			$name=*)
 				OPTARG="${OPTARG##$name=}"
 				;;
@@ -3273,6 +3398,8 @@ do
 			USRLOG="${USRLOG/\~\//"$HOME"\/}"
 			_sysmsgf 'Log File' "<${USRLOG/"$HOME"/"~"}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
+		markdown) OPTMD=1
+			set_mdcmdf "$OPTARG";;
 		multimodal) 	MULTIMODAL=1;;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
@@ -3304,7 +3431,7 @@ do
 		z) 	OPTZ=1;;
 		Z) 	OPTZZ=1;;
 		\?) 	exit 1;;
-	esac ;OPTARG=
+	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
 unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA_CHAT MEDIA_CHAT_CMD MEDIA_IND MEDIA_IND_CMD init buff var n s
@@ -3851,7 +3978,7 @@ else
 					else 	((SKIP)) || REPLY=
 					fi; set --; continue 2
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0
-					[[ ${REPLY: ind} = */*([$IFS]) ]]  #preview / regen cmds
+					[[ ${REPLY: ind} = */ ]]  #preview / regen cmds
 				then
 					((RETRY)) && [[ $REPLY_OLD != "$REPLY" ]] && 
 					  prev_tohistf "$(escapef "$REPLY_OLD")"
@@ -3860,7 +3987,7 @@ else
 					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}" MEDIA_IND=() MEDIA_IND_CMD=();
 				elif [[ -n $REPLY ]]
 				then
-					[[ $REPLY = $SPC:* ]] || ((RETRY+OPTV)) \
+					((RETRY+OPTV)) || [[ $REPLY = $SPC:* ]] \
 					|| new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;  #abort
@@ -3919,22 +4046,27 @@ else
 			#system/instruction?
 			if [[ ${*} = $SPC:* ]]
 			then
-				var=$(escapef ":$( trim_leadf "$*" "$SPC:" )")
+				var=$(escapef "$( trim_leadf "$*" "$SPC:" )")
 
-				((OPTV<3)) && ((EPN!=6)) &&  #user feedback
-				if [[ ${*} = $SPC::* ]]      #append (text cmpls)
+				#user feedback
+				if [[ ${*} = $SPC:::* ]] &&  #append (text cmpls) 
+				{ 	((EPN!=6)) || ! var=${var:1} ;}
 				then
-					p=$(hist_lastlinef) q=$(trim_leadf "$var" ::)
+					p=$(hist_lastlinef) q=${var:2}
 					n=$((COLUMNS-19>30 ? (COLUMNS-19)/2 : 30/2))
 					((${#p}>n)) && p=${p:${#p}-n+1} pp=".."
 					((${#q}>n)) && q=${q:0: n}       qq=".."
 					_sysmsgf $'\nText appended:' "$(printf "${NC}${CYAN}%s${BCYAN}%s${NC}" "${pp}${p}" "${q}${qq}")"
+				elif [[ ${*} = $SPC::* ]]
+				then
+					_sysmsgf 'System prompt added'
+					((${#INSTRUCTION_OLD})) || INSTRUCTION_OLD=${INSTRUCTION:-${var:1}}
 				else
-					_sysmsgf 'System prompt added'  #chat / text cmpls
-					((${#INSTRUCTION_OLD})) || INSTRUCTION_OLD=${INSTRUCTION:-${*##:}}
+					var=${Q_TYPE##$SPC1}${var}
+					_sysmsgf 'User prompt added'
 				fi
-				push_tohistf "$var"
-				unset p q n pp qq var; set -- ;continue
+				push_tohistf "$var";
+				unset p q n pp qq var; set --; continue;
 			fi
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
@@ -4035,12 +4167,14 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 		SECONDS_REQ=$SECONDS;
 		((${#START})) && printf "${YELLOW}%b\\n" "$START" >&2;
 		((OLLAMA)) && api_host=$API_HOST API_HOST=$OLLAMA_API_HOST;
+
 		if ((${#BLOCK}>32000))  #32KB
 		then 	buff="${FILE%.*}.block.json"
 			printf '%s\n' "$BLOCK" >"$buff"
 			BLOCK="@${buff}" promptf
 		else 	promptf
 		fi; RET_PRF=$?;
+
 		((OLLAMA)) && API_HOST=$api_host;
 		unset buff api_host;
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
@@ -4122,7 +4256,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 			set -- ;continue
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_IND_CMD[@]}));
-		unset MEDIA_CHAT  MEDIA_CHAT_CMD  MEDIA_IND  MEDIA_IND_CMD;
+		unset MEDIA_CHAT  MEDIA_CHAT_CMD  MEDIA_IND  MEDIA_IND_CMD  INT_RES;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming

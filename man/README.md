@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.41 \| General Commands Manual
+title: CHATGPT.SH(1) v0.42 \| General Commands Manual
 ---
 
 ### NAME
@@ -62,10 +62,12 @@ the succeeding text after the flag. Insert mode works with model
 Positional arguments are read as a single **PROMPT**. Model
 **INSTRUCTION** is usually optional and can be set with `option -S`.
 
-In multi-turn, when user prompt begins with a colon “*:*”, the
-subsequent text is set as a system message (text and chat cmpls). For
-text cmpls only, if double colons “*::*” are used, the text following
-them will be appended to the previous prompt.
+In multi-turn interactions, prompts prefixed with a single colon “*:*”
+are appended to the current request buffer as a user message without
+making a new API call. Conversely, prompts starting with double colons
+“*::*” are inserted as instruction / system messages. For text cmpls
+only, triple colons append the text immediatelly to the previous prompt
+without a restart sequence.
 
 With **vision models**, insert an image to the prompt with chat command
 “`!img` \[*url*\|*filepath*\]”. Image urls and files can also be
@@ -288,20 +290,24 @@ While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “`!`”,
 or “`/`”.
 
-| Misc   | Commands                 |                                                        |
-|:-------|:-------------------------|--------------------------------------------------------|
-| `-S.`  | `-.` \[*NAME*\]          | Load and edit custom prompt.                           |
-| `-S/`  | `-S%` \[*NAME*\]         | Load and edit awesome prompt (zh).                     |
-| `-Z`   | `!last`                  | Print last response JSON.                              |
-| `!`    | `!r`, `!regen`           | Regenerate last response.                              |
-| `!!`   | `!rr`                    | Regenerate response, edit prompt first.                |
-| `!img` | `!url` \[*FILE*\|*URL*\] | Append image / url to prompt.                          |
-| `!i`   | `!info`                  | Information on model and session settings.             |
-| `!j`   | `!jump`                  | Jump to request, append start seq primer (text cmpls). |
-| `!!j`  | `!!jump`                 | Jump to request, no response priming.                  |
-| `!rep` | `!replay`                | Replay last TTS audio response.                        |
-| `!sh`  | `!shell` \[*CMD*\]       | Run shell, or *command*, and edit output.              |
-| `!!sh` | `!!shell` \[*CMD*\]      | Run interactive shell (with *command*) and exit.       |
+| Misc   | Commands                   |                                                        |
+|:-------|:---------------------------|--------------------------------------------------------|
+| `:`    | `::` \[*PROMPT*\]          | Prepend user or system prompt to request buffer.       |
+| `-S.`  | `-.` \[*NAME*\]            | Load and edit custom prompt.                           |
+| `-S/`  | `-S%` \[*NAME*\]           | Load and edit awesome prompt (zh).                     |
+| `-Z`   | `!last`                    | Print last response JSON.                              |
+| `!`    | `!r`, `!regen`             | Regenerate last response.                              |
+| `!!`   | `!rr`                      | Regenerate response, edit prompt first.                |
+| `!img` | `!media` \[*FILE*\|*URL*\] | Append image or url to prompt.                         |
+| `!url` | `!!url` \[*URL*\]          | Load URL in text editor, or skip editing.              |
+| `!i`   | `!info`                    | Information on model and session settings.             |
+| `!j`   | `!jump`                    | Jump to request, append start seq primer (text cmpls). |
+| `!!j`  | `!!jump`                   | Jump to request, no response priming.                  |
+| `!md`  | `!markdown` \[*SOFTW*\]    | Toggle markdown rendering in response.                 |
+| `!!md` | `!!markdown` \[*SOFTW*\]   | Render last response in markdown.                      |
+| `!rep` | `!replay`                  | Replay last TTS audio response.                        |
+| `!sh`  | `!shell` \[*CMD*\]         | Run shell, or *command*, and edit output.              |
+| `!!sh` | `!!shell` \[*CMD*\]        | Run interactive shell (with *command*) and exit.       |
 
 | Script | Settings and UX      |                                                           |
 |:-------|:---------------------|-----------------------------------------------------------|
@@ -311,7 +317,7 @@ or “`/`”.
 | `-u`   | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
 | `-uu`  | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
 | `-U`   | `-UU`                | Toggle cat prompter, or set one-shot. \<*CTRL-D*\> flush. |
-| `-`    | `!cat` \[*FILE*\]    | Cat prompter as one-shot, or cat file.                    |
+| `!cat` | `-` \[*FILE*\]       | Cat prompter as one-shot, or cat file.                    |
 | `-V`   | `!context`           | Print context before request (see `option -HH`).          |
 | `-VV`  | `!debug`             | Dump raw request block and confirm.                       |
 | `-v`   | `!ver`               | Toggle verbose modes.                                     |
@@ -657,15 +663,17 @@ and may be set with colour-named variables or raw escape sequences
 
 Optional packages for specific features.
 
-- `Base64` - vision models
-- `ImageMagick` - image edits and variations
-- `Python` - tiktoken
-- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS
+- `Base64` - Image endpoint, vision models
+- `ImageMagick` - Image edits and variations
+- `Python` - Tiktoken support
+- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (Termux) - Play TTS
   output
-- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input,
-  Whisper
+- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - Record input
+  (Whisper)
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` -
-  open images, set clipboard
+  Open images, set clipboard
+- `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
+- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless`/`Pandoc` - Markdown support
 
 ### BUGS AND LIMITS
 
@@ -704,17 +712,11 @@ cursor one char and press the up arrow key.
 with history, so avoid it.
 -->
 
-### REQUIREMENTS
-
-An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
-
-`ImageMagick`, and `Sox`/`Alsa-tools`/`FFmpeg` are optionally required.
-
 ### OPTIONS
 
 #### Model Settings
 
-**-@** \[\[*VAL%*\]*COLOUR*\], **--alpha**=\[\[*VAL%*\]*COLOUR*\]  
+**-@**, **--alpha** \[\[*VAL%*\]*COLOUR*\]  
 Set transparent colour of image mask. Def=*black*.
 
 Fuzz intensity can be set with \[*VAL%*\]. Def=*0%*.
@@ -724,27 +726,27 @@ Unset model max response (chat cmpls only).
 
 **-NUM**
 
-**-M** \[*NUM*\[*/NUM*\]\], **--max**=\[*NUM*\[*-NUM*\]\]  
+**-M**, **--max** \[*NUM*\[*-NUM*\]\]  
 Set maximum number of *response tokens*. Def=*1024*.
 
 A second number in the argument sets model capacity.
 
-**-N** \[*NUM*\], **--modmax**=\[*NUM*\]  
-Set *model capacity* tokens. Def=*auto*, fallback=*4000*.
+**-N**, **--modmax** \[*NUM*\]  
+Set *model capacity* tokens. Def=*auto*, Fallback=*4000*.
 
-**-a** \[*VAL*\], **--presence-penalty**=\[*VAL*\]  
+**-a**, **--presence-penalty** \[*VAL*\]  
 Set presence penalty (cmpls/chat, -2.0 - 2.0).
 
-**-A** \[*VAL*\], **--frequency-penalty**=\[*VAL*\]  
+**-A**, **--frequency-penalty** \[*VAL*\]  
 Set frequency penalty (cmpls/chat, -2.0 - 2.0).
 
-**-b** \[*NUM*\], **--best-of**=\[*NUM*\]  
+**-b**, **--best-of** \[*NUM*\]  
 Set best of, must be greater than `option -n` (cmpls). Def=*1*.
 
-**-B** \[*NUM*\], **--log-prob=\[*NUM*\]**  
+**-B**, **--log-prob** \[*NUM*\]  
 Request log probabilities, also see -Z (cmpls, 0 - 5),
 
-**-m** \[*MODEL*\], **--model**=\[*MODEL*\]  
+**-m**, **--model** \[*MODEL*\]  
 Set language *MODEL* name. Def=*text-davinci-003*, *gpt-3.5-turbo-0301*.
 
 Set *MODEL* name as “*.*” to pick from the list.
@@ -752,25 +754,25 @@ Set *MODEL* name as “*.*” to pick from the list.
 **--multimodal**  
 Set model as multimodal (enable image support).
 
-**-n** \[*NUM*\], **--results**=\[*NUM*\]  
+**-n**, **--results** \[*NUM*\]  
 Set number of results. Def=*1*.
 
-**-p** \[*VAL*\], **--top-p**=\[*VAL*\]  
+**-p**, **--top-p** \[*VAL*\]  
 Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
 
-**-r** \[*SEQ*\], **--restart**=\[*SEQ*\]  
+**-r**, **--restart** \[*SEQ*\]  
 Set restart sequence string (cmpls).
 
-**-R** \[*SEQ*\], **--start**=\[*SEQ*\]  
+**-R**, **--start** \[*SEQ*\]  
 Set start sequence string (cmpls).
 
-**-s** \[*SEQ*\], **--stop**=\[*SEQ*\]  
+**-s**, **--stop** \[*SEQ*\]  
 Set stop sequences, up to 4. Def="*\<\|endoftext\|\>*".
 
-**-S** \[*INSTRUCTION*\|*FILE*\], **--instruction**=\[*STRING*\]  
-Set an instruction prompt. It may be a text file.
+**-S**, **--instruction** \[*INSTRUCTION*\|*FILE*\]  
+Set an instruction text prompt. It may be a text file.
 
-**-t** \[*VAL*\], **--temperature**=\[*VAL*\]  
+**-t**, **--temperature** \[*VAL*\]  
 Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
 1.0). Def=*0*.
 
@@ -800,7 +802,7 @@ Set response streaming.
 **-G**, **--no-stream**  
 Unset response streaming.
 
-**-i** \[*PROMPT*\], **--image**  
+**-i**, **--image** \[*PROMPT*\]  
 Generate images given a prompt. Set *option -v* to not open response.
 
 **-i** \[*PNG*\]  
@@ -814,7 +816,7 @@ Insert text rather than completing only. May be set twice for
 multi-turn.
 
 Use “*\[insert\]*” to indicate where the language model should insert
-text (`gpt-3.5-turbo-instruct`).
+text (`gpt-3.5-turbo-instruct+`).
 
 **-S** **.**\[*PROMPT_NAME*\]\[**.**\], **-.**\[*PROMPT_NAME*\]\[**.**\]
 
@@ -840,21 +842,22 @@ Set **//** or **%%** instead to refresh cache.
 **-TT**
 
 **-TTT**  
-Count input tokens with python tiktoken (ignores special tokens). It
-heeds `options -ccm`.
+Count input tokens with python Tiktoken (ignores special tokens).
 
 Set twice to print tokens, thrice to available encodings.
 
-Set model or encoding with `option -m`.
+Set the model or encoding with `option -m`.
 
-**-w** \[*AUD*\] \[*LANG*\] \[*PROMPT*\], **--transcribe**  
+It heeds `options -ccm`.
+
+**-w**, **--transcribe** \[*AUD*\] \[*LANG*\] \[*PROMPT*\]  
 Transcribe audio file into text. LANG is optional. A prompt that matches
 the audio language is optional. Audio will be transcribed or translated
 to the target LANG.
 
 Set twice to get phrase-level timestamps.
 
-**-W** \[*AUD*\] \[*PROMPT-EN*\], **--translate**  
+**-W**, **--translate** \[*AUD*\] \[*PROMPT-EN*\]  
 Translate audio file into English text.
 
 Set twice to get phrase-level timestamps.
@@ -875,12 +878,12 @@ Dump template configuration file to stdout.
 **-h**, **--help**  
 Print the help page.
 
-**-H** \[`/`*HIST_FILE*\], **--hist**  
+**-H**, **--hist** \[`/`*HIST_FILE*\]  
 Edit history file with text editor or pipe to stdout.
 
 A history file name can be optionally set as argument.
 
-**-HH** \[`/`*HIST_FILE*\], **-HHH**  
+**-HH**, **-HHH** \[`/`*HIST_FILE*\]  
 Pretty print last history session to stdout.
 
 Heeds `options -ccdrR` to print with the specified restart and start
@@ -891,14 +894,18 @@ Set thrice to print commented out hist entries, inclusive.
 **-k**, **--no-colour**  
 Disable colour output. Def=*auto*.
 
-**-K** \[*KEY*\], **--api-key**=\[*KEY*\]  
+**-K**, **--api-key** \[*KEY*\]  
 Set OpenAI API key.
 
-**-l** \[*MODEL*\], **--list-models**  
+**-l**, **--list-models** \[*MODEL*\]  
 List models or print details of *MODEL*.
 
-**-L** \[*FILEPATH*\], **--log**=\[*FILEPATH*\]  
+**-L**, **--log** \[*FILEPATH*\]  
 Set log file. *FILEPATH* is required.
+
+**--markdown**, **--md** \[*SOFTWARE*\]  
+Enable markdown rendering in response. Software may be one of *bat*,
+*pygmentize*, *glow*, *mdcat*, *mdless*, or *pandoc*.
 
 **-o**, **--clipboard**  
 Copy response to clipboard.
@@ -935,7 +942,7 @@ Set tiktoken for token count (cmpls/chat, python).
 **-Y**, **--no-tik** (*defaults*)  
 Unset tiktoken use (cmpls/chat, python).
 
-**-z** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\], **--tts**  
+**-z**, **--tts** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
 Synthesise speech from text prompt. Takes a voice name, speed and text
 prompt. Set *option -v* to not play response.
 

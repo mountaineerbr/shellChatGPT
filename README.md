@@ -11,6 +11,7 @@ Chat completions with streaming by defaults.
 
 - Text and chat completions with [**gtp-4-vision** support](#vision-models-gpt-4-vision)
 - **Text editor interface**, _Bash readline_, and _cat_ input modes
+- **Markdown rendering** support in response
 - **Preview**, and  [**regenerate responses**](#--notes-and-tips)
 - **Manage sessions**, _print out_ previous sessions
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
@@ -57,12 +58,14 @@ Chat completions with streaming by defaults.
 
 These are required for specific features.
 
-- `Base64` - image endpoint, vision models
-- `ImageMagick` - image edits and variations
-- `Python` - tiktoken
-- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS output
-- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input, Whisper
-- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - open images, set clipboard
+- `Base64` - Image endpoint, vision models
+- `ImageMagick` - Image edits and variations
+- `Python` - Tiktoken
+- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (Termux) - Play TTS output
+- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - Record input (Whisper)
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - Open images, set clipboard
+- `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
+- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless`/`Pandoc` - Markdown support
 
 
 ### 💾 Installation

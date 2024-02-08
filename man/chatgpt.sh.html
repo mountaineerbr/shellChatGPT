@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.41 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.42 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.41 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.42 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -237,10 +237,12 @@ Insert mode works with model <code>gpt-3.5-turbo-instruct</code>.
 <p>Positional arguments are read as a single <strong>PROMPT</strong>.
 Model <strong>INSTRUCTION</strong> is usually optional and can be set
 with <code>option -S</code>.</p>
-<p>In multi-turn, when user prompt begins with a colon “<em>:</em>”, the
-subsequent text is set as a system message (text and chat cmpls). For
-text cmpls only, if double colons “<em>::</em>” are used, the text
-following them will be appended to the previous prompt.</p>
+<p>In multi-turn interactions, prompts prefixed with a single colon
+“<em>:</em>” are appended to the current request buffer as a user
+message without making a new API call. Conversely, prompts starting with
+double colons “<em>::</em>” are inserted as instruction / system
+messages. For text cmpls only, triple colons append the text
+immediatelly to the previous prompt without a restart sequence.</p>
 <p>With <strong>vision models</strong>, insert an image to the prompt
 with chat command “<code>!img</code> [<em>url</em>|<em>filepath</em>]”.
 Image urls and files can also be appended by typing the operator pipe
@@ -446,35 +448,45 @@ prompt to set a new parameter. The command operator may be either
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: left;"><code>:</code></td>
+<td style="text-align: left;"><code>::</code> [<em>PROMPT</em>]</td>
+<td>Prepend user or system prompt to request buffer.</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>-S.</code></td>
 <td style="text-align: left;"><code>-.</code> [<em>NAME</em>]</td>
 <td>Load and edit custom prompt.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-S/</code></td>
 <td style="text-align: left;"><code>-S%</code> [<em>NAME</em>]</td>
 <td>Load and edit awesome prompt (zh).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-Z</code></td>
 <td style="text-align: left;"><code>!last</code></td>
 <td>Print last response JSON.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!</code></td>
 <td style="text-align: left;"><code>!r</code>, <code>!regen</code></td>
 <td>Regenerate last response.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!</code></td>
 <td style="text-align: left;"><code>!rr</code></td>
 <td>Regenerate response, edit prompt first.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!img</code></td>
-<td style="text-align: left;"><code>!url</code>
+<td style="text-align: left;"><code>!media</code>
 [<em>FILE</em>|<em>URL</em>]</td>
-<td>Append image / url to prompt.</td>
+<td>Append image or url to prompt.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!url</code></td>
+<td style="text-align: left;"><code>!!url</code> [<em>URL</em>]</td>
+<td>Load URL in text editor, or skip editing.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!i</code></td>
@@ -490,6 +502,18 @@ prompt to set a new parameter. The command operator may be either
 <td style="text-align: left;"><code>!!j</code></td>
 <td style="text-align: left;"><code>!!jump</code></td>
 <td>Jump to request, no response priming.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!md</code></td>
+<td style="text-align: left;"><code>!markdown</code>
+[<em>SOFTW</em>]</td>
+<td>Toggle markdown rendering in response.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!!md</code></td>
+<td style="text-align: left;"><code>!!markdown</code>
+[<em>SOFTW</em>]</td>
+<td>Render last response in markdown.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!rep</code></td>
@@ -549,8 +573,8 @@ prompt to set a new parameter. The command operator may be either
 flush.</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>-</code></td>
-<td style="text-align: left;"><code>!cat</code> [<em>FILE</em>]</td>
+<td style="text-align: left;"><code>!cat</code></td>
+<td style="text-align: left;"><code>-</code> [<em>FILE</em>]</td>
 <td>Cat prompter as one-shot, or cat file.</td>
 </tr>
 <tr class="even">
@@ -1076,15 +1100,19 @@ escape sequences (these must not change cursor position).</p>
 <h3 id="optional-packages">OPTIONAL PACKAGES</h3>
 <p>Optional packages for specific features.</p>
 <ul>
-<li><code>Base64</code> - vision models</li>
-<li><code>ImageMagick</code> - image edits and variations</li>
-<li><code>Python</code> - tiktoken</li>
+<li><code>Base64</code> - Image endpoint, vision models</li>
+<li><code>ImageMagick</code> - Image edits and variations</li>
+<li><code>Python</code> - Tiktoken support</li>
 <li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFmpeg</code>/<code>afplay</code>/<code>play-audio</code>
-(termux) - play TTS output</li>
+(Termux) - Play TTS output</li>
 <li><code>SoX</code>/<code>Arecord</code>/<code>FFmpeg</code>/<code>termux-microphone-record</code>
-- record input, Whisper</li>
+- Record input (Whisper)</li>
 <li><code>xdg-open</code>/<code>open</code>/<code>xsel</code>/<code>xclip</code>/<code>pbcopy</code>/<code>termux-clipboard-set</code>
-- open images, set clipboard</li>
+- Open images, set clipboard</li>
+<li><code>W3M</code>/<code>Lynx</code>/<code>ELinks</code>/<code>Links</code>
+- Dump URL text</li>
+<li><code>bat</code>/<code>Pygmentize</code>/<code>Glow</code>/<code>mdcat</code>/<code>mdless</code>/<code>Pandoc</code>
+- Markdown support</li>
 </ul>
 <h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
 <p>The script objective is to implement most features of OpenAI API
@@ -1119,17 +1147,11 @@ cursor one char and press the up arrow key.
 `Ksh2020` lacks functionality compared to `Ksh83u+`, such as `read`
 with history, so avoid it.
 -->
-<h3 id="requirements">REQUIREMENTS</h3>
-<p>An OpenAI <strong>API key</strong>. <code>Bash</code>,
-<code>cURL</code>, and <code>JQ</code>.</p>
-<p><code>ImageMagick</code>, and
-<code>Sox</code>/<code>Alsa-tools</code>/<code>FFmpeg</code> are
-optionally required.</p>
 <h3 id="options">OPTIONS</h3>
 <h4 id="model-settings">Model Settings</h4>
 <dl>
-<dt><strong>-@</strong> [[<em>VAL%</em>]<em>COLOUR</em>],
-<strong>--alpha</strong>=[[<em>VAL%</em>]<em>COLOUR</em>]</dt>
+<dt><strong>-@</strong>, <strong>--alpha</strong>
+[[<em>VAL%</em>]<em>COLOUR</em>]</dt>
 <dd>
 <p>Set transparent colour of image mask. Def=<em>black</em>.</p>
 <p>Fuzz intensity can be set with [<em>VAL%</em>]. Def=<em>0%</em>.</p>
@@ -1141,42 +1163,38 @@ optionally required.</p>
 </dl>
 <p><strong>-NUM</strong></p>
 <dl>
-<dt><strong>-M</strong> [<em>NUM</em>[<em>/NUM</em>]],
-<strong>--max</strong>=[<em>NUM</em>[<em>-NUM</em>]]</dt>
+<dt><strong>-M</strong>, <strong>--max</strong>
+[<em>NUM</em>[<em>-NUM</em>]]</dt>
 <dd>
 <p>Set maximum number of <em>response tokens</em>.
 Def=<em>1024</em>.</p>
 <p>A second number in the argument sets model capacity.</p>
 </dd>
-<dt><strong>-N</strong> [<em>NUM</em>],
-<strong>--modmax</strong>=[<em>NUM</em>]</dt>
+<dt><strong>-N</strong>, <strong>--modmax</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Set <em>model capacity</em> tokens. Def=<em>auto</em>,
-fallback=<em>4000</em>.</p>
+Fallback=<em>4000</em>.</p>
 </dd>
-<dt><strong>-a</strong> [<em>VAL</em>],
-<strong>--presence-penalty</strong>=[<em>VAL</em>]</dt>
+<dt><strong>-a</strong>, <strong>--presence-penalty</strong>
+[<em>VAL</em>]</dt>
 <dd>
 <p>Set presence penalty (cmpls/chat, -2.0 - 2.0).</p>
 </dd>
-<dt><strong>-A</strong> [<em>VAL</em>],
-<strong>--frequency-penalty</strong>=[<em>VAL</em>]</dt>
+<dt><strong>-A</strong>, <strong>--frequency-penalty</strong>
+[<em>VAL</em>]</dt>
 <dd>
 <p>Set frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
 </dd>
-<dt><strong>-b</strong> [<em>NUM</em>],
-<strong>--best-of</strong>=[<em>NUM</em>]</dt>
+<dt><strong>-b</strong>, <strong>--best-of</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Set best of, must be greater than <code>option -n</code> (cmpls).
 Def=<em>1</em>.</p>
 </dd>
-<dt><strong>-B</strong> [<em>NUM</em>],
-<strong>--log-prob=[<em>NUM</em>]</strong></dt>
+<dt><strong>-B</strong>, <strong>--log-prob</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
 </dd>
-<dt><strong>-m</strong> [<em>MODEL</em>],
-<strong>--model</strong>=[<em>MODEL</em>]</dt>
+<dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
 <dd>
 <p>Set language <em>MODEL</em> name. Def=<em>text-davinci-003</em>,
 <em>gpt-3.5-turbo-0301</em>.</p>
@@ -1186,38 +1204,33 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Set model as multimodal (enable image support).</p>
 </dd>
-<dt><strong>-n</strong> [<em>NUM</em>],
-<strong>--results</strong>=[<em>NUM</em>]</dt>
+<dt><strong>-n</strong>, <strong>--results</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Set number of results. Def=<em>1</em>.</p>
 </dd>
-<dt><strong>-p</strong> [<em>VAL</em>],
-<strong>--top-p</strong>=[<em>VAL</em>]</dt>
+<dt><strong>-p</strong>, <strong>--top-p</strong> [<em>VAL</em>]</dt>
 <dd>
 <p>Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
 </dd>
-<dt><strong>-r</strong> [<em>SEQ</em>],
-<strong>--restart</strong>=[<em>SEQ</em>]</dt>
+<dt><strong>-r</strong>, <strong>--restart</strong> [<em>SEQ</em>]</dt>
 <dd>
 <p>Set restart sequence string (cmpls).</p>
 </dd>
-<dt><strong>-R</strong> [<em>SEQ</em>],
-<strong>--start</strong>=[<em>SEQ</em>]</dt>
+<dt><strong>-R</strong>, <strong>--start</strong> [<em>SEQ</em>]</dt>
 <dd>
 <p>Set start sequence string (cmpls).</p>
 </dd>
-<dt><strong>-s</strong> [<em>SEQ</em>],
-<strong>--stop</strong>=[<em>SEQ</em>]</dt>
+<dt><strong>-s</strong>, <strong>--stop</strong> [<em>SEQ</em>]</dt>
 <dd>
 <p>Set stop sequences, up to 4. Def="<em>&lt;|endoftext|&gt;</em>".</p>
 </dd>
-<dt><strong>-S</strong> [<em>INSTRUCTION</em>|<em>FILE</em>],
-<strong>--instruction</strong>=[<em>STRING</em>]</dt>
+<dt><strong>-S</strong>, <strong>--instruction</strong>
+[<em>INSTRUCTION</em>|<em>FILE</em>]</dt>
 <dd>
-<p>Set an instruction prompt. It may be a text file.</p>
+<p>Set an instruction text prompt. It may be a text file.</p>
 </dd>
-<dt><strong>-t</strong> [<em>VAL</em>],
-<strong>--temperature</strong>=[<em>VAL</em>]</dt>
+<dt><strong>-t</strong>, <strong>--temperature</strong>
+[<em>VAL</em>]</dt>
 <dd>
 <p>Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
 1.0). Def=<em>0</em>.</p>
@@ -1259,7 +1272,7 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Unset response streaming.</p>
 </dd>
-<dt><strong>-i</strong> [<em>PROMPT</em>], <strong>--image</strong></dt>
+<dt><strong>-i</strong>, <strong>--image</strong> [<em>PROMPT</em>]</dt>
 <dd>
 <p>Generate images given a prompt. Set <em>option -v</em> to not open
 response.</p>
@@ -1279,7 +1292,7 @@ response.</p>
 <p>Insert text rather than completing only. May be set twice for
 multi-turn.</p>
 <p>Use “<em>[insert]</em>” to indicate where the language model should
-insert text (<code>gpt-3.5-turbo-instruct</code>).</p>
+insert text (<code>gpt-3.5-turbo-instruct+</code>).</p>
 </dd>
 </dl>
 <p><strong>-S</strong>
@@ -1313,21 +1326,21 @@ cache.</p>
 <dl>
 <dt><strong>-TTT</strong></dt>
 <dd>
-<p>Count input tokens with python tiktoken (ignores special tokens). It
-heeds <code>options -ccm</code>.</p>
+<p>Count input tokens with python Tiktoken (ignores special tokens).</p>
 <p>Set twice to print tokens, thrice to available encodings.</p>
-<p>Set model or encoding with <code>option -m</code>.</p>
+<p>Set the model or encoding with <code>option -m</code>.</p>
+<p>It heeds <code>options -ccm</code>.</p>
 </dd>
-<dt><strong>-w</strong> [<em>AUD</em>] [<em>LANG</em>]
-[<em>PROMPT</em>], <strong>--transcribe</strong></dt>
+<dt><strong>-w</strong>, <strong>--transcribe</strong> [<em>AUD</em>]
+[<em>LANG</em>] [<em>PROMPT</em>]</dt>
 <dd>
 <p>Transcribe audio file into text. LANG is optional. A prompt that
 matches the audio language is optional. Audio will be transcribed or
 translated to the target LANG.</p>
 <p>Set twice to get phrase-level timestamps.</p>
 </dd>
-<dt><strong>-W</strong> [<em>AUD</em>] [<em>PROMPT-EN</em>],
-<strong>--translate</strong></dt>
+<dt><strong>-W</strong>, <strong>--translate</strong> [<em>AUD</em>]
+[<em>PROMPT-EN</em>]</dt>
 <dd>
 <p>Translate audio file into English text.</p>
 <p>Set twice to get phrase-level timestamps.</p>
@@ -1352,14 +1365,14 @@ translated to the target LANG.</p>
 <dd>
 <p>Print the help page.</p>
 </dd>
-<dt><strong>-H</strong> [<code>/</code><em>HIST_FILE</em>],
-<strong>--hist</strong></dt>
+<dt><strong>-H</strong>, <strong>--hist</strong>
+[<code>/</code><em>HIST_FILE</em>]</dt>
 <dd>
 <p>Edit history file with text editor or pipe to stdout.</p>
 <p>A history file name can be optionally set as argument.</p>
 </dd>
-<dt><strong>-HH</strong> [<code>/</code><em>HIST_FILE</em>],
-<strong>-HHH</strong></dt>
+<dt><strong>-HH</strong>, <strong>-HHH</strong>
+[<code>/</code><em>HIST_FILE</em>]</dt>
 <dd>
 <p>Pretty print last history session to stdout.</p>
 <p>Heeds <code>options -ccdrR</code> to print with the specified restart
@@ -1370,20 +1383,25 @@ and start sequences.</p>
 <dd>
 <p>Disable colour output. Def=<em>auto</em>.</p>
 </dd>
-<dt><strong>-K</strong> [<em>KEY</em>],
-<strong>--api-key</strong>=[<em>KEY</em>]</dt>
+<dt><strong>-K</strong>, <strong>--api-key</strong> [<em>KEY</em>]</dt>
 <dd>
 <p>Set OpenAI API key.</p>
 </dd>
-<dt><strong>-l</strong> [<em>MODEL</em>],
-<strong>--list-models</strong></dt>
+<dt><strong>-l</strong>, <strong>--list-models</strong>
+[<em>MODEL</em>]</dt>
 <dd>
 <p>List models or print details of <em>MODEL</em>.</p>
 </dd>
-<dt><strong>-L</strong> [<em>FILEPATH</em>],
-<strong>--log</strong>=[<em>FILEPATH</em>]</dt>
+<dt><strong>-L</strong>, <strong>--log</strong> [<em>FILEPATH</em>]</dt>
 <dd>
 <p>Set log file. <em>FILEPATH</em> is required.</p>
+</dd>
+<dt><strong>--markdown</strong>, <strong>--md</strong>
+[<em>SOFTWARE</em>]</dt>
+<dd>
+<p>Enable markdown rendering in response. Software may be one of
+<em>bat</em>, <em>pygmentize</em>, <em>glow</em>, <em>mdcat</em>,
+<em>mdless</em>, or <em>pandoc</em>.</p>
 </dd>
 <dt><strong>-o</strong>, <strong>--clipboard</strong></dt>
 <dd>
@@ -1432,9 +1450,9 @@ and start sequences.</p>
 <dd>
 <p>Unset tiktoken use (cmpls/chat, python).</p>
 </dd>
-<dt><strong>-z</strong> [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>]
-[<em>VOICE</em>] [<em>SPEED</em>] [<em>PROMPT</em>],
-<strong>--tts</strong></dt>
+<dt><strong>-z</strong>, <strong>--tts</strong>
+[<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
+[<em>SPEED</em>] [<em>PROMPT</em>]</dt>
 <dd>
 <p>Synthesise speech from text prompt. Takes a voice name, speed and
 text prompt. Set <em>option -v</em> to not play response.</p>

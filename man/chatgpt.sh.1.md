@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.41 | General Commands Manual
+% CHATGPT.SH(1) v0.42 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -54,10 +54,12 @@ Insert mode works with model `gpt-3.5-turbo-instruct`.
 Positional arguments are read as a single **PROMPT**. Model **INSTRUCTION**
 is usually optional and can be set with `option -S`.
 
-In multi-turn, when user prompt begins with a colon "_:_", the subsequent
-text is set as a system message (text and chat cmpls). For text cmpls only,
-if double colons "_::_" are used, the text following them will be appended
-to the previous prompt.
+In multi-turn interactions, prompts prefixed with a single colon "_:_"
+are appended to the current request buffer as a user message without
+making a new API call. Conversely, prompts starting with double colons
+"_::_" are inserted as instruction / system messages. For text cmpls only,
+triple colons append the text immediatelly to the previous prompt
+without a restart sequence.
 
 With **vision models**, insert an image to the prompt with chat
 command "`!img` \[_url_|_filepath_]". Image urls and files can also
@@ -288,20 +290,24 @@ may be either "`!`", or "`/`".
 
 
   Misc        Commands
-  --------    -----------------------    ----------------------------------------------------------
-     `-S.`    `-.`         \[_NAME_]     Load and edit custom prompt.
-     `-S/`    `-S%`        \[_NAME_]     Load and edit awesome prompt (zh).
-      `-Z`    `!last`                    Print last response JSON.
-       `!`    `!r`, `!regen`             Regenerate last response.
-      `!!`    `!rr`                      Regenerate response, edit prompt first.
-    `!img`    `!url`  \[_FILE_|_URL_]    Append image / url to prompt.
-      `!i`    `!info`                    Information on model and session settings.
-      `!j`    `!jump`                    Jump to request, append start seq primer (text cmpls).
-     `!!j`    `!!jump`                   Jump to request, no response priming.
-    `!rep`    `!replay`                  Replay last TTS audio response.
-     `!sh`    `!shell`     \[_CMD_]      Run shell, or _command_, and edit output.
-    `!!sh`    `!!shell`    \[_CMD_]      Run interactive shell (with _command_) and exit.
-  --------    -----------------------    ----------------------------------------------------------
+  --------    ------------------------    ----------------------------------------------------------
+       `:`    `::`       \[_PROMPT_]      Prepend user or system prompt to request buffer.
+     `-S.`    `-.`         \[_NAME_]      Load and edit custom prompt.
+     `-S/`    `-S%`        \[_NAME_]      Load and edit awesome prompt (zh).
+      `-Z`    `!last`                     Print last response JSON.
+       `!`    `!r`, `!regen`              Regenerate last response.
+      `!!`    `!rr`                       Regenerate response, edit prompt first.
+    `!img`    `!media` \[_FILE_|_URL_]    Append image or url to prompt.
+    `!url`    `!!url`         \[_URL_]    Load URL in text editor, or skip editing.
+      `!i`    `!info`                     Information on model and session settings.
+      `!j`    `!jump`                     Jump to request, append start seq primer (text cmpls).
+     `!!j`    `!!jump`                    Jump to request, no response priming.
+     `!md`    `!markdown`  \[_SOFTW_]     Toggle markdown rendering in response.
+    `!!md`    `!!markdown` \[_SOFTW_]     Render last response in markdown.
+    `!rep`    `!replay`                   Replay last TTS audio response.
+     `!sh`    `!shell`      \[_CMD_]      Run shell, or _command_, and edit output.
+    `!!sh`    `!!shell`     \[_CMD_]      Run interactive shell (with _command_) and exit.
+  --------    ------------------------    ----------------------------------------------------------
 
   Script      Settings and UX
   --------    -----------------------    ----------------------------------------------------------
@@ -311,7 +317,7 @@ may be either "`!`", or "`/`".
       `-u`    `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
      `-uu`    `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
       `-U`    `-UU`                      Toggle cat prompter, or set one-shot. \<_CTRL-D_> flush.
-       `-`    `!cat`       \[_FILE_]     Cat prompter as one-shot, or cat file.
+    `!cat`    `-`          \[_FILE_]     Cat prompter as one-shot, or cat file.
       `-V`    `!context`                 Print context before request (see `option -HH`).
      `-VV`    `!debug`                   Dump raw request block and confirm.
       `-v`    `!ver`                     Toggle verbose modes.
@@ -326,20 +332,20 @@ may be either "`!`", or "`/`".
   --------    -----------------------    --------------------------------------------
    `-Nill`    `!Nill`                    Toggle model max response (chat cmpls).
       `-M`    `!NUM` `!max` \[_NUM_]     Set maximum response tokens.
-      `-N`    `!modmax`    \[_NUM_]      Set model token capacity.
-      `-a`    `!pre`       \[_VAL_]      Set presence penalty.
-      `-A`    `!freq`      \[_VAL_]      Set frequency penalty.
-      `-b`    `!best`      \[_NUM_]      Set best-of n results.
-      `-m`    `!mod`       \[_MOD_]      Set model by name, empty to pick from list.
-      `-n`    `!results`   \[_NUM_]      Set number of results.
-      `-p`    `!top`       \[_VAL_]      Set top_p.
-      `-r`    `!restart`   \[_SEQ_]      Set restart sequence.
-      `-R`    `!start`     \[_SEQ_]      Set start sequence.
-      `-s`    `!stop`      \[_SEQ_]      Set one stop sequence.
-      `-t`    `!temp`      \[_VAL_]      Set temperature.
-      `-w`    `!rec`      \[_ARGS_]      Toggle Whisper. Optionally, set arguments.
-      `-z`    `!tts`      \[_ARGS_]      Toggle TTS chat mode (speech out).
-    `!blk`    `!block`    \[_ARGS_]      Set and add custom options to JSON request.
+      `-N`    `!modmax`     \[_NUM_]     Set model token capacity.
+      `-a`    `!pre`        \[_VAL_]     Set presence penalty.
+      `-A`    `!freq`       \[_VAL_]     Set frequency penalty.
+      `-b`    `!best`       \[_NUM_]     Set best-of n results.
+      `-m`    `!mod`        \[_MOD_]     Set model by name, empty to pick from list.
+      `-n`    `!results`    \[_NUM_]     Set number of results.
+      `-p`    `!top`        \[_VAL_]     Set top_p.
+      `-r`    `!restart`    \[_SEQ_]     Set restart sequence.
+      `-R`    `!start`      \[_SEQ_]     Set start sequence.
+      `-s`    `!stop`       \[_SEQ_]     Set one stop sequence.
+      `-t`    `!temp`       \[_VAL_]     Set temperature.
+      `-w`    `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
+      `-z`    `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
+    `!blk`    `!block`     \[_ARGS_]     Set and add custom options to JSON request.
        `-`    `!multimodal`              Toggle model as multimodal (image support).
   --------    -----------------------    --------------------------------------------
 
@@ -347,7 +353,7 @@ may be either "`!`", or "`/`".
   --------    -------------------------------------    -----------------------------------------------------------
       `-H`    `!hist`                                  Edit history in editor.
      `-HH`    `!req`                                   Print context request immediately (see `option -V`),
-                                                       set `-HHH` to also print commented out history entries.
+                                                         set `-HHH` to also print commented out history entries.
       `-L`    `!log`       \[_FILEPATH_]               Save to log file.
      `!br`    `!new`, `!break`                         Start new session (session break).
      `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
@@ -711,12 +717,14 @@ raw escape sequences (these must not change cursor position).
 
 Optional packages for specific features.
 
-- `Base64` - vision models
-- `ImageMagick` - image edits and variations
-- `Python` - tiktoken
-- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (termux) - play TTS output
-- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - record input, Whisper
-- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - open images, set clipboard
+- `Base64` - Image endpoint, vision models
+- `ImageMagick` - Image edits and variations
+- `Python` - Tiktoken support
+- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (Termux) - Play TTS output
+- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - Record input (Whisper)
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - Open images, set clipboard
+- `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
+- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless`/`Pandoc` - Markdown support
 
 
 ### BUGS AND LIMITS
@@ -764,18 +772,11 @@ with history, so avoid it.
 -->
 
 
-### REQUIREMENTS
-
-An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
-
-`ImageMagick`, and `Sox`/`Alsa-tools`/`FFmpeg` are optionally required.
-
-
 ### OPTIONS
 
 #### Model Settings
 
-**-\@** \[\[_VAL%_]_COLOUR_], **\--alpha**=\[\[_VAL%_]_COLOUR_]
+**-\@**, **\--alpha**   \[\[_VAL%_]_COLOUR_]
 
 :      Set transparent colour of image mask. Def=_black_.
 
@@ -789,39 +790,39 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-NUM**
 
-**-M** \[_NUM_[_/NUM_]], **\--max**=\[_NUM_[_-NUM_]]
+**-M**, **\--max**   \[_NUM_[_-NUM_]]
 
 :     Set maximum number of _response tokens_. Def=_1024_.
 
       A second number in the argument sets model capacity.
 
 
-**-N** \[_NUM_], **\--modmax**=\[_NUM_]
+**-N**, **\--modmax**   \[_NUM_]
 
-: Set _model capacity_ tokens. Def=_auto_, fallback=_4000_.
+: Set _model capacity_ tokens. Def=_auto_, Fallback=_4000_.
 
 
-**-a** \[_VAL_], **\--presence-penalty**=\[_VAL_]
+**-a**, **\--presence-penalty**   \[_VAL_]
 
 : Set presence penalty  (cmpls/chat, -2.0 - 2.0).
 
 
-**-A** \[_VAL_], **\--frequency-penalty**=\[_VAL_]
+**-A**, **\--frequency-penalty**   \[_VAL_]
 
 : Set frequency penalty (cmpls/chat, -2.0 - 2.0).
 
 
-**-b** \[_NUM_], **\--best-of**=\[_NUM_]
+**-b**, **\--best-of**   \[_NUM_]
 
 : Set best of, must be greater than `option -n` (cmpls). Def=_1_.
 
 
-**-B** \[_NUM_], **\--log-prob=\[_NUM_]**
+**-B**, **\--log-prob**   \[_NUM_]
 
 : Request log probabilities, also see -Z (cmpls, 0 - 5),
 
 
-**-m** \[_MODEL_], **\--model**=\[_MODEL_]
+**-m**, **\--model**   \[_MODEL_]
 
 :     Set language _MODEL_ name. Def=_text-davinci-003_, _gpt-3.5-turbo-0301_.
 
@@ -833,37 +834,37 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Set model as multimodal (enable image support).
 
 
-**-n** \[_NUM_], **\--results**=\[_NUM_]
+**-n**, **\--results**   \[_NUM_]
 
 : Set number of results. Def=_1_.
 
 
-**-p** \[_VAL_], **\--top-p**=\[_VAL_]
+**-p**, **\--top-p**   \[_VAL_]
 
 : Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
 
 
-**-r** \[_SEQ_], **\--restart**=\[_SEQ_]
+**-r**, **\--restart**   \[_SEQ_]
 
 : Set restart sequence string (cmpls).
 
 
-**-R** \[_SEQ_], **\--start**=\[_SEQ_]
+**-R**, **\--start**   \[_SEQ_]
 
 : Set start sequence string (cmpls).
 
 
-**-s** \[_SEQ_], **\--stop**=\[_SEQ_]
+**-s**, **\--stop**   \[_SEQ_]
 
 : Set stop sequences, up to 4. Def=\"_\<|endoftext|>_\".
 
 
-**-S** \[_INSTRUCTION_|_FILE_], **\--instruction**=\[_STRING_]
+**-S**, **\--instruction**   \[_INSTRUCTION_|_FILE_]
 
-: Set an instruction prompt. It may be a text file.
+: Set an instruction text prompt. It may be a text file.
 
 
-**-t** \[_VAL_], **\--temperature**=\[_VAL_]
+**-t**, **\--temperature**   \[_VAL_]
 
 : Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 - 1.0). Def=_0_.
 
@@ -909,29 +910,29 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Unset response streaming.
 
 
-**-i** \[_PROMPT_], **\--image**
+**-i**, **\--image**   \[_PROMPT_]
 
 : Generate images given a prompt.
   Set _option -v_ to not open response.
 
 
-**-i** \[_PNG_]
+**-i**   \[_PNG_]
 
 : Create variations of a given image.
 
 
-**-i** \[_PNG_] \[_MASK_] \[_PROMPT_]
+**-i**   \[_PNG_] \[_MASK_] \[_PROMPT_]
 
 : Edit image with mask and prompt (required).
 
 
-**-qq**, **\--insert**  <!-- (_deprecated_) -->
+**-qq**, **\--insert**   <!-- (_deprecated_) -->
 
 :     Insert text rather than completing only. May be set twice
       for multi-turn.
 
       Use "_\[insert]_" to indicate where the language model
-      should insert text (`gpt-3.5-turbo-instruct`).
+      should insert text (`gpt-3.5-turbo-instruct+`).
 
 
 **-S** **.**\[_PROMPT_NAME_]\[**.**], **-.**\[_PROMPT_NAME_]\[**.**]
@@ -962,14 +963,16 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 
 **-TTT**
 
-:     Count input tokens with python tiktoken (ignores special tokens). It heeds `options -ccm`.
+:     Count input tokens with python Tiktoken (ignores special tokens).
 
       Set twice to print tokens, thrice to available encodings.
       
-      Set model or encoding with `option -m`.
+      Set the model or encoding with `option -m`.
+      
+      It heeds `options -ccm`.
 
 
-**-w** \[_AUD_] \[_LANG_] \[_PROMPT_], **\--transcribe**
+**-w**, **\--transcribe**   \[_AUD_] \[_LANG_] \[_PROMPT_]
 
 :     Transcribe audio file into text. LANG is optional.
       A prompt that matches the audio language is optional.
@@ -978,7 +981,7 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
       Set twice to get phrase-level timestamps.
 
 
-**-W** \[_AUD_] \[_PROMPT-EN_], **\--translate**
+**-W**, **\--translate**   \[_AUD_] \[_PROMPT-EN_]
 
 :     Translate audio file into English text.
       
@@ -1009,14 +1012,14 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Print the help page.
 
 
-**-H** \[`/`_HIST_FILE_], **\--hist**
+**-H**, **\--hist**   \[`/`_HIST_FILE_]
 
 :     Edit history file with text editor or pipe to stdout.
       
       A history file name can be optionally set as argument.
 
 
-**-HH** \[`/`_HIST_FILE_], **-HHH**
+**-HH**, **-HHH**   \[`/`_HIST_FILE_]
 
 :     Pretty print last history session to stdout.
       
@@ -1030,19 +1033,25 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Disable colour output. Def=_auto_.
 
 
-**-K** \[_KEY_], **\--api-key**=\[_KEY_]
+**-K**, **\--api-key**   \[_KEY_]
 
 : Set OpenAI API key.
 
 
-**-l** \[_MODEL_], **\--list-models**
+**-l**, **\--list-models**   \[_MODEL_]
 
 : List models or print details of _MODEL_.
 
 
-**-L** \[_FILEPATH_], **\--log**=\[_FILEPATH_]
+**-L**, **\--log**   \[_FILEPATH_]
 
 : Set log file. _FILEPATH_ is required.
+
+
+**\--markdown**, **\--md**   \[_SOFTWARE_]
+
+: Enable markdown rendering in response. Software may be one
+  of _bat_, _pygmentize_, _glow_, _mdcat_, _mdless_, or _pandoc_.
 
 
 **-o**, **\--clipboard**
@@ -1093,12 +1102,12 @@ An OpenAI **API key**. `Bash`, `cURL`, and `JQ`.
 : Set tiktoken for token count (cmpls/chat, python).
 
 
-**-Y**, **\--no-tik**  (_defaults_)
+**-Y**, **\--no-tik**   (_defaults_)
 
 : Unset tiktoken use (cmpls/chat, python).
 
 
-**-z** \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_], **\--tts**
+**-z**, **\--tts**   \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
 
 : Synthesise speech from text prompt. Takes a voice name, speed and text prompt.
   Set _option -v_ to not play response.
