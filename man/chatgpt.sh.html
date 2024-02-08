@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.42 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.42.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.42 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.42.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -1396,12 +1396,16 @@ and start sequences.</p>
 <dd>
 <p>Set log file. <em>FILEPATH</em> is required.</p>
 </dd>
-<dt><strong>--markdown</strong>, <strong>--md</strong>
-[<em>SOFTWARE</em>]</dt>
+<dt><strong>--md</strong>, <strong>--markdown</strong>,
+<strong>--markdown</strong>=[<em>SOFTWARE</em>]</dt>
 <dd>
-<p>Enable markdown rendering in response. Software may be one of
+<p>Enable markdown rendering in response. Software is optional:
 <em>bat</em>, <em>pygmentize</em>, <em>glow</em>, <em>mdcat</em>,
 <em>mdless</em>, or <em>pandoc</em>.</p>
+</dd>
+<dt><strong>–no-md</strong>, <strong>–no-markdown</strong></dt>
+<dd>
+<p>Disable markdown rendering.</p>
 </dd>
 <dt><strong>-o</strong>, <strong>--clipboard</strong></dt>
 <dd>

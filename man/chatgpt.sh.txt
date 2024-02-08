@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.42 | General Commands Manual
+CHATGPT.SH(1) v0.42.1 | General Commands Manual
 mountaineerbr
 January 2024
 
@@ -874,10 +874,14 @@ Script Settings
 
     Set log file. FILEPATH is required.
 
---markdown, --md [SOFTWARE]
+--md, --markdown, --markdown=[SOFTWARE]
 
-    Enable markdown rendering in response. Software may be one of bat,
+    Enable markdown rendering in response. Software is optional: bat,
     pygmentize, glow, mdcat, mdless, or pandoc.
+
+–no-md, –no-markdown
+
+    Disable markdown rendering.
 
 -o, --clipboard
 

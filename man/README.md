@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.42 \| General Commands Manual
+title: CHATGPT.SH(1) v0.42.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -903,9 +903,12 @@ List models or print details of *MODEL*.
 **-L**, **--log** \[*FILEPATH*\]  
 Set log file. *FILEPATH* is required.
 
-**--markdown**, **--md** \[*SOFTWARE*\]  
-Enable markdown rendering in response. Software may be one of *bat*,
+**--md**, **--markdown**, **--markdown**=\[*SOFTWARE*\]  
+Enable markdown rendering in response. Software is optional: *bat*,
 *pygmentize*, *glow*, *mdcat*, *mdless*, or *pandoc*.
+
+**–no-md**, **–no-markdown**  
+Disable markdown rendering.
 
 **-o**, **--clipboard**  
 Copy response to clipboard.

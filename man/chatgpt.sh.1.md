@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.42 | General Commands Manual
+% CHATGPT.SH(1) v0.42.1 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -1048,10 +1048,15 @@ with history, so avoid it.
 : Set log file. _FILEPATH_ is required.
 
 
-**\--markdown**, **\--md**   \[_SOFTWARE_]
+**\--md**, **\--markdown**, **\--markdown**=\[_SOFTWARE_]
 
-: Enable markdown rendering in response. Software may be one
-  of _bat_, _pygmentize_, _glow_, _mdcat_, _mdless_, or _pandoc_.
+: Enable markdown rendering in response. Software is optional:
+  _bat_, _pygmentize_, _glow_, _mdcat_, _mdless_, or _pandoc_.
+
+
+**--no-md**, **--no-markdown**
+
+: Disable markdown rendering.
 
 
 **-o**, **\--clipboard**

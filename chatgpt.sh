@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.42  jan/2024  by mountaineerbr  GPL+3
+# v0.42.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -22,10 +22,10 @@ MOD_SPEECH="${MOD_SPEECH:-tts-1}"   #"tts-1-hd"
 MOD_OLLAMA="${MOD_OLLAMA:-llama2}"  #"llama2-uncensored:latest"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
-# Prompter flush with <CTRL-D> (multiline bash)
-#OPTCTRD=
 # Stream response
 STREAM=1
+# Prompter flush with <CTRL-D>
+#OPTCTRD=
 # Temperature
 #OPTT=
 # Top_p probability mass (nucleus sampling)
@@ -60,6 +60,8 @@ OPTZ_FMT=opus   #mp3, opus, aac, flac
 #PLAY_CMD=""
 # Clipboard set command, e.g. "xsel -b", "pbcopy"
 #CLIP_CMD=""
+# Markdown renderer, e.g. "pygmentize -s -lmd", "glow", "mdless", "mdcat"
+#MD_CMD="bat"
 # Inject restart text
 #RESTART=""
 # Inject   start text
@@ -472,9 +474,11 @@ Options
 		List models or print details of MODEL.
 	-L, --log   [FILEPATH]
 		Set log file. FILEPATH is required.
-	--markdown  [SOFTWARE]
-		Enable markdown rendering in response. Software may be one
-		of \`bat'/\`pygmentize'/\`glow'/\`mdcat'/\`mdless'/\`pandoc'.
+	--md, --markdown, --markdown=[SOFTWARE]
+		Enable markdown rendering in response. Software is optional:
+		\`bat', \`pygmentize', \`glow', \`mdcat', \`mdless', or \`pandoc'.
+	--no-md, --no-markdown
+		Disable markdown rendering.
 	-o, --clipboard
 		Copy response to clipboard.
 	-O, --ollama
@@ -914,7 +918,7 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! cat -- "$FILE"
 	else 	jq -r '.data[].id' "$FILE" | sort \
-		&& printf '%s\n' text-moderation-latest text-moderation-stable \
+		&& printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 \
 		|| ! cat -- "$FILE"
 	fi || ! __warmsgf 'Err:' 'Model list'
 }
@@ -3298,7 +3302,6 @@ function cleanupf
 unset OPTMM STOPS
 #parse opts
 optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
-optstring_long="multimodal markdown:"  #long-option-only options
 while getopts "$optstring" opt
 do
 	if [[ $opt = - ]]  #long options
@@ -3313,7 +3316,8 @@ do
 			'j:synthesi[sz]e'  j:synth 'J:synthesi[sz]e-voice' \
 			J:synth-voice  'k:no-colo*'  K:api-key  l:list-model \
 			l:list-models    L:log    m:model    m:mod  \
-			multimodal  markdown  markdown:md   n:results  o:clipboard \
+			multimodal  markdown  markdown:md  no-markdown \
+			no-markdown:no-md   n:results   o:clipboard \
 			o:clip  O:ollama  p:top-p  p:top  q:insert  \
 			r:restart-sequence  r:restart-seq  r:restart \
 			R:start-sequence  R:start-seq  R:start \
@@ -3329,15 +3333,11 @@ do
 		done
 
 		case "$OPTARG" in
-			$name) 	if [[ ${optstring}${optstring_long} = *"$opt":* ]]
+			$name|$name=)
+				if [[ $optstring = *"$opt":* ]]
 				then 	OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
-				else 	OPTARG=
-				fi
-				;;
-			$name=) OPTARG="${@:$OPTIND:1}"
-				OPTIND=$((OPTIND+1))
-				;;
+				fi;;
 			$name=*)
 				OPTARG="${OPTARG##$name=}"
 				;;
@@ -3375,7 +3375,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD OPTE OPTEXIT API_HOST OLLAMA_API_HOST OLLAMA LOCALAI OPENAI_API_HOST OPENAI_API_HOST_STATIC GPTCHATKEY READLINEOPT MULTIMODAL;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA_API_HOST OLLAMA LOCALAI OPENAI_API_HOST OPENAI_API_HOST_STATIC GPTCHATKEY READLINEOPT MULTIMODAL;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -3398,8 +3398,8 @@ do
 			USRLOG="${USRLOG/\~\//"$HOME"\/}"
 			_sysmsgf 'Log File' "<${USRLOG/"$HOME"/"~"}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
-		markdown) OPTMD=1
-			set_mdcmdf "$OPTARG";;
+		markdown) OPTMD=1 MD_CMD=$OPTARG;;
+		no-markdown) OPTMD=;;
 		multimodal) 	MULTIMODAL=1;;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
@@ -3598,6 +3598,7 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 
 #set other options
 set_optsf
+((OPTMD)) && set_mdcmdf "$MD_CMD"
 
 if [[ -n $TERMUX_VERSION ]]
 then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
