@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.42.1 | General Commands Manual
+% CHATGPT.SH(1) v0.43 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -11,7 +11,7 @@
 ### SYNOPSIS
 
 |    **chatgpt.sh** \[`-cc`|`-d`|`-qq`] \[`opt`..] \[_PROMPT_|_TEXT_FILE_]
-|    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #_dall-e-3_
+|    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #_Dall-E-3_
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PROMPT_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
@@ -101,11 +101,11 @@ a _MASK_ file (with alpha channel and transparency), and a text PROMPT
 If _MASK_ is not provided, _IMAGE_ must have transparency.
 
 The **size of output images** may be set as the first positional parameter
-in the command line: "_256x256_" (_S_), "_512x512_" (_M_), "_1024x1024_" (_L_)
-for `dall-e-2`, and "_1024x1024_" (_X_), "_1792x1024_" (_L_)
-and "_1024x1792_" (_P_), for `dall-e-3`. `Dall-e-3` also accepts
-the "_hd_" parameter for image quality, set it such as "_Lhd_",
-or "_1792x1024hd_". Defaults=_1024x1024_.
+in the command line: "_256x256_" (_S_), "_512x512_" (_M_),
+"_1024x1024_" (_L_), "_1792x1024_" (_X_), and "_1024x1792_" (_P_).
+
+The parameter "_hd_" may also be set for image quality (_Dall-E-3_),
+such as "_Xhd_", or "_1792x1024hd_". Defaults=_1024x1024_.
 
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 
@@ -197,7 +197,7 @@ See the online man page and `chatgpt.sh` usage examples at:
 
 ### TEXT / CHAT COMPLETIONS
 
-#### 1. Text completions
+### 1. Text completions
 
 Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language
@@ -222,23 +222,23 @@ Language model **SKILLS** can activated, with specific prompts,
 see <https://platform.openai.com/examples>.
 
 
-#### 2. Chat Mode
+### 2. Chat Mode
 
 
-##### 2.1 Text Completions Chat
+#### 2.1 Text Completions Chat
 
 Set `option -c` to start chat mode of text completions. It keeps
 a history file, and keeps new questions in context. This works
 with a variety of models. Set `option -E` to exit on response.
 
 
-##### 2.2 Native Chat Completions
+#### 2.2 Native Chat Completions
 
 Set the double `option -cc` to start chat completions mode. Turbo
 models are also the best option for many non-chat use cases.
 
 
-##### 2.3 Q & A Format
+#### 2.3 Q & A Format
 
 The defaults chat format is "**Q & A**". The **restart sequence**
 "_\\n Q:\ _" and the **start text** "_\\n\ A:_" are injected
@@ -282,7 +282,7 @@ text prompt interactively:
     Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
 
 
-##### 2.6 Chat Commands
+#### 2.6 Chat Commands
 
 While in chat mode, the following commands can be typed in the
 new prompt to set a new parameter. The command operator
@@ -371,7 +371,7 @@ may be either "`!`", or "`/`".
 | E.g.: "`/temp` _0.7_", "`!mod`_gpt-4_", "`-p` _0.2_", and "`/s` _hist_name_".
 
 
-###### 2.6.1 Session Management
+#### 2.7 Session Management
 
 The script uses a _TSV file_ to record entries, which is kept at the script
 cache directory. A new history file can be created, or an existing one
@@ -399,7 +399,7 @@ edited with the "`/hist`" command (also for context injection).
 Delete history entries or comment them out with "`#`".
 
 
-##### 2.7 Completion Preview / Regeneration
+#### 2.8 Completion Preview / Regeneration
 
 To preview a prompt completion before committing it to history,
 append a forward slash "`/`" to the prompt as the last character.
@@ -411,7 +411,7 @@ forward slash "`/`" in the new empty prompt
 (twice "`//`" for editing the prompt before new request).
 
 
-#### 3. Prompt Engineering and Design
+### 3. Prompt Engineering and Design
 
 Minimal **INSTRUCTION** to behave like a chatbot is given with
 chat `options -cc`, unless otherwise explicitly set by the user.
@@ -514,32 +514,32 @@ These options also set corresponding history files automatically.
 
 ### IMAGES / DALL-E
 
-#### 1. Image Generations
+### 1. Image Generations
 
 An image can be created given a text prompt. A text PROMPT
 of the desired image(s) is required. The maximum length is 1000
 characters.
 
 
-#### 2. Image Variations
+### 2. Image Variations
 
 Variations of a given _IMAGE_ can be generated. The _IMAGE_ to use as
 the basis for the variations must be a valid PNG file, less than
 4MB and square.
 
 
-#### 3. Image Edits
+### 3. Image Edits
 
 To edit an _IMAGE_, a _MASK_ file may be optionally provided. If _MASK_
 is not provided, _IMAGE_ must have transparency, which will be used
 as the mask. A text prompt is required.
 
-##### 3.1 ImageMagick
+#### 3.1 ImageMagick
 
 If **ImageMagick** is available, input _IMAGE_ and _MASK_ will be checked
 and processed to fit dimensions and other requirements.
 
-##### 3.2 Transparent Colour and Fuzz
+#### 3.2 Transparent Colour and Fuzz
 
 A transparent colour must be set with "`-@`\[_COLOUR_]" to create the
 mask. Defaults=_black_.
@@ -554,14 +554,14 @@ See also:
  - <https://imagemagick.org/script/color.php>
  - <https://imagemagick.org/script/command-line-options.php#fuzz>
 
-##### 3.3 Mask File / Alpha Channel
+#### 3.3 Mask File / Alpha Channel
 
 An alpha channel is generated with **ImageMagick** from any image
 with the set transparent colour (defaults to _black_). In this way,
 it is easy to make a mask with any black and white image as a
 template.
 
-##### 3.4 In-Paint and Out-Paint
+#### 3.4 In-Paint and Out-Paint
 
 In-painting is achieved setting an image with a MASK and a prompt.
 
@@ -574,7 +574,7 @@ many results to continue the out-painting process step-wise.
 
 ### AUDIO / WHISPER
 
-#### 1. Transcriptions
+### 1. Transcriptions
 
 Transcribes audio file or voice record into the set language.
 Set a _two-letter_ _ISO-639-1_ language code (_en_, _es_, _ja_, or _zh_) as
@@ -586,7 +586,7 @@ Note that if the audio language is different from the set language code,
 output will be on the language code (translation).
 
 
-#### 2. Translations
+### 2. Translations
 
 Translates audio into **English**. An optional text to guide
 the model's style or continue a previous audio segment is optional

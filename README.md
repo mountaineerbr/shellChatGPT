@@ -116,11 +116,12 @@ and make it executable:
 ![Chat cmpls with prompt confirmation](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_verb.gif)
 
 
-### Chat Mode of Text Completions
+### 💬  Native Chat Completions
 
-With `option -c`, some options are set automatically to create a chat bot with text completions.
+With command line `options -cc`, some properties are set automatically to create a chat bot.
+Start a new session in chat mode, and set a different temperature (*gpt-3.5 and gpt-4+ models*):
 
-    chatgpt.sh -c "Hello there! What is your name?"
+    chatgpt.sh -cc -t0.7
 
 
 Create **Marv, the sarcastic bot** manually:
@@ -133,15 +134,6 @@ Create **Marv, the sarcastic bot** manually:
 {"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "How far is the Moon from Earth?"}, {"role": "assistant", "content": "Around 384,400 kilometers. Give or take a few, like that really matters."}]}
 -->
 <!-- https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset -->
-
-<!-- **TIP:** Set **response streaming** with `option -g`, or set `$STREAM=1` in the configuration file. -->
-
-
-### 💬  Native Chat Completions
-
-Start a new session in chat mode, and set a different temperature (*gpt-3.5 and gpt-4+ models*):
-
-    chatgpt.sh -cc -t0.7
 
 
 #### Vision Models (GPT-4-Vision)
@@ -167,7 +159,7 @@ Alternatively, set the image paths / urls at the end of the prompt interactively
 **DEBUG:** Set `option -VV` to see the raw JSON request body.
 
 
-### Voice In and Out + Chat Completions
+#### Voice In and Out + Chat Completions
 
 🗣️ Chat completion with **Whisper**:
 
@@ -176,6 +168,15 @@ Alternatively, set the image paths / urls at the end of the prompt interactively
 Chat in Portuguese with voice in and out:
 
     chatgpt.sh -cczw pt
+
+
+### Chat Mode of Text Completions
+
+When text completions is set for chatting with `option -c`,
+some properties are configured automatically to instruct the bot.
+
+
+    chatgpt.sh -c "Hello there! What is your name?"
 
 
 <!-- **TIP**: Set _-vv_ to have auto sleep for reading time of last response,
@@ -209,7 +210,11 @@ Certainly! Here are some unexpected use cases of the `chatgpt.sh` script:
 These unexpected use cases demonstrate the versatility of the `chatgpt.sh` script and how it can be utilized beyond its traditional applications. Have fun exploring and discovering new ways to interact with it!
 -->
 
+
 ### 📜 Text Completions
+
+This is the pure text completions endpoint. It is typically used to
+complete input text, such as for completing part of an essay.
 
 One-shot text completion:
 
@@ -219,14 +224,16 @@ One-shot text completion:
 **NOTE:** For multiturn, set `option -d`.
 
 
-***Set an instruction prompt*** for better results:
+A strong Instruction prompt may be needed for the language model to do what is required.
+
+Set an instruction prompt for better results:
     
-    chatgpt.sh -d -S'The following is a newspaper article.' "It all starts when FBI agents arrived at the governor house and"
+    chatgpt.sh -d -S 'The following is a newspaper article.' "It all starts when FBI agents arrived at the governor house and"
 
     chatgpt.sh -d -S'You are an AI assistant.'  "The list below contain the 10 biggest cities in the w"
 
 
-### Insert Mode of Text Completions  <!-- _(deprecated)_ -->
+#### Insert Mode of Text Completions  <!-- _(deprecated)_ -->
 
 Set `option -q` to enable insert mode and add the
 string `[insert]` where the model should insert text:
@@ -240,6 +247,7 @@ An instruction prompt in this mode may interfere with insert completions.
 **NOTE:** [Insert mode](https://openai.com/blog/gpt-3-edit-insert)
 works with model `gpt-3.5-turbo-instruct`. This endpoint _may deprecate_.
 <!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
+
 
 <!--
 ### Text Edits  _(discontinued)_
@@ -408,19 +416,19 @@ Generate image variation:
     chatgpt.sh -i path/to/image.png path/to/mask.png "A pink flamingo."
 
 
+#### Outpaint - Canvas Extension
+
+![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits.gif)
+
+In this example, a mask is made from the white colour.
+
+
 #### Inpaint - Fill in the Gaps
 
 ![Showing off Image Edits - Inpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits2.gif)
 <!-- ![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png) -->
 
 Adding a bat in the night sky.
-
-
-#### Outpaint - Canvas Extension
-
-![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits1.gif)
-
-In this example, a mask is made from the white colour.
 
 
 ### 🔊 Audio Transcriptions / Translations

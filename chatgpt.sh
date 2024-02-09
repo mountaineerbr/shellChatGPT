@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.42.4  jan/2024  by mountaineerbr  GPL+3
+# v0.43  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -189,10 +189,9 @@ Description
 	and a text prompt to direct the editing.
 
 	Size of output image may be set as the first positional parameter,
-	options are: \`256x256' (S), \`512x512' (M), \`1024x1024' (L) for
-	dall-e-2, and \`1024x1024' (X), \`1792x1024' (L) and \`1024x1792' (P)
-	for dall-e-3. Dall-e-3 also accepts the \`hd' parameter for image
-	quality, set it such as \`Lhd', or \`1792x1024hd'.
+	options are: \`256x256' (S), \`512x512' (M), \`1024x1024' (L),
+	\`1792x1024' (X), and \`1024x1792' (P). The parameter \`hd' may also
+	be set for quality (Dall-E-3), such as \`Xhd', or \`1792x1024hd'.
 
 	Option -w transcribes audio to any language, and option -W translates
 	audio to English text. Set these options twice to have phrase-level
@@ -1173,14 +1172,17 @@ function _tiktokenf
 function tiktokenf
 {
 	python -c "import sys
+
 try:
     import tiktoken
 except ImportError as e:
     print(\"Err: python -- \", e)
     exit()
+
 opttiktoken, opttik = ${OPTTIKTOKEN:-0}, ${HOPTTIK:-0}
 optv, optl = ${OPTV:-0}, ${OPTL:-0}
 mod, text = sys.argv[1], \"\"
+
 if opttik <= 0:
     if opttiktoken+optl > 2:
         for enc_name in tiktoken.list_encoding_names():
@@ -1190,6 +1192,7 @@ if opttik <= 0:
         text = sys.stdin.read()
     else:
         text = sys.argv[2]
+
 try:
     enc = tiktoken.encoding_for_model(mod)
 except:
@@ -1201,6 +1204,7 @@ except:
     except:
         enc = tiktoken.get_encoding(\"r50k_base\")  #davinci
         print(\"Warning: tiktoken -- unknown model/encoding, fallback \", str(enc), file=sys.stderr)
+
 if opttik <= 0:
     encoded_text = enc.encode_ordinary(text)
     if opttiktoken > 1:
@@ -1225,27 +1229,28 @@ else:
 #set output image size
 function set_imgsizef
 {
-	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
-	then 	if [[ $1 = *[Hh][Dd]* ]]
-		then 	OPTS_HD="hd";
-			set -- "${1//[Hh][Dd]}";
-		fi  #def=standard
-		case "$1" in  #width x height, dall-e-3
-			1024*1792 | 10*17* | [Pp] | [Pp][Oo][Rr][Tt][Rr][Aa][Ii][Tt] )  #portrait
-				OPTS=1024x1792; set --;;  #portrait
-			1792* | 17*        | [Ll] | [Ll][Aa][Nn][Dd][Ss][Cc][Aa][Pp][Ee] )  #landscape
-				OPTS=1792x1024; set --;;  #landscape
-			1024* | 10*       | [LlXx] | [Ll][Aa][Rr][Gg][Ee] )  #large
-				OPTS=1024x1024;;
-			* ) 	OPTS=${OPTS:-1024x1024}; ((${#OPTS_HD}));;
-		esac;
-	else 	case "$1" in  #dall-e-2
-			1024* | 10*  | [LlXx] | [Ll][Aa][Rr][Gg][Ee] ) OPTS=1024x1024;;
-			512* | 51*   |  [Mm]  | [Mm][Ee][Dd][Ii][Uu][Mm] ) OPTS=512x512;;  #medium
-			256* | 25*   |  [Ss]  | [Ss][Mm][Aa][Ll][Ll] )     OPTS=256x256;;  #small
-			*) 	OPTS=${OPTS:-512x512}; false;;
-		esac;
-	fi
+	typeset opts_hd
+	case "$1" in
+		[Hh][Dd] | [Hh][Dd]* | *[Hh][Dd] )
+			OPTS_HD="hd" opts_hd=1;
+			set -- "${1/[Hh][Dd]}";;
+	esac
+	case "$1" in  #width x height, dall-e-3
+		1024*1792 | [Pp] | [Pp][Oo][Rr][Tt][Rr][Aa][Ii][Tt] )  #portrait
+			OPTS=1024x1792;;
+		1792* | [Xx] | [Ll][Aa][Nn][Dd][Ss][Cc][Aa][Pp][Ee] )  #landscape
+			OPTS=1792x1024;;
+		1024* | [Ll] | [Ll][Aa][Rr][Gg][Ee] )  #large
+			OPTS=1024x1024;;
+		512*  |  [Mm]  | [Mm][Ee][Dd][Ii][Uu][Mm] ) OPTS=512x512;;  #medium
+		256*  |  [Ss]  | [Ss][Mm][Aa][Ll][Ll] )     OPTS=256x256;;  #small
+		*)  #fallbacks
+			[[ -z $OPTS ]] || return 1;
+			if [[ $MOD_IMAGE = *dall-e*[3-9] ]] || [[ opts_hd -gt 0 ]]
+			then 	OPTS=1024x1024; 
+			else 	OPTS=512x512;
+			fi; ((opts_hd));;
+	esac;
 }
 
 # Nill, null, none, inf; Nil, nul; -N---, --- (chat);
@@ -1762,7 +1767,7 @@ function cmd_runf
 		replay|rep)
 			if ((${#REPLAY_FILES[@]}))
 			then 	for var in "${REPLAY_FILES[@]}"
-				do 	[[ -e $var ]] || continue
+				do 	[[ -f $var ]] || continue
 					du -h "$var" >&2 2>/dev/null
 					${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
 					trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
@@ -1867,8 +1872,8 @@ function edf
 
 	printf "%s\\n" "$pos" > "$FILETXT"
 
-	if ((CHAT_ENV))
-	then 	cmd_runf "$pos" && return 200
+	if ((CHAT_ENV)) && cmd_runf "$pos"
+	then 	return 200;
 	fi
 }
 
@@ -2023,6 +2028,11 @@ function is_linkf
 	[[ $1 =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] ||
 	[[ $1 = [Ww][Ww][Ww].* ]] || [[ $1 != [./~]* ]] || [[ ! -e $1 ]] || return;
 	curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1"
+}
+
+function is_txtfilef
+{
+	[[ "$(file -- "$1")" = *[Tt][Ee][Xx][Tt]* ]]
 }
 
 #check for multimodal (vision) model
@@ -2252,13 +2262,13 @@ function whisperf
 	fi
 	
 	var='@([Mm][Pp][34]|[Mm][Pp][Gg]|[Mm][Pp][Ee][Gg]|[Mm][Pp][Gg][Aa]|[Mm]4[Aa]|[Ww][Aa][Vv]|[Ww][Ee][Bb][Mm])'
-	if [[ -e $1 && $1 = *${var} ]] #mp3|mp4|mpeg|mpga|m4a|wav|webm
+	if [[ -f $1 && $1 = *${var} ]] #mp3|mp4|mpeg|mpga|m4a|wav|webm
 	then 	file="$1"; shift;
-	elif (($#)) && [[ -e ${@:${#}} && ${@:${#}} = *${var} ]]
+	elif (($#)) && [[ -f ${@:${#}} && ${@:${#}} = *${var} ]]
 	then 	file="${@:${#}}"; set -- "${@:1:$((${#}-1))}";
 	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "${1:-nill}" >&2
 		return 1
-	fi ;[[ -e $1 ]] && shift  #get rid of eventual second filename
+	fi ;[[ -f $1 ]] && shift  #get rid of eventual second filename
 	if var=$(wc -c <"$file"); ((var > 25000000));
 	then 	du -h "$file" >&2;
 		__warmsgf 'Warning:' "Whisper input exceeds API limit of 25MBytes";
@@ -2541,7 +2551,7 @@ function prompt_imgvarf
 function imgvarf
 {
 	typeset size prompt mask ;unset ARGS PNG32
-	[[ -e ${1:?input PNG path required} ]]
+	[[ -f ${1:?input PNG path required} ]]
 
 	if command -v magick >/dev/null 2>&1
 	then 	if ! __is_pngf "$1" || ! __is_squaref "$1" || ! __is_rgbf "$1" ||
@@ -2568,7 +2578,7 @@ function imgvarf
 			printf '%s\n' 'No adjustment needed in image file' >&2
 		fi ;unset ARGS PNG32
 						
-		if [[ -e $2 ]]  #edits + mask file
+		if [[ -f $2 ]]  #edits + mask file
 		then 	size=$(print_imgsizef "$1") 
 			if ! __is_pngf "$2" || ! __is_rgbf "$2" || {
 				[[ $(print_imgsizef "$2") != "$size" ]] &&
@@ -2590,15 +2600,15 @@ function imgvarf
 	## one file  --  variations
 	## one file (alpha) and one prompt  --  edits
 	## two files, (and one prompt)  --  edits
-	if [[ -e $1 ]] && ((${#} > 1))  #img edits
+	if [[ -f $1 ]] && ((${#} > 1))  #img edits
 	then 	OPTII=1 EPN=9  #MOD=image-ed
-		if ((${#} > 2)) && [[ -e $2 ]]
+		if ((${#} > 2)) && [[ -f $2 ]]
 		then 	prompt="${@:3}" ;set -- "${@:1:2}" 
 		elif ((${#} > 1)) && [[ ! -e $2 ]]
 		then 	prompt="${@:2}" ;set -- "${@:1:1}"
 		fi
-		[[ -e $2 ]] && set -- "${@:1:1}" -F mask="@$2"
-	elif [[ -e $1 ]]  #img variations
+		[[ -f $2 ]] && set -- "${@:1:1}" -F mask="@$2"
+	elif [[ -f $1 ]]  #img variations
 	then 	OPTII=1 EPN=4  #MOD=image-var
 	fi
 	[[ -n $prompt ]] && set -- "$@" -F prompt="$prompt"
@@ -2836,7 +2846,7 @@ function custom_prf
 	then 	template=1
 		file=$(SGLOB='[Pp][Rr]' EXT='pr' \
 			session_name_choosef "$name")
-		[[ -e $file ]] && msg=${msg:-LOAD} || msg=CREATE
+		[[ -f $file ]] && msg=${msg:-LOAD} || msg=CREATE
 	fi
 	((list)) && exit
 
@@ -2874,7 +2884,7 @@ function custom_prf
 
 		if ((template))  #push changes to file
 		then 	printf '%s' "$INSTRUCTION"${INSTRUCTION:+$'\n'} >"$file"
-			[[ -e "$file" && ! -s "$file" ]] && { rm -v -- "$file" || rm -- "$file" ;} >&2
+			[[ -f "$file" && ! -s "$file" ]] && { rm -v -- "$file" || rm -- "$file" ;} >&2
 		fi
 		if [[ -z $INSTRUCTION ]]
 		then 	__warmsgf 'Err:' 'custom prompts fail'
@@ -3081,7 +3091,7 @@ function session_sub_printf
  
 	while ((skip)) || IFS= read -r
 	do 	__spinf; skip= ;
-		if [[ ${REPLY} = *([$IFS])\#* ]]
+		if [[ ${REPLY} = *([$IFS])\#* ]] && ((OPTHH<3))
 		then 	continue
 		elif [[ ${REPLY} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]]
 		then
@@ -3144,7 +3154,7 @@ done
 			unset REPLY reply time token string buff buff_end index m n
 			continue
 		fi
-		buff="${REPLY##\#}"${buff:+$'\n'}"${buff}"
+		buff="${REPLY}"${buff:+$'\n'}"${buff}"
 	done < <( 	tac -- "$file" && {
 			((OPTPRINT+OPTHH)) || __warmsgf '(end of hist file)' ;}
 			echo BREAK;
@@ -3515,13 +3525,11 @@ fi
 pick_modelf "$MOD"
 
 if ((OPTI+OPTII))
-then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url
-	if set_imgsizef "$1"
-	then 	shift
-	elif set_imgsizef "$OPTS"
-	then 	: ;fi
-	[[ -e $1 ]] && OPTII=1  #img edits and vars
-	unset STREAM
+then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url;
+	[[ -f $1 || -f $2 ]] && OPTII=1;  #img edits and vars
+	[[ -n $OPTS ]] && set_imgsizef "$OPTS";
+	set_imgsizef "$1" && shift;
+	unset STREAM;
 fi
 
 #ollama fun
@@ -3616,18 +3624,21 @@ then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
 else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 
-#load file and stdin
+#load text file (last arg) and stdin
 if ((OPTX)) && ((OPTEMBED+OPTI+OPTII+OPTZ+OPTTIKTOKEN))
 then
-	((OPTEMBED+OPTZ)) && ((${#})) && [[ -f ${@:${#}} ]] &&
-	  set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+	((OPTEMBED+OPTI+OPTII+OPTZ)) && ((${#})) && [[ -f ${@:${#}} ]] &&
+	  is_txtfilef "${@:${#}}" && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+
 	{ ((OPTI+OPTII)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
 	  [[ -t 0 ]] || set -- "$@" "$(<$STDIN)";
+	
 	edf "$@" && set -- "$(<"$FILETXT")";
 elif ! ((OPTTIKTOKEN+OPTI+OPTII))
 then
-	! ((OPTW && !MTURN)) &&  #IPC#
-	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+	! ((OPTW && !MTURN)) && ((${#})) && [[ -f ${@:${#}} ]] && 
+	  is_txtfilef "${@:${#}}" && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+
 	[[ -t 0 ]] || ((OPTZZ+OPTL+OPTFF+OPTHH)) || set -- "$@" "$(<$STDIN)";
 fi
 
@@ -3916,7 +3927,7 @@ else
 						case $? in
 							201) 	set --; break 1;;  #abort
 							200) 	continue 2;;  #redo
-							19[6789]) 	edf "${REPLY:-$*}" || break 2;;  #edit
+							19[6789]) 	edf "${REPLY:-$*}" || break 1;;  #edit
 							0) 	set -- "$REPLY" ; break;;  #yes
 							*) 	set -- ; break;;  #no
 						esac

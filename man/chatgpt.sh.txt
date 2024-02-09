@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.42.1 | General Commands Manual
+CHATGPT.SH(1) v0.43 | General Commands Manual
 mountaineerbr
 January 2024
 
@@ -9,7 +9,7 @@ NAME
 SYNOPSIS
 
    chatgpt.sh [-cc|-d|-qq] [opt..] [PROMPT|TEXT_FILE]
-   chatgpt.sh -i [opt..] [X|L|P][hd] [PROMPT] #dall-e-3
+   chatgpt.sh -i [opt..] [X|L|P][hd] [PROMPT] #Dall-E-3
    chatgpt.sh -i [opt..] [S|M|L] [PROMPT]
    chatgpt.sh -i [opt..] [S|M|L] [PNG_FILE]
    chatgpt.sh -i [opt..] [S|M|L] [PNG_FILE] [MASK_FILE] [PROMPT]
@@ -96,10 +96,11 @@ file (with alpha channel and transparency), and a text PROMPT
 not provided, IMAGE must have transparency.
 
 The size of output images may be set as the first positional parameter
-in the command line: “256x256” (S), “512x512” (M), “1024x1024” (L) for
-dall-e-2, and “1024x1024” (X), “1792x1024” (L) and “1024x1792” (P), for
-dall-e-3. Dall-e-3 also accepts the “hd” parameter for image quality,
-set it such as “Lhd”, or “1792x1024hd”. Defaults=1024x1024.
+in the command line: “256x256” (S), “512x512” (M), “1024x1024” (L),
+“1792x1024” (X), and “1024x1792” (P).
+
+The parameter “hd” may also be set for image quality (Dall-E-3), such as
+“Xhd”, or “1792x1024hd”. Defaults=1024x1024.
 
 See IMAGES section below for more information on inpaint and outpaint.
 
@@ -335,7 +336,7 @@ or “/”.
 
 E.g.: “/temp 0.7”, “!modgpt-4”, “-p 0.2”, and “/s hist_name”.
 
-2.6.1 Session Management
+2.7 Session Management
 
 The script uses a TSV file to record entries, which is kept at the
 script cache directory. A new history file can be created, or an
@@ -362,7 +363,7 @@ In order to change the chat context at run time, the history file may be
 edited with the “/hist” command (also for context injection). Delete
 history entries or comment them out with “#”.
 
-2.7 Completion Preview / Regeneration
+2.8 Completion Preview / Regeneration
 
 To preview a prompt completion before committing it to history, append a
 forward slash “/” to the prompt as the last character. Regenerate it

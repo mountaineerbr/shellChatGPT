@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.42.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.43 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.42.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.43 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -187,7 +187,7 @@ Whisper / TTS</div>
 [<em>PROMPT</em>|<em>TEXT_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>X</em>|<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
-#<em>dall-e-3</em><br />
+#<em>Dall-E-3</em><br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
@@ -285,11 +285,10 @@ transparency.</p>
 <p>The <strong>size of output images</strong> may be set as the first
 positional parameter in the command line: “<em>256x256</em>”
 (<em>S</em>), “<em>512x512</em>” (<em>M</em>), “<em>1024x1024</em>”
-(<em>L</em>) for <code>dall-e-2</code>, and “<em>1024x1024</em>”
-(<em>X</em>), “<em>1792x1024</em>” (<em>L</em>) and “<em>1024x1792</em>”
-(<em>P</em>), for <code>dall-e-3</code>. <code>Dall-e-3</code> also
-accepts the “<em>hd</em>” parameter for image quality, set it such as
-“<em>Lhd</em>”, or “<em>1792x1024hd</em>”.
+(<em>L</em>), “<em>1792x1024</em>” (<em>X</em>), and
+“<em>1024x1792</em>” (<em>P</em>).</p>
+<p>The parameter “<em>hd</em>” may also be set for image quality
+(<em>Dall-E-3</em>), such as “<em>Xhd</em>”, or “<em>1792x1024hd</em>”.
 Defaults=<em>1024x1024</em>.</p>
 <p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
@@ -370,7 +369,7 @@ class="uri">https://platform.openai.com/docs/</a>.</p>
 at: <a href="https://gitlab.com/fenixdragao/shellchatgpt"
 class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
 <h3 id="text-chat-completions">TEXT / CHAT COMPLETIONS</h3>
-<h4 id="text-completions">1. Text completions</h4>
+<h3 id="text-completions">1. Text completions</h3>
 <p>Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language model will
 try completing it until probable “<code>&lt;|endoftext|&gt;</code>”, or
@@ -391,17 +390,17 @@ pasted or typed, even without setting <code>options -uU</code>
 <p>Language model <strong>SKILLS</strong> can activated, with specific
 prompts, see <a href="https://platform.openai.com/examples"
 class="uri">https://platform.openai.com/examples</a>.</p>
-<h4 id="chat-mode">2. Chat Mode</h4>
-<h5 id="text-completions-chat">2.1 Text Completions Chat</h5>
+<h3 id="chat-mode">2. Chat Mode</h3>
+<h4 id="text-completions-chat">2.1 Text Completions Chat</h4>
 <p>Set <code>option -c</code> to start chat mode of text completions. It
 keeps a history file, and keeps new questions in context. This works
 with a variety of models. Set <code>option -E</code> to exit on
 response.</p>
-<h5 id="native-chat-completions">2.2 Native Chat Completions</h5>
+<h4 id="native-chat-completions">2.2 Native Chat Completions</h4>
 <p>Set the double <code>option -cc</code> to start chat completions
 mode. Turbo models are also the best option for many non-chat use
 cases.</p>
-<h5 id="q-a-format">2.3 Q &amp; A Format</h5>
+<h4 id="q-a-format">2.3 Q &amp; A Format</h4>
 <p>The defaults chat format is “<strong>Q &amp; A</strong>”. The
 <strong>restart sequence</strong> “<em>\n Q: </em>” and the
 <strong>start text</strong> “<em>\n A:</em>” are injected for the chat
@@ -434,7 +433,7 @@ end of the text prompt interactively:</p>
 
 [...]
 Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg</code></pre>
-<h5 id="chat-commands">2.6 Chat Commands</h5>
+<h4 id="chat-commands">2.6 Chat Commands</h4>
 <p>While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either
 “<code>!</code>”, or “<code>/</code>”.</p>
@@ -808,7 +807,7 @@ entries.</td>
 <div class="line-block">E.g.: “<code>/temp</code> <em>0.7</em>”,
 “<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”, and
 “<code>/s</code> <em>hist_name</em>”.</div>
-<h6 id="session-management">2.6.1 Session Management</h6>
+<h4 id="session-management">2.7 Session Management</h4>
 <p>The script uses a <em>TSV file</em> to record entries, which is kept
 at the script cache directory. A new history file can be created, or an
 existing one changed to with command “<code>/session</code>
@@ -831,8 +830,8 @@ file name, such as “<code>/copy</code> [<em>SRC_HIST_FILE</em>]
 be edited with the “<code>/hist</code>” command (also for context
 injection). Delete history entries or comment them out with
 “<code>#</code>”.</p>
-<h5 id="completion-preview-regeneration">2.7 Completion Preview /
-Regeneration</h5>
+<h4 id="completion-preview-regeneration">2.8 Completion Preview /
+Regeneration</h4>
 <p>To preview a prompt completion before committing it to history,
 append a forward slash “<code>/</code>” to the prompt as the last
 character. Regenerate it again or flush/accept the prompt and
@@ -842,8 +841,8 @@ response.</p>
 type in a single exclamation mark or forward slash “<code>/</code>” in
 the new empty prompt (twice “<code>//</code>” for editing the prompt
 before new request).</p>
-<h4 id="prompt-engineering-and-design">3. Prompt Engineering and
-Design</h4>
+<h3 id="prompt-engineering-and-design">3. Prompt Engineering and
+Design</h3>
 <p>Minimal <strong>INSTRUCTION</strong> to behave like a chatbot is
 given with chat <code>options -cc</code>, unless otherwise explicitly
 set by the user.</p>
@@ -932,24 +931,24 @@ or a percent sign, such as “<code>-S</code>
 <em>davinci</em> and <em>gpt-3.5+</em> models.</p>
 <p>These options also set corresponding history files automatically.</p>
 <h3 id="images-dall-e">IMAGES / DALL-E</h3>
-<h4 id="image-generations">1. Image Generations</h4>
+<h3 id="image-generations">1. Image Generations</h3>
 <p>An image can be created given a text prompt. A text PROMPT of the
 desired image(s) is required. The maximum length is 1000 characters.</p>
-<h4 id="image-variations">2. Image Variations</h4>
+<h3 id="image-variations">2. Image Variations</h3>
 <p>Variations of a given <em>IMAGE</em> can be generated. The
 <em>IMAGE</em> to use as the basis for the variations must be a valid
 PNG file, less than 4MB and square.</p>
-<h4 id="image-edits">3. Image Edits</h4>
+<h3 id="image-edits">3. Image Edits</h3>
 <p>To edit an <em>IMAGE</em>, a <em>MASK</em> file may be optionally
 provided. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
 transparency, which will be used as the mask. A text prompt is
 required.</p>
-<h5 id="imagemagick">3.1 ImageMagick</h5>
+<h4 id="imagemagick">3.1 ImageMagick</h4>
 <p>If <strong>ImageMagick</strong> is available, input <em>IMAGE</em>
 and <em>MASK</em> will be checked and processed to fit dimensions and
 other requirements.</p>
-<h5 id="transparent-colour-and-fuzz">3.2 Transparent Colour and
-Fuzz</h5>
+<h4 id="transparent-colour-and-fuzz">3.2 Transparent Colour and
+Fuzz</h4>
 <p>A transparent colour must be set with
 “<code>-@</code>[<em>COLOUR</em>]” to create the mask.
 Defaults=<em>black</em>.</p>
@@ -966,12 +965,12 @@ class="uri">https://imagemagick.org/script/color.php</a></li>
 href="https://imagemagick.org/script/command-line-options.php#fuzz"
 class="uri">https://imagemagick.org/script/command-line-options.php#fuzz</a></li>
 </ul>
-<h5 id="mask-file-alpha-channel">3.3 Mask File / Alpha Channel</h5>
+<h4 id="mask-file-alpha-channel">3.3 Mask File / Alpha Channel</h4>
 <p>An alpha channel is generated with <strong>ImageMagick</strong> from
 any image with the set transparent colour (defaults to <em>black</em>).
 In this way, it is easy to make a mask with any black and white image as
 a template.</p>
-<h5 id="in-paint-and-out-paint">3.4 In-Paint and Out-Paint</h5>
+<h4 id="in-paint-and-out-paint">3.4 In-Paint and Out-Paint</h4>
 <p>In-painting is achieved setting an image with a MASK and a
 prompt.</p>
 <p>Out-painting can also be achieved manually with the aid of this
@@ -981,7 +980,7 @@ will be used as the mask, and set the same <em>colour</em> in the script
 with <code>-@</code>. Choose the best result amongst many results to
 continue the out-painting process step-wise.</p>
 <h3 id="audio-whisper">AUDIO / WHISPER</h3>
-<h4 id="transcriptions">1. Transcriptions</h4>
+<h3 id="transcriptions">1. Transcriptions</h3>
 <p>Transcribes audio file or voice record into the set language. Set a
 <em>two-letter</em> <em>ISO-639-1</em> language code (<em>en</em>,
 <em>es</em>, <em>ja</em>, or <em>zh</em>) as the positional argument
@@ -990,7 +989,7 @@ positional parameter to help guide the model. This prompt should match
 the audio language.</p>
 <p>Note that if the audio language is different from the set language
 code, output will be on the language code (translation).</p>
-<h4 id="translations">2. Translations</h4>
+<h3 id="translations">2. Translations</h3>
 <p>Translates audio into <strong>English</strong>. An optional text to
 guide the model’s style or continue a previous audio segment is optional
 as last positional argument. This prompt should be in English.</p>
