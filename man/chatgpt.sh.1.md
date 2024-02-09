@@ -58,7 +58,7 @@ In multi-turn interactions, prompts prefixed with a single colon "_:_"
 are appended to the current request buffer as a user message without
 making a new API call. Conversely, prompts starting with double colons
 "_::_" are inserted as instruction / system messages. For text cmpls only,
-triple colons append the text immediatelly to the previous prompt
+triple colons append the text immediately to the previous prompt
 without a restart sequence.
 
 With **vision models**, insert an image to the prompt with chat
@@ -174,7 +174,7 @@ if LocalAI server is configured with Galleries,
 set "_\<GALLERY>_@_\<MODEL_NAME>_".
 Gallery defaults to HuggingFace.
 
-* NOTE: *  I reccomend using LocalAI own binary to install the models!
+* NOTE: *  I recommend using LocalAI own binary to install the models!
 -->
 <!-- LocalAI only tested with text and chat completion models (vision) -->
 
@@ -185,8 +185,8 @@ Note that model management (downloading and setting up) must
 follow the Ollama project guidelines and own methods.
 
 Command "`!block` \[_args_]" may be run to set raw model options
-in JSON syntax acording to each API.
-Alternativelly, set envar **$BLOCK_USR**.
+in JSON syntax according to each API.
+Alternatively, set envar **$BLOCK_USR**.
 
 For complete model and settings information, refer to OpenAI
 API docs at <https://platform.openai.com/docs/>.
@@ -215,7 +215,7 @@ Type in a backslash "_\\_" as the last character of the input line
 to append a literal newline once and return to edition,
 or press \<_CTRL-V_> _+_ \<_CTRL-J_>.
 
-Bash brackedted paste is enabled, meaning multiline input may be
+Bash bracketed paste is enabled, meaning multiline input may be
 pasted or typed, even without setting `options -uU` (_v25.2+_).
 
 Language model **SKILLS** can activated, with specific prompts,
@@ -255,7 +255,7 @@ causes the text following it to be appended immediately to the last
 
 The `options -ccwz` may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes.
-When setting `flag -w`, or `flag -z`, the first positional paramenters are read as
+When setting `flag -w`, or `flag -z`, the first positional parameters are read as
 Whisper, or TTS  arguments. When setting both `flags -wz`,
 add a double hyphen to set first Whisper, and then TTS arguments.
 
@@ -297,7 +297,7 @@ may be either "`!`", or "`/`".
       `-Z`    `!last`                     Print last response JSON.
        `!`    `!r`, `!regen`              Regenerate last response.
       `!!`    `!rr`                       Regenerate response, edit prompt first.
-    `!img`    `!media` \[_FILE_|_URL_]    Append image or url to prompt.
+    `!img`    `!media` \[_FILE_|_URL_]    Append image or URL to prompt.
     `!url`    `!!url`         \[_URL_]    Load URL in text editor, or skip editing.
       `!i`    `!info`                     Information on model and session settings.
       `!j`    `!jump`                     Jump to request, append start seq primer (text cmpls).
@@ -651,7 +651,7 @@ Setting **temperature** has an effect, the higher the more random.
 
 **OPENAI_API_HOST_FIXED**
 
-: Custom host URL. The _STATIC_ parameter disables endpoint auto-selection.
+: Custom host URL. The _STATIC_ parameter disables endpoint auto selection.
 
 
 **OPENAI_KEY**

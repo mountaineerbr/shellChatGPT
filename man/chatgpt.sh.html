@@ -241,8 +241,8 @@ with <code>option -S</code>.</p>
 “<em>:</em>” are appended to the current request buffer as a user
 message without making a new API call. Conversely, prompts starting with
 double colons “<em>::</em>” are inserted as instruction / system
-messages. For text cmpls only, triple colons append the text
-immediatelly to the previous prompt without a restart sequence.</p>
+messages. For text cmpls only, triple colons append the text immediately
+to the previous prompt without a restart sequence.</p>
 <p>With <strong>vision models</strong>, insert an image to the prompt
 with chat command “<code>!img</code> [<em>url</em>|<em>filepath</em>]”.
 Image urls and files can also be appended by typing the operator pipe
@@ -351,7 +351,7 @@ if LocalAI server is configured with Galleries,
 set "_\<GALLERY>_@_\<MODEL_NAME>_".
 Gallery defaults to HuggingFace.
 
-* NOTE: *  I reccomend using LocalAI own binary to install the models!
+* NOTE: *  I recommend using LocalAI own binary to install the models!
 -->
 <!-- LocalAI only tested with text and chat completion models (vision) -->
 <p>For Ollama, set <code>option -O</code>, and set
@@ -360,7 +360,7 @@ the defaults.</p>
 <p>Note that model management (downloading and setting up) must follow
 the Ollama project guidelines and own methods.</p>
 <p>Command “<code>!block</code> [<em>args</em>]” may be run to set raw
-model options in JSON syntax acording to each API. Alternativelly, set
+model options in JSON syntax according to each API. Alternatively, set
 envar <strong>$BLOCK_USR</strong>.</p>
 <p>For complete model and settings information, refer to OpenAI API docs
 at <a href="https://platform.openai.com/docs/"
@@ -384,7 +384,7 @@ command</em> as prompter.</p>
 <p>Type in a backslash “<em>\</em>” as the last character of the input
 line to append a literal newline once and return to edition, or press
 &lt;<em>CTRL-V</em>&gt; <em>+</em> &lt;<em>CTRL-J</em>&gt;.</p>
-<p>Bash brackedted paste is enabled, meaning multiline input may be
+<p>Bash bracketed paste is enabled, meaning multiline input may be
 pasted or typed, even without setting <code>options -uU</code>
 (<em>v25.2+</em>).</p>
 <p>Language model <strong>SKILLS</strong> can activated, with specific
@@ -415,7 +415,7 @@ the last (response) prompt text.</p>
 <p>The <code>options -ccwz</code> may be combined to have voice
 recording input and synthesised voice output, specially nice with chat
 modes. When setting <code>flag -w</code>, or <code>flag -z</code>, the
-first positional paramenters are read as Whisper, or TTS arguments. When
+first positional parameters are read as Whisper, or TTS arguments. When
 setting both <code>flags -wz</code>, add a double hyphen to set first
 Whisper, and then TTS arguments.</p>
 <p>Set chat mode, plus Whisper language and prompt, and the TTS voice
@@ -480,7 +480,7 @@ prompt to set a new parameter. The command operator may be either
 <td style="text-align: left;"><code>!img</code></td>
 <td style="text-align: left;"><code>!media</code>
 [<em>FILE</em>|<em>URL</em>]</td>
-<td>Append image or url to prompt.</td>
+<td>Append image or URL to prompt.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!url</code></td>
@@ -1042,8 +1042,8 @@ more random.</p>
 <dl>
 <dt><strong>OPENAI_API_HOST_FIXED</strong></dt>
 <dd>
-<p>Custom host URL. The <em>STATIC</em> parameter disables endpoint
-auto-selection.</p>
+<p>Custom host URL. The <em>STATIC</em> parameter disables endpoint auto
+selection.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_KEY</strong></p>

@@ -112,7 +112,7 @@ In multi\-turn interactions, prompts prefixed with a single colon
 user message without making a new API call.
 Conversely, prompts starting with double colons \[lq]\f[I]::\f[R]\[rq]
 are inserted as instruction / system messages.
-For text cmpls only, triple colons append the text immediatelly to the
+For text cmpls only, triple colons append the text immediately to the
 previous prompt without a restart sequence.
 .PP
 With \f[B]vision models\f[R], insert an image to the prompt with chat
@@ -263,8 +263,8 @@ Note that model management (downloading and setting up) must follow the
 Ollama project guidelines and own methods.
 .PP
 Command \[lq]\f[CR]!block\f[R] [\f[I]args\f[R]]\[rq] may be run to set
-raw model options in JSON syntax acording to each API.
-Alternativelly, set envar \f[B]$BLOCK_USR\f[R].
+raw model options in JSON syntax according to each API.
+Alternatively, set envar \f[B]$BLOCK_USR\f[R].
 .PP
 For complete model and settings information, refer to OpenAI API docs at
 \c
@@ -296,7 +296,7 @@ Type in a backslash \[lq]\f[I]\[rs]\f[R]\[rq] as the last character of
 the input line to append a literal newline once and return to edition,
 or press <\f[I]CTRL\-V\f[R]> \f[I]+\f[R] <\f[I]CTRL\-J\f[R]>.
 .PP
-Bash brackedted paste is enabled, meaning multiline input may be pasted
+Bash bracketed paste is enabled, meaning multiline input may be pasted
 or typed, even without setting \f[CR]options \-uU\f[R]
 (\f[I]v25.2+\f[R]).
 .PP
@@ -329,7 +329,7 @@ immediately to the last (response) prompt text.
 The \f[CR]options \-ccwz\f[R] may be combined to have voice recording
 input and synthesised voice output, specially nice with chat modes.
 When setting \f[CR]flag \-w\f[R], or \f[CR]flag \-z\f[R], the first
-positional paramenters are read as Whisper, or TTS arguments.
+positional parameters are read as Whisper, or TTS arguments.
 When setting both \f[CR]flags \-wz\f[R], add a double hyphen to set
 first Whisper, and then TTS arguments.
 .PP
@@ -421,7 +421,7 @@ T{
 T}@T{
 \f[CR]!media\f[R] [\f[I]FILE\f[R]|\f[I]URL\f[R]]
 T}@T{
-Append image or url to prompt.
+Append image or URL to prompt.
 T}
 T{
 \f[CR]!url\f[R]
@@ -1081,7 +1081,7 @@ Ollama host URL (used with \f[CR]option \-O\f[R]).
 .TP
 \f[B]OPENAI_API_HOST_FIXED\f[R]
 Custom host URL.
-The \f[I]STATIC\f[R] parameter disables endpoint auto\-selection.
+The \f[I]STATIC\f[R] parameter disables endpoint auto selection.
 .PP
 \f[B]OPENAI_KEY\f[R]
 .TP

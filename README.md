@@ -11,7 +11,7 @@ Chat completions with streaming by defaults.
 
 - Text and chat completions with [**gtp-4-vision** support](#vision-models-gpt-4-vision)
 - **Text editor interface**, _Bash readline_, and _cat_ input modes
-- **Markdown rendering** support in response
+- [**Markdown rendering**](#markdown) support in response
 - **Preview**, and  [**regenerate responses**](#--notes-and-tips)
 - **Manage sessions**, _print out_ previous sessions
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
@@ -139,14 +139,14 @@ Create **Marv, the sarcastic bot** manually:
 #### Vision Models (GPT-4-Vision)
 
 To send an `image` / `url` to vision models, start the script and then either
-set the image with the `!img` chat command with one or more filepaths / urls
+set the image with the `!img` chat command with one or more filepaths / URLs
 separated by the operator pipe **|**.
 
 
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
 
 
-Alternatively, set the image paths / urls at the end of the prompt interactively:
+Alternatively, set the image paths / URLs at the end of the prompt interactively:
 
     chatgpt.sh -cc -m gpt-4-vision-preview
 
@@ -271,6 +271,18 @@ is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978
 -->
 
 
+## Markdown
+
+To enable markdown rendering of responses, set command line `option --markdown`,
+or run `/md` in chat mode. To render last response in markdown once,
+run `//md`.
+
+The markdown option uses `bat` as it has line buffering on by defaults,
+however other software is supported. Type in any of the following
+markdown software as argument to the option:
+`bat`, `pygmentize`, `glow`, `mdcat`, `mdless`, or `pandoc`.
+
+
 ## ⚙️ Prompts
 
 Unless the chat `option -c` or `-cc` are set, _no instruction_ is
@@ -309,7 +321,7 @@ operator dot and the name of the prompt as argument:
 
 
 This will load the custom prompt, or create it if it does not yet exist.
-In the second example, single-shot editing will be skiped after loading
+In the second example, single-shot editing will be skipped after loading
 prompt _software_programmer_.
 
 
@@ -682,7 +694,7 @@ entry available to install the package in Arch Linux and derivative distros.
 
 ### Optional Dependencies
 
-For recording audio (Whisper, `option -w`), we reccomend `termux-microphone-record`, and
+For recording audio (Whisper, `option -w`), we recommend `termux-microphone-record`, and
 for playing audio (TTS, `option -z`), install `play-audio`.
 
 To set the clipboard, it is required `termux-clipboard-set`.
@@ -765,7 +777,7 @@ unaffected. Use the text editor interface for big prompt editing.
 
 ## 📖 Help Pages 
 
-Read the markdown [**man page here**](man/README.md).
+Read the online [**man page here**](man/README.md).
 
 Alternatively, a help page snippet can be printed with `chatgpt.sh -h`.
 

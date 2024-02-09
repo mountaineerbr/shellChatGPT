@@ -54,7 +54,7 @@ In multi-turn interactions, prompts prefixed with a single colon “:” are
 appended to the current request buffer as a user message without making
 a new API call. Conversely, prompts starting with double colons “::” are
 inserted as instruction / system messages. For text cmpls only, triple
-colons append the text immediatelly to the previous prompt without a
+colons append the text immediately to the previous prompt without a
 restart sequence.
 
 With vision models, insert an image to the prompt with chat command
@@ -166,7 +166,7 @@ Note that model management (downloading and setting up) must follow the
 Ollama project guidelines and own methods.
 
 Command “!block [args]” may be run to set raw model options in JSON
-syntax acording to each API. Alternativelly, set envar $BLOCK_USR.
+syntax according to each API. Alternatively, set envar $BLOCK_USR.
 
 For complete model and settings information, refer to OpenAI API docs at
 https://platform.openai.com/docs/.
@@ -194,7 +194,7 @@ Type in a backslash “\” as the last character of the input line to
 append a literal newline once and return to edition, or press <CTRL-V> +
 <CTRL-J>.
 
-Bash brackedted paste is enabled, meaning multiline input may be pasted
+Bash bracketed paste is enabled, meaning multiline input may be pasted
 or typed, even without setting options -uU (v25.2+).
 
 Language model SKILLS can activated, with specific prompts, see
@@ -229,7 +229,7 @@ text.
 
 The options -ccwz may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes. When setting
-flag -w, or flag -z, the first positional paramenters are read as
+flag -w, or flag -z, the first positional parameters are read as
 Whisper, or TTS arguments. When setting both flags -wz, add a double
 hyphen to set first Whisper, and then TTS arguments.
 
@@ -268,7 +268,7 @@ or “/”.
   -Z     !last                Print last response JSON.
   !      !r, !regen           Regenerate last response.
   !!     !rr                  Regenerate response, edit prompt first.
-  !img   !media [FILE|URL]    Append image or url to prompt.
+  !img   !media [FILE|URL]    Append image or URL to prompt.
   !url   !!url [URL]          Load URL in text editor, or skip editing.
   !i     !info                Information on model and session settings.
   !j     !jump                Jump to request, append start seq primer (text cmpls).
@@ -558,8 +558,8 @@ OPENAI_API_HOST
 
 OPENAI_API_HOST_FIXED
 
-    Custom host URL. The STATIC parameter disables endpoint
-    auto-selection.
+    Custom host URL. The STATIC parameter disables endpoint auto
+    selection.
 
 OPENAI_KEY
 
