@@ -408,19 +408,19 @@ Generate image variation:
     chatgpt.sh -i path/to/image.png path/to/mask.png "A pink flamingo."
 
 
-#### Outpaint - Canvas Extension
-
-![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits.gif)
-
-In this example, a mask is made from the white colour.
-
-
 #### Inpaint - Fill in the Gaps
 
 ![Showing off Image Edits - Inpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits2.gif)
 <!-- ![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png) -->
 
 Adding a bat in the night sky.
+
+
+#### Outpaint - Canvas Extension
+
+![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits1.gif)
+
+In this example, a mask is made from the white colour.
 
 
 ### 🔊 Audio Transcriptions / Translations
