@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.42.2  jan/2024  by mountaineerbr  GPL+3
+# v0.42.4  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -604,7 +604,8 @@ function _promptf
 	json_minif
 	
 	if ((STREAM))
-	then 	set -- -s "$@" -S --no-buffer; : >"$FILE"  #clear buffer asap
+	then 	set -- -s "$@" -S --no-buffer; [[ -s $FILE ]] &&
+		  mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
 		__promptf "$@" | while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
 			chunk=${chunk##*([$' \t'])[Dd][Aa][Tt][Aa]:*([$' \t'])}
@@ -2166,7 +2167,9 @@ function recordf
 		termux*) termux=1;;
 		false) 	return 196;;
 	esac
-	[[ -e $1 ]] && rm -- "$1"  #del out file before writing
+
+	#move out file before writing
+	[[ -s $1 ]] && mv -f -- "$1" "${1%.*}.2.${1##*.}";
 
 	$REC_CMD "$1" & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; ret=199;" INT;
@@ -2216,7 +2219,7 @@ function __set_langf
 #whisper
 function whisperf
 {
-	typeset file rec var;
+	typeset file rec var pid;
 	typeset -a args;
        	unset WHISPER_OUT;
 	if ((!(CHAT_ENV+MTURN) ))
@@ -2271,6 +2274,8 @@ function whisperf
 		((${#var})) && set -- -F prompt="$var";
 	fi
 
+	[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}";
+
 	#response_format (timestamps) - testing
 	if ((OPTW>1 || OPTWW>1)) && ((!CHAT_ENV))
 	then
@@ -2290,7 +2295,10 @@ function whisperf
 		jq -r "${JQCOLNULL} ${JQCOL} ${JQDATE}
 		bpurple + (.text//empty) + reset" "$FILE" | foldf \
 		|| jq -r '.text//empty' "$FILE" || ! cat -- "$FILE" >&2 ;}
-	fi &&
+	fi & pid=$! PIDS+=($!);
+	trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
+
+	wait $pid &&
 	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + (.text//empty)) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
 	then
@@ -2303,7 +2311,7 @@ function whisperf
 	else 	false;
 	fi || {
 		{ [[ ! -s $FILE ]] || ! jq . "$FILE" >&2 2>/dev/null ;} && {
-		__warmsgf 'err:' 'whisper response'
+		__warmsgf $'\nerr:' 'whisper response'
 		printf 'Retry request? Y/n ' >&2;
 		case "$(__read_charf)" in
 			[AaNnQq]) false;;  #no
@@ -3618,6 +3626,7 @@ then
 	edf "$@" && set -- "$(<"$FILETXT")";
 elif ! ((OPTTIKTOKEN+OPTI+OPTII))
 then
+	! ((OPTW && !MTURN)) &&  #IPC#
 	((${#})) && [[ -f ${@:${#}} ]] && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
 	[[ -t 0 ]] || ((OPTZZ+OPTL+OPTFF+OPTHH)) || set -- "$@" "$(<$STDIN)";
 fi
