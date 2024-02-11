@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.43  jan/2024  by mountaineerbr  GPL+3
+# v0.44  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -79,8 +79,8 @@ AWEURL="https://raw.githubusercontent.com/f/awesome-chatgpt-prompts/main/prompts
 AWEURLZH="https://raw.githubusercontent.com/PlexPt/awesome-chatgpt-prompts-zh/main/prompts-zh.json"  #prompts-zh-TW.json
 
 # CACHE AND OUTPUT DIRECTORIES
-CACHEDIR="${XDG_CACHE_HOME:-$HOME/.cache}/chatgptsh"
-OUTDIR="${XDG_DOWNLOAD_DIR:-$HOME/Downloads}"
+CACHEDIR="${CACHEDIR:-${XDG_CACHE_HOME:-$HOME/.cache}}/chatgptsh"
+OUTDIR="${OUTDIR:-${XDG_DOWNLOAD_DIR:-$HOME/Downloads}}"
 
 # Colour palette
 # Normal Colours   # Bold              # Background
@@ -524,9 +524,10 @@ function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
 	case "$1" in
-		#image variations or generations (cannot check for edits from here)
 		*dalle-e*|*stable*diffusion*)
-	       			((OPTII)) && EPN=4 || EPN=3;;
+				# 3 generations  4 variations  9 edits  
+	       			((OPTII)) && EPN=4 || EPN=3;
+	       			((OPTII_EDITS)) && EPN=9;;
 		tts-*|*-tts-*) 	EPN=10;;
 		*whisper*) 	((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	case "$1" in
@@ -553,7 +554,18 @@ function set_model_epnf
 				case "$1" in
 					*embedding*|*similarity*|*search*)
 						EPN=5 OPTEMBED=1;;
-					*) 	if ((OPTCMPL))
+					*)
+						if ((OPTZ && !(MTURN+CHAT_ENV) ))
+						then 	OPTCMPL= OPTC= EPN=10;
+						elif ((OPTW && !(MTURN+CHAT_ENV) ))
+						then 	OPTCMPL= OPTC= EPN=7;
+						elif ((OPTI && !(MTURN+CHAT_ENV) ))
+						then 	# 3 generations  4 variations  9 edits  
+	       						((OPTII)) && EPN=4 || EPN=3;
+	       						((OPTII_EDITS)) && EPN=9;
+						elif ((OPTEMBED))
+						then 	OPTCMPL= OPTC= EPN=1;
+						elif ((OPTCMPL))
 						then 	OPTC= EPN=0;
 						elif ((OPTC>1))
 						then 	OPTCMPL= EPN=6;
@@ -561,7 +573,8 @@ function set_model_epnf
 						then 	OPTCMPL= EPN=0;
 						else 	EPN=0;  #defaults
 						fi;;
-				esac; return 1;;
+				esac
+				return 1;;
 	esac
 }
 
@@ -612,10 +625,11 @@ function _promptf
 			[[ $chunk = *([$IFS])\[+([A-Z])\] ]] && continue
 			if ((!n))  #first pass, del leading spaces
 			then 	((OPTC)) && {
-					str='content":"';
-					if ((OLLAMA))
-					then 	((EPN==0)) && str='response":"';
-					else 	((EPN==0)) && str='text":"';
+					str='text":"';
+					if ((EPN==0)) && ((OLLAMA))
+					then 	str='response":"';
+					elif ((EPN==6))
+					then 	str='content":"';
 					fi
 					chunk_n="${chunk/${str}+(\\[ntrvf]|[$IFS])/$str}"
 					[[ $chunk_n = *"${str}"\"[\]\},$IFS]* ]] && continue
@@ -2229,7 +2243,7 @@ function __set_langf
 #whisper
 function whisperf
 {
-	typeset file rec var pid;
+	typeset file rec var pid ret;
 	typeset -a args;
        	unset WHISPER_OUT;
 	if ((!(CHAT_ENV+MTURN) ))
@@ -2308,7 +2322,7 @@ function whisperf
 	fi & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 
-	wait $pid &&
+	wait $pid; ret=$?; trap 'exit' INT; ((ret)) &&
 	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + (.text//empty)) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
 	then
@@ -2544,7 +2558,6 @@ function prompt_imgvarf
 		-F size="$OPTS" \
 		"${@:2}" \
 		-o "$FILE"
-		#DALL-E-2 ONLY!
 }
 
 #image edits+variations
@@ -3314,8 +3327,81 @@ function cleanupf
        	printf "${NC}%s\n" '[exit]' >&2;
 }
 
+#ollama fun
+function set_ollamaf
+{
+	((OLLAMA)) || return;
+	function list_modelsf
+	{
+		if ((${#1}))
+		then 	curl -\# -L "${OLLAMA_API_HOST}/api/show" -d "{\"name\": \"$1\"}" -o "$FILE" &&
+			{ jq . "$FILE" || ! cat -- "$FILE" ;}; echo >&2;
+			ollama show "$1" --modelfile  2>/dev/null;
+		else 	{
+			  printf '\nName\tFamily\tFormat\tParam\tQLvl\tSize\tModification\n'
+			  curl -s -L "${OLLAMA_API_HOST}/api/tags" -o "$FILE" &&
+			  { jq -r '.models[]|.name?+"\t"+(.details.family)?+"\t"+(.details.format)?+"\t"+(.details.parameter_size)?+"\t"+(.details.quantization_level)?+"\t"+((.size/1000000)|tostring)?+"MB\t"+.modified_at?' "$FILE" || ! cat -- "$FILE" ;}
+			} | { 	column -t -s $'\t' 2>/dev/null || ! cat -- "$FILE" ;}  #tsv
+		fi
+	}
+	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
+	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST="http://localhost:11434";
+	
+	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf "$MOD";
+	_sysmsgf "OLLAMA URL / Endpoint:" "$OLLAMA_API_HOST${ENDPOINTS[EPN]}";
+}
 
-#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #return when sourced
+#host url / endpoint
+function set_localaif
+{
+	[[ $OPENAI_API_HOST_STATIC != *([$IFS]) ]] && OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
+	if [[ $OPENAI_API_HOST != *([$IFS]) ]] && LOCALAI=1 || ((OLLAMA))
+	then
+		API_HOST=${OPENAI_API_HOST%%*([/$IFS])};
+		((OLLAMA)) ||
+		function list_modelsf  #LocalAI only
+		{
+			if [[ $* = [Ii]nstall* ]]  #install a model
+			then
+				typeset response job_id block proc msg_old msg
+				set -- "$*"; set -- "${1##[Ii]nstall$SPC}";
+				if [[ $1 = *.yaml ]]
+				then
+					block="{\"url\": \"$1\"}";
+				else
+					[[ $1 = *@* ]] || set -- "huggingface@$1";
+					block="{\"id\": \"$1\"}";
+				fi; echo >&2;
+				( trap 'printf "%s\\a\\n" " The job is still running server-side!" >&2; exit 1;' HUP QUIT KILL TERM INT;
+				response=$(curl -\# -L -H "Content-Type: application/json" "${API_HOST}/models/apply" -d "$block")
+				job_id=$(jq -r '.uuid' <<<"$response")
+				while proc=$(curl -s -L "${API_HOST}/models/jobs/$job_id") && [[ -n $proc ]] || break
+					[[ $(jq -r '.processed' <<<"$proc") != "true" ]]
+				do
+					msg=$(jq -r '"progress: "+.downloaded_size?+" / "+.file_size?+"\t"+(.progress|tostring)?+" %"' <<<"$proc");
+					__clr_lineupf ${#msg_old}; printf '%s\n' "$msg" >&2; msg_old=$msg;
+					sleep 1;
+				done;
+				jq -r '.error//empty,.message//empty,"Job completed"' <<<"$proc" >&2; )
+			elif ((${#1}))
+			then
+				curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
+				{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
+			else
+				curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
+				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;}
+			fi
+		}  #https://localai.io/models/
+	       	set_model_epnf "$MOD";
+	      	#disable endpoint auto select?
+		[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
+		((!LOCALAI)) || _sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
+	else 	false;
+	fi
+}
+
+#@#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #sourced file
+
 
 unset OPTMM STOPS
 #parse opts
@@ -3369,7 +3455,7 @@ do
 	fix_dotf OPTARG
 
 	case "$opt" in
-		@) 	OPT_AT="$OPTARG"  #colour name/spec
+		@) 	OPT_AT="$OPTARG" EPN=9  #colour name/spec
 			if [[ $OPTARG = *%* ]]  #fuzz percentage
 			then 	if [[ $OPTARG = *% ]]
 				then 	OPT_AT_PC="${OPTARG##${OPTARG%%??%}}"
@@ -3393,7 +3479,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA_API_HOST OLLAMA LOCALAI OPENAI_API_HOST OPENAI_API_HOST_STATIC GPTCHATKEY READLINEOPT MULTIMODAL;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -3406,7 +3492,7 @@ do
 			printf '%s\n' "$REPLY" "$HELP"
 			exit;;
 		H) 	((++OPTHH));;
-		i) 	OPTI=1 EPN=3;;  #MOD=image
+		i) 	OPTI=1 EPN=3;;
 		l) 	((++OPTL));;
 		L) 	OPTLOG=1
 			if [[ -d "$OPTARG" ]]
@@ -3418,7 +3504,7 @@ do
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
 		markdown) OPTMD=1 MD_CMD=$OPTARG;;
 		no-markdown) OPTMD=;;
-		multimodal) 	MULTIMODAL=1;;
+		multimodal) 	MULTIMODAL=1 EPN=6;;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		k) 	OPTK=1;;
@@ -3426,7 +3512,7 @@ do
 		o) 	OPTCLIP=1;;
 		O) 	OLLAMA=1;;
 		p) 	OPTP="$OPTARG";;
-		q) 	((++OPTSUFFIX));;
+		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
 		R) 	START="$OPTARG";;
 		s) 	STOPS=("$OPTARG" "${STOPS[@]}");;
@@ -3502,7 +3588,7 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${GPTCHATKEY:-${OPENAI_API_KEY:?
 
 #map models
 if [[ -n $OPTMARG ]]
-then 	((OPTI+OPTII)) && MOD_IMAGE=$OPTMARG  #default models for functions
+then 	((OPTI)) && MOD_IMAGE=$OPTMARG  #default models for functions
 	((OPTW && !(OPTC+OPTCMPL+MTURN) )) && MOD_AUDIO=$OPTMARG
 	((OPTZ && !(OPTC+OPTCMPL+MTURN) )) && MOD_SPEECH=$OPTMARG
 	case "$MOD" in moderation|mod|oderation|od) 	MOD="text-moderation-stable";; esac;
@@ -3518,123 +3604,70 @@ else
 	then 	MOD=$MOD_AUDIO
 	elif ((OPTZ)) && ((!MTURN))  #speech endpoint
 	then 	MOD=$MOD_SPEECH
-	elif ((OPTI+OPTII))
+	elif ((OPTI))
 	then 	MOD=$MOD_IMAGE
 	fi
 fi
 pick_modelf "$MOD"
 
-if ((OPTI+OPTII))
+#image endpoints
+if ((OPTI))
 then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url;
-	[[ -f $1 || -f $2 ]] && OPTII=1;  #img edits and vars
+	n=; for arg
+	do 	[[ -f $arg ]] && OPTII=1 n=$((n+1));  #img vars or edits
+	done;
+	((${#OPT_AT} || n>1)) && OPTII=1 OPTII_EDITS=1;  #img edits
 	[[ -n $OPTS ]] && set_imgsizef "$OPTS";
 	set_imgsizef "$1" && shift;
-	unset STREAM;
+	unset STREAM arg n;
 fi
 
-#ollama fun
+#ollama integration
 if ((OLLAMA))
-then 	function list_modelsf
-	{
-		if ((${#1}))
-		then 	curl -\# -L "${OLLAMA_API_HOST}/api/show" -d "{\"name\": \"$1\"}" -o "$FILE" &&
-			{ jq . "$FILE" || ! cat -- "$FILE" ;}; echo >&2;
-			ollama show "$1" --modelfile  2>/dev/null;
-		else 	{
-			  printf '\nName\tFamily\tFormat\tParam\tQLvl\tSize\tModification\n'
-			  curl -s -L "${OLLAMA_API_HOST}/api/tags" -o "$FILE" &&
-			  { jq -r '.models[]|.name?+"\t"+(.details.family)?+"\t"+(.details.format)?+"\t"+(.details.parameter_size)?+"\t"+(.details.quantization_level)?+"\t"+((.size/1000000)|tostring)?+"MB\t"+.modified_at?' "$FILE" || ! cat -- "$FILE" ;}
-			} | { 	column -t -s $'\t' 2>/dev/null || ! cat -- "$FILE" ;}  #tsv
-		fi
-	}
-	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
-	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST="http://localhost:11434";
-	
-	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf "$MOD";
-	_sysmsgf "OLLAMA URL / Endpoint:" "$OLLAMA_API_HOST${ENDPOINTS[EPN]}";
-else
-	unset OLLAMA OLLAMA_API_HOST;
+then 	set_ollamaf;
+else  	unset OLLAMA OLLAMA_API_HOST;
 fi
 
-#host url / endpoint
-if [[ $OPENAI_API_HOST_STATIC != *([$IFS]) ]] && OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
-	[[ $OPENAI_API_HOST != *([$IFS]) ]] && LOCALAI=1 || ((OLLAMA))
-then
-	API_HOST=${OPENAI_API_HOST%%*([/$IFS])};
-	((OLLAMA)) ||
-	function list_modelsf  #LocalAI only
-	{
-		if [[ $* = [Ii]nstall* ]]  #install a model
-		then
-			typeset response job_id block proc msg_old msg
-			set -- "$*"; set -- "${1##[Ii]nstall$SPC}";
-			if [[ $1 = *.yaml ]]
-			then
-				block="{\"url\": \"$1\"}";
-			else
-				[[ $1 = *@* ]] || set -- "huggingface@$1";
-				block="{\"id\": \"$1\"}";
-			fi; echo >&2;
-			( trap 'printf "%s\\a\\n" " The job is still running server-side!" >&2; exit 1;' HUP QUIT KILL TERM INT;
-			response=$(curl -\# -L -H "Content-Type: application/json" "${API_HOST}/models/apply" -d "$block")
-			job_id=$(jq -r '.uuid' <<<"$response")
-			while proc=$(curl -s -L "${API_HOST}/models/jobs/$job_id") && [[ -n $proc ]] || break
-				[[ $(jq -r '.processed' <<<"$proc") != "true" ]]
-			do
-				msg=$(jq -r '"progress: "+.downloaded_size?+" / "+.file_size?+"\t"+(.progress|tostring)?+" %"' <<<"$proc");
-				__clr_lineupf ${#msg_old}; printf '%s\n' "$msg" >&2; msg_old=$msg;
-				sleep 1;
-			done;
-			jq -r '.error//empty,.message//empty,"Job completed"' <<<"$proc" >&2; )
-		elif ((${#1}))
-		then
-			curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
-			{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
-		else
-			curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
-			{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;}
-		fi
-	}  #https://localai.io/models/
-       	set_model_epnf "$MOD";
-      	#disable endpoint auto select?
-	[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
-	((LOCALAI)) && _sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
-else
-	unset OPENAI_API_HOST OPENAI_API_HOST_STATIC;
+#custom host / localai
+if [[ ${OPENAI_API_HOST_STATIC}${OPENAI_API_HOST} != *([$IFS]) ]]
+then 	set_localaif;
+else 	unset OPENAI_API_HOST OPENAI_API_HOST_STATIC;
 fi
 
-#set ``model endpoint'' and ``model capacity''
+#``model endpoint'' and ``model capacity''
 [[ -n $EPN ]] || set_model_epnf "$MOD"
 ((MODMAX)) || model_capf "$MOD"
 
-#set ``max model / response tkns''
+#``max model / response tkns''
 [[ -n $OPTNN && -z $OPTMM ]] ||
 set_maxtknf "${OPTMM:-$OPTMAX}"
 [[ -n $OPTNN ]] && MODMAX="$OPTNN"
 
-#set other options
+#model options
 set_optsf
 
+#markdown rendering
 if ((OPTMD+${#MD_CMD}))
 then 	set_mdcmdf "$MD_CMD"; OPTMD=1;
 fi
 
+#stdin and stderr filepaths
 if [[ -n $TERMUX_VERSION ]]
 then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
 else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 
 #load text file (last arg) and stdin
-if ((OPTX)) && ((OPTEMBED+OPTI+OPTII+OPTZ+OPTTIKTOKEN))
+if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN))
 then
-	((OPTEMBED+OPTI+OPTII+OPTZ)) && ((${#})) && [[ -f ${@:${#}} ]] &&
+	((OPTEMBED+OPTI+OPTZ)) && ((${#})) && [[ -f ${@:${#}} ]] &&
 	  is_txtfilef "${@:${#}}" && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
 
-	{ ((OPTI+OPTII)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
+	{ ((OPTI)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
 	  [[ -t 0 ]] || set -- "$@" "$(<$STDIN)";
 	
 	edf "$@" && set -- "$(<"$FILETXT")";
-elif ! ((OPTTIKTOKEN+OPTI+OPTII))
+elif ! ((OPTTIKTOKEN+OPTI))
 then
 	! ((OPTW && !MTURN)) && ((${#})) && [[ -f ${@:${#}} ]] && 
 	  is_txtfilef "${@:${#}}" && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
@@ -3643,7 +3676,7 @@ then
 fi
 
 #tips and warnings
-if ((!(OPTI+OPTII+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
+if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
 	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 		if ((${#})) && [[ ! -f $1 ]]
@@ -3655,7 +3688,7 @@ then 	if ((!OPTHH))
 	fi
 fi
 
-(( (OPTII+OPTI+OPTEMBED) || (OPTW+OPTZ && !MTURN) )) &&
+(( (OPTI+OPTEMBED) || (OPTW+OPTZ && !MTURN) )) &&
 for arg  #!# escape input
 do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
@@ -3783,6 +3816,7 @@ then 	if ((${#}>1))
 	else 	__sysmsgf 'Image Variations' ;fi
 	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
 	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}"
+	else 	__sysmsgf 'Image Size:' "${OPTS:-err}"
 	fi
 	imgvarf "$@"
 elif ((OPTI))      #image generations
@@ -3790,6 +3824,7 @@ then 	__sysmsgf 'Image Generations'
 	__sysmsgf 'Image Model:' "$MOD_IMAGE"
 	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
 	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}"
+	else 	__sysmsgf 'Image Size:' "${OPTS:-err}"
 	fi
 	imggenf "$@"
 elif ((OPTEMBED))  #embeds
