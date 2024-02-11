@@ -278,9 +278,11 @@ or run `/md` in chat mode. To render last response in markdown once,
 run `//md`.
 
 The markdown option uses `bat` as it has line buffering on by defaults,
-however other software is supported. Type in any of the following
-markdown software as argument to the option:
-`bat`, `pygmentize`, `glow`, `mdcat`, `mdless`, or `pandoc`.
+however other software is supported.
+Set it such as `--markdown=glow` or `/md mdless` on chat mode.
+
+Type in any of the following markdown software as argument to the option:
+`bat`, `pygmentize`, `glow`, `mdcat`, `mdless`, or `pandoc`,
 
 
 ## ⚙️ Prompts
