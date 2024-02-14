@@ -17,7 +17,8 @@ Chat completions with streaming by defaults.
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
    easily create and set the initial system prompt
 - Voice in (**Whisper**) and voice out (**TTS**) _chat / REPL mode_ (`options -cczw`)
-- Integration with [awesome-chatgpt-prompts](#-awesome-prompts) (-zh),
+- Integration with [awesome-chatgpt-prompts](#-awesome-prompts) and
+   [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh),
    [mudler's LocalAI](#localai), and [Ollama](#ollama)
 - _Tiktoken_ for accurate tokenization (optional)
 - Colour scheme personalisation, and a configuration file
@@ -852,6 +853,9 @@ _Mirror_
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=mountaineerbr/shellChatGPT&type=Date)](https://star-history.com/#mountaineerbr/shellChatGPT&Date)
+-->
+
+<!-- Estimated value of the project if commissioned: ~$1500 over one year (2023-2024).
 -->
 
 <br />

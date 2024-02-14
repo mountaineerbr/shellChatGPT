@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.44 \| General Commands Manual
+title: CHATGPT.SH(1) v0.45 \| General Commands Manual
 ---
 
 ### NAME
@@ -298,9 +298,9 @@ or “`/`”.
 | `-Z`   | `!last`                    | Print last response JSON.                              |
 | `!`    | `!r`, `!regen`             | Regenerate last response.                              |
 | `!!`   | `!rr`                      | Regenerate response, edit prompt first.                |
+| `!i`   | `!info`                    | Information on model and session settings.             |
 | `!img` | `!media` \[*FILE*\|*URL*\] | Append image or URL to prompt.                         |
 | `!url` | `!!url` \[*URL*\]          | Load URL in text editor, or skip editing.              |
-| `!i`   | `!info`                    | Information on model and session settings.             |
 | `!j`   | `!jump`                    | Jump to request, append start seq primer (text cmpls). |
 | `!!j`  | `!!jump`                   | Jump to request, no response priming.                  |
 | `!md`  | `!markdown` \[*SOFTW*\]    | Toggle markdown rendering in response.                 |
@@ -309,23 +309,24 @@ or “`/`”.
 | `!sh`  | `!shell` \[*CMD*\]         | Run shell, or *command*, and edit output.              |
 | `!!sh` | `!!shell` \[*CMD*\]        | Run interactive shell (with *command*) and exit.       |
 
-| Script | Settings and UX      |                                                           |
-|:-------|:---------------------|-----------------------------------------------------------|
-| `-g`   | `!stream`            | Toggle response streaming.                                |
-| `-l`   | `!models` \[*NAME*\] | List language models or show model details.               |
-| `-o`   | `!clip`              | Copy responses to clipboard.                              |
-| `-u`   | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
-| `-uu`  | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
-| `-U`   | `-UU`                | Toggle cat prompter, or set one-shot. \<*CTRL-D*\> flush. |
-| `!cat` | `-` \[*FILE*\]       | Cat prompter as one-shot, or cat file.                    |
-| `-V`   | `!context`           | Print context before request (see `option -HH`).          |
-| `-VV`  | `!debug`             | Dump raw request block and confirm.                       |
-| `-v`   | `!ver`               | Toggle verbose modes.                                     |
-| `-x`   | `!ed`                | Toggle text editor interface.                             |
-| `-xx`  | `!!ed`               | Single-shot text editor.                                  |
-| `-y`   | `!tik`               | Toggle python tiktoken use.                               |
-| `!q`   | `!quit`              | Exit. Bye.                                                |
-| `!?`   | `!help`              | Print a help snippet.                                     |
+| Script  | Settings and UX      |                                                           |
+|:--------|:---------------------|-----------------------------------------------------------|
+| `!fold` | `!wrap`              | Toggle response wrapping.                                 |
+| `-g`    | `!stream`            | Toggle response streaming.                                |
+| `-l`    | `!models` \[*NAME*\] | List language models or show model details.               |
+| `-o`    | `!clip`              | Copy responses to clipboard.                              |
+| `-u`    | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
+| `-uu`   | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
+| `-U`    | `-UU`                | Toggle cat prompter, or set one-shot. \<*CTRL-D*\> flush. |
+| `!cat`  | `-` \[*FILE*\]       | Cat prompter as one-shot, or cat file.                    |
+| `-V`    | `!context`           | Print context before request (see `option -HH`).          |
+| `-VV`   | `!debug`             | Dump raw request block and confirm.                       |
+| `-v`    | `!ver`               | Toggle verbose modes.                                     |
+| `-x`    | `!ed`                | Toggle text editor interface.                             |
+| `-xx`   | `!!ed`               | Single-shot text editor.                                  |
+| `-y`    | `!tik`               | Toggle python tiktoken use.                               |
+| `!q`    | `!quit`              | Exit. Bye.                                                |
+| `!?`    | `!help`              | Print a help snippet.                                     |
 
 | Model   | Settings                |                                             |
 |:--------|:------------------------|---------------------------------------------|
@@ -474,7 +475,7 @@ to the completions endpoint.
 ### ESCAPING NEW LINES AND TABS
 
 Input sequences “*\n*” and “*\t*” are only treated specially in restart,
-start and stop sequences (*v0.18+*)!
+start and stop sequences!
 
 ### CUSTOM / AWESOME PROMPTS
 
@@ -575,6 +576,9 @@ Setting **temperature** has an effect, the higher the more random.
 Extra options for the request JSON block (e.g. “*"seed": 33,
 "dimensions": 1024*”).
 
+**CACHEDIR**  
+Script cache directory base.
+
 **CHATGPTRC**
 
 **CONFFILE**  
@@ -616,6 +620,16 @@ selection.
 **OPENAI_API_KEY**  
 Personal OpenAI API key.
 
+**OUTDIR**  
+Output directory for received images and audio.
+
+**VISUAL**
+
+**EDITOR**  
+Text editor for external prompt editing.
+
+Defaults="*vim*"
+
 **CLIP_CMD**  
 Clipboard set command, e.g. “*xsel* *-b*”, “*pbcopy*”.
 
@@ -624,13 +638,6 @@ Audio player command, e.g. “*mpv –no-video –vo=null*”.
 
 **REC_CMD**  
 Audio recorder command, e.g. “*sox -d*”.
-
-**VISUAL**
-
-**EDITOR**  
-Text editor for external prompt editing.
-
-Defaults="*vim*"
 
 ### COLOUR THEMES
 
@@ -865,7 +872,7 @@ Set twice to get phrase-level timestamps.
 ### Script Settings
 
 **-f**, **--no-conf**  
-Ignore user configuration file and environment.
+Ignore user configuration file.
 
 **-F**  
 Edit configuration file with text editor, if it exists.
@@ -874,6 +881,9 @@ Edit configuration file with text editor, if it exists.
 
 **-FF**  
 Dump template configuration file to stdout.
+
+**--fold** (*defaults*), **--no-fold**  
+Set or unset response folding (wrap at white spaces).
 
 **-h**, **--help**  
 Print the help page.

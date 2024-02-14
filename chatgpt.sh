@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.44  jan/2024  by mountaineerbr  GPL+3
+# v0.45  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -62,6 +62,8 @@ OPTZ_FMT=opus   #mp3, opus, aac, flac
 #CLIP_CMD=""
 # Markdown renderer, e.g. "pygmentize -s -lmd", "glow", "mdless", "mdcat"
 #MD_CMD="bat"
+# Fold response (wrap at white spaces)
+OPTFOLD=1
 # Inject restart text
 #RESTART=""
 # Inject   start text
@@ -226,6 +228,8 @@ Environment
 	BLOCK_USR_TTS 	Extra options for the request JSON block
 			(e.g. \`\"seed\": 33, \"dimensions\": 1024').
 
+	CACHEDIR 	Script cache directory base.
+	
 	CHATGPTRC
 	CONFFILE 	Path to user chatgpt.sh configuration.
 			Defaults=\"${CHATGPTRC:-${CONFFILE:-"$HOME/.chatgpt.conf"}}\"
@@ -253,15 +257,17 @@ Environment
 	OPENAI_KEY
 	OPENAI_API_KEY  Personal OpenAI API key.
 
+	OUTDIR 		Output directory for received images and audio.
+
+	VISUAL
+	EDITOR 		Text editor for external prompt editing.
+			Defaults=\"${VISUAL:-${EDITOR:-vim}}\"
+
 	CLIP_CMD 	Clipboard set command, e.g. \`xsel -b', \`pbcopy'.
 
 	PLAY_CMD 	Audio player command, e.g. \`mpv --no-video --vo=null'.
 
 	REC_CMD 	Audio recorder command, e.g. \`sox -d'.
-
-	VISUAL
-	EDITOR 		Text editor for external prompt editing.
-			Defaults=\"${VISUAL:-${EDITOR:-vim}}\"
 
 
 Chat Commands
@@ -277,9 +283,9 @@ Chat Commands
        -Z      !last             Print last response JSON.
         !      !r, !regen        Regenerate last response.
        !!      !rr               Regenerate response, edit prompt first.
+       !i      !info             Info on model and session settings.
       !img     !media [FILE|URL] Append image / url to prompt.
       !url    !!url      [URL]   Load URL in text editor or skips edit.
-       !i      !info             Info on model and session settings.
        !j      !jump             Jump to request, append response primer.
       !!j     !!jump             Jump to request, no response priming.
       !md      !markdown [SOFTW] Toggle markdown support in response.
@@ -288,6 +294,7 @@ Chat Commands
       !sh      !shell    [CMD]   Run shell, or command, and edit output.
      !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
     --- Script Settings and UX ------------------------------------
+     !fold     !wrap             Toggle response wrapping.
        -g      !stream           Toggle response streaming.
        -l      !models  [NAME]   List language models or model details.
        -o      !clip             Copy responses to clipboard.
@@ -452,10 +459,12 @@ Options
 	
 	Script Settings
 	-f, --no-conf
-		Ignore user configuration file and environment.
+		Ignore user configuration file.
 	-F 	Edit configuration file, if it exists.
 		\$CHATGPTRC="${CONFFILE/"$HOME"/"~"}".
 	-FF 	Dump template configuration file to stdout.
+	--fold (defaults), --no-fold
+		Set or unset response folding (wrap at white spaces).
 	-h, --help
 		Print this help page.
 	-H, --hist  [/HIST_FILE]
@@ -967,7 +976,7 @@ function lastjsonf
 function set_histf
 {
 	typeset time token string max_prev q_type a_type role rest com sub ind herr nl x r n;
-	typeset -a MEDIA_CHAT MEDIA_CHAT_CMD;
+	typeset -a MEDIA MEDIA_CMD;
 	[[ -s $FILECHAT ]] || return; HIST= HIST_C= ;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
@@ -1044,8 +1053,8 @@ function set_histf
 
 			#vision
 			if ((!OPTHH)) && is_visionf "$MOD"
-			then 	MEDIA_CHAT=(); _mediachatf "$stringc"
-				((TRUNC_IND)) && stringc=${stringc:0:${#stringc}-TRUNC_IND};
+			then 	MEDIA=(); _mediachatf "$stringc"
+				#((TRUNC_IND)) && stringc=${stringc:0:${#stringc}-TRUNC_IND};
 			fi
 
 			#print commented out lines ( $OPTHH > 2 )
@@ -1292,15 +1301,7 @@ function set_maxtknf
 #set the markdown command
 function set_mdcmdf
 {
-	typeset cmd  md_cmd  md_cmd_browser;
-	typeset -A cmd_map=(
-		[bat]="bat --paging never --language md --wrap auto --style plain"  #unbuffered
-		[pygmentize]="pygmentize -s -l md"  #unbuffered
-		[glow]="glow -p"
-		[mdcat]="mdcat"
-		[mdless]="mdless"
-		[pandoc]="pandoc - -f markdown -t html"
-	)
+	typeset cmd; unset MD_CMD_UNBUFF;
 	set -- "$(trimf "$*" "$SPC")";
 
 	if ! command -v "${1%% *}" &>/dev/null
@@ -1309,23 +1310,30 @@ function set_mdcmdf
 			set -- $cmd; break;
 		done;
 	fi
-	md_cmd=${cmd_map[$1]:-$1}; 
 
-	case "$md_cmd" in
-		bat*|pygmentize*)  #line-buffer support
+	case "$1" in
+		bat) 	MD_CMD_UNBUFF=1  #line-buffer support
+			function mdf { 	[[ -t 1 ]] && set -- --color always "$@" 
+			bat --paging never --language md --style plain "$@" | foldf ;}
+			;;
+		bat*) 	eval "function mdf { 	$* \"\$@\" ;}"
 			MD_CMD_UNBUFF=1
 			;;
-		pandoc*)  #pandoc needs markup filter
-			md_cmd_browser="| $(set_browsercmdf)" || unset MD_CMD_UNBUFF md_cmd_browser md_cmd 
+		pygmentize)
+			function mdf { 	pygmentize -s -l md "$@" | foldf ;}
+			MD_CMD_UNBUFF=1
 			;;
-		*) 	unset MD_CMD_UNBUFF
+		pygmentize*)
+			eval "function mdf { 	$* \"\$@\" | foldf ;}"
+			[[ $* = *-s* ]] && MD_CMD_UNBUFF=1
+			;;
+		pandoc*)  #pandoc needs markup filter
+			eval "function mdf { 	pandoc - -f markdown -t html | $(set_browsercmdf) ;}";
+			;;
+		glow*|mdcat*|mdless*|*)
+			eval "function mdf { 	$* \"\$@\" ;}"
 			;;
 	esac;
-	
-	if ((${#md_cmd}))
-	then 	eval "function mdf { 	$md_cmd $md_cmd_browser ;}";
-	else 	unset OPTMD MD_CMD_UNBUFF; ! __warmsgf 'Markdown' 'err';
-	fi
 }
 
 #set a terminal web browser
@@ -1428,6 +1436,10 @@ function cmd_runf
 			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
 			__cmdmsgf $'\nUser Block:' "${BLOCK_USR:-unset}";
 			;;
+		fold|wrap|no-fold|no-wrap)
+			((++OPTFOLD)) ;((OPTFOLD%=2))
+			__cmdmsgf 'Folding' $(_onoff $OPTFOLD)
+			;;
 		-g|-G|stream|no-stream)
 			((++STREAM)) ;((STREAM%=2))
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
@@ -1494,7 +1506,7 @@ function cmd_runf
 			((OPTMD)) && [[ $* != $SPC ]] && OPTMD= ;
 			if ((++OPTMD)); ((OPTMD%=2))
 			then 	set_mdcmdf "$*"; xskip=1;
-				__sysmsgf 'MD cmd:' "$(trimf "$(declare -f mdf | sed '1d;2d;$d')" "$SPC")"
+				__sysmsgf 'MD Cmd:' "$(trimf "$(declare -f mdf | sed '1d;2d;$d')" "$SPC")"
 			fi;
 			__cmdmsgf 'Markdown' $(_onoff $OPTMD);
 			((OPTMD)) || unset OPTMD;
@@ -1524,9 +1536,10 @@ function cmd_runf
 			;;
 		media*|img*)
 			set -- "${*##@(media|img)*([$IFS])}";
-			CMD_CHAT=1 _mediachatf "|${1##\|}"
-			((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}";
-			_sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_IND_CMD[@]})) --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
+			CMD_CHAT=1 _mediachatf "|${1##\|}" && {
+			  ((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}";
+			  _sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]})) --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
+			};
 			;;
 		multimodal|[/!-]multimodal|--multimodal)
 			((++MULTIMODAL)); ((MULTIMODAL%=2))
@@ -1765,7 +1778,7 @@ function cmd_runf
 			session_mainf /"${args[@]}"
 			;;
 		r|rr|''|[/!]|regenerate|regen|[$IFS])  #regenerate last response
-			SKIP=1 EDIT=1 MEDIA_IND=() MEDIA_IND_CMD=();
+			SKIP=1 EDIT=1 MEDIA_IND=() MEDIA_CMD_IND=();
 			case "$*" in
 				rr|[/!]) REGEN=2; ((OPTX)) && REGEN=1;;  #edit prompt
 				*) 	REGEN=1 PSKIP=1 REPLY= ;;
@@ -1947,7 +1960,7 @@ function fmt_ccf
 	typeset var
 	[[ ${1} != *([$IFS]) ]] || return
 	
-	if ! ((${#MEDIA_CHAT[@]}+${#MEDIA_CHAT_CMD[@]}))
+	if ! ((${#MEDIA[@]}+${#MEDIA_CMD[@]}))
 	then
 		printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
 	elif ((OLLAMA))
@@ -1957,7 +1970,7 @@ function fmt_ccf
 	elif is_visionf "$MOD"
 	then
 		printf '{ "role": "%s", "content": [ { "type": "text", "text": "%s" }' "${2:-user}" "$1";
-		for var in "${MEDIA_CHAT[@]}" "${MEDIA_CHAT_CMD[@]}"
+		for var in "${MEDIA[@]}" "${MEDIA_CMD[@]}"
 		do
 			if [[ $var = *([$IFS]) ]]
 			then 	continue;
@@ -1974,7 +1987,7 @@ function fmt_ccf
 function ollama_mediaf
 {
 	typeset var n
-	set -- "${MEDIA_CHAT[@]}" "${MEDIA_CHAT_CMD[@]}";
+	set -- "${MEDIA[@]}" "${MEDIA_CMD[@]}";
 	((${#})) || return;
 	printf '\n"images": ['
 	for var
@@ -1989,59 +2002,61 @@ function ollama_mediaf
        	printf '%s' ']'
 }
 
-#get files and urls from input
-#will _NOT_ work with whitespace in filename if not pipe-delimited
-#and may not work with mixed pipe- and non-pipe-delimited input
+#process files and urls from input
+#$TRUNC_IND is set to the number of chars to be subtracted from the input tail to delete the processed filenames from it
+#will _NOT_ work with whitespace in filename if not pipe-delimited and may not work with mixed pipe- and whitespace-delimited input
 function _mediachatf
 {
-	typeset var spc i;
-	TRUNC_IND= spc='*(['$' \t\n\r'']|\[tnr])';
-	((CMD_CHAT)) || { 	((${#1}>1024)) && set -- "${1:${#1}-1024}" ;}
-	i=${#1};
+	typeset var spc spc2 spc_sep i n; unset TRUNC_IND;
+       	i=${#1} spc=$'*([ \t\n\r]|\\[tnr])' spc2="+${spc##\*}";
 
-	set -- "${1%%?(\|)${spc}}";
-	while [[ $1 = *\|*[[:alnum:]]* ]] ||
-		[[ -f "$(trim_leadf "$(trimf "$1" "$SPC1")" "|$SPC1")" ]] ||
-		[[ -f "$(sed -n '$s/[[:space:]]*$//; $s/^.*[|\t ][[:space:]]*// p' <<<"$1")" ]]
+	set -- "$(sed -n 's/\\n/\n/g; s/\\ / /g; $p' <<<"$*")";  #process only the last line of input
+	((!CMD_CHAT)) && ((${#1}>2048)) && set -- "${1:${#1}-2048}";  #avoid too long input by defaults
+	set -- "${1%%?(\|)${spc}}";  #del trailing spaces and undue pipe separator
+
+	while [[ $1 = *[\|\ ]*[[:alnum:]]* ]] ||
+		[[ -f "$(trimf "$1" $'*(\\\\[ntrvf]|[$IFS]|\|)')" ]]  #prompt is the raw filename
 	do
-		if [[ $1 = *\|*[[:alnum:]]*\|* ]]
-		then 	var=${1##"${1%${spc}\|*}"};
-		elif [[ $1 = *\|* ]]
-		then 	var=${1##*\|${spc}};
-		else 	var=${1##"${1%+${spc##\*}*}"};
+		if [[ $1 = *\|* ]]
+		then 	var=${1##*\|${spc}};  #pipe separator
+		else 	var=${1##*${spc2}} spc_sep=1;  #space separator
 		fi
-		var=${var##${spc}*(\|)${spc}}; var=${var%%${spc}};
 
-		# check if var is a file or url and add to array
-		if { [[ -f $var ]] &&  #max: 20MB
-			case "$var" in
+		#check if file or url and add to array (max 20MB)
+		if { 	[[ -f $var ]] && case "$var" in
 				*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] ) :;;
 				*) false;;
 			esac
 		} || is_linkf "$var"
-		then
+		then 	((++n));
 			if ((CMD_CHAT))
-			then 	MEDIA_CHAT_CMD=("${MEDIA_CHAT_CMD[@]}" "$var")
-				MEDIA_IND_CMD=("${MEDIA_IND_CMD[@]}" "$var");
-			else 	MEDIA_CHAT=("$var" "${MEDIA_CHAT[@]}")  #read by fmt_ccf()
+			then 	MEDIA_CMD=("${MEDIA_CMD[@]}" "$var");
+				MEDIA_CMD_IND=("${MEDIA_CMD_IND[@]}" "$var");
+			else 	MEDIA=("$var" "${MEDIA[@]}");  #read by fmt_ccf()
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
-			[[ $1 = *\|* ]] && set -- "${1%\|*}" || set -- "${1%\ *}";
-			set -- "${1%%*([$IFS])}";
-			((TRUNC_IND = i - ${#1}));  #truncation on TRUNC_IND>0
+			if [[ $1 = *\|* ]]
+			then 	set -- "${1%\|*}";
+			else 	set -- "${1%${spc2}*}";
+			fi; spc_sep= ;
+			set -- "${1%%${spc}}";
+			((TRUNC_IND = i - ${#1}));
 		else
+			((spc_sep)) ||
 			__warmsgf 'err: invalid --' "${var:0: COLUMNS-20}$([[ -n ${var: COLUMNS-20} ]] && echo ...)";
+
 			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
-			[[ $1 = *\|* ]] && set -- "${1%\|*}" || set -- "${1%\ *}";
+			set -- "${1%\|*}";
 		fi  #https://stackoverflow.com/questions/12199059/
-	done;
+	done; ((n));
 }
 
 function is_linkf
 {
 	[[ $1 =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] ||
 	[[ $1 = [Ww][Ww][Ww].* ]] || [[ $1 != [./~]* ]] || [[ ! -e $1 ]] || return;
-	curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1"
+	[[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] && return;
+	curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1" && LINK_CACHE="$LINK_CACHE $1";
 }
 
 function is_txtfilef
@@ -2065,7 +2080,7 @@ function usr_logf
 #wrap text at spaces rather than mid-word
 function foldf
 {
-	if ((COLUMNS<18)) || [[ ! -t 1 ]]
+	if ((!OPTFOLD)) || ((COLUMNS<18)) || [[ ! -t 1 ]]
 	then 	cat
 	else 	typeset REPLY r x n;
 
@@ -3421,7 +3436,8 @@ do
 			J:synth-voice  'k:no-colo*'  K:api-key  l:list-model \
 			l:list-models    L:log    m:model    m:mod  \
 			multimodal  markdown  markdown:md  no-markdown \
-			no-markdown:no-md   n:results   o:clipboard \
+			no-markdown:no-md   fold  fold:wrap  no-fold \
+			no-fold:no-wrap  n:results   o:clipboard \
 			o:clip  O:ollama  p:top-p  p:top  q:insert  \
 			r:restart-sequence  r:restart-seq  r:restart \
 			R:start-sequence  R:start-seq  R:start \
@@ -3479,11 +3495,13 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA_CHAT MEDIA_CHAT_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
 		F) 	((++OPTFF));;
+		fold) 	OPTFOLD=1;;
+		no-fold) 	unset OPTFOLD;;
 		g) 	STREAM=1;;
 		G) 	unset STREAM;;
 		h) 	while read
@@ -3502,8 +3520,8 @@ do
 			USRLOG="${USRLOG/\~\//"$HOME"\/}"
 			_sysmsgf 'Log File' "<${USRLOG/"$HOME"/"~"}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
-		markdown) OPTMD=1 MD_CMD=$OPTARG;;
-		no-markdown) OPTMD=;;
+		markdown) 	OPTMD=1 MD_CMD=$OPTARG;;
+		no-markdown) 	unset OPTMD;;
 		multimodal) 	MULTIMODAL=1 EPN=6;;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
@@ -3538,8 +3556,8 @@ do
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA_CHAT MEDIA_CHAT_CMD MEDIA_IND MEDIA_IND_CMD init buff var n s
-typeset -a PIDS MEDIA_CHAT MEDIA_CHAT_CMD MEDIA_IND MEDIA_IND_CMD WARGS ZARGS
+unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND init buff var n s
+typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
 set -o ${READLINEOPT:-emacs}; 
@@ -3777,7 +3795,11 @@ then 	OPTRESUME=1
 		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1
 		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
 		MODMAX=65536 OLLAMA= set_histf ''
-		usr_logf "$(unescapef "$HIST")"
+		HIST=$(unescapef "$HIST")
+		if ((OPTMD))
+		then 	usr_logf "$HIST" | mdf
+		else 	usr_logf "$HIST" | foldf
+		fi
 		[[ ! -e $FILEFIFO ]] || rm -- "$FILEFIFO"
 	elif [[ -t 1 ]]
 	then 	__edf "$FILECHAT"
@@ -4043,7 +4065,7 @@ else
 					  prev_tohistf "$(escapef "$REPLY_OLD")"
 					[[ $REPLY = *([$IFS])/* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					[[ $REPLY = */*([$IFS]) ]] && REPLY=$(trim_trailf "$REPLY" $'\/*')
-					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}" MEDIA_IND=() MEDIA_IND_CMD=();
+					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}" MEDIA_IND=() MEDIA_CMD_IND=();
 				elif [[ -n $REPLY ]]
 				then
 					((RETRY+OPTV)) || [[ $REPLY = $SPC:* ]] \
@@ -4068,7 +4090,7 @@ else
 						then 	RETRY=2 BCYAN="${Color9}"
 						else 	#record prev resp
 							prev_tohistf "$(escapef "$REPLY_OLD")"
-							MEDIA_IND=() MEDIA_IND_CMD=();
+							MEDIA_IND=() MEDIA_CMD_IND=();
 						fi ;REPLY_OLD="$REPLY"
 					fi
 				else
@@ -4134,10 +4156,11 @@ else
 		if is_visionf "$MOD"
 		then 	((${#}<2)) || set -- "$*";
 			_mediachatf "$1";
-			((TRUNC_IND)) && REPLY_OLD=$* && set -- "${1:0:${#1}-TRUNC_IND}";
+			#((TRUNC_IND)) && REPLY_OLD=$* && set -- "${1:0:${#1}-TRUNC_IND}";
 			((MTURN)) &&
-			for var in "${MEDIA_CHAT_CMD[@]}"
-			do 	REC_OUT+="| $var"
+			for var in "${MEDIA_CMD[@]}"
+			do 	REC_OUT="$REC_OUT| $var";
+				set -- "$*| $var";
 			done; unset var;
 		#insert mode option
 		elif ((OPTSUFFIX)) && [[ "$*" = *"${I_TYPE}"* ]]
@@ -4166,7 +4189,7 @@ else
 			if ((EPN==6))
 			then 	#chat cmpls
 				[[ ${*} = *([$IFS]):* ]] && role=system || role=user
-				set -- "$(unset MEDIA_CHAT MEDIA_CHAT_CMD;
+				set -- "$(unset MEDIA MEDIA_CMD;
 				  fmt_ccf "$(escapef "$INSTRUCTION")" system;
 				  )${INSTRUCTION:+,${NL}}${HIST_C}${HIST_C:+,${NL}}$(
 				  fmt_ccf "$(escapef "$*")" "$role")"
@@ -4177,7 +4200,7 @@ else
 				fi
 			fi ;unset rest role
 			
-			for media in "${MEDIA_IND[@]}" "${MEDIA_IND_CMD[@]}"
+			for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 			do 	((media_i++))
 				_sysmsgf "img #${media_i} --" "${media:0: COLUMNS-15}$([[ -n ${media: COLUMNS-15} ]] && echo ...)";
 			done; unset media media_i;
@@ -4310,12 +4333,12 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 			unset HIST_TIME
 		elif ((MTURN))
 		then
-			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES MEDIA_CHAT  MEDIA_IND  MEDIA_IND_CMD;
+			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND;
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi;
-		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_IND_CMD[@]}));
-		unset MEDIA_CHAT  MEDIA_CHAT_CMD  MEDIA_IND  MEDIA_IND_CMD  INT_RES;
+		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_CMD_IND[@]}));
+		unset MEDIA  MEDIA_CMD  MEDIA_IND  MEDIA_CMD_IND  INT_RES;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming

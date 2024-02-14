@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.44 | General Commands Manual
+% CHATGPT.SH(1) v0.45 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -297,9 +297,9 @@ may be either "`!`", or "`/`".
       `-Z`    `!last`                     Print last response JSON.
        `!`    `!r`, `!regen`              Regenerate last response.
       `!!`    `!rr`                       Regenerate response, edit prompt first.
+      `!i`    `!info`                     Information on model and session settings.
     `!img`    `!media` \[_FILE_|_URL_]    Append image or URL to prompt.
     `!url`    `!!url`         \[_URL_]    Load URL in text editor, or skip editing.
-      `!i`    `!info`                     Information on model and session settings.
       `!j`    `!jump`                     Jump to request, append start seq primer (text cmpls).
      `!!j`    `!!jump`                    Jump to request, no response priming.
      `!md`    `!markdown`  \[_SOFTW_]     Toggle markdown rendering in response.
@@ -311,6 +311,7 @@ may be either "`!`", or "`/`".
 
   Script      Settings and UX
   --------    -----------------------    ----------------------------------------------------------
+   `!fold`    `!wrap`                    Toggle response wrapping.
       `-g`    `!stream`                  Toggle response streaming.
       `-l`    `!models`    \[_NAME_]     List language models or show model details.
       `-o`    `!clip`                    Copy responses to clipboard.
@@ -493,7 +494,7 @@ Use _gpt-4+ models_ and the right instructions.
 ### ESCAPING NEW LINES AND TABS
 
 Input sequences "_\\n_" and "_\\t_" are only treated specially
-in restart, start and stop sequences (_v0.18+_)!
+in restart, start and stop sequences!
 
 
 ### CUSTOM / AWESOME PROMPTS
@@ -601,8 +602,13 @@ Setting **temperature** has an effect, the higher the more random.
 
 **BLOCK_USR_TTS**
 
-: Extra options for the request JSON block
-  (e.g. "_\"seed\": 33, \"dimensions\": 1024_").
+:    Extra options for the request JSON block
+      (e.g. "_\"seed\": 33, \"dimensions\": 1024_").
+
+
+**CACHEDIR**
+
+:    Script cache directory base.
 
 
 **CHATGPTRC**
@@ -611,12 +617,12 @@ Setting **temperature** has an effect, the higher the more random.
 
 :    Path to user _chatgpt.sh configuration_.
 
-    Defaults=\"_~/.chatgpt.conf_\"
+     Defaults=\"_~/.chatgpt.conf_\"
 
 
 **FILECHAT**
 
-: Path to a history / session TSV file (script-formatted).
+:    Path to a history / session TSV file (script-formatted).
 
 
 **INSTRUCTION**
@@ -639,19 +645,19 @@ Setting **temperature** has an effect, the higher the more random.
 
 **MOD_OLLAMA**
 
-: Set the defaults model for each endpoint.
+:    Set the defaults model for each endpoint.
 
 
 **OLLAMA_API_HOST**
 
-: Ollama host URL (used with `option -O`).
+:    Ollama host URL (used with `option -O`).
 
 
 **OPENAI_API_HOST**
 
 **OPENAI_API_HOST_FIXED**
 
-: Custom host URL. The _STATIC_ parameter disables endpoint auto selection.
+:    Custom host URL. The _STATIC_ parameter disables endpoint auto selection.
 
 
 **OPENAI_KEY**
@@ -659,6 +665,20 @@ Setting **temperature** has an effect, the higher the more random.
 **OPENAI_API_KEY**
 
 :    Personal OpenAI API key.
+
+
+**OUTDIR**
+
+:    Output directory for received images and audio.
+
+
+**VISUAL**
+
+**EDITOR**
+
+:    Text editor for external prompt editing.
+
+     Defaults=\"_vim_\"
 
 
 **CLIP_CMD**
@@ -674,15 +694,6 @@ Setting **temperature** has an effect, the higher the more random.
 **REC_CMD**
 
 :    Audio recorder command, e.g. "_sox -d_".
-
-
-**VISUAL**
-
-**EDITOR**
-
-:    Text editor for external prompt editing.
-
-     Defaults=\"_vim_\"
 
 
 ### COLOUR THEMES
@@ -992,7 +1003,7 @@ with history, so avoid it.
 
 **-f**, **\--no-conf**
 
-: Ignore user configuration file and environment.
+: Ignore user configuration file.
 
 
 **-F**
@@ -1005,6 +1016,11 @@ with history, so avoid it.
 **-FF**
 
 : Dump template configuration file to stdout.
+
+
+**\--fold** (_defaults_), **\--no-fold**
+
+: Set or unset response folding (wrap at white spaces).
 
 
 **-h**, **\--help**
