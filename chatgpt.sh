@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.46.1  jan/2024  by mountaineerbr  GPL+3
+# v0.47  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1335,7 +1335,8 @@ function set_mdcmdf
 			fi
 			;;
 		glow*|mdcat*|mdless*|*)
-			eval "function mdf { 	$* \"\$@\" ;}"
+			command -v "${1%% *}" &>/dev/null || return 1;
+			eval "function mdf { 	$* \"\$@\" ;}";
 			;;
 	esac;
 }
@@ -3524,7 +3525,13 @@ do
 			USRLOG="${USRLOG/\~\//"$HOME"\/}"
 			_sysmsgf 'Log File' "<${USRLOG/"$HOME"/"~"}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
-		markdown) 	OPTMD=1 MD_CMD=$OPTARG;;
+		markdown) 	OPTMD=1;
+			if [[ $OPTARG != @(markdown|md) ]]
+			then 	MD_CMD=$OPTARG;
+			elif var=${@: OPTIND:1}
+				command -v "${var%% *}" &>/dev/null
+			then 	MD_CMD=${@: OPTIND:1}; ((++OPTIND));
+			fi; unset var;;
 		no-markdown) 	unset OPTMD;;
 		multimodal) 	MULTIMODAL=1 EPN=6;;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option

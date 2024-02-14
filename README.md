@@ -6,6 +6,10 @@ Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI a
 
 Chat completions with streaming by defaults.
 
+![Chat with Markdown rendering](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_md.gif)
+
+Markdown rendering of chat response (_optional_).
+
 
 ## 🚀 Features
 
