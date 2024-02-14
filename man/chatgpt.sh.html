@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.46 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.46.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.46 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.46.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -238,11 +238,11 @@ Insert mode works with model <code>gpt-3.5-turbo-instruct</code>.
 Model <strong>INSTRUCTION</strong> is usually optional and can be set
 with <code>option -S</code>.</p>
 <p>In multi-turn interactions, prompts prefixed with a single colon
-“<em>:</em>” are appended to the current request buffer as a user
-message without making a new API call. Conversely, prompts starting with
-double colons “<em>::</em>” are inserted as instruction / system
-messages. For text cmpls only, triple colons append the text immediately
-to the previous prompt without a restart sequence.</p>
+“<em>:</em>” are appended to the current request buffer as user messages
+without making a new API call. Conversely, prompts starting with double
+colons “<em>::</em>” are appended as instruction / system messages. For
+text cmpls only, triple colons append the text immediately to the
+previous prompt without a restart sequence.</p>
 <p>With <strong>vision models</strong>, insert an image to the prompt
 with chat command “<code>!img</code> [<em>url</em>|<em>filepath</em>]”.
 Image urls and files can also be appended by typing the operator pipe
@@ -449,7 +449,7 @@ prompt to set a new parameter. The command operator may be either
 <tr class="odd">
 <td style="text-align: left;"><code>:</code></td>
 <td style="text-align: left;"><code>::</code> [<em>PROMPT</em>]</td>
-<td>Prepend user or system prompt to request buffer.</td>
+<td>Append user or system prompt to request buffer.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-S.</code></td>

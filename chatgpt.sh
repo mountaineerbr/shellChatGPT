@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.46  jan/2024  by mountaineerbr  GPL+3
+# v0.46.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -172,8 +172,8 @@ Description
 	INTRUCTION with option -S.
 
 	In multi-turn interactions, prompts starting with a colon \`:' are
-	prepended as a user message to the request, while double colons
-	\`::' insert the prompt as instruction / system without initiating
+	appended as user messages to the request block, while double colons
+	\`::' append the prompt as instruction / system without initiating
 	a new API request.
 
 	With vision models, insert an image to the prompt with chat command
@@ -277,7 +277,7 @@ Chat Commands
 
     ------    ----------    ---------------------------------------
     --- Misc Commands ---------------------------------------------
-        :     ::       [PROMPT]  Prepend user/system prompt to request.
+        :     ::       [PROMPT]  Append user/system prompt to request.
        -S.     -.       [NAME]   Load and edit custom prompt.
        -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
        -Z      !last             Print last response JSON.

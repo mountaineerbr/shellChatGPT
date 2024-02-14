@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2024
-title: CHATGPT.SH(1) v0.46 \| General Commands Manual
+title: CHATGPT.SH(1) v0.46.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -63,9 +63,9 @@ Positional arguments are read as a single **PROMPT**. Model
 **INSTRUCTION** is usually optional and can be set with `option -S`.
 
 In multi-turn interactions, prompts prefixed with a single colon “*:*”
-are appended to the current request buffer as a user message without
+are appended to the current request buffer as user messages without
 making a new API call. Conversely, prompts starting with double colons
-“*::*” are inserted as instruction / system messages. For text cmpls
+“*::*” are appended as instruction / system messages. For text cmpls
 only, triple colons append the text immediately to the previous prompt
 without a restart sequence.
 
@@ -292,7 +292,7 @@ or “`/`”.
 
 | Misc   | Commands                   |                                                        |
 |:-------|:---------------------------|--------------------------------------------------------|
-| `:`    | `::` \[*PROMPT*\]          | Prepend user or system prompt to request buffer.       |
+| `:`    | `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.        |
 | `-S.`  | `-.` \[*NAME*\]            | Load and edit custom prompt.                           |
 | `-S/`  | `-S%` \[*NAME*\]           | Load and edit awesome prompt (zh).                     |
 | `-Z`   | `!last`                    | Print last response JSON.                              |
