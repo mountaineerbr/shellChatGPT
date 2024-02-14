@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.45.1  jan/2024  by mountaineerbr  GPL+3
+# v0.46  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4151,7 +4151,8 @@ else
 					_sysmsgf 'User prompt added'
 				fi
 				push_tohistf "$var";
-				unset p q n pp qq var; set --; continue;
+				unset EDIT SKIP p q n pp qq var;
+				set --; continue;
 			fi
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
