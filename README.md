@@ -283,7 +283,7 @@ however other software is supported.
 Set it such as `--markdown=glow` or `/md mdless` on chat mode.
 
 Type in any of the following markdown software as argument to the option:
-`bat`, `pygmentize`, `glow`, `mdcat`, `mdless`, or `pandoc`,
+`bat`, `pygmentize`, `glow`, `mdcat`, `mdless`, or `pandoc`.
 
 
 ## ⚙️ Prompts

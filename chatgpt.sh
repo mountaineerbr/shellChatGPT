@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.45  jan/2024  by mountaineerbr  GPL+3
+# v0.45.1  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -611,7 +611,7 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	curl "$@" -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl "$@" --fail-with-body -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -666,11 +666,11 @@ function promptf
 	then 	if ((RETRY>1))
 		then 	cat -- "$FILE"
 		else 	printf "${BYELLOW}%s\\b${NC}" "X" >&2;
-			_promptf || exit;
+			_promptf;
 		fi | prompt_printf
 	else
 		printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
-		((RETRY>1)) || COLUMNS=$((COLUMNS-3)) _promptf || exit;
+		((RETRY>1)) || COLUMNS=$((COLUMNS-3)) _promptf;
 		printf "${NC}" >&2;
 		if ((OPTI))
 		then 	prompt_imgprintf
@@ -919,7 +919,7 @@ function prompt_audiof
 {
 	((OPTVV)) && __warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTT:-unset}${*:+,  }${*}" >&2
 
-	curl -\# ${OPTV:+-Ss} -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} --fail-with-body -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: multipart/form-data' \
@@ -935,7 +935,7 @@ function prompt_audiof
 
 function list_modelsf
 {
-	curl -\# -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
+	curl -\# --fail-with-body -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
 	if [[ -n $1 ]]
@@ -1301,7 +1301,7 @@ function set_maxtknf
 #set the markdown command
 function set_mdcmdf
 {
-	typeset cmd; unset MD_CMD_UNBUFF;
+	typeset cmd browser; unset MD_CMD_UNBUFF;
 	set -- "$(trimf "$*" "$SPC")";
 
 	if ! command -v "${1%% *}" &>/dev/null
@@ -1327,8 +1327,12 @@ function set_mdcmdf
 			eval "function mdf { 	$* \"\$@\" | foldf ;}"
 			[[ $* = *-s* ]] && MD_CMD_UNBUFF=1
 			;;
-		pandoc*)  #pandoc needs markup filter
-			eval "function mdf { 	pandoc - -f markdown -t html | $(set_browsercmdf) ;}";
+		pandoc*)  #pandoc needs a good markup renderer
+			if browser=$(set_browsercmdf)
+			then 	eval "function mdf ( 	pandoc - -f markdown -t html >\"\${FILE%%.json}.html\";
+				exec 0<&-; $browser \"\${FILE%%.json}.html\"; )";
+			else 	unset OPTMD; __warmsgf 'Err:' 'pandoc markdown'; return 1;
+			fi
 			;;
 		glow*|mdcat*|mdless*|*)
 			eval "function mdf { 	$* \"\$@\" ;}"
@@ -1340,27 +1344,24 @@ function set_mdcmdf
 function set_browsercmdf
 {
 	typeset cmd;
-	if ((${#BROWSER}))
-	then 	command -v "${BROWSER%% *}" &>/dev/null &&
-		_set_browsercmdf "$BROWSER" || _set_browsercmdf;
-	else 	for cmd in "w3m" "lynx" "elinks" "links" "false"
+	if ((${#BROWSER})) && command -v "${BROWSER%% *}" &>/dev/null
+	then 	_set_browsercmdf "$BROWSER";
+	else 	for cmd in "w3m" "lynx" "elinks" "links" "curl"
 		do 	command -v $cmd &>/dev/null || continue;
-			_set_browsercmdf $cmd && break;
+			_set_browsercmdf $cmd || return;
 		done;
 	fi
 }
 function _set_browsercmdf
 {
-	typeset stop; ((OPTMD)) && stop='*' || stop='stop';
 	case "$1" in
 		w3m*) 	echo "w3m -T text/html";;
-		lynx*) 	echo "lynx -force_html -nolist"; ((!OPTMD)) || echo "-stdin";;
-		$stop) 	echo "curl -L --progress-bar"; return 1;;
+		lynx*) 	echo "lynx -force_html -nolist";; #" -stdin";;
 		elinks*) echo "elinks -force-html -no-references";;
 		links*) echo "links -force-html";;
-		*) 	echo "sed 's/<[^>]*>//g'";
+		*) 	echo "curl -L -f --progress-bar";
 			return 1;;
-	esac; ((OPTMD)) || echo "-dump";
+	esac;
 }
 
 #check input and run a chat command
@@ -1503,17 +1504,17 @@ function cmd_runf
 			;;
 		markdown*|md*)
 			set -- "${*##@(markdown|md)$SPC}"
-			((OPTMD)) && [[ $* != $SPC ]] && OPTMD= ;
+			((OPTMD)) && [[ $1 != $SPC ]] && OPTMD= ;
 			if ((++OPTMD)); ((OPTMD%=2))
-			then 	set_mdcmdf "$*"; xskip=1;
-				__sysmsgf 'MD Cmd:' "$(trimf "$(declare -f mdf | sed '1d;2d;$d')" "$SPC")"
+			then 	set_mdcmdf "${1:-$MD_CMD}"; MD_CMD=${1:-$MD_CMD} xskip=1;
+				__sysmsgf 'MD Cmd:' "$(trimf "$(declare -f mdf | sed '1d;2d;$d' | tr -d '\n')" "$SPC")"
 			fi;
 			__cmdmsgf 'Markdown' $(_onoff $OPTMD);
 			((OPTMD)) || unset OPTMD;
 			;;
 		[/!]markdown*|[/!]md*)
 			set -- "${*##[/!]@(markdown|md)$SPC}"
-			set_mdcmdf "$*"; xskip=1;
+			set_mdcmdf "${1:-$MD_CMD}"; xskip=1;
 			((STREAM)) || unset STREAM;
 			printf "${NC}\\n" >&2;
 			prompt_pf -r ${STREAM:+-j --unbuffered} "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
@@ -1521,7 +1522,10 @@ function cmd_runf
 			;;
 		url*|[/!]url*)
 			set -- "${*##@(url|[/!]url)*([$IFS])}";
-			if var=$($(OPTMD= set_browsercmdf) "$1") && ((${#var}))
+			if if var=$(set_browsercmdf)
+				then 	var=$(${var} -dump "$1");  #html browser
+				else 	var=$(${var} "$1"| sed 's/<[^>]*>//g');  #curl
+				fi && ((${#var}))
 			then
 				SKIP=1 xskip=1;
 				if [[ ${args[*]} = *([$IFS])[/!]* ]]
@@ -2377,7 +2381,7 @@ end;"
 #request tts prompt
 function prompt_ttsf
 {
-	curl -N -Ss -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -N -Ss --fail-with-body -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -2565,7 +2569,7 @@ function imggenf
 #image variations
 function prompt_imgvarf
 {
-	curl -\# ${OPTV:+-Ss} -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} --fail-with-body -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
 		-F response_format="$OPTI_FMT" \
@@ -3666,7 +3670,7 @@ set_optsf
 
 #markdown rendering
 if ((OPTMD+${#MD_CMD}))
-then 	set_mdcmdf "$MD_CMD"; OPTMD=1;
+then 	set_mdcmdf "$MD_CMD" && OPTMD=1;
 fi
 
 #stdin and stderr filepaths
