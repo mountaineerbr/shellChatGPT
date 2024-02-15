@@ -349,7 +349,7 @@ or “`/`”.
 | `-w`    | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.  |
 | `-z`    | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).          |
 | `!blk`  | `!block` \[*ARGS*\]     | Set and add custom options to JSON request. |
-| \- \`   | !multimodal\`           | Toggle model as multimodal (image support). |
+| \-      | `!multimodal`           | Toggle model as multimodal (image support). |
 
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|
