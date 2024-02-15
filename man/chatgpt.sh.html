@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.47 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.48 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.47 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.48 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2024</p>
 </header>
@@ -489,40 +489,50 @@ prompt to set a new parameter. The command operator may be either
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!url</code></td>
-<td style="text-align: left;"><code>!!url</code> [<em>URL</em>]</td>
-<td>Load URL in text editor, or skip editing.</td>
+<td style="text-align: left;">- [<em>URL</em>]</td>
+<td>Dump URL text (HTML filtering), optionally edit it.</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>!url:</code></td>
+<td style="text-align: left;">- [<em>URL</em>]</td>
+<td>Same as <code>!url</code> but append output as user.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!j</code></td>
 <td style="text-align: left;"><code>!jump</code></td>
 <td>Jump to request, append start seq primer (text cmpls).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!j</code></td>
 <td style="text-align: left;"><code>!!jump</code></td>
 <td>Jump to request, no response priming.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!md</code></td>
 <td style="text-align: left;"><code>!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Toggle markdown rendering in response.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!md</code></td>
 <td style="text-align: left;"><code>!!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Render last response in markdown.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!rep</code></td>
 <td style="text-align: left;"><code>!replay</code></td>
 <td>Replay last TTS audio response.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
 <td>Run shell, or <em>command</em>, and edit output.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!sh:</code></td>
+<td style="text-align: left;"><code>!shell:</code> [<em>CMD</em>]</td>
+<td>Same as <code>!sh</code> but apppend output as user.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!!sh</code></td>
@@ -578,45 +588,50 @@ flush.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!cat</code></td>
-<td style="text-align: left;"><code>-</code> [<em>FILE</em>]</td>
+<td style="text-align: left;">- [<em>FILE</em>]</td>
 <td>Cat prompter as one-shot, or cat file.</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>!cat:</code></td>
+<td style="text-align: left;">- [<em>FILE</em>]</td>
+<td>Same as <code>!cat</code> but append prompt as user.</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>-V</code></td>
 <td style="text-align: left;"><code>!context</code></td>
 <td>Print context before request (see <code>option -HH</code>).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-VV</code></td>
 <td style="text-align: left;"><code>!debug</code></td>
 <td>Dump raw request block and confirm.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-v</code></td>
 <td style="text-align: left;"><code>!ver</code></td>
 <td>Toggle verbose modes.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-x</code></td>
 <td style="text-align: left;"><code>!ed</code></td>
 <td>Toggle text editor interface.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-xx</code></td>
 <td style="text-align: left;"><code>!!ed</code></td>
 <td>Single-shot text editor.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-y</code></td>
 <td style="text-align: left;"><code>!tik</code></td>
 <td>Toggle python tiktoken use.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!q</code></td>
 <td style="text-align: left;"><code>!quit</code></td>
 <td>Exit. Bye.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!?</code></td>
 <td style="text-align: left;"><code>!help</code></td>
 <td>Print a help snippet.</td>
@@ -714,8 +729,8 @@ flush.</td>
 <td>Set and add custom options to JSON request.</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>-</code></td>
-<td style="text-align: left;"><code>!multimodal</code></td>
+<td style="text-align: left;">- `</td>
+<td style="text-align: left;">!multimodal`</td>
 <td>Toggle model as multimodal (image support).</td>
 </tr>
 </tbody>

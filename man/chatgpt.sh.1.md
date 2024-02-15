@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.47 | General Commands Manual
+% CHATGPT.SH(1) v0.48 | General Commands Manual
 % mountaineerbr
 % January 2024
 
@@ -299,13 +299,15 @@ may be either "`!`", or "`/`".
       `!!`    `!rr`                       Regenerate response, edit prompt first.
       `!i`    `!info`                     Information on model and session settings.
     `!img`    `!media` \[_FILE_|_URL_]    Append image or URL to prompt.
-    `!url`    `!!url`         \[_URL_]    Load URL in text editor, or skip editing.
+    `!url`     -              \[_URL_]    Dump URL text (HTML filtering), optionally edit it.
+   `!url:`     -              \[_URL_]    Same as `!url` but append output as user.
       `!j`    `!jump`                     Jump to request, append start seq primer (text cmpls).
      `!!j`    `!!jump`                    Jump to request, no response priming.
      `!md`    `!markdown`  \[_SOFTW_]     Toggle markdown rendering in response.
     `!!md`    `!!markdown` \[_SOFTW_]     Render last response in markdown.
     `!rep`    `!replay`                   Replay last TTS audio response.
      `!sh`    `!shell`      \[_CMD_]      Run shell, or _command_, and edit output.
+    `!sh:`    `!shell:`     \[_CMD_]      Same as `!sh` but apppend output as user.
     `!!sh`    `!!shell`     \[_CMD_]      Run interactive shell (with _command_) and exit.
   --------    ------------------------    ----------------------------------------------------------
 
@@ -318,7 +320,8 @@ may be either "`!`", or "`/`".
       `-u`    `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
      `-uu`    `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
       `-U`    `-UU`                      Toggle cat prompter, or set one-shot. \<_CTRL-D_> flush.
-    `!cat`    `-`          \[_FILE_]     Cat prompter as one-shot, or cat file.
+    `!cat`     -          \[_FILE_]      Cat prompter as one-shot, or cat file.
+   `!cat:`     -          \[_FILE_]      Same as `!cat` but append prompt as user.
       `-V`    `!context`                 Print context before request (see `option -HH`).
      `-VV`    `!debug`                   Dump raw request block and confirm.
       `-v`    `!ver`                     Toggle verbose modes.
@@ -347,7 +350,7 @@ may be either "`!`", or "`/`".
       `-w`    `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
       `-z`    `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
     `!blk`    `!block`     \[_ARGS_]     Set and add custom options to JSON request.
-       `-`    `!multimodal`              Toggle model as multimodal (image support).
+        -    `!multimodal`               Toggle model as multimodal (image support).
   --------    -----------------------    --------------------------------------------
 
   Session     Management

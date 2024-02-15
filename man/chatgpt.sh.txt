@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.47 | General Commands Manual
+CHATGPT.SH(1) v0.48 | General Commands Manual
 mountaineerbr
 January 2024
 
@@ -260,24 +260,26 @@ While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “!”,
 or “/”.
 
-  Misc   Commands             
-  ------ -------------------- --------------------------------------------------------
-  :      :: [PROMPT]          Append user or system prompt to request buffer.
-  -S.    -. [NAME]            Load and edit custom prompt.
-  -S/    -S% [NAME]           Load and edit awesome prompt (zh).
-  -Z     !last                Print last response JSON.
-  !      !r, !regen           Regenerate last response.
-  !!     !rr                  Regenerate response, edit prompt first.
-  !i     !info                Information on model and session settings.
-  !img   !media [FILE|URL]    Append image or URL to prompt.
-  !url   !!url [URL]          Load URL in text editor, or skip editing.
-  !j     !jump                Jump to request, append start seq primer (text cmpls).
-  !!j    !!jump               Jump to request, no response priming.
-  !md    !markdown [SOFTW]    Toggle markdown rendering in response.
-  !!md   !!markdown [SOFTW]   Render last response in markdown.
-  !rep   !replay              Replay last TTS audio response.
-  !sh    !shell [CMD]         Run shell, or command, and edit output.
-  !!sh   !!shell [CMD]        Run interactive shell (with command) and exit.
+  Misc    Commands             
+  ------- -------------------- --------------------------------------------------------
+  :       :: [PROMPT]          Append user or system prompt to request buffer.
+  -S.     -. [NAME]            Load and edit custom prompt.
+  -S/     -S% [NAME]           Load and edit awesome prompt (zh).
+  -Z      !last                Print last response JSON.
+  !       !r, !regen           Regenerate last response.
+  !!      !rr                  Regenerate response, edit prompt first.
+  !i      !info                Information on model and session settings.
+  !img    !media [FILE|URL]    Append image or URL to prompt.
+  !url    - [URL]              Dump URL text (HTML filtering), optionally edit it.
+  !url:   - [URL]              Same as !url but append output as user.
+  !j      !jump                Jump to request, append start seq primer (text cmpls).
+  !!j     !!jump               Jump to request, no response priming.
+  !md     !markdown [SOFTW]    Toggle markdown rendering in response.
+  !!md    !!markdown [SOFTW]   Render last response in markdown.
+  !rep    !replay              Replay last TTS audio response.
+  !sh     !shell [CMD]         Run shell, or command, and edit output.
+  !sh:    !shell: [CMD]        Same as !sh but apppend output as user.
+  !!sh    !!shell [CMD]        Run interactive shell (with command) and exit.
 
   Script   Settings and UX   
   -------- ----------------- -------------------------------------------------------
@@ -289,6 +291,7 @@ or “/”.
   -uu      !!multi           Multiline, one-shot. <CTRL-D> flush.
   -U       -UU               Toggle cat prompter, or set one-shot. <CTRL-D> flush.
   !cat     - [FILE]          Cat prompter as one-shot, or cat file.
+  !cat:    - [FILE]          Same as !cat but append prompt as user.
   -V       !context          Print context before request (see option -HH).
   -VV      !debug            Dump raw request block and confirm.
   -v       !ver              Toggle verbose modes.
@@ -316,7 +319,7 @@ or “/”.
   -w      !rec [ARGS]       Toggle Whisper. Optionally, set arguments.
   -z      !tts [ARGS]       Toggle TTS chat mode (speech out).
   !blk    !block [ARGS]     Set and add custom options to JSON request.
-  -       !multimodal       Toggle model as multimodal (image support).
+  - `     !multimodal`      Toggle model as multimodal (image support).
 
   Session   Management                     
   --------- ------------------------------ ------------------------------------------------------------

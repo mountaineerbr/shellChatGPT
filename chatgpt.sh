@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.47  jan/2024  by mountaineerbr  GPL+3
+# v0.48  jan/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -285,13 +285,15 @@ Chat Commands
        !!      !rr               Regenerate response, edit prompt first.
        !i      !info             Info on model and session settings.
       !img     !media [FILE|URL] Append image / url to prompt.
-      !url    !!url      [URL]   Load URL in text editor or skips edit.
+      !url     -         [URL]   Dump URL text, optionally edit it.
+      !url:    -         [URL]   Same as !url but append output as user.
        !j      !jump             Jump to request, append response primer.
       !!j     !!jump             Jump to request, no response priming.
       !md      !markdown [SOFTW] Toggle markdown support in response.
      !!md     !!markdown [SOFTW] Render last response in markdown.
      !rep      !replay           Replay last TTS audio response.
       !sh      !shell    [CMD]   Run shell, or command, and edit output.
+      !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
      !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
     --- Script Settings and UX ------------------------------------
      !fold     !wrap             Toggle response wrapping.
@@ -302,6 +304,7 @@ Chat Commands
        -uu    !!multi            Multiline, one-shot, ctrl-d flush.
        -U      -UU               Toggle cat prompter, or set one-shot.
       !cat     -        [FILE]   Cat prompter (once, ctrd-d), or cat file.
+      !cat:    -        [FILE]   Same as !cat but append prompt as user.
        -V      !context          Print context before request (see -HH).
        -VV     !debug            Dump raw request block and confirm.
        -v      !ver              Toggle verbose modes.
@@ -1368,7 +1371,7 @@ function _set_browsercmdf
 #check input and run a chat command
 function cmd_runf
 {
-	typeset var wc xskip pid n
+	typeset opt_append var wc xskip pid n
 	typeset -a args
 	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]* ]] || return;
 	((${#1}+${#2}<1024)) || return;
@@ -1522,21 +1525,11 @@ function cmd_runf
 			printf "${NC}\\n" >&2;
 			;;
 		url*|[/!]url*)
-			set -- "${*##@(url|[/!]url)*([$IFS])}";
-			if if var=$(set_browsercmdf)
-				then 	var=$(${var} -dump "$1");  #html browser
-				else 	var=$(${var} "$1"| sed 's/<[^>]*>//g');  #curl
-				fi && ((${#var}))
-			then
-				SKIP=1 xskip=1;
-				if [[ ${args[*]} = *([$IFS])[/!]* ]]
-				then  #make request right away
-					REGEN=1 REPLY_OLD=$var REPLY= ;
-				else  #edit text dump
-					EDIT=1 REPLY_OLD=$REPLY REPLY=$var;
-					(($(wc -l <<<"$var") < LINES-1)) || ((OPTX)) || OPTX=2;
-				fi
-			else 	EDIT=1 SKIP=1; echo dump err >&2;
+			set -- "$(trimf "${*##@(url|[/!]url)}" "$SPC")"; xskip=1;
+			[[ $* = :* ]] && { 	opt_append=1; set -- "${1##:*([$IFS])}" ;};  #append as user message
+			if var=$(set_browsercmdf)
+			then 	cmd_runf /sh${opt_append:+:} "${var} -dump" "${1// /%20}";  #html browser
+			else 	cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed 's/<[^>]*>//g'";  #curl
 			fi
 			;;
 		media*|img*)
@@ -1745,7 +1738,9 @@ function cmd_runf
 			;;
 		cat*|[/!-]cat*)
 			set -- "${*##[/!-]}"
-			if [[ $* = cat*[!$IFS]* ]]
+			if [[ $* = cat:*[!$IFS]* ]]
+			then 	cmd_runf /sh: "cat${1:4}";
+			elif [[ $* = cat*[!$IFS]* ]]
 			then 	cmd_runf /sh "${@}"
 			else 	__warmsgf '*' 'Press <Ctrl-D> to flush * '
 				STDERR=/dev/null  cmd_runf /sh cat </dev/tty
@@ -1760,7 +1755,8 @@ function cmd_runf
 			;;
 		shell*|sh*)
 			set -- "${*##sh?(ell)*([$IFS])}"
-			[[ -n $* ]] || set --; xskip=1
+			[[ $* = :* ]] && { 	opt_append=1; set -- "${1##:*([$IFS])}" ;};  #append as user message
+			[[ -n $* ]] || set --; xskip=1;
 			while :
 			do 	REPLY=$(bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR); echo >&2
 				#abort on empty
@@ -1776,6 +1772,7 @@ function cmd_runf
 							printf '\n%s\n' '---' >&2; break;;  #yes
 				esac ;set --
 			done ;__clr_lineupf $((12+1+55))  #!#
+			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=":$REPLY";
 			((${#args[@]})) && shell_histf "!${args[*]}"
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
@@ -4158,7 +4155,7 @@ else
 					_sysmsgf 'User prompt added'
 				fi
 				push_tohistf "$var";
-				unset EDIT SKIP p q n pp qq var;
+				unset EDIT SKIP REPLY REPLY_OLD p q n pp qq var;
 				set --; continue;
 			fi
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
