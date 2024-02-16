@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.48 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.49 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,9 +174,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.48 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.49 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">January 2024</p>
+<p class="date">February 2024</p>
 </header>
 <h3 id="name">NAME</h3>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
@@ -336,12 +336,13 @@ recording, requesting, or playing TTS.</p>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh</em>”.</p>
 <p>A personal OpenAI API is required, set it with
-<code>option -K</code>. See also <strong>ENVIRONMENT
+<code>option --api-key</code>. See also <strong>ENVIRONMENT
 section</strong>.</p>
 <p>This script also supports warping LocalAI and Ollama APIs.</p>
-<p>For LocalAI integration, set environment
+<p>For LocalAI integration, run the script with
+<code>option --localai</code>, or set environment
 <strong>$OPENAI_API_HOST</strong> with the server URL. List models with
-<code>option -l</code>, or run <code>/models</code>. in chat mode.</p>
+<code>option -l</code>, or run <code>/models</code> in chat mode.</p>
 <!--
 Install models with `option -l` or chat command `/models`
 and the `install` keyword.
@@ -354,11 +355,14 @@ Gallery defaults to HuggingFace.
 * NOTE: *  I recommend using LocalAI own binary to install the models!
 -->
 <!-- LocalAI only tested with text and chat completion models (vision) -->
-<p>For Ollama, set <code>option -O</code>, and set
-<strong>$OLLAMA_API_HOST</strong> if the server URL is different from
-the defaults.</p>
+<p>For Ollama, set <code>option -O</code> (<code>--ollama</code>), and
+set <strong>$OLLAMA_API_HOST</strong> if the server URL is different
+from the defaults.</p>
 <p>Note that model management (downloading and setting up) must follow
 the Ollama project guidelines and own methods.</p>
+<p>For Google Gemini, set environment variable
+<strong>$GOOGLE_API_KEY</strong>, and run the script with the command
+line <code>option --google</code>.</p>
 <p>Command “<code>!block</code> [<em>args</em>]” may be run to set raw
 model options in JSON syntax according to each API. Alternatively, set
 envar <strong>$BLOCK_USR</strong>.</p>
@@ -679,6 +683,17 @@ flush.</td>
 <td>Set best-of n results.</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>-K</code></td>
+<td style="text-align: left;"><code>!topk</code> [<em>NUM</em>]</td>
+<td>Set top_k.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!ka</code></td>
+<td style="text-align: left;"><code>!keep-alive</code>
+[<em>NUM</em>]</td>
+<td>Set duration of model load in memory (ollama).</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>-m</code></td>
 <td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
 <td>Set model by name, empty to pick from list.</td>
@@ -690,7 +705,7 @@ flush.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-p</code></td>
-<td style="text-align: left;"><code>!top</code> [<em>VAL</em>]</td>
+<td style="text-align: left;"><code>!topp</code> [<em>VAL</em>]</td>
 <td>Set top_p.</td>
 </tr>
 <tr class="even">
@@ -1052,10 +1067,12 @@ more random.</p>
 <p><strong>MOD_IMAGE</strong></p>
 <p><strong>MOD_AUDIO</strong></p>
 <p><strong>MOD_SPEECH</strong></p>
+<p><strong>MOD_LOCALAI</strong></p>
+<p><strong>MOD_OLLAMA</strong></p>
 <dl>
-<dt><strong>MOD_OLLAMA</strong></dt>
+<dt><strong>MOD_GOOGLEAI</strong></dt>
 <dd>
-<p>Set the defaults model for each endpoint.</p>
+<p>Set defaults model for each endpoint / integration.</p>
 </dd>
 <dt><strong>OLLAMA_API_HOST</strong></dt>
 <dd>
@@ -1221,6 +1238,15 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
 </dd>
+<dt><strong>-K</strong>, <strong>–top-k</strong> [<em>NUM</em>]</dt>
+<dd>
+<p>Set Top_k value (local-ai, ollama, google).</p>
+</dd>
+<dt><strong>--keep-alive</strong>,
+<strong>--ka</strong>=[<em>NUM</em>]</dt>
+<dd>
+<p>Set how long the model will stay loaded into memory (ollama).</p>
+</dd>
 <dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
 <dd>
 <p>Set language <em>MODEL</em> name. Def=<em>text-davinci-003</em>,
@@ -1375,6 +1401,10 @@ translated to the target LANG.</p>
 </dl>
 <h3 id="script-settings">Script Settings</h3>
 <dl>
+<dt><strong>--api-key</strong> [<em>KEY</em>]</dt>
+<dd>
+<p>Set OpenAI API key.</p>
+</dd>
 <dt><strong>-f</strong>, <strong>--no-conf</strong></dt>
 <dd>
 <p>Ignore user configuration file.</p>
@@ -1392,6 +1422,10 @@ translated to the target LANG.</p>
 <strong>--no-fold</strong></dt>
 <dd>
 <p>Set or unset response folding (wrap at white spaces).</p>
+</dd>
+<dt><strong>--google</strong></dt>
+<dd>
+<p>Set Google Gemini integration (cmpls/chat).</p>
 </dd>
 <dt><strong>-h</strong>, <strong>--help</strong></dt>
 <dd>
@@ -1415,10 +1449,6 @@ and start sequences.</p>
 <dd>
 <p>Disable colour output. Def=<em>auto</em>.</p>
 </dd>
-<dt><strong>-K</strong>, <strong>--api-key</strong> [<em>KEY</em>]</dt>
-<dd>
-<p>Set OpenAI API key.</p>
-</dd>
 <dt><strong>-l</strong>, <strong>--list-models</strong>
 [<em>MODEL</em>]</dt>
 <dd>
@@ -1427,6 +1457,10 @@ and start sequences.</p>
 <dt><strong>-L</strong>, <strong>--log</strong> [<em>FILEPATH</em>]</dt>
 <dd>
 <p>Set log file. <em>FILEPATH</em> is required.</p>
+</dd>
+<dt><strong>--localai</strong></dt>
+<dd>
+<p>Set LocalAI integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--md</strong>, <strong>--markdown</strong>,
 <strong>--markdown</strong>=[<em>SOFTWARE</em>]</dt>
@@ -1445,7 +1479,7 @@ and start sequences.</p>
 </dd>
 <dt><strong>-O</strong>, <strong>--ollama</strong></dt>
 <dd>
-<p>Make requests to Ollama server (cmpls/chat).</p>
+<p>Set and make requests to Ollama server (cmpls/chat).</p>
 </dd>
 <dt><strong>-u</strong>, <strong>--multi</strong></dt>
 <dd>

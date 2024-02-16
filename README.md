@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI and Ollama integration.
+Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, and Google Gemini integration.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
@@ -23,7 +23,7 @@ Markdown rendering of chat response (_optional_).
 - Voice in (**Whisper**) and voice out (**TTS**) _chat / REPL mode_ (`options -cczw`)
 - Integration with [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh),
-   [mudler's LocalAI](#localai), and [Ollama](#ollama)
+   [mudler's LocalAI](#localai), [Ollama](#ollama), and [Google AI](#google-ai).
 - _Tiktoken_ for accurate tokenization (optional)
 - Colour scheme personalisation, and a configuration file
 - Stdin and text file as input support
@@ -106,7 +106,7 @@ and make it executable:
 ### 🔥 Usage
 
 - Set your [OpenAI GPTChat key](https://platform.openai.com/account/api-keys)
-   with the environment variable `$OPENAI_API_KEY`, or set `option -K [KEY]`, or set the configuration file.
+   with the environment variable `$OPENAI_API_KEY`, or set `option --api-key [KEY]`, or set the configuration file.
 - Just write your prompt as positional arguments after setting options!
 - Chat mode may be configured with Instruction or not.
 - Set temperature value with `-t [VAL]` (0.0 to 2.0), defaults=0.
@@ -533,41 +533,17 @@ for an idea on how to install, download a model and set it up.
      └───────────────────────────────────────────────────┘
 
 
-### Script Configuration
-
-With the LocalAI server running and the URL and port at hand,
-we need editing the script configuration file `.chatgpt.conf`.
-
-    vim ~/.chatgpt.conf
-
-    # Or
-
-    chatgpt.sh -F
-
-
-Set the following variable:
-
-    # ~/.chatgpt.conf
-    
-    OPENAI_API_HOST="http://127.0.0.1:8080"
-
-
-_Alternatively_, set `$OPENAI_API_HOST` on invocation:
-
-    OPENAI_API_HOST="http://127.0.0.1:8080" chatgpt.sh -cc -m luna-ai-llama2
-
-
 ### Running
 
 Finally, when running `chatgpt.sh`, set the model name:
 
-    chatgpt.sh -cc -m luna-ai-llama2
+    chatgpt.sh --localai -cc -m luna-ai-llama2
 
 
 Setting some stop sequences may be needed to prevent the
 model from generating text past context:
 
-    chatgpt.sh -cc -m luna-ai-llama2  -s'### User:'  -s'### Response:'
+    chatgpt.sh --localai -cc -m luna-ai-llama2  -s'### User:'  -s'### Response:'
 
 
 Optionally set restart and start sequences for text completions
@@ -586,6 +562,12 @@ supplied as argument, so that only that model details are shown.
 **NOTE:** Model management (downloading and setting up) must follow
 the LocalAI and Ollama projects guidelines and methods.
 
+For image generation, install Stable Diffusion from the URL
+`github:go-skynet/model-gallery/stablediffusion.yaml`,
+and for audio transcription, download Whisper from the URL
+`github:go-skynet/model-gallery/whisper-base.yaml`.
+<!-- LocalAI was only tested with text and chat completion models (vision) -->
+
 <!--
 Install models with `option -l` or chat command `/models`
 and the `install` keyword.
@@ -601,15 +583,32 @@ Gallery defaults to [HuggingFace](https://huggingface.co/).
     # Install
     chatgpt.sh -l install huggingface@TheBloke/WizardLM-13B-V1-0-Uncensored-SuperHOT-8K-GGML/wizardlm-13b-v1.0-superhot-8k.ggmlv3.q4_K_M.bin
 
-
 * NOTE: *  I reccomend using LocalAI own binary to install the models!
 -->
 
-For image generation, install Stable Diffusion from the URL
-`github:go-skynet/model-gallery/stablediffusion.yaml`,
-and for audio transcription, download Whisper from the URL
-`github:go-skynet/model-gallery/whisper-base.yaml`.
-<!-- LocalAI was only tested with text and chat completion models (vision) -->
+
+### API Host Configuration
+
+If the host address is different from teh defaults, we need editing
+the script configuration file `.chatgpt.conf`.
+
+    vim ~/.chatgpt.conf
+
+    # Or
+
+    chatgpt.sh -F
+
+
+Set the following variable:
+
+    # ~/.chatgpt.conf
+    
+    OPENAI_API_HOST="http://127.0.0.1:8080"
+
+
+_Alternatively_, set `$OPENAI_API_HOST` on invocation:
+
+    OPENAI_API_HOST="http://127.0.0.1:8080" chatgpt.sh -c -m luna-ai-llama2
 
 
 ## Ollama
@@ -618,8 +617,8 @@ Visit [Ollama repository](https://github.com/ollama/ollama/),
 and follow the instructions to install, download models, and set up
 the server.
 
-After having Ollama server running, set `option -O`, and the name of
-the model in `chatgpt.sh`:
+After having Ollama server running, set `option -O` (`--ollama`),
+and the name of the model in `chatgpt.sh`:
 
     chatgpt.sh -cc -O -m llama2
 
@@ -630,6 +629,20 @@ edit `chatgpt.sh` configuration file, and set the following variable:
     # ~/.chatgpt.conf
     
     OLLAMA_API_HOST="http://192.168.0.3:11434"
+
+
+## Google AI
+
+Get a free [API key for Google](https://gemini.google.com/) to be able to
+use Gemini and vision models. Users have a free bandwidth of 60 requests per minute.
+
+Set the enviroment variable `$GOOGLE_API_KEY` and run the script
+with `option --google`, such as:
+
+    chatgpt.sh --google -cc -m gemini-pro-vision
+
+
+To list all available models, run `chatgpt.sh --google -l`.
 
 
 <!--
@@ -808,8 +821,9 @@ They were studied during development of this script and used as referencial code
 4. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
 5. [mudler's LocalAI](https://github.com/mudler/LocalAI)
 6. [Ollama](https://github.com/ollama/ollama/)
-7. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-8. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+7. [Google Gemini](https://gemini.google.com/)
+8. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+9. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 <!-- https://huggingface.co/ -->
 
 

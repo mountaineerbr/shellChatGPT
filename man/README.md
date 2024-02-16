@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: January 2024
-title: CHATGPT.SH(1) v0.48 \| General Commands Manual
+date: February 2024
+title: CHATGPT.SH(1) v0.49 \| General Commands Manual
 ---
 
 ### NAME
@@ -167,14 +167,14 @@ requesting, or playing TTS.
 User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
 at “*~/.cache/chatgptsh*”.
 
-A personal OpenAI API is required, set it with `option -K`. See also
-**ENVIRONMENT section**.
+A personal OpenAI API is required, set it with `option --api-key`. See
+also **ENVIRONMENT section**.
 
 This script also supports warping LocalAI and Ollama APIs.
 
-For LocalAI integration, set environment **\$OPENAI_API_HOST** with the
-server URL. List models with `option -l`, or run `/models`. in chat
-mode.
+For LocalAI integration, run the script with `option --localai`, or set
+environment **\$OPENAI_API_HOST** with the server URL. List models with
+`option -l`, or run `/models` in chat mode.
 
 <!--
 Install models with `option -l` or chat command `/models`
@@ -187,11 +187,14 @@ Gallery defaults to HuggingFace.
 -->
 <!-- LocalAI only tested with text and chat completion models (vision) -->
 
-For Ollama, set `option -O`, and set **\$OLLAMA_API_HOST** if the server
-URL is different from the defaults.
+For Ollama, set `option -O` (`--ollama`), and set **\$OLLAMA_API_HOST**
+if the server URL is different from the defaults.
 
 Note that model management (downloading and setting up) must follow the
 Ollama project guidelines and own methods.
+
+For Google Gemini, set environment variable **\$GOOGLE_API_KEY**, and
+run the script with the command line `option --google`.
 
 Command “`!block` \[*args*\]” may be run to set raw model options in
 JSON syntax according to each API. Alternatively, set envar
@@ -331,25 +334,27 @@ or “`/`”.
 | `!q`    | `!quit`              | Exit. Bye.                                                |
 | `!?`    | `!help`              | Print a help snippet.                                     |
 
-| Model   | Settings                |                                             |
-|:--------|:------------------------|---------------------------------------------|
-| `-Nill` | `!Nill`                 | Toggle model max response (chat cmpls).     |
-| `-M`    | `!NUM` `!max` \[*NUM*\] | Set maximum response tokens.                |
-| `-N`    | `!modmax` \[*NUM*\]     | Set model token capacity.                   |
-| `-a`    | `!pre` \[*VAL*\]        | Set presence penalty.                       |
-| `-A`    | `!freq` \[*VAL*\]       | Set frequency penalty.                      |
-| `-b`    | `!best` \[*NUM*\]       | Set best-of n results.                      |
-| `-m`    | `!mod` \[*MOD*\]        | Set model by name, empty to pick from list. |
-| `-n`    | `!results` \[*NUM*\]    | Set number of results.                      |
-| `-p`    | `!top` \[*VAL*\]        | Set top_p.                                  |
-| `-r`    | `!restart` \[*SEQ*\]    | Set restart sequence.                       |
-| `-R`    | `!start` \[*SEQ*\]      | Set start sequence.                         |
-| `-s`    | `!stop` \[*SEQ*\]       | Set one stop sequence.                      |
-| `-t`    | `!temp` \[*VAL*\]       | Set temperature.                            |
-| `-w`    | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.  |
-| `-z`    | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).          |
-| `!blk`  | `!block` \[*ARGS*\]     | Set and add custom options to JSON request. |
-| \-      | `!multimodal`           | Toggle model as multimodal (image support). |
+| Model   | Settings                |                                                |
+|:--------|:------------------------|------------------------------------------------|
+| `-Nill` | `!Nill`                 | Toggle model max response (chat cmpls).        |
+| `-M`    | `!NUM` `!max` \[*NUM*\] | Set maximum response tokens.                   |
+| `-N`    | `!modmax` \[*NUM*\]     | Set model token capacity.                      |
+| `-a`    | `!pre` \[*VAL*\]        | Set presence penalty.                          |
+| `-A`    | `!freq` \[*VAL*\]       | Set frequency penalty.                         |
+| `-b`    | `!best` \[*NUM*\]       | Set best-of n results.                         |
+| `-K`    | `!topk` \[*NUM*\]       | Set top_k.                                     |
+| `!ka`   | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (ollama). |
+| `-m`    | `!mod` \[*MOD*\]        | Set model by name, empty to pick from list.    |
+| `-n`    | `!results` \[*NUM*\]    | Set number of results.                         |
+| `-p`    | `!topp` \[*VAL*\]       | Set top_p.                                     |
+| `-r`    | `!restart` \[*SEQ*\]    | Set restart sequence.                          |
+| `-R`    | `!start` \[*SEQ*\]      | Set start sequence.                            |
+| `-s`    | `!stop` \[*SEQ*\]       | Set one stop sequence.                         |
+| `-t`    | `!temp` \[*VAL*\]       | Set temperature.                               |
+| `-w`    | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
+| `-z`    | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
+| `!blk`  | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
+| \-      | `!multimodal`           | Toggle model as multimodal (image support).    |
 
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|
@@ -606,8 +611,12 @@ Initial initial instruction, or system message for chat mode.
 
 **MOD_SPEECH**
 
-**MOD_OLLAMA**  
-Set the defaults model for each endpoint.
+**MOD_LOCALAI**
+
+**MOD_OLLAMA**
+
+**MOD_GOOGLEAI**  
+Set defaults model for each endpoint / integration.
 
 **OLLAMA_API_HOST**  
 Ollama host URL (used with `option -O`).
@@ -756,6 +765,12 @@ Set best of, must be greater than `option -n` (cmpls). Def=*1*.
 **-B**, **--log-prob** \[*NUM*\]  
 Request log probabilities, also see -Z (cmpls, 0 - 5),
 
+**-K**, **–top-k** \[*NUM*\]  
+Set Top_k value (local-ai, ollama, google).
+
+**--keep-alive**, **--ka**=\[*NUM*\]  
+Set how long the model will stay loaded into memory (ollama).
+
 **-m**, **--model** \[*MODEL*\]  
 Set language *MODEL* name. Def=*text-davinci-003*, *gpt-3.5-turbo-0301*.
 
@@ -874,6 +889,9 @@ Set twice to get phrase-level timestamps.
 
 ### Script Settings
 
+**--api-key** \[*KEY*\]  
+Set OpenAI API key.
+
 **-f**, **--no-conf**  
 Ignore user configuration file.
 
@@ -887,6 +905,9 @@ Dump template configuration file to stdout.
 
 **--fold** (*defaults*), **--no-fold**  
 Set or unset response folding (wrap at white spaces).
+
+**--google**  
+Set Google Gemini integration (cmpls/chat).
 
 **-h**, **--help**  
 Print the help page.
@@ -907,14 +928,14 @@ Set thrice to print commented out hist entries, inclusive.
 **-k**, **--no-colour**  
 Disable colour output. Def=*auto*.
 
-**-K**, **--api-key** \[*KEY*\]  
-Set OpenAI API key.
-
 **-l**, **--list-models** \[*MODEL*\]  
 List models or print details of *MODEL*.
 
 **-L**, **--log** \[*FILEPATH*\]  
 Set log file. *FILEPATH* is required.
+
+**--localai**  
+Set LocalAI integration (cmpls/chat).
 
 **--md**, **--markdown**, **--markdown**=\[*SOFTWARE*\]  
 Enable markdown rendering in response. Software is optional: *bat*,
@@ -927,7 +948,7 @@ Disable markdown rendering.
 Copy response to clipboard.
 
 **-O**, **--ollama**  
-Make requests to Ollama server (cmpls/chat).
+Set and make requests to Ollama server (cmpls/chat).
 
 **-u**, **--multi**  
 Toggle multiline prompter, \<*CTRL-D*\> flush.
