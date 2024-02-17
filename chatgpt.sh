@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.49.3  feb/2024  by mountaineerbr  GPL+3
+# v0.50  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4363,7 +4363,7 @@ else
 			then 	#chat cmpls
 				[[ ${*} = *([$IFS]):* ]] && role=system || role=user
 			      	#google gemini-vision cannot take it multiturn;
-				((GOOGLEAI && (RETRY+REGEN_MARK) )) && is_visionf "$MOD" && GINSTRUCTION=$(unescapef "$HIST")$'\n' HIST_C=;
+				((GOOGLEAI && (RETRY+REGEN_MARK) )) && is_visionf "$MOD" && GINSTRUCTION=$(unescapef "$HIST") HIST_C=;
 				set -- "$(unset MEDIA MEDIA_CMD;
 				  fmt_ccf "$(escapef "$INSTRUCTION")" system;
 				  )${INSTRUCTION:+,${NL}}${HIST_C}${HIST_C:+,${NL}}$(
