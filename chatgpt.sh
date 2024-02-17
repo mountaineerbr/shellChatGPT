@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.49  feb/2024  by mountaineerbr  GPL+3
+# v0.49.1  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -886,7 +886,7 @@ function prompt_pf
 	for var
 	do 	[[ -f $var ]] || { 	opt+=("$var"); shift ;}
 	done
-	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |.text//.response//(.message.content)//(.delta.content))//.data//empty" "$@"
+	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |.text//.response//(.message.content)//(.delta.content))//(.data?)//empty" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
 	{ jq "$@" && _p_suffixf ;} || ! cat -- "$@" >&2 2>/dev/null
 }
@@ -1740,9 +1740,11 @@ function cmd_runf
 			context-prev "${MAX_PREV:-?}" \
 			token-rate   "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
 			tiktoken     "${OPTTIK:-0}" \
+			keep-alive   "${OPT_KEEPALIVE:-unset}" \
 			temperature  "${OPTT:-0}" \
 			pres-penalty "${OPTA:-unset}" \
 			freq-penalty "${OPTAA:-unset}" \
+			top-k        "${OPTKK:-unset}" \
 			top-p        "${OPTP:-unset}" \
 			results      "${OPTN:-1}" \
 			best-of      "${OPTB:-unset}" \
@@ -3479,12 +3481,14 @@ function set_googleaif
 	{
 		typeset epn;
 	       	epn='generateContent';
-		((STREAM)) && epn='streamGenerateContent';
-		curl -\# "$@" --fail-with-body -L "https://generativelanguage.googleapis.com/v1beta/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
+		if curl -\# "$@" --fail-with-body -L "https://generativelanguage.googleapis.com/v1beta/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
-			-d "$BLOCK" | sed -n 's/^ *"text":.*/{ & }/p' \
-		&& { 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf ;}
-	}
+			-d "$BLOCK" | tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
+		then 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
+		else 	false;
+		fi
+	}; FILE_PRE="${FILE%%.json}.pre.json";
 	function embedf
 	{
 		curl --fail-with-body -L "https://generativelanguage.googleapis.com/v1beta/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
@@ -4390,9 +4394,7 @@ else
 
 		if ((GOOGLEAI))
 		then
-			BLOCK="{
-$BLOCK
-\"safetySettings\": [
+			BLOCK_SAFETY="\"safetySettings\": [
   {\"category\": \"HARM_CATEGORY_DANGEROUS_CONTENT\",
     \"threshold\": \"BLOCK_NONE\"},
   {\"category\": \"HARM_CATEGORY_SEXUALLY_EXPLICIT\",
@@ -4401,12 +4403,15 @@ $BLOCK
     \"threshold\": \"BLOCK_NONE\"},
   {\"category\": \"HARM_CATEGORY_HARASSMENT\",
     \"threshold\": \"BLOCK_NONE\"}
-    ],
+    ],"
+			BLOCK="{
+$BLOCK
+$BLOCK_SAFETY
 \"generationConfig\": {
     ${OPTSTOP/stop/stopSequences}
     ${OPTP_OPT/_p/P} ${OPTKK_OPT/_k/K}
     \"temperature\": $OPTT,
-    \"maxOutputTokens\": $OPTMAX
+    \"maxOutputTokens\": $OPTMAX${BLOCK_USR:+,$NL}$BLOCK_USR
   }
 }"
 #PaLM: HARM_CATEGORY_UNSPECIFIED HARM_CATEGORY_DEROGATORY HARM_CATEGORY_TOXICITY HARM_CATEGORY_VIOLENCE HARM_CATEGORY_SEXUAL HARM_CATEGORY_MEDICAL HARM_CATEGORY_DANGEROUS
@@ -4486,10 +4491,10 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 			fi
 
 			if [[ -z "$ans" ]] && ((RET_PRF<120))
-			then 	jq 'if .error then . else empty end' "$FILE" >&2 || cat -- "$FILE" >&2
+			then 	jq -e '(.error?)//(.[]?|.error?)//.' "$FILE" >&2 || ! cat -- "$FILE" >&2 || ((!GOOGLEAI)) || jq . "$FILE_PRE" >&2 2>/dev/null;
 				__warmsgf "(response empty)"
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
-					&& var=$(jq .error.message//empty "$FILE") \
+					&& var=$(jq -e '(.error.message?)//(.[]?|.error?)//empty' "$FILE" 2>/dev/null) \
 					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]] \
 					&& [[ $ESC != "$ESC_OLD" ]]
 				then 	#[0]modmax [1]resquested [2]prompt [3]cmpl
