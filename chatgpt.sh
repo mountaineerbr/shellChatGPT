@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.49.2  feb/2024  by mountaineerbr  GPL+3
+# v0.49.3  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -553,6 +553,7 @@ ENDPOINTS=(
 function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
+	((LOCALAI+OLLAMA+GOOGLEAI)) && is_visionf "$1" && set -- vision;
 	case "$1" in
 		*dalle-e*|*stable*diffusion*)
 				# 3 generations  4 variations  9 edits  
@@ -570,7 +571,7 @@ function set_model_epnf
 					text*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		gpt-4*|gpt-3.5*|gpt-*|*turbo*)
+		gpt-4*|gpt-3.5*|gpt-*|*turbo*|*vision*)
 				EPN=6 EPN6=6  OPTB= OPTBB=
 				((OPTC)) && OPTC=2
 				#set token adjustment per message
@@ -4131,6 +4132,7 @@ else
 
 	while :
 	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
+		((REGEN)) && REGEN_MARK=1;
 		if ((REGEN>1))
 		then 	unset REGEN;
 		elif ((REGEN))
@@ -4360,10 +4362,12 @@ else
 			if ((EPN==6))
 			then 	#chat cmpls
 				[[ ${*} = *([$IFS]):* ]] && role=system || role=user
+			      	#google gemini-vision cannot take it multiturn;
+				((GOOGLEAI && (RETRY+REGEN_MARK) )) && is_visionf "$MOD" && GINSTRUCTION=$(unescapef "$HIST")$'\n' HIST_C=;
 				set -- "$(unset MEDIA MEDIA_CMD;
 				  fmt_ccf "$(escapef "$INSTRUCTION")" system;
 				  )${INSTRUCTION:+,${NL}}${HIST_C}${HIST_C:+,${NL}}$(
-				  fmt_ccf "$(escapef "${GINSTRUCTION}${GINSTRUCTION:+${NL}${NL}}$*")" "$role")"
+				  fmt_ccf "$(escapef "${GINSTRUCTION}${GINSTRUCTION:+${NL}${NL}}$*")" "$role")";
 			else 	#text cmpls
 				if { 	((OPTC)) || [[ -n "${START}" ]] ;} && ((JUMP<2))
 				then 	set -- "${ESC}${START:-$A_TYPE}"
@@ -4541,7 +4545,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 			set -- ;continue
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_CMD_IND[@]}));
-		unset MEDIA  MEDIA_CMD  MEDIA_IND  MEDIA_CMD_IND  INT_RES GINSTRUCTION;
+		unset MEDIA  MEDIA_CMD  MEDIA_IND  MEDIA_CMD_IND INT_RES GINSTRUCTION REGEN_MARK;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
@@ -4577,7 +4581,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 		fi
 
 		((++MAIN_LOOP)) ;set --
-		unset INSTRUCTION OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC RET_PRF Q
+		unset INSTRUCTION GINSTRUCTION OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY REGEN_MARK BAD_RES INT_RES ESC RET_PRF Q
 		unset role rest tkn tkn_ans ans buff glob out var pid s n
 		((MTURN && !OPTEXIT)) || break
 	done
