@@ -1,7 +1,7 @@
 # Maintainer: lilikoi <jamilbio20@gmail.com>
 pkgname='chatgpt.sh-git'
 _pkgname='chatgpt.sh'
-pkgver=0.100.r4
+pkgver=0.100.r5
 pkgrel=1
 pkgdesc="Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, and Google Gemini integration."
 url='https://gitlab.com/fenixdragao/shellchatgpt'
@@ -12,14 +12,14 @@ depends=('bash' 'curl' 'jq')
 makedepends=('git')
 optdepends=(
 	'imagemagick: edit input images'
-	'sox: audio recorder / player'
-	'ffmpeg: audio recorder'
-	'mpv: audio player'
-	#'coreutils: wrap output at spaces (fold)'
 	'xdg-utils: open images (xdg-open, open)'
-	'xsel: copy output to clipboard'
-	'xclip: copy output to clipboard'
+	'sox: audio recorder (arecod, ffmpeg)'
+	'mpv: audio player (sox, vlc, ffmpeg, afplay, play-audio)'
+	'xsel: copy output to clipboard (xclip)'
 	'python: count input tokens (tiktoken)'
+	'bat: render markdown (pygmentize, glow, mdcat, mdless)'
+	'w3m: dump url text (lynx, elinks, links)'
+	#'coreutils: wrap output at spaces (fold)'
 )
 source=("${pkgname}::git+${url}.git")
 sha256sums=('SKIP')
@@ -37,7 +37,7 @@ package() {
 	install -Dm644 "man/${_pkgname}.html" "$pkgdir/usr/share/doc/${_pkgname}/${_pkgname}.html"
 	install -Dm644 "man/README.md" "$pkgdir/usr/share/doc/${_pkgname}/${_pkgname}.md"
 	install -Dm644 "README.md" "$pkgdir/usr/share/doc/${_pkgname}/README.md"
-	#install -Dm644 "PKGBUILD" "$pkgdir/usr/share/doc/${_pkgname}/PKGBUILD"
 	install -Dm644 ".chatgpt.conf" "$pkgdir/usr/share/doc/${_pkgname}/chatgpt.conf"
 	install -Dm755 "${_pkgname}" "${pkgdir}/usr/bin/${_pkgname}"
+	#install -Dm644 "PKGBUILD" "$pkgdir/usr/share/doc/${_pkgname}/PKGBUILD"
 }
