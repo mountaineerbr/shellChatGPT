@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: February 2024
-title: CHATGPT.SH(1) v0.50 \| General Commands Manual
+title: CHATGPT.SH(1) v0.50.3 \| General Commands Manual
 ---
 
 ### NAME
@@ -596,6 +596,9 @@ Defaults="*~/.chatgpt.conf*"
 
 **FILECHAT**  
 Path to a history / session TSV file (script-formatted).
+
+**GOOGLE_API_KEY**  
+Google AI API key.
 
 **INSTRUCTION**  
 Initial initial instruction, or system message.

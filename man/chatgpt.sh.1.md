@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.50 | General Commands Manual
+% CHATGPT.SH(1) v0.50.3 | General Commands Manual
 % mountaineerbr
 % February 2024
 
@@ -631,6 +631,11 @@ Setting **temperature** has an effect, the higher the more random.
 **FILECHAT**
 
 :    Path to a history / session TSV file (script-formatted).
+
+
+**GOOGLE_API_KEY**
+
+:    Google AI API key.
 
 
 **INSTRUCTION**
