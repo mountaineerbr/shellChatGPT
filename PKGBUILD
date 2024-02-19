@@ -1,8 +1,8 @@
 # Maintainer: lilikoi <jamilbio20@gmail.com>
 pkgname='chatgpt.sh'
-pkgver=0.51.3
+pkgver=0.52
 pkgrel=1
-_commit=26237679f5fed135e68b8307b10bb0864161fec5
+_commit=6c9f95b6a8ec909fe2e454003017d038b829a3b6
 pkgdesc="Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, and Google Gemini integration."
 url='https://gitlab.com/fenixdragao/shellchatgpt'
 arch=('any')
@@ -19,7 +19,6 @@ optdepends=(
 	'python: count input tokens (tiktoken)'
 	'bat: render markdown (pygmentize, glow, mdcat, mdless)'
 	'w3m: dump url text (lynx, elinks, links)'
-	#'coreutils: wrap output at spaces (fold)'
 )
 source=("${pkgname}-${pkgver}::git+${url}.git#commit=${_commit}")
 sha256sums=('SKIP')
@@ -34,5 +33,4 @@ package() {
 	install -Dm644 "README.md" "$pkgdir/usr/share/doc/${pkgname}/README.md"
 	install -Dm644 ".chatgpt.conf" "$pkgdir/usr/share/doc/${pkgname}/chatgpt.conf"
 	install -Dm755 "${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
-	#install -Dm644 "PKGBUILD" "$pkgdir/usr/share/doc/${pkgname}/PKGBUILD"
 }
