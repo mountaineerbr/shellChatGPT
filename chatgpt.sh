@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.51.2  feb/2024  by mountaineerbr  GPL+3
+# v0.51.3  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -226,7 +226,7 @@ See Also
 	Check the man page for extended description of interface and
 	settings. See the online man page and script usage examples at:
 
-	<https://github.com/mountaineerbr/shellChatGPT>.
+	<https://gitlab.com/fenixdragao/shellchatgpt>.
 
 
 Environment
@@ -628,7 +628,7 @@ function model_capf
 		*turbo*|*davinci*) 	MODMAX=4096;;
 		gemini*-1.5*) 	MODMAX=128000;;
 		gemini*-vision*) 	MODMAX=16384;;
-		gemini*-pro) 	MODMAX=32760;;
+		gemini*-pro*) 	MODMAX=32760;;
 		*embedding-gecko*) 	MODMAX=3072;;
 		*embedding*|*search*) MODMAX=2046;;
 		aqa) 	MODMAX=7168;;
