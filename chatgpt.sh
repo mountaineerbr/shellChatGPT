@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.51  feb/2024  by mountaineerbr  GPL+3
+# v0.51.1  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3412,7 +3412,6 @@ function cleanupf
        	do 	kill -- $pid 2>/dev/null;
        	done;
 	wait ${PIDS[@]}  &>/dev/null;
-       	printf "${NC}%s\n" '[exit]' >&2;
 }
 
 #ollama fun
