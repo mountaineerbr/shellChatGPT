@@ -294,7 +294,7 @@ Chat Commands
         !      !r, !regen        Regenerate last response.
        !!      !rr               Regenerate response, edit prompt first.
        !i      !info             Info on model and session settings.
-      !img     !media [FILE|URL] Append image / media / url to prompt.
+      !img     !media [FILE|URL] Append image/media/url to prompt.
       !url     -         [URL]   Dump URL text, optionally edit it.
       !url:    -         [URL]   Same as !url but append output as user.
        !j      !jump             Jump to request, append response primer.
@@ -345,8 +345,7 @@ Chat Commands
         -      !multimodal       Toggle model as multimodal (image support).
     --- Session Management ----------------------------------------
        -H      !hist             Edit raw history file in editor.
-      -HH      !req              Print context request immediately (see -V),
-                                 set -HHH to also print commented out entries.
+      -HH      !req              Print session history (see -V).
        -L      !log  [FILEPATH]  Save to log file (pretty-print).
       !br      !new, !break      Start new session (session break).
       !ls      !list    [GLOB]   List History files with name glob,

@@ -361,8 +361,7 @@ may be either "`!`", or "`/`".
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
       `-H`    `!hist`                                  Edit history in editor.
-     `-HH`    `!req`                                   Print context request immediately (see `option -V`),
-                                                         set `-HHH` to also print commented out history entries.
+     `-HH`    `!req`                                   Print session history (see `option -V`).
       `-L`    `!log`       \[_FILEPATH_]               Save to log file.
      `!br`    `!new`, `!break`                         Start new session (session break).
      `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
