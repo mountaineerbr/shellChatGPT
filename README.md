@@ -689,6 +689,18 @@ in the man page.
 
 ## Arch Linux Users
 
+
+This project PKGBUILD is available at the
+[Arch Linux User Repository (*AUR*)](https://aur.archlinux.org/packages/chatgpt.sh)
+to install the software in Arch Linux and derivative distros.
+
+To install the programme from the AUR, you can use an *AUR helper*
+like `yay` or `paru`. For example, with `yay`:
+
+    yay -S chatgpt.sh
+
+
+<!--
 There is a [*PKGBUILD*](PKGBUILD) file available to install
 the script and documentation at the right directories
 in Arch Linux and derivative distros.
@@ -704,15 +716,10 @@ Below is an installation example with just the PKGBUILD.
         
     pacman -U chatgpt.sh-git*.pkg.tar.zst
 
-
-<!--
-There is a [*PKGBUILD*](https://aur.archlinux.org/packages/chatgpt.sh)
-entry available to install the package in Arch Linux and derivative distros.
 -->
 
 
 ## Termux Users
-
 
 ### Optional Dependencies
 

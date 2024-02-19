@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.51.3  feb/2024  by mountaineerbr  GPL+3
+# v0.52  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -80,7 +80,7 @@ OPTFOLD=1
 # INSTRUCTION
 # Chat completions, chat mode only
 # INSTRUCTION=""
-INSTRUCTION_CHAT="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly."
+INSTRUCTION_CHAT="${INSTRUCTION_CHAT-The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.}"
 
 # Awesome-chatgpt-prompts URL
 AWEURL="https://raw.githubusercontent.com/f/awesome-chatgpt-prompts/main/prompts.csv"
@@ -1396,9 +1396,11 @@ function _set_browsercmdf
 		lynx*) 	echo "lynx -force_html -nolist";; #" -stdin";;
 		elinks*) echo "elinks -force-html -no-references";;
 		links*) echo "links -force-html";;
+		google-chrome*|chromium*) echo "${1%% *} --disable-gpu --headless --dump-dom"
+			return 1;;
 		*) 	echo "curl -L -f --progress-bar";
 			return 1;;
-	esac;
+	esac; ((!DUMP)) || printf '%s' "--dump";
 }
 
 #check input and run a chat command
@@ -1571,9 +1573,9 @@ function cmd_runf
 		url*|[/!]url*)
 			set -- "$(trimf "${*##@(url|[/!]url)}" "$SPC")"; xskip=1;
 			[[ $* = :* ]] && { 	opt_append=1; set -- "${1##:*([$IFS])}" ;};  #append as user message
-			if var=$(set_browsercmdf)
-			then 	cmd_runf /sh${opt_append:+:} "${var} -dump" "${1// /%20}";  #html browser
-			else 	cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed 's/<[^>]*>//g'";  #curl
+			if var=$(DUMP=1 set_browsercmdf)
+			then 	cmd_runf /sh${opt_append:+:} "${var}" "${1// /%20}";  #html browser
+			else 	cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'"; #sed 's/<[^>]*>//g'  #curl+sed
 			fi
 			;;
 		media*|img*)
@@ -3744,7 +3746,7 @@ do
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST init buff var n s
+unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP init buff var n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -4344,12 +4346,13 @@ else
 					_sysmsgf 'User prompt added'
 				fi
 				if ((GOOGLEAI))
-				then 	GINSTRUCTION=$GINSTRUCTION${GINSTRUCTION:+$NL$NL}$var INSTRUCTION_OLD=$INSTRUCTION INSTRUCTION=;
-				else 	INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION=$var;
+				then 	GINSERT=${GINSERT}${var##?("${Q_TYPE##$SPC1}")*(:)}${NL}${NL};
+				else 	INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION=${var};
 				fi
 				unset EDIT SKIP REPLY REPLY_OLD p q n pp qq var;
 				set --; continue;
 			fi
+			((${#GINSERT})) && { 	set -- "${GINSERT}${*}"; REPLY=${GINSERT}${REPLY}; unset GINSERT ;}
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
 
@@ -4391,7 +4394,7 @@ else
 			then 	#chat cmpls
 				[[ ${*} = *([$IFS]):* ]] && role=system || role=user
 				((GOOGLEAI)) &&  #gemini-vision cannot take it multiturn
-				if (( (REGEN<0 || RETRY) && MAIN_LOOP<1)) || is_visionf "$MOD"
+				if { (( (REGEN<0 || RETRY) && MAIN_LOOP<1)) && ((${#INSTRUCTION_OLD})) ;} || is_visionf "$MOD"
 				then 	HIST_G=${HIST}${HIST:+\\n\\n} HIST_C= ;
 					((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
 					MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");

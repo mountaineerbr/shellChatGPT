@@ -1,8 +1,8 @@
 # Maintainer: lilikoi <jamilbio20@gmail.com>
-pkgname='chatgpt.sh-git'
-_pkgname='chatgpt.sh'
-pkgver=0.100.r5
+pkgname='chatgpt.sh'
+pkgver=0.51.3
 pkgrel=1
+_commit=26237679f5fed135e68b8307b10bb0864161fec5
 pkgdesc="Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, and Google Gemini integration."
 url='https://gitlab.com/fenixdragao/shellchatgpt'
 arch=('any')
@@ -21,23 +21,18 @@ optdepends=(
 	'w3m: dump url text (lynx, elinks, links)'
 	#'coreutils: wrap output at spaces (fold)'
 )
-source=("${pkgname}::git+${url}.git")
+source=("${pkgname}-${pkgver}::git+${url}.git#commit=${_commit}")
 sha256sums=('SKIP')
 
-pkgver() {
-	cd "${pkgname}"
-	printf "%s.r%s" "$(sed -n 's/-/./g;s/^# v\([0-9a-zA-Z.-]\+\) .*/\1/p' "${_pkgname}")" "$(git rev-parse --short=7 HEAD)"
-}
-
 package() {
-	cd "${pkgname}"
-	install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/${_pkgname}/LICENSE"
-	install -Dm644 "man/${_pkgname}.1" "${pkgdir}/usr/share/man/man1/${_pkgname}.1"
-	install -Dm644 "man/${_pkgname}.txt" "$pkgdir/usr/share/doc/${_pkgname}/${_pkgname}.txt"
-	install -Dm644 "man/${_pkgname}.html" "$pkgdir/usr/share/doc/${_pkgname}/${_pkgname}.html"
-	install -Dm644 "man/README.md" "$pkgdir/usr/share/doc/${_pkgname}/${_pkgname}.md"
-	install -Dm644 "README.md" "$pkgdir/usr/share/doc/${_pkgname}/README.md"
-	install -Dm644 ".chatgpt.conf" "$pkgdir/usr/share/doc/${_pkgname}/chatgpt.conf"
-	install -Dm755 "${_pkgname}" "${pkgdir}/usr/bin/${_pkgname}"
-	#install -Dm644 "PKGBUILD" "$pkgdir/usr/share/doc/${_pkgname}/PKGBUILD"
+	cd "${pkgname}-${pkgver}"
+	install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/${pkgname}/LICENSE"
+	install -Dm644 "man/${pkgname}.1" "${pkgdir}/usr/share/man/man1/${pkgname}.1"
+	install -Dm644 "man/${pkgname}.txt" "$pkgdir/usr/share/doc/${pkgname}/${pkgname}.txt"
+	install -Dm644 "man/${pkgname}.html" "$pkgdir/usr/share/doc/${pkgname}/${pkgname}.html"
+	install -Dm644 "man/README.md" "$pkgdir/usr/share/doc/${pkgname}/${pkgname}.md"
+	install -Dm644 "README.md" "$pkgdir/usr/share/doc/${pkgname}/README.md"
+	install -Dm644 ".chatgpt.conf" "$pkgdir/usr/share/doc/${pkgname}/chatgpt.conf"
+	install -Dm755 "${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
+	#install -Dm644 "PKGBUILD" "$pkgdir/usr/share/doc/${pkgname}/PKGBUILD"
 }
