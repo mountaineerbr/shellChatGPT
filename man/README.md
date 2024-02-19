@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: February 2024
-title: CHATGPT.SH(1) v0.50.3 \| General Commands Manual
+title: CHATGPT.SH(1) v0.51 \| General Commands Manual
 ---
 
 ### NAME
@@ -302,7 +302,7 @@ or “`/`”.
 | `!`     | `!r`, `!regen`             | Regenerate last response.                              |
 | `!!`    | `!rr`                      | Regenerate response, edit prompt first.                |
 | `!i`    | `!info`                    | Information on model and session settings.             |
-| `!img`  | `!media` \[*FILE*\|*URL*\] | Append image or URL to prompt.                         |
+| `!img`  | `!media` \[*FILE*\|*URL*\] | Append image, media, or URL to prompt.                 |
 | `!url`  | \- \[*URL*\]               | Dump URL text (HTML filtering), optionally edit it.    |
 | `!url:` | \- \[*URL*\]               | Same as `!url` but append output as user.              |
 | `!j`    | `!jump`                    | Jump to request, append start seq primer (text cmpls). |

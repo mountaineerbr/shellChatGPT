@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.50.3  feb/2024  by mountaineerbr  GPL+3
+# v0.51  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -294,7 +294,7 @@ Chat Commands
         !      !r, !regen        Regenerate last response.
        !!      !rr               Regenerate response, edit prompt first.
        !i      !info             Info on model and session settings.
-      !img     !media [FILE|URL] Append image / url to prompt.
+      !img     !media [FILE|URL] Append image / media / url to prompt.
       !url     -         [URL]   Dump URL text, optionally edit it.
       !url:    -         [URL]   Same as !url but append output as user.
        !j      !jump             Jump to request, append response primer.
@@ -615,6 +615,7 @@ function set_model_epnf
 function model_capf
 {
 	case "${1##ft:}" in  #set model max tokens, ft: fine-tune models
+		text*moderation*) 	MODMAX=150000;;
 		text-davinci-002-render-sha) 	MODMAX=8191;;
 		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
 		davinci-002|babbage-002) 	MODMAX=16384;;
@@ -622,20 +623,19 @@ function model_capf
 		code-davinci-00[2-9]) MODMAX=8001;;
 		gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*) MODMAX=128000;;
 		gpt-3.5-turbo-1106) MODMAX=16385;;
-		gpt-4*32k*) 	MODMAX=32768;; 
-		text*moderation*) 	MODMAX=150000;;
-		gpt-4*) 	MODMAX=8192;;
-		gpt-3.5*16K*|*turbo*16k*) 	MODMAX=16384;;
-		*turbo*|*davinci*|chat-bison-*) 	MODMAX=4096;;
-		gemini-*-vision*) 	MODMAX=12288;;
-		gemini-*) 	MODMAX=30720;;
-		text-bison*) 	MODMAX=8196;;
-		embedding-gecko*) 	MODMAX=1024;;
+		gpt-4*32k*|*32k) 	MODMAX=32768;; 
+		gpt-3.5*16K*|*turbo*16k*|*16k) 	MODMAX=16384;;
+		gpt-4*|*-bison*|*-unicorn) 	MODMAX=8192;;
+		*turbo*|*davinci*) 	MODMAX=4096;;
+		gemini*-1.5*) 	MODMAX=128000;;
+		gemini*-vision*) 	MODMAX=16384;;
+		gemini*-pro) 	MODMAX=32760;;
+		*embedding-gecko*) 	MODMAX=3072;;
 		*embedding*|*search*) MODMAX=2046;;
 		aqa) 	MODMAX=7168;;
 		*) 	MODMAX=4000;;
 	esac
-}  #max output of gpt-4 is 4096 tokens. #https://help.openai.com/en/articles/8555510-gpt-4-turbo
+}  #obs: models may have different max input and max output tokens
 
 #make cmpls request
 function __promptf
@@ -1827,7 +1827,7 @@ function cmd_runf
 			session_mainf /"${args[@]}"
 			;;
 		r|rr|''|[/!]|regenerate|regen|[$IFS])  #regenerate last response
-			SKIP=1 EDIT=1 MEDIA_IND=() MEDIA_CMD_IND=();
+			SKIP=1 EDIT=1
 			case "$*" in
 				rr|[/!]) REGEN=2; ((OPTX)) && REGEN=1;;  #edit prompt
 				*) 	REGEN=1 PSKIP=1 REPLY= ;;
@@ -1860,7 +1860,7 @@ function cmd_runf
 		*) 	return 1
 			;;
 	esac; ((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART:-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2;
-	if ((OPTX)) && ((!(REGEN+xskip) )) 
+	if ((OPTX && REGEN<1 && !xskip)) 
 	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
 		__read_charf >/dev/null;
 	fi;
@@ -2006,7 +2006,7 @@ function json_minif
 #usage: fmt_ccf [prompt] [role]
 function fmt_ccf
 {
-	typeset var
+	typeset var ext
 	[[ ${1} != *([$IFS]) ]] || return
 	
 	if ! ((${#MEDIA[@]}+${#MEDIA_CMD[@]}))
@@ -2023,8 +2023,9 @@ function fmt_ccf
 		do
 			if [[ $var = *([$IFS]) ]]
 			then 	continue;
-			elif [[ -f $var ]] && [[ -s $var ]]
-			then 	printf ',\n{ "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,%s" } }' "$(base64 "$var" | tr -d $'\n')";
+			elif [[ -f $var ]]
+			then 	ext=${var##*.}; ((${#ext}<7)) && ext=${ext/[Jj][Pp][Gg]/jpeg} || ext=;
+				printf ',\n{ "type": "image_url", "image_url": { "url": "data:image/%s;base64,%s" } }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
 			else 	printf ',\n{ "type": "image_url", "image_url": { "url": "%s" } }' "$var";
 			fi
 		done;
@@ -2072,11 +2073,7 @@ function _mediachatf
 		fi
 
 		#check if file or url and add to array (max 20MB)
-		if { 	[[ -f $var ]] && case "$var" in  #gemini-vision: image/heic, image/heif
-				*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] ) :;;
-				*) false;;
-			esac
-		} || is_linkf "$var"
+		if is_imagef "$var" || { ((GOOGLEAI)) && is_videof "$var" ;} || is_linkf "$var"
 		then 	((++n));
 			if ((CMD_CHAT))
 			then 	MEDIA_CMD=("${MEDIA_CMD[@]}" "$var");
@@ -2102,6 +2099,7 @@ function _mediachatf
 
 function is_linkf
 {
+	[[ ! -f $1 ]] || return;
 	[[ $1 =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] ||
 	[[ $1 = [Ww][Ww][Ww].* ]] || [[ $1 != [./~]* ]] || [[ ! -e $1 ]] || return;
 	[[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] && return;
@@ -2111,6 +2109,31 @@ function is_linkf
 function is_txtfilef
 {
 	[[ "$(file -- "$1")" = *[Tt][Ee][Xx][Tt]* ]]
+}
+
+function _is_imagef
+{
+	case "$1" in
+		*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] | *[Hh][Ee][Ii][CcFf] )
+			:;;
+		*) 	false;;
+	esac;
+}
+function is_imagef
+{
+	[[ -f $1 ]] && _is_imagef "$1";
+}
+
+function _is_videof
+{
+	case "$1" in
+		*[Mm][Oo][Vv] | *[Mm][Pp][Ee][Gg] | *[Mm][Pp][Gg4] | *[Aa][Vv][Ii] | *[Ww][Mm][Vv] | *[Mm][Pp][Ee][Gg][Pp][Ss] | *[Ff][Ll][Vv] ) :;;
+		*) false;;
+	esac;
+}
+function is_videof
+{
+	[[ -f $1 ]] && _is_videof "$1";
 }
 
 #check for multimodal (vision) model
@@ -3470,11 +3493,16 @@ function set_localaif
 #ollama fun
 function set_googleaif
 {
+	FILE_PRE="${FILE%%.json}.pre.json";
+	GOOGLE_API_HOST="${GOOGLE_API_HOST:-https://generativelanguage.googleapis.com/v1beta}";
+	: ${GOOGLE_API_KEY:?Required}
+	((${#OPENAI_API_KEY})) || OPENAI_API_KEY='sk-CbCCb0CC0bbbCbb0CCCbC0CbbbCC00bC00bbCbbCbbbCbb0C'
+
 	function list_modelsf
 	{
 		if [[ $* = $SPC1 ]]
-		then 	curl -\# --fail-with-body -L "https://generativelanguage.googleapis.com/v1beta/models?key=$GOOGLE_API_KEY" -o "$FILE"
-		else 	curl -\# --fail-with-body -L "https://generativelanguage.googleapis.com/v1beta/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
+		then 	curl -\# --fail-with-body -L "$GOOGLE_API_HOST/models?key=$GOOGLE_API_KEY" -o "$FILE"
+		else 	curl -\# --fail-with-body -L "$GOOGLE_API_HOST/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
 		fi && {
 		if ((OPTL>1))
 		then 	jq . -- "$FILE";
@@ -3486,16 +3514,16 @@ function set_googleaif
 		typeset epn;
 	       	epn='generateContent';
 		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
-		if curl "$@" --fail-with-body -L "https://generativelanguage.googleapis.com/v1beta/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		if curl "$@" --fail-with-body -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$BLOCK" | tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
 		then 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
 		else 	false;
 		fi
-	}; FILE_PRE="${FILE%%.json}.pre.json";
+	}
 	function embedf
 	{
-		curl --fail-with-body -L "https://generativelanguage.googleapis.com/v1beta/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
+		curl --fail-with-body -L "$GOOGLE_API_HOST/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "{ \"model\": \"models/embedding-001\",
 				\"content\": { \"parts\":[{
@@ -3516,7 +3544,7 @@ function set_googleaif
 			block="@${buff}";
 		fi
 		((!${#1})) ||
-		  curl -sS --max-time 10 -L "https://generativelanguage.googleapis.com/v1beta/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		  curl -sS --max-time 10 -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$block" | jq -er '.totalTokens//.tokenCount//empty';
 			((!$?)) || _tiktokenf "$*";
@@ -3530,7 +3558,7 @@ function set_googleaif
 	}
 	function fmt_ccf
 	{
-		typeset var role
+		typeset var ext role
 		[[ ${1} != *([$IFS]) ]] || return
 		
 		case "$2" in
@@ -3542,20 +3570,19 @@ function set_googleaif
 		do
 			if [[ $var = *([$IFS]) ]]
 			then 	continue;
-			elif [[ -f $var ]] && [[ -s $var ]]
-			then 	printf ',
+			elif [[ -f $var ]]
+			then 	ext=${var##*.}; ((${#ext}<7)) && ext=${ext/[Jj][Pp][Gg]/jpeg} || ext=;
+				printf ',
   {
     "inline_data": {
-      "mime_type":"image/jpeg",
+      "mime_type":"%s/%s",
       "data": "%s"
     }
-}' "$(base64 "$var" | tr -d $'\n')";
+}' "$(_is_videof "$var" && echo video || echo image)" "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
 			fi
 		done;
 		printf '%s\n'  ' ] }';
 	}
-	: ${GOOGLE_API_KEY:?Required}
-	((${#OPENAI_API_KEY})) || OPENAI_API_KEY='sk-CbCCb0CC0bbbCbb0CCCbC0CbbbCC00bC00bbCbbCbbbCbb0C'
 }
 
 
@@ -3570,8 +3597,8 @@ do
 	if [[ $opt = - ]]  #long options
 	then 	for opt in api-key  multimodal  markdown  markdown:md  no-markdown \
 			no-markdown:no-md   fold  fold:wrap  no-fold  no-fold:no-wrap \
-			localai  localai:local-ai google  keep-alive  keep-alive:ka \
-			@:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
+			localai  localai:local-ai google google:goo  keep-alive \
+			keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
 			a:presence-penalty      a:presence   a:pre \
 			A:frequency-penalty     A:frequency  A:freq \
 			b:best-of   b:best      B:logprobs   c:chat \
@@ -4105,13 +4132,12 @@ else
 		else 	break_sessionf
 		fi
 		INSTRUCTION_OLD="$INSTRUCTION"
-	elif [[ ${INSTRUCTION} = *([:$IFS]) ]]
+	elif [[ $INSTRUCTION = *([:$IFS]) ]]
 	then 	unset INSTRUCTION
 	fi
 	if [[ $INSTRUCTION != *([:$IFS]) ]]
-	then 	_sysmsgf 'INSTRUCTION:' "${INSTRUCTION}" 2>&1 | foldf >&2;
-		((GOOGLEAI)) && { 	GINSTRUCTION="$INSTRUCTION"$'\n';
-	       		unset INSTRUCTION ;};
+	then 	_sysmsgf 'INSTRUCTION:' "$INSTRUCTION" 2>&1 | foldf >&2;
+		((GOOGLEAI)) && GINSTRUCTION=$INSTRUCTION INSTRUCTION=;
 	fi
 
 	#warnings and tips
@@ -4135,12 +4161,11 @@ else
 
 	while :
 	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
-		((REGEN)) && REGEN_MARK=1;
-		if ((REGEN>1))
-		then 	unset REGEN;
-		elif ((REGEN))
+		if ((REGEN>1))  #regen + edit prompt
+		then 	REGEN=-1; ((--MAIN_LOOP));
+		elif ((REGEN>0))
 		then 	set -- "${REPLY_OLD:-$*}";
-			PSKIP=1; unset REGEN;
+			REGEN=-1 PSKIP=1; ((--MAIN_LOOP));
 		fi
 		((OPTAWE)) || {  #awesome 1st pass skip
 
@@ -4230,7 +4255,7 @@ else
 					set -- ;continue  #A#
 				elif cmd_runf "$REPLY"
 				then 	shell_histf "$REPLY"
-					if ((REGEN))
+					if ((REGEN>0))
 					then 	REPLY="${REPLY_OLD:-$REPLY}"
 					else 	((SKIP)) || REPLY=
 					fi; set --; continue 2
@@ -4241,7 +4266,7 @@ else
 					  prev_tohistf "$(escapef "$REPLY_OLD")"
 					[[ $REPLY = *([$IFS])/* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					[[ $REPLY = */*([$IFS]) ]] && REPLY=$(SMALLEST=1 INDEX=16 trim_trailf "$REPLY" $'\/*')
-					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}" MEDIA_IND=() MEDIA_CMD_IND=();
+					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}"
 				elif [[ -n $REPLY ]]
 				then
 					((RETRY+OPTV)) || [[ $REPLY = $SPC:* ]] \
@@ -4266,7 +4291,6 @@ else
 						then 	RETRY=2 BCYAN="${Color9}"
 						else 	#record prev resp
 							prev_tohistf "$(escapef "$REPLY_OLD")"
-							MEDIA_IND=() MEDIA_CMD_IND=();
 						fi ;REPLY_OLD="$REPLY"
 					fi
 				else
@@ -4321,8 +4345,10 @@ else
 					var=${Q_TYPE##$SPC1}${var}
 					_sysmsgf 'User prompt added'
 				fi
-				((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} INSTRUCTION_OLD=$GINSTRUCTION INSTRUCTION= ||
-				INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION=$var;
+				if ((GOOGLEAI))
+				then 	GINSTRUCTION=$GINSTRUCTION${GINSTRUCTION:+$NL$NL}$var INSTRUCTION_OLD=$INSTRUCTION INSTRUCTION=;
+				else 	INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION=$var;
+				fi
 				unset EDIT SKIP REPLY REPLY_OLD p q n pp qq var;
 				set --; continue;
 			fi
@@ -4366,12 +4392,16 @@ else
 			if ((EPN==6))
 			then 	#chat cmpls
 				[[ ${*} = *([$IFS]):* ]] && role=system || role=user
-			      	#google gemini-vision cannot take it multiturn;
-				((GOOGLEAI && (RETRY+REGEN_MARK) )) && is_visionf "$MOD" && GINSTRUCTION=$(unescapef "$HIST") HIST_C=;
+				((GOOGLEAI)) &&  #gemini-vision cannot take it multiturn
+				if (( (REGEN<0 || RETRY) && MAIN_LOOP<2)) || is_visionf "$MOD"
+				then 	HIST_G=${HIST}${HIST:+\\n\\n} HIST_C= ;
+					((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
+					MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");
+				fi
 				set -- "$(unset MEDIA MEDIA_CMD;
 				  fmt_ccf "$(escapef "$INSTRUCTION")" system;
 				  )${INSTRUCTION:+,${NL}}${HIST_C}${HIST_C:+,${NL}}$(
-				  fmt_ccf "$(escapef "${GINSTRUCTION}${GINSTRUCTION:+${NL}${NL}}$*")" "$role")";
+				  fmt_ccf "${HIST_G}$(escapef "${GINSTRUCTION}${GINSTRUCTION:+$NL$NL}${*}")" "$role")";
 			else 	#text cmpls
 				if { 	((OPTC)) || [[ -n "${START}" ]] ;} && ((JUMP<2))
 				then 	set -- "${ESC}${START:-$A_TYPE}"
@@ -4379,6 +4409,7 @@ else
 				fi
 			fi; unset rest role;
 			
+			#((REGEN || RETRY)) ||
 			for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 			do 	((media_i++))
 				_sysmsgf "img #${media_i} --" "${media:0: COLUMNS-15}$([[ -n ${media: COLUMNS-15} ]] && echo ...)";
@@ -4549,7 +4580,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 			set -- ;continue
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_CMD_IND[@]}));
-		unset MEDIA  MEDIA_CMD  MEDIA_IND  MEDIA_CMD_IND INT_RES GINSTRUCTION REGEN_MARK;
+		unset MEDIA  MEDIA_CMD  MEDIA_IND  MEDIA_CMD_IND INT_RES GINSTRUCTION HIST_G REGEN;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
@@ -4585,7 +4616,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 		fi
 
 		((++MAIN_LOOP)) ;set --
-		unset INSTRUCTION GINSTRUCTION OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY REGEN_MARK BAD_RES INT_RES ESC RET_PRF Q
+		unset INSTRUCTION GINSTRUCTION HIST_G REGEN OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC RET_PRF Q
 		unset role rest tkn tkn_ans ans buff glob out var pid s n
 		((MTURN && !OPTEXIT)) || break
 	done

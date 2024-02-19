@@ -634,13 +634,15 @@ edit `chatgpt.sh` configuration file, and set the following variable:
 ## Google AI
 
 Get a free [API key for Google](https://gemini.google.com/) to be able to
-use Gemini and vision models. Users have a free bandwidth of 60 requests per minute.
+use Gemini and vision models. Users have a free bandwidth of 60 requests per minute, and the script offers a basic implementation of the API.
 
 Set the enviroment variable `$GOOGLE_API_KEY` and run the script
 with `option --google`, such as:
 
     chatgpt.sh --google -cc -m gemini-pro-vision
 
+
+*OBS*: Google Gemini vision models _are not_ enabled for multiturn at the API side yet.
 
 To list all available models, run `chatgpt.sh --google -l`.
 

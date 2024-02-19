@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.50.3 | General Commands Manual
+% CHATGPT.SH(1) v0.51 | General Commands Manual
 % mountaineerbr
 % February 2024
 
@@ -301,7 +301,7 @@ may be either "`!`", or "`/`".
        `!`    `!r`, `!regen`              Regenerate last response.
       `!!`    `!rr`                       Regenerate response, edit prompt first.
       `!i`    `!info`                     Information on model and session settings.
-    `!img`    `!media` \[_FILE_|_URL_]    Append image or URL to prompt.
+    `!img`    `!media` \[_FILE_|_URL_]    Append image, media, or URL to prompt.
     `!url`     \-             \[_URL_]    Dump URL text (HTML filtering), optionally edit it.
    `!url:`     \-             \[_URL_]    Same as `!url` but append output as user.
       `!j`    `!jump`                     Jump to request, append start seq primer (text cmpls).
