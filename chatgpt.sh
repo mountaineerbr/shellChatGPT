@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.52  feb/2024  by mountaineerbr  GPL+3
+# v0.52.1  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4412,7 +4412,8 @@ else
 			
 			#((REGEN || RETRY)) ||
 			for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
-			do 	((media_i++))
+			do 	((media_i++));
+				[[ -f $media ]] && media=$(du -h -- "$media" 2>/dev/null||du -- "$media");
 				_sysmsgf "img #${media_i} --" "${media:0: COLUMNS-15}$([[ -n ${media: COLUMNS-15} ]] && echo ...)";
 			done; unset media media_i;
 		fi
