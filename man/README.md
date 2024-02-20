@@ -155,8 +155,7 @@ generate responses.
 The moderation endpoint can be accessed by setting the model name to
 *text-moderation-latest*.
 
-Stdin is supported when there is no positional arguments left after
-option parsing. Stdin input sets a single PROMPT.
+Stdin text is appended to PROMPT, to set a single PROMPT.
 
 While *cURL* is in the middle of transmitting a request, or receiving a
 response, \<*CTRL-C*\> may be pressed once to interrupt the call.

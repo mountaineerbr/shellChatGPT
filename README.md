@@ -26,7 +26,7 @@ Markdown rendering of chat response (_optional_).
    [mudler's LocalAI](#localai), [Ollama](#ollama), and [Google AI](#google-ai).
 - _Tiktoken_ for accurate tokenization (optional)
 - Colour scheme personalisation, and a configuration file
-- Stdin and text file as input support
+- Stdin and text file input support
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users).
 
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
@@ -589,7 +589,7 @@ Gallery defaults to [HuggingFace](https://huggingface.co/).
 
 ### API Host Configuration
 
-If the host address is different from teh defaults, we need editing
+If the host address is different from the defaults, we need editing
 the script configuration file `.chatgpt.conf`.
 
     vim ~/.chatgpt.conf
