@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.53  feb/2024  by mountaineerbr  GPL+3
+# v0.53.1  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3222,7 +3222,7 @@ do 	__spinf 	#grep session with user regex
 						buff= ; break 2;
 					fi; ok=1;
 				fi;
-				grep $copt $sopt "${regex}" < <(unescapef "$(cut -f1,3- -d$'\t' <<<"$buff")") >&2 || buff= ;
+				grep $copt $sopt "${regex}" < <(_unescapef "$(cut -f1,3- -d$'\t' <<<"$buff")") >&2 || buff= ;
 			else
 				for ((n=0;n<12;++n))
 				do 	__spinf
