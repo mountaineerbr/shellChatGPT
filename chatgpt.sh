@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.52.1  feb/2024  by mountaineerbr  GPL+3
+# v0.53  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -558,8 +558,8 @@ function set_model_epnf
 	case "$1" in
 		*dalle-e*|*stable*diffusion*)
 				# 3 generations  4 variations  9 edits  
-	       			((OPTII)) && EPN=4 || EPN=3;
-	       			((OPTII_EDITS)) && EPN=9;;
+				((OPTII)) && EPN=4 || EPN=3;
+				((OPTII_EDITS)) && EPN=9;;
 		tts-*|*-tts-*) 	EPN=10;;
 		*whisper*) 	((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	case "$1" in
@@ -593,8 +593,8 @@ function set_model_epnf
 						then 	OPTCMPL= OPTC= EPN=7;
 						elif ((OPTI && !(MTURN+CHAT_ENV) ))
 						then 	# 3 generations  4 variations  9 edits  
-	       						((OPTII)) && EPN=4 || EPN=3;
-	       						((OPTII_EDITS)) && EPN=9;
+							((OPTII)) && EPN=4 || EPN=3;
+							((OPTII_EDITS)) && EPN=9;
 						elif ((OPTEMBED))
 						then 	OPTCMPL= OPTC= EPN=1;
 						elif ((OPTCMPL))
@@ -866,7 +866,7 @@ function prompt_printf
 	else
 		prompt_prettyf "$@" | foldf; ret=$?;
 		if ((OPTMD))
-	      	then 	printf "${NC}\\n" >&2;
+		then 	printf "${NC}\\n" >&2;
 			prompt_pf -r ${stream:+-j --unbuffered} "$@" "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
 		fi
 	fi || prompt_pf -r ${stream:+-j --unbuffered} "$@" "$FILE" 2>/dev/null;
@@ -1108,7 +1108,7 @@ function set_histf
 	#first system/instruction: add extra newlines and delete $S_TYPE  (txt cmpls) 
 	[[ $role = system ]] &&	if ((OLLAMA))
 	then 	((OPTC && EPN==0)) && [[ $rest = \\n* ]] && rest+=xx  #!#del \n at start of string
-	       	HIST="${HIST:${#rest}+${#stringc}}"  #delete first system message for ollama
+		HIST="${HIST:${#rest}+${#stringc}}"  #delete first system message for ollama
 	else 	HIST="${HIST:${#rest}:${#stringc}}\\n${HIST:${#rest}+${#stringc}}"
 	fi
 
@@ -1580,9 +1580,10 @@ function cmd_runf
 			;;
 		media*|img*)
 			set -- "${*##@(media|img)*([$IFS])}";
-			CMD_CHAT=1 _mediachatf "|${1##\|}" && {
-			  ((TRUNC_IND)) && set -- "${1:0:${#1}-TRUNC_IND}";
-			  _sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]})) --" "${1:0: COLUMNS-15}$([[ -n ${1: COLUMNS-15} ]] && echo ...)";
+			set -- "$(trim_trailf "$*" $'*([ \t\n])')";
+			CMD_CHAT=1 _mediachatf "$1" && {
+			  [[ -f $1 ]] && set -- "$(du -h -- "$1" 2>/dev/null||du -- "$1")";
+			  _sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}))" "${1:0: COLUMNS-12}$([[ -n ${1: COLUMNS-12} ]] && echo ...)";
 			};
 			;;
 		multimodal|[/!-]multimodal|--multimodal)
@@ -1827,11 +1828,11 @@ function cmd_runf
 			echo Session and History >&2
 			session_mainf /"${args[@]}"
 			;;
-		r|rr|''|[/!]|regenerate|regen|[$IFS])  #regenerate last response
+		r|rr|''|[/!]|regenerate|regen|[/!]regenerate|[/!]regen|[$IFS])  #regenerate last response
 			SKIP=1 EDIT=1
 			case "$*" in
-				rr|[/!]) REGEN=2; ((OPTX)) && REGEN=1;;  #edit prompt
-				*) 	REGEN=1 PSKIP=1 REPLY= ;;
+				rr|[/!]*) REGEN=2; ((OPTX)) && REGEN=1;;  #edit prompt
+				*) 	REGEN=1 REPLY= ;;
 			esac
 			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
@@ -1916,6 +1917,7 @@ function edf
 	ed_msg=$'\n\n'",,,,,,(edit below this line),,,,,,"
 	((OPTC)) && rest="${RESTART:-$Q_TYPE}" || rest="${RESTART}"
 	rest="$(_unescapef "$rest")"
+	((GOOGLEAI)) && typeset INSTRUCTION=${INSTRUCTION:-$GINSTRUCTION};
 
 	if ((CHAT_ENV))
 	then 	MAIN_LOOP=1 Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= \
@@ -2058,17 +2060,22 @@ function ollama_mediaf
 #will _NOT_ work with whitespace in filename if not pipe-delimited and may not work with mixed pipe- and whitespace-delimited input
 function _mediachatf
 {
-	typeset var spc spc2 spc_sep i n; unset TRUNC_IND;
-       	i=${#1} spc=$'*([ \t\n\r]|\\[tnr])' spc2="+${spc##\*}";
+	typeset var spc spc2 spc_sep ftrim break i n; unset TRUNC_IND;
+       	i=${#1} spc=$'(\\[tnr]|[ \t\n\r])' spc2="+$spc" spc="*$spc";
 
-	set -- "$(sed -n 's/\\n/\n/g; s/\\\\ / /g; s/\\ / /g; $p' <<<"$*")";  #process only the last line of input, fix for escaped white spaces in filename
-	((!CMD_CHAT)) && ((${#1}>2048)) && set -- "${1:${#1}-2048}";  #avoid too long input by defaults
-	set -- "${1%%?(\|)${spc}}";  #del trailing spaces and undue pipe separator
+	#process only the last line of input, fix for escaped white spaces in filename, del trailing spaces and trailing pipe separator
+	set -- "$(sed -n 's/\\n/\n/g; s/\\\\ / /g; s/\\ / /g; s/[[:space:]|]*$//; $p' <<<"$*")";
 
-	while [[ $1 = *[\|\ ]*[[:alnum:]]* ]] ||
-		[[ -f "$(trimf "$1" $'*(\\\\[ntrvf]|[$IFS]|\|)')" ]]  #prompt is the raw filename
-	do
-		if [[ $1 = *\|* ]]
+	((!CMD_CHAT)) && ((${#1}>2048)) && set -- "${1:${#1}-2048}";  #avoid too long an input (too slow)
+
+	while [[ $1 = $SPC1 ]] || ((n>99)) && break;
+		[[ $1 = *[\|\ ]*[[:alnum:]]* ]] || {  #prompt is the raw filename / url:
+		  ftrim=$(trim_leadf "$1" $'*(\\\\[ntr]|[ \n\t\|])');
+		  { [[ -f $ftrim ]] || is_linkf "$ftrim" ;} && break=1;
+		}
+	do 	if ((break))
+		then var=$ftrim;
+		elif [[ $1 = *\|* ]]
 		then 	var=${1##*\|${spc}};  #pipe separator
 		else 	var=${1##*${spc2}} spc_sep=1;  #space separator
 		fi
@@ -2082,7 +2089,9 @@ function _mediachatf
 			else 	MEDIA=("$var" "${MEDIA[@]}");  #read by fmt_ccf()
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
-			if [[ $1 = *\|* ]]
+			if ((break))
+			then 	set -- ;
+			elif [[ $1 = *\|* ]]
 			then 	set -- "${1%\|*}";
 			else 	set -- "${1%${spc2}*}";
 			fi; spc_sep= ;
@@ -2095,6 +2104,7 @@ function _mediachatf
 			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
 			set -- "${1%\|*}";
 		fi  #https://stackoverflow.com/questions/12199059/
+		((break)) && break;
 	done; ((n));
 }
 
@@ -2102,9 +2112,8 @@ function is_linkf
 {
 	[[ ! -f $1 ]] || return;
 	[[ $1 =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] ||
-	[[ $1 = [Ww][Ww][Ww].* ]] || [[ $1 != [./~]* ]] || [[ ! -e $1 ]] || return;
-	[[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] && return;
-	curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1" && LINK_CACHE="$LINK_CACHE $1";
+	[[ $1 = [Ww][Ww][Ww].* ]] || [[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] || {
+	curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1" 2>/dev/null && LINK_CACHE="$LINK_CACHE $1" ;}
 }
 
 function is_txtfilef
@@ -2382,9 +2391,9 @@ function whisperf
 	if [[ ${*} != *([$IFS]) ]]
 	then 	((CHAT_ENV+MTURN)) || { var=$*;
 		  __sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${var: COLUMNS-17} ]] && echo ...)";
-	  	}; set -- -F prompt="$*";
+		}; set -- -F prompt="$*";
 	elif ((CHAT_ENV+MTURN))
-	then 	var="${WCHAT_C:-$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")}";
+	then 	var="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}";
 		((${#var})) && set -- -F prompt="$var";
 	fi
 
@@ -3213,7 +3222,7 @@ do 	__spinf 	#grep session with user regex
 						buff= ; break 2;
 					fi; ok=1;
 				fi;
-				grep $copt $sopt "${regex}" < <(_unescapef "$(cut -f1,3- -d$'\t' <<<"$buff")") >&2 || buff= ;
+				grep $copt $sopt "${regex}" < <(unescapef "$(cut -f1,3- -d$'\t' <<<"$buff")") >&2 || buff= ;
 			else
 				for ((n=0;n<12;++n))
 				do 	__spinf
@@ -3386,7 +3395,7 @@ function session_mainf
 		    if ((break))  || {
 			_sysmsgf 'Break session?' '[N/ys] ' ''
 			case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
-		        }
+			}
 		    then 	FILECHAT="$file" cmd_runf /break
 		    fi
 		fi
@@ -3481,8 +3490,8 @@ function set_localaif
 				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;}
 			fi
 		}  #https://localai.io/models/
-	       	set_model_epnf "$MOD";
-	      	#disable endpoint auto select?
+		set_model_epnf "$MOD";
+		#disable endpoint auto select?
 		[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
 		((${#OPENAI_API_KEY})) || OPENAI_API_KEY='sk-CbCCb0CC0bbbCbb0CCCbC0CbbbCC00bC00bbCbbCbbbCbb0C'
 		((!LOCALAI)) || _sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
@@ -3512,7 +3521,7 @@ function set_googleaif
 	function __promptf
 	{
 		typeset epn;
-	       	epn='generateContent';
+		epn='generateContent';
 		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
 		if curl "$@" --fail-with-body -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
@@ -3531,7 +3540,7 @@ function set_googleaif
 	}
 	function __tiktokenf
 	{
-		typeset epn block buff
+		typeset epn block buff ret;
 		if [[ $MOD = *embedding* ]]
 		then 	epn="countTextTokens";
 			block="{ \"prompt\": {\"text\": \"${*}\"}}";
@@ -3543,11 +3552,13 @@ function set_googleaif
 			printf '%s\n' "$block" >"$buff";
 			block="@${buff}";
 		fi
+		printf '%s\b' 'o' >&2;
 		((!${#1})) ||
 		  curl -sS --max-time 10 -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
-			-d "$block" | jq -er '.totalTokens//.tokenCount//empty';
-			((!$?)) || _tiktokenf "$*";
+			-d "$block" | jq -er '.totalTokens//.tokenCount//empty'; ret=$?;
+		printf '%s\b' ' ' >&2;
+		((!ret)) || _tiktokenf "$*";
 	}
 	function tiktokenf
 	{
@@ -4161,11 +4172,9 @@ else
 
 	while :
 	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
-		if ((REGEN>1))  #regen + edit prompt
-		then 	REGEN=-1; ((--MAIN_LOOP));
-		elif ((REGEN>0))
-		then 	set -- "${REPLY_OLD:-$*}";
-			REGEN=-1 PSKIP=1; ((--MAIN_LOOP));
+		if ((REGEN>0))  #regen + edit prompt
+		then 	((REGEN>1)) || set -- "${REPLY_OLD:-$@}";
+			REGEN=-1; ((--MAIN_LOOP));
 		fi
 		((OPTAWE)) || {  #awesome 1st pass skip
 
@@ -4303,7 +4312,7 @@ else
 			done
 		fi
 
-		if ((!(OPTCMPL+JUMP) )) && [[ -z "${INSTRUCTION}${*}" ]]
+		if ((!(OPTCMPL+JUMP) )) && [[ -z "${INSTRUCTION:-$GINSTRUCTION}${*}" ]]
 		then 	__warmsgf "(empty)"
 			set -- ; continue
 		fi
@@ -4363,7 +4372,7 @@ else
 			#((TRUNC_IND)) && REPLY_OLD=$* && set -- "${1:0:${#1}-TRUNC_IND}";
 			((MTURN)) &&
 			for var in "${MEDIA_CMD[@]}"
-			do 	REC_OUT="$REC_OUT| $var";
+			do 	REC_OUT="$REC_OUT| $var" REPLY="$REPLY| $var";
 				set -- "$*| $var";
 			done; unset var;
 		#insert mode option
@@ -4414,7 +4423,7 @@ else
 			for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 			do 	((media_i++));
 				[[ -f $media ]] && media=$(du -h -- "$media" 2>/dev/null||du -- "$media");
-				_sysmsgf "img #${media_i} --" "${media:0: COLUMNS-15}$([[ -n ${media: COLUMNS-15} ]] && echo ...)";
+				_sysmsgf "img #${media_i}" "${media:0: COLUMNS-12}$([[ -n ${media: COLUMNS-12} ]] && echo ...)";
 			done; unset media media_i;
 		fi
 		
@@ -4577,7 +4586,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 			unset HIST_TIME
 		elif ((MTURN))
 		then
-			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND;
+			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP REGEN INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND;
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi;
@@ -4609,7 +4618,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 		fi
 		if ((OPTW))
 		then 	#whisper auto context for better transcription / translation
-			WCHAT_C="${WCHAT_C:-$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")}\\n\\n${REPLY:-$*}";
+			WCHAT_C="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}\\n\\n${REPLY:-$*}";
 			if ((${#WCHAT_C}>224*4))
 			then 	((n = ${#WCHAT_C} - (220*4) ));
 				WCHAT_C=$(trim_leadf "${WCHAT_C: n}" "$SPC1");
