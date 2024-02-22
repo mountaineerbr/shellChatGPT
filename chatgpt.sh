@@ -745,6 +745,7 @@ function __clr_lineupf
 # spin.bash -- provide a `spinning wheel' to show progress
 #  Copyright 1997 Chester Ramey (adapted)
 SPIN_CHARS=(⣟ ⣯ ⣷ ⣾ ⣽ ⣻ ⢿ ⡿)
+SPIN_CHARS=(⠏ ⠇ ⠧ ⠦ ⠴ ⠼ ⠸ ⠹ ⠙ ⠋)
 SPIN_CHARS=(\| \\ - /)
 function __spinf
 {
@@ -4312,7 +4313,7 @@ else
 			done
 		fi
 
-		if ((!(OPTCMPL+JUMP) )) && ((!${#1}))
+		if ! ((OPTCMPL+JUMP+${#1}))
 		then 	__warmsgf "(empty)"
 			set -- ; continue
 		fi
