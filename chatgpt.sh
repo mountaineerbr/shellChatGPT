@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.54  feb/2024  by mountaineerbr  GPL+3
+# v0.55  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1832,7 +1832,7 @@ function cmd_runf
 		r|rr|''|[/!]|regenerate|regen|[/!]regenerate|[/!]regen|[$IFS])  #regenerate last response
 			SKIP=1 EDIT=1
 			case "$*" in
-				rr|[/!]*) REGEN=2; ((OPTX)) && REGEN=1;;  #edit prompt
+				rr|[/!]*) REGEN=2;;  #edit prompt
 				*) 	REGEN=1 REPLY= ;;
 			esac
 			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
@@ -4174,7 +4174,13 @@ else
 	while :
 	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
 		if ((REGEN>0))  #regen + edit prompt
-		then 	((REGEN>1)) || set -- "${REPLY_OLD:-$@}";
+		then 	if ((REGEN==1))
+       			then 	((OPTX)) && PSKIP=1;
+		       		set -- "${REPLY_OLD:-$@}"
+			elif ((REGEN>1)) && ((OPTX))
+       			then 	PSKIP= ;
+		       		set -- "${REPLY_OLD:-$@}"
+			fi;
 			REGEN=-1; ((--MAIN_LOOP));
 		fi
 		((OPTAWE)) || {  #awesome 1st pass skip
@@ -4431,7 +4437,7 @@ else
 		set_optsf
 
 		if ((EPN==6))
-		then 	set -- $(sed -e '/^[[:space:]]*$/d' <<<"$*" | sed -e '$s/,[[:space:]]*$//');
+		then 	set -- "$(sed -e '/^[[:space:]]*$/d' <<<"$*" | sed -e '$s/,[[:space:]]*$//')";
 			if ((GOOGLEAI))
 			then 	BLOCK="\"contents\": [ ${*} ],";
 			else 	BLOCK="\"messages\": [ ${*} ],";
