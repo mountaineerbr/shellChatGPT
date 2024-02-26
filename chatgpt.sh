@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.55  feb/2024  by mountaineerbr  GPL+3
+# v0.55.1  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2422,7 +2422,7 @@ function whisperf
 	fi & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 
-	wait $pid; ret=$?; trap 'exit' INT; ((ret)) &&
+	wait $pid; ret=$?; trap 'exit' INT; ((!ret)) &&
 	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + (.text//empty)) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
 	then
@@ -4547,7 +4547,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP
 				((STREAM)) && ((MAX_PREV+=tkn[1]));
 			fi
 
-			if [[ -z "$ans" ]] && ((RET_PRF<120))
+			if [[ -z "$ans" ]] && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI) ))
 			then 	jq -e '(.error?)//(.[]?|.error?)//.' "$FILE" >&2 || ! cat -- "$FILE" >&2 || ((!GOOGLEAI)) || jq . "$FILE_PRE" >&2 2>/dev/null;
 				__warmsgf "(response empty)"
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
