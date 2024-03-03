@@ -163,8 +163,8 @@ This script also supports warping LocalAI, Ollama, Gemini and Mistral APIs.
 For LocalAI integration, run the script with `option --localai`,
 or set environment **$OPENAI_API_HOST** with the server URL.
 
-For Mistral AI set environment variable **$MISTRAL_API_KEY**, and run the script
-with `option --mistral` or set **$OPENAI_API_HOST**
+For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
+and run the script with `option --mistral` or set **$OPENAI_API_HOST**
 to "https://api.mistral.ai/ "
 (mind the trailing space for endpoint autoselection).
 

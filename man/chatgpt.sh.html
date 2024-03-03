@@ -168,6 +168,9 @@
     }
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
 </head>
 <body>
 <header id="title-block-header">
@@ -339,10 +342,10 @@ APIs.</p>
 <p>For LocalAI integration, run the script with
 <code>option --localai</code>, or set environment
 <strong>$OPENAI_API_HOST</strong> with the server URL.</p>
-<p>For Mistral AI set environment variable <strong><span
-class="math inline">$MISTRAL_API_KEY**, and run the script
-with `option --mistral` or set **$</span>OPENAI_API_HOST</strong> to
-“https://api.mistral.ai/” (mind the trailing space for endpoint
+<p>For Mistral AI set environment variable
+<strong>$MISTRAL_API_KEY</strong>, and run the script with
+<code>option --mistral</code> or set <strong>$OPENAI_API_HOST</strong>
+to “https://api.mistral.ai/” (mind the trailing space for endpoint
 autoselection).</p>
 <p>List models with <code>option -l</code>, or run <code>/models</code>
 in chat mode.</p>
