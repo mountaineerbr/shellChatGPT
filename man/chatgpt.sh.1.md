@@ -165,7 +165,7 @@ or set environment **$OPENAI_API_HOST** with the server URL.
 
 For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
 and run the script with `option --mistral` or set **$OPENAI_API_HOST**
-to "https://api.mistral.ai/ "
+to "https://api.mistral.ai/\ "
 (mind the trailing space for endpoint autoselection).
 
 List models with `option -l`, or run `/models` in chat mode.
