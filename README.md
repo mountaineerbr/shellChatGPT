@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, and Google Gemini integration.
+Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, Gemini and Mistral integration.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
@@ -23,7 +23,7 @@ Markdown rendering of chat response (_optional_).
 - Voice in (**Whisper**) and voice out (**TTS**) _chat / REPL mode_ (`options -cczw`)
 - Integration with [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh),
-   [mudler's LocalAI](#localai), [Ollama](#ollama), and [Google AI](#google-ai).
+   [mudler's LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), and [Mistral AI](#mistral-ai).
 - _Tiktoken_ for accurate tokenization (optional)
 - Colour scheme personalisation, and a configuration file
 - Stdin and text file input support
@@ -645,6 +645,13 @@ with `option --google`, such as:
 *OBS*: Google Gemini vision models _are not_ enabled for multiturn at the API side yet.
 
 To list all available models, run `chatgpt.sh --google -l`.
+
+
+## Mistral AI
+
+Set up a [Mistral AI account](https://mistral.ai/),
+declare the enviroment variable `$MISTRAL_API_KEY`, and run the script
+with `option --mistral`.
 
 
 <!--

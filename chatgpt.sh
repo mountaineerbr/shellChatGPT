@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.55.1  feb/2024  by mountaineerbr  GPL+3
+# v0.56  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
-# OpenAI API key
+# API keys
 #OPENAI_API_KEY=
+#GOOGLE_API_KEY=
+#MISTRAL_API_KEY=
 
 # DEFAULTS
 # Text cmpls model
@@ -22,8 +24,10 @@ MOD_SPEECH="${MOD_SPEECH:-tts-1}"   #"tts-1-hd"
 MOD_LOCALAI="${MOD_LOCALAI:-phi-2}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-llama2}"  #"llama2-uncensored:latest"
-# Google AI
+# Google AI model
 MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.0-pro-latest}"
+# Mistral AI model
+MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -242,8 +246,9 @@ Environment
 
 	FILECHAT 	Path to a history / session TSV file.
 
-	GOOGLE_API_KEY 	Google AI API key.
-
+	GOOGLE_API_KEY
+	MISTRAL_API_KEY Google / Mistral AI API keys.
+	
 	INSTRUCTION 	Initial instruction, or system message.
 
 	INSTRUCTION_CHAT
@@ -255,9 +260,10 @@ Environment
 	MOD_SPEECH
 	MOD_LOCALAI
 	MOD_OLLAMA
+	MOD_MISTRAL
 	MOD_GOOGLEAI 	Set defaults model for each endpoint / integration.
 	
-	OLLAMA_API_HOST Ollama host URL (option -O).
+	OLLAMA_API_HOST Ollama host URL (with option -O).
 
 	OPENAI_API_HOST
 	OPENAI_API_HOST_STATIC
@@ -504,6 +510,8 @@ Options
 		Set log file. FILEPATH is required.
 	--localai
 		Set LocalAI integration (cmpls/chat).
+	--mistral
+		Set Mistral AI integration (chat).
 	--md, --markdown, --markdown=[SOFTWARE]
 		Enable markdown rendering in response. Software is optional:
 		\`bat', \`pygmentize', \`glow', \`mdcat', \`mdless', or \`pandoc'.
@@ -566,9 +574,9 @@ function set_model_epnf
 					*search*) 	EPN=5 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|text*moderation*|*embedding*|*similarity*|*search*)
+		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|text*moderation*|*embed*|*similarity*|*search*)
 				case "$1" in
-					*embedding*|*similarity*|*search*) 	EPN=5 OPTEMBED=1;;
+					*embed*|*similarity*|*search*) 	EPN=5 OPTEMBED=1;;
 					text*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
@@ -584,7 +592,7 @@ function set_model_epnf
 				;;
 		*) 		#fallback
 				case "$1" in
-					*embedding*|*similarity*|*search*)
+					*embed*|*similarity*|*search*)
 						EPN=5 OPTEMBED=1;;
 					*)
 						if ((OPTZ && !(MTURN+CHAT_ENV) ))
@@ -629,8 +637,9 @@ function model_capf
 		gemini*-1.5*) 	MODMAX=128000;;
 		gemini*-vision*) 	MODMAX=16384;;
 		gemini*-pro*) 	MODMAX=32760;;
+		*mi[sx]tral*) 	MODMAX=32000;;
 		*embedding-gecko*) 	MODMAX=3072;;
-		*embedding*|*search*) MODMAX=2046;;
+		*embed*|*search*) MODMAX=2046;;
 		aqa) 	MODMAX=7168;;
 		*) 	MODMAX=4000;;
 	esac
@@ -970,7 +979,7 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! cat -- "$FILE"
 	else 	jq -r '.data[].id' "$FILE" | sort \
-		&& printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 \
+		&& { ((MISTRALAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;} \
 		|| ! cat -- "$FILE"
 	fi || ! __warmsgf 'Err:' 'Model list'
 }
@@ -2832,11 +2841,10 @@ function __is_rgbf
 function embedf
 {
 	BLOCK="{
-\"model\": \"$MOD\",
-\"input\": \"${*:?INPUT ERR}\",
-\"temperature\": $OPTT, $OPTP_OPT
-\"max_tokens\": $OPTMAX,
-\"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
+$( ((MISTRALAI)) || echo "\"temperature\": $OPTT, $OPTP_OPT
+\"max_tokens\": $OPTMAX, \"n\": $OPTN," )
+\"model\": \"$MOD\", ${BLOCK_USR:+$NL}$BLOCK_USR
+\"input\": \"${*:?INPUT ERR}\"
 }"
 	promptf 2>&1
 }
@@ -3457,7 +3465,7 @@ function set_localaif
 	if [[ $OPENAI_API_HOST != *([$IFS]) ]] && LOCALAI=1 || ((OLLAMA))
 	then
 		API_HOST=${OPENAI_API_HOST%%*([/$IFS])};
-		((OLLAMA)) ||
+		((OLLAMA+MISTRALAI)) ||
 		function list_modelsf  #LocalAI only
 		{
 			if [[ $* = [Ii]nstall* ]]  #install a model
@@ -3609,7 +3617,7 @@ do
 	if [[ $opt = - ]]  #long options
 	then 	for opt in api-key  multimodal  markdown  markdown:md  no-markdown \
 			no-markdown:no-md   fold  fold:wrap  no-fold  no-fold:no-wrap \
-			localai  localai:local-ai google google:goo  keep-alive \
+			localai  localai:local-ai google google:goo  mistral  keep-alive \
 			keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
 			a:presence-penalty      a:presence   a:pre \
 			A:frequency-penalty     A:frequency  A:freq \
@@ -3682,7 +3690,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -3727,10 +3735,14 @@ do
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		o) 	OPTCLIP=1;;
-		O) 	OLLAMA=1 GOOGLEAI= ;;
-		localai) [[ -z $OPENAI_API_HOST$OPENAI_API_HOST_STATIC ]] && OPENAI_API_HOST="http://127.0.0.1:8080";
+		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= ;;
+		google) GOOGLEAI=1 OLLAMA= MISTRALAI= ;;
+		mistral)
+			[[ -z $OPENAI_API_HOST$OPENAI_API_HOST_STATIC ]] && OPENAI_API_HOST="https://api.mistral.ai/ ";
+			MISTRALAI=1 OLLAMA= GOOGLEAI= ;;
+		localai)
+			[[ -z $OPENAI_API_HOST$OPENAI_API_HOST_STATIC ]] && OPENAI_API_HOST="http://127.0.0.1:8080";
 			LOCALAI=1;;
-		google) GOOGLEAI=1 OLLAMA= ;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
@@ -3815,10 +3827,12 @@ then 	((OPTI)) && MOD_IMAGE=$OPTMARG  #default models for functions
 else
 	if ((OLLAMA))
 	then 	MOD=$MOD_OLLAMA
-	elif ((LOCALAI))
-	then 	MOD=$MOD_LOCALAI
 	elif ((GOOGLEAI))
 	then 	MOD=$MOD_GOOGLE
+	elif ((MISTRALAI)) || [[ $OPENAI_API_HOST = *mistral* ]]
+	then 	MOD=$MOD_MISTRAL
+	elif ((LOCALAI))
+	then 	MOD=$MOD_LOCALAI
 	elif ((OPTCMPL))
 	then 	:;
 	elif ((OPTC>1))  #chat
@@ -3847,13 +3861,14 @@ fi
 #google integration
 if ((GOOGLEAI))
 then 	set_googleaif;
-	unset OPTTIK OLLAMA;
+	unset OPTTIK OLLAMA MISTRALAI;
 else 	unset GOOGLEAI;
 fi
 
 #ollama integration
 if ((OLLAMA))
 then 	set_ollamaf;
+	unset GOOGLEAI MISTRALAI;
 else  	unset OLLAMA OLLAMA_API_HOST;
 fi
 
@@ -3861,6 +3876,15 @@ fi
 if [[ ${OPENAI_API_HOST_STATIC}${OPENAI_API_HOST} != *([$IFS]) ]]
 then 	set_localaif;
 else 	unset OPENAI_API_HOST OPENAI_API_HOST_STATIC;
+fi
+
+#mistral ai api
+if [[ $OPENAI_API_HOST = *mistral* ]] || ((MISTRALAI))
+then 	: ${MISTRAL_API_KEY:?Required}
+	OPENAI_API_KEY=${MISTRAL_API_KEY:-$OPENAI_API_KEY}
+	[[ $MOD = *embed* ]] || OPTSUFFIX= OPTCMPL= OPTC=2;
+	unset LOCALAI OLLAMA GOOGLEAI; MISTRALAI=1;
+	unset OPTA OPTAA OPTB;
 fi
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"
@@ -4112,6 +4136,7 @@ else
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 :Marv is a chatbot that reluctantly answers questions with sarcastic responses:
 		OPTA="${OPTA:-0.6}" OPTT="${OPTT:-0.8}"  #!#
 		STOPS+=("${Q_TYPE//$SPC1}" "${A_TYPE//$SPC1}")
+		((MISTRALAI)) && unset OPTA
 	else 	((EPN==6)) || __sysmsgf 'Text Completions'
 	fi
 	__sysmsgf 'Language Model:' "$MOD"
@@ -4490,11 +4515,11 @@ $BLOCK
 		else
 			BLOCK="{
 $BLOCK $OPTSUFFIX_OPT
-\"model\": \"$MOD\", \"temperature\": $OPTT,
 $( ((OPTMAX_NILL && EPN==6)) || echo "\"max_tokens\": $OPTMAX," )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTBB_OPT $OPTSTOP
-\"n\": $OPTN${BLOCK_USR:+,$NL}$BLOCK_USR
+$( ((MISTRALAI)) || echo "\"n\": $OPTN," )
+\"model\": \"$MOD\", \"temperature\": $OPTT${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
 		fi
 

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: February 2024
-title: CHATGPT.SH(1) v0.55 \| General Commands Manual
+title: CHATGPT.SH(1) v0.56 \| General Commands Manual
 ---
 
 ### NAME
@@ -169,11 +169,19 @@ at “*~/.cache/chatgptsh*”.
 A personal OpenAI API is required, set it with `option --api-key`. See
 also **ENVIRONMENT section**.
 
-This script also supports warping LocalAI and Ollama APIs.
+This script also supports warping LocalAI, Ollama, Gemini and Mistral
+APIs.
 
 For LocalAI integration, run the script with `option --localai`, or set
-environment **\$OPENAI_API_HOST** with the server URL. List models with
-`option -l`, or run `/models` in chat mode.
+environment **\$OPENAI_API_HOST** with the server URL.
+
+For Mistral AI set environment variable
+**$MISTRAL_API_KEY**, and run the script
+with `option --mistral` or set **$OPENAI_API_HOST** to
+“https://api.mistral.ai/” (mind the trailing space for endpoint
+autoselection).
+
+List models with `option -l`, or run `/models` in chat mode.
 
 <!--
 Install models with `option -l` or chat command `/models`
@@ -595,8 +603,10 @@ Defaults="*~/.chatgpt.conf*"
 **FILECHAT**  
 Path to a history / session TSV file (script-formatted).
 
-**GOOGLE_API_KEY**  
-Google AI API key.
+**GOOGLE_API_KEY**
+
+**MISTRAL_API_KEY**  
+Google / Mistral AI API keys.
 
 **INSTRUCTION**  
 Initial initial instruction, or system message.
@@ -615,6 +625,8 @@ Initial initial instruction, or system message for chat mode.
 **MOD_LOCALAI**
 
 **MOD_OLLAMA**
+
+**MOD_MISTRAL**
 
 **MOD_GOOGLEAI**  
 Set defaults model for each endpoint / integration.
@@ -937,6 +949,9 @@ Set log file. *FILEPATH* is required.
 
 **--localai**  
 Set LocalAI integration (cmpls/chat).
+
+**--mistral**  
+Set Mistral AI integration (chat).
 
 **--md**, **--markdown**, **--markdown**=\[*SOFTWARE*\]  
 Enable markdown rendering in response. Software is optional: *bat*,
