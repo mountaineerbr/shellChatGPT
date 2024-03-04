@@ -192,7 +192,7 @@ Description
 	text prompt, such as \`| [url|filepath]'.
 
 	If the first positional argument of the script starts with the
-	command operator, the command \`/session [HIST_NAME]' to change
+	command operator \`/', the command \`/session [HIST_NAME]' to change
 	to or create a new history file is assumed (with options -ccCdHH).
 
 	Option -i generates or edits images. A text prompt is required for

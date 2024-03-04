@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: February 2024
-title: CHATGPT.SH(1) v0.56 \| General Commands Manual
+title: CHATGPT.SH(1) v0.56.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -75,9 +75,9 @@ appended by typing the operator pipe and a valid input at the end of the
 text prompt, such as “`|` \[*url*\|*filepath*\]”.
 
 If the first positional argument of the script starts with the command
-operator and a history file name, the command “`/session`
-\[*HIST_NAME*\]” is assumed. This will change to or create a new history
-file (with `options -ccCdHH`).
+operator forward slash “`/`” and a history file name, the command
+“`/session` \[*HIST_NAME*\]” is assumed. This will change to or create a
+new history file (with `options -ccCdHH`).
 
 Set model with “`-m` \[*MODEL*\]”, with *MODEL* as its name, or set it
 as “*.*” to pick from the model list. List available models with
@@ -177,8 +177,7 @@ environment **\$OPENAI_API_HOST** with the server URL.
 
 For Mistral AI set environment variable **\$MISTRAL_API_KEY**, and run
 the script with `option --mistral` or set **\$OPENAI_API_HOST** to
-“https://api.mistral.ai/ ” (mind the trailing space for endpoint
-autoselection).
+“https://api.mistral.ai/”.
 
 List models with `option -l`, or run `/models` in chat mode.
 

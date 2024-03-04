@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.56 | General Commands Manual
+% CHATGPT.SH(1) v0.56.1 | General Commands Manual
 % mountaineerbr
 % February 2024
 
@@ -67,7 +67,7 @@ be appended by typing the operator pipe and a valid input at the
 end of the text prompt, such as "`|` \[_url_|_filepath_]".
 
 If the first positional argument of the script starts with the
-command operator and a history file name, the
+command operator forward slash "`/`" and a history file name, the
 command "`/session` \[_HIST_NAME_]" is assumed. This will
 change to or create a new history file (with `options -ccCdHH`).
 
@@ -165,8 +165,7 @@ or set environment **$OPENAI_API_HOST** with the server URL.
 
 For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
 and run the script with `option --mistral` or set **$OPENAI_API_HOST**
-to "https://api.mistral.ai/\ "
-(mind the trailing space for endpoint autoselection).
+to "https://api.mistral.ai/".
 
 List models with `option -l`, or run `/models` in chat mode.
 
