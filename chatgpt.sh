@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56  feb/2024  by mountaineerbr  GPL+3
+# v0.56.1  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3801,6 +3801,11 @@ def byellow: null; \
 def bpurple: null; \
 def reset:   null;"
 
+#mistral ai
+if [[ $OPENAI_API_HOST = *mistral* ]] || ((MISTRALAI))
+then 	[[ $MOD = *embed* ]] || OPTSUFFIX= OPTCMPL= OPTC=2;
+fi
+
 ((OPTL+OPTZZ)) && unset OPTX
 ((OPTZ && OPTW && !MTURN)) && unset OPTX
 ((OPTI)) && unset OPTC
@@ -3882,7 +3887,6 @@ fi
 if [[ $OPENAI_API_HOST = *mistral* ]] || ((MISTRALAI))
 then 	: ${MISTRAL_API_KEY:?Required}
 	OPENAI_API_KEY=${MISTRAL_API_KEY:-$OPENAI_API_KEY}
-	[[ $MOD = *embed* ]] || OPTSUFFIX= OPTCMPL= OPTC=2;
 	unset LOCALAI OLLAMA GOOGLEAI; MISTRALAI=1;
 	unset OPTA OPTAA OPTB;
 fi
