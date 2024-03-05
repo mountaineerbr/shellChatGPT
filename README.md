@@ -650,8 +650,9 @@ To list all available models, run `chatgpt.sh --google -l`.
 ## Mistral AI
 
 Set up a [Mistral AI account](https://mistral.ai/),
-declare the enviroment variable `$MISTRAL_API_KEY`, and run the script
-with `option --mistral`.
+declare the enviroment variable `$MISTRAL_API_KEY`,
+and run the script with `option --mistral` for complete integration.
+<!-- $MISTRAL_API_HOST -->
 
 
 <!--

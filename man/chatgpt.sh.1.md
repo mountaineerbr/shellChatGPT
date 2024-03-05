@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.56.1 | General Commands Manual
+% CHATGPT.SH(1) v0.56.2 | General Commands Manual
 % mountaineerbr
 % February 2024
 
@@ -166,6 +166,8 @@ or set environment **$OPENAI_API_HOST** with the server URL.
 For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
 and run the script with `option --mistral` or set **$OPENAI_API_HOST**
 to "https://api.mistral.ai/".
+Prefer setting command line `option --mistral` for complete integration.
+<!-- also see: \$MISTRAL_API_HOST -->
 
 List models with `option -l`, or run `/models` in chat mode.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.1  feb/2024  by mountaineerbr  GPL+3
+# v0.56.2  feb/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -143,6 +143,7 @@ SPC1="*(\\\\[ntrvf]|[$IFS])"
 NL=$'\n' BS=$'\b'
 
 UAG='user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36'  #chrome on win10
+PLACEHOLDER='sk-CbCCb0CC0bbbCbb0CCCbC0CbbbCC00bC00bbCbbCbbbCbb0C'
 
 HELP="Name
 	${0##*/} -- Wrapper for ChatGPT / DALL-E / Whisper / TTS
@@ -648,10 +649,10 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	curl "$@" --fail-with-body -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl "$@" --fail-with-body -L "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
-		-H "Authorization: Bearer $OPENAI_API_KEY" \
+		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
 		-d "$BLOCK" \
 	&& { 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf ;}
 }
@@ -3452,7 +3453,7 @@ function set_ollamaf
 	}
 	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
 	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST="http://localhost:11434";
-	((${#OPENAI_API_KEY})) || OPENAI_API_KEY='sk-CbCCb0CC0bbbCbb0CCCbC0CbbbCC00bC00bbCbbCbbbCbb0C'  #set placeholder as this field is required
+	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER  #set placeholder as this field is required
 	
 	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf "$MOD";
 	_sysmsgf "OLLAMA URL / Endpoint:" "$OLLAMA_API_HOST${ENDPOINTS[EPN]}";
@@ -3502,7 +3503,7 @@ function set_localaif
 		set_model_epnf "$MOD";
 		#disable endpoint auto select?
 		[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
-		((${#OPENAI_API_KEY})) || OPENAI_API_KEY='sk-CbCCb0CC0bbbCbb0CCCbC0CbbbCC00bC00bbCbbCbbbCbb0C'
+		((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
 		((!LOCALAI)) || _sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
 	else 	false;
 	fi
@@ -3514,7 +3515,7 @@ function set_googleaif
 	FILE_PRE="${FILE%%.json}.pre.json";
 	GOOGLE_API_HOST="${GOOGLE_API_HOST:-https://generativelanguage.googleapis.com/v1beta}";
 	: ${GOOGLE_API_KEY:?Required}
-	((${#OPENAI_API_KEY})) || OPENAI_API_KEY='sk-CbCCb0CC0bbbCbb0CCCbC0CbbbCC00bC00bbCbbCbbbCbb0C'
+	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
 
 	function list_modelsf
 	{
@@ -3738,7 +3739,7 @@ do
 		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= ;;
 		google) GOOGLEAI=1 OLLAMA= MISTRALAI= ;;
 		mistral)
-			[[ -z $OPENAI_API_HOST$OPENAI_API_HOST_STATIC ]] && OPENAI_API_HOST="https://api.mistral.ai/ ";
+			[[ -z $MISTRAL_API_HOST ]] && MISTRAL_API_HOST="https://api.mistral.ai/";
 			MISTRALAI=1 OLLAMA= GOOGLEAI= ;;
 		localai)
 			[[ -z $OPENAI_API_HOST$OPENAI_API_HOST_STATIC ]] && OPENAI_API_HOST="http://127.0.0.1:8080";
@@ -3886,9 +3887,10 @@ fi
 #mistral ai api
 if [[ $OPENAI_API_HOST = *mistral* ]] || ((MISTRALAI))
 then 	: ${MISTRAL_API_KEY:?Required}
-	OPENAI_API_KEY=${MISTRAL_API_KEY:-$OPENAI_API_KEY}
+	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
 	unset LOCALAI OLLAMA GOOGLEAI; MISTRALAI=1;
 	unset OPTA OPTAA OPTB;
+else 	unset MISTRAL_API_KEY MISTRAL_API_HOST;
 fi
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"
