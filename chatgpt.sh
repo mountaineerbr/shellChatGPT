@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.2  feb/2024  by mountaineerbr  GPL+3
+# v0.56.3  mar/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -974,6 +974,7 @@ function prompt_audiof
 
 function list_modelsf
 {
+	((MISTRALAI)) && typeset OPENAI_API_KEY=$MISTRAL_API_KEY API_HOST=$MISTRAL_API_HOST
 	curl -\# --fail-with-body -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
