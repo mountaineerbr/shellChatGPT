@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.3  mar/2024  by mountaineerbr  GPL+3
+# v0.56.4  apr/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -155,8 +155,8 @@ Synopsis
 	${0##*/} -i [opt..] [S|M|L] [PROMPT]
 	${0##*/} -i [opt..] [S|M|L] [PNG_FILE]
 	${0##*/} -i [opt..] [S|M|L] [PNG_FILE] [MASK_FILE] [PROMPT]
-	${0##*/} -w [opt..] [AUDIO_FILE] [LANG] [PROMPT]
-	${0##*/} -W [opt..] [AUDIO_FILE] [PROMPT-EN]
+	${0##*/} -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
+	${0##*/} -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 	${0##*/} -ccWwz [opt..] -- [whisper_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
@@ -309,6 +309,7 @@ Chat Commands
       !md      !markdown [SOFTW] Toggle markdown support in response.
      !!md     !!markdown [SOFTW] Render last response in markdown.
      !rep      !replay           Replay last TTS audio response.
+     !res      !resubmit         Resubmit last TTS recorded input.
       !sh      !shell    [CMD]   Run shell, or command, and edit output.
       !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
      !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
@@ -1866,6 +1867,9 @@ function cmd_runf
 				trap 'exit' INT;
 			else 	__warmsgf 'Err:' 'No TTS audio file to play'
 			fi
+			;;
+		res|resub|resubmit)
+			RESUBW=1 SKIP=1 WSKIP=1;
 			;;
 		q|quit|exit|bye)
 			send_tiktokenf '/END_TIKTOKEN/' && wait
@@ -4067,6 +4071,11 @@ then
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then
 	[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
+	if [[ $1 = @(.|last) ]] && [[ -s $FILEINW ]]
+	then 	set -- "$FILEINW" "${@:2}";
+	elif ((${#} >1)) && [[ ${@:${#}} = @(.|last) ]] && [[ -s $FILEINW ]]
+	then 	set -- "$FILEINW" "${@:1:${#}-1}";
+	fi
 	whisperf "$@" &&
 	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
@@ -4253,13 +4262,13 @@ else
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
 			do
 				((SKIP+OPTW+${#RESTART})) && echo >&2
-				if ((OPTW)) && ((!EDIT))
+				if ((OPTW && !EDIT)) || ((RESUBW))
 				then 	#auto sleep 3-6 words/sec
 					((OPTV)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))  &>/dev/null
 					
-					record_confirmf
+					((RESUBW)) || record_confirmf
 					case $? in
-						0) 	if recordf "$FILEINW"
+						0) 	if ((RESUBW)) || recordf "$FILEINW"
 							then 	REPLY=$(
 								set --; MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
 								set_model_epnf "$MOD_AUDIO";
@@ -4275,7 +4284,8 @@ else
 						196) 	unset WSKIP OPTW REPLY; continue 1;;  #whisper off
 						199) 	EDIT=1; continue 1;;  #text edit
 						*) 	unset REPLY; continue 1;;
-					esac; printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" | foldf >&2;
+					esac; unset RESUBW;
+					printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" | foldf >&2;
 				else
 
 					if ((OPTCMPL)) && ((MAIN_LOOP || OPTCMPL==1)) \

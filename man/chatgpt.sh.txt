@@ -1,6 +1,6 @@
-CHATGPT.SH(1) v0.56.2 | General Commands Manual
+CHATGPT.SH(1) v0.56.4 | General Commands Manual
 mountaineerbr
-February 2024
+April 2024
 
 NAME
 
@@ -13,8 +13,8 @@ SYNOPSIS
    chatgpt.sh -i [opt..] [S|M|L] [PROMPT]
    chatgpt.sh -i [opt..] [S|M|L] [PNG_FILE]
    chatgpt.sh -i [opt..] [S|M|L] [PNG_FILE] [MASK_FILE] [PROMPT]
-   chatgpt.sh -w [opt..] [AUDIO_FILE] [LANG] [PROMPT]
-   chatgpt.sh -W [opt..] [AUDIO_FILE] [PROMPT-EN]
+   chatgpt.sh -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
+   chatgpt.sh -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
    chatgpt.sh -z [opt..] [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
    chatgpt.sh -ccWwz [opt..] -- [whisper_arg..] -- [tts_arg..]
    chatgpt.sh -l [MODEL]
@@ -287,6 +287,7 @@ or “/”.
   !md     !markdown [SOFTW]    Toggle markdown rendering in response.
   !!md    !!markdown [SOFTW]   Render last response in markdown.
   !rep    !replay              Replay last TTS audio response.
+  !res    !resubmit            Resubmit last TTS recorded input from cache.
   !sh     !shell [CMD]         Run shell, or command, and edit output.
   !sh:    !shell: [CMD]        Same as !sh but apppend output as user.
   !!sh    !!shell [CMD]        Run interactive shell (with command) and exit.
@@ -512,6 +513,9 @@ two-letter ISO-639-1 language code (en, es, ja, or zh) as the positional
 argument following the input audio file. A prompt may also be set as
 last positional parameter to help guide the model. This prompt should
 match the audio language.
+
+If the last positional argument is “.” or “last” exactly, it will
+resubmit the last recorded audio input file from cache.
 
 Note that if the audio language is different from the set language code,
 output will be on the language code (translation).

@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.56.2 | General Commands Manual
+% CHATGPT.SH(1) v0.56.4 | General Commands Manual
 % mountaineerbr
-% February 2024
+% April 2024
 
 
 ### NAME
@@ -15,8 +15,8 @@
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PROMPT_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
-|    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_] \[_LANG_] \[_PROMPT_]
-|    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_] \[_PROMPT-EN_]
+|    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_|_._] \[_LANG_] \[_PROMPT_]
+|    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_|_._] \[_PROMPT-EN_]
 |    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
 |    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[`whisper_arg`..] \-- \[`tts_arg`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
@@ -315,6 +315,7 @@ may be either "`!`", or "`/`".
      `!md`    `!markdown`  \[_SOFTW_]     Toggle markdown rendering in response.
     `!!md`    `!!markdown` \[_SOFTW_]     Render last response in markdown.
     `!rep`    `!replay`                   Replay last TTS audio response.
+    `!res`    `!resubmit`                 Resubmit last TTS recorded input from cache.
      `!sh`    `!shell`      \[_CMD_]      Run shell, or _command_, and edit output.
     `!sh:`    `!shell:`     \[_CMD_]      Same as `!sh` but apppend output as user.
     `!!sh`    `!!shell`     \[_CMD_]      Run interactive shell (with _command_) and exit.
@@ -595,6 +596,9 @@ Set a _two-letter_ _ISO-639-1_ language code (_en_, _es_, _ja_, or _zh_) as
 the positional argument following the input audio file. A prompt
 may also be set as last positional parameter to help guide the
 model. This prompt should match the audio language.
+
+If the last positional argument is "." or "last" exactly, it will
+resubmit the last recorded audio input file from cache.
 
 Note that if the audio language is different from the set language code,
 output will be on the language code (translation).

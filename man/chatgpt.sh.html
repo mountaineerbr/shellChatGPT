@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.56.2 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.56.4 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,9 +174,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.56.2 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.56.4 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">February 2024</p>
+<p class="date">April 2024</p>
 </header>
 <h3 id="name">NAME</h3>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
@@ -196,9 +196,9 @@ Whisper / TTS</div>
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PNG_FILE</em>]
 [<em>MASK_FILE</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-w</code> [<code>opt</code>..]
-[<em>AUDIO_FILE</em>] [<em>LANG</em>] [<em>PROMPT</em>]<br />
+[<em>AUDIO_FILE</em>|<em>.</em>] [<em>LANG</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>..]
-[<em>AUDIO_FILE</em>] [<em>PROMPT-EN</em>]<br />
+[<em>AUDIO_FILE</em>|<em>.</em>] [<em>PROMPT-EN</em>]<br />
    <strong>chatgpt.sh</strong> <code>-z</code> [<code>opt</code>..]
 [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
 [<em>SPEED</em>] [<em>PROMPT</em>]<br />
@@ -536,16 +536,21 @@ prompt to set a new parameter. The command operator may be either
 <td>Replay last TTS audio response.</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>!res</code></td>
+<td style="text-align: left;"><code>!resubmit</code></td>
+<td>Resubmit last TTS recorded input from cache.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
 <td>Run shell, or <em>command</em>, and edit output.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!sh:</code></td>
 <td style="text-align: left;"><code>!shell:</code> [<em>CMD</em>]</td>
 <td>Same as <code>!sh</code> but apppend output as user.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!sh</code></td>
 <td style="text-align: left;"><code>!!shell</code> [<em>CMD</em>]</td>
 <td>Run interactive shell (with <em>command</em>) and exit.</td>
@@ -1023,6 +1028,8 @@ continue the out-painting process step-wise.</p>
 following the input audio file. A prompt may also be set as last
 positional parameter to help guide the model. This prompt should match
 the audio language.</p>
+<p>If the last positional argument is “.” or “last” exactly, it will
+resubmit the last recorded audio input file from cache.</p>
 <p>Note that if the audio language is different from the set language
 code, output will be on the language code (translation).</p>
 <h3 id="translations">2. Translations</h3>
