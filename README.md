@@ -735,7 +735,7 @@ Below is an installation example with just the PKGBUILD.
 Install the `termux-api` package.
 
 For recording audio (Whisper, `option -w`), we defaults to `termux-microphone-record`
-and for playing audio (TTS, `option -z`). Optionally, install `play-audio`.
+and for playing audio (TTS, `option -z`), optionally install `play-audio`.
 
 To set the clipboard, it is required `termux-clipboard-set` from the `termux-api` package.
 
