@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.9  apr/2024  by mountaineerbr  GPL+3
+# v0.56.10  apr/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2157,7 +2157,11 @@ function is_videof
 #check for multimodal (vision) model
 function is_visionf
 {
-	[[ $1 = *@(vision|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|llava|cogvlm|cogagent|qwen|detic|codet|kosmos-2|fuyu|instructir|idefics|unival|glamm)* ]] || ((MULTIMODAL))
+	case "$1" in 
+	*vision*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
+	gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]) 	:;;
+	*) 	((MULTIMODAL));;
+	esac;
 }
 
 #create user log
@@ -4149,7 +4153,7 @@ else
 		((MISTRALAI)) && unset OPTA
 	else 	((EPN==6)) || __sysmsgf 'Text Completions'
 	fi
-	__sysmsgf 'Language Model:' "$MOD$(is_visionf "$MOD" && echo '  [multimodal]')"
+	__sysmsgf 'Language Model:' "$MOD$(is_visionf "$MOD" && echo ' / multimodal')"
 	
 	restart_compf ;start_compf
 	function unescape_stopsf
