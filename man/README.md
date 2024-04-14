@@ -598,10 +598,8 @@ Extra options for the request JSON block (e.g. “*"seed": 33,
 **CACHEDIR**  
 Script cache directory base.
 
-**CHATGPTRC**
-
-**CONFFILE**  
-Path to user *chatgpt.sh configuration*.
+**CHATGPTRC**  
+Path to the user *configuration file*.
 
 Defaults="*~/.chatgpt.conf*"
 

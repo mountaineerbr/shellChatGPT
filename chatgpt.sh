@@ -241,8 +241,7 @@ Environment
 
 	CACHEDIR 	Script cache directory base.
 	
-	CHATGPTRC
-	CONFFILE 	Path to user chatgpt.sh configuration.
+	CHATGPTRC 	Path to the user configuration file.
 			Defaults=\"${CHATGPTRC:-${CONFFILE:-"$HOME/.chatgpt.conf"}}\"
 
 	FILECHAT 	Path to a history / session TSV file.

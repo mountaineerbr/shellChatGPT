@@ -630,9 +630,7 @@ Setting **temperature** has an effect, the higher the more random.
 
 **CHATGPTRC**
 
-**CONFFILE**
-
-:    Path to user _chatgpt.sh configuration_.
+:    Path to the user _configuration file_.
 
      Defaults=\"_~/.chatgpt.conf_\"
 

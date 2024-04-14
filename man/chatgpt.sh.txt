@@ -543,9 +543,7 @@ CACHEDIR
 
 CHATGPTRC
 
-CONFFILE
-
-    Path to user chatgpt.sh configuration.
+    Path to the user configuration file.
 
     Defaults="~/.chatgpt.conf"
 
