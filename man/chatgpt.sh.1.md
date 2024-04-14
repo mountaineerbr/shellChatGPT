@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.56.4 | General Commands Manual
+% CHATGPT.SH(1) v0.56.7 | General Commands Manual
 % mountaineerbr
 % April 2024
 
@@ -362,7 +362,7 @@ may be either "`!`", or "`/`".
       `-w`    `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
       `-z`    `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
     `!blk`    `!block`     \[_ARGS_]     Set and add custom options to JSON request.
-        \-    `!multimodal`               Toggle model as multimodal (image support).
+        \-    `!multimodal`               Toggle model as multimodal.
   --------    -----------------------    ------------------------------------------------
 
   Session     Management
@@ -761,11 +761,12 @@ Optional packages for specific features.
 - `Base64` - Image endpoint, vision models
 - `ImageMagick` - Image edits and variations
 - `Python` - Tiktoken support
-- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (Termux) - Play TTS output
-- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - Record input (Whisper)
-- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - Open images, set clipboard
+- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
+- `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
-- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless`/`Pandoc` - Markdown support
+- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
+- `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
 
 
 ### BUGS AND LIMITS
@@ -882,7 +883,7 @@ with history, so avoid it.
 
 **\--multimodal**
 
-: Set model as multimodal (enable image support).
+: Set model as multimodal.
 
 
 **-n**, **\--results**   \[_NUM_]
@@ -1122,7 +1123,7 @@ with history, so avoid it.
 **\--md**, **\--markdown**, **\--markdown**=\[_SOFTWARE_]
 
 : Enable markdown rendering in response. Software is optional:
-  _bat_, _pygmentize_, _glow_, _mdcat_, _mdless_, or _pandoc_.
+  _bat_, _pygmentize_, _glow_, _mdcat_, or _mdless_.
 
 
 **\--no-md**, **\--no-markdown**

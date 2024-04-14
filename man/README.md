@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: April 2024
-title: CHATGPT.SH(1) v0.56.4 \| General Commands Manual
+title: CHATGPT.SH(1) v0.56.7 \| General Commands Manual
 ---
 
 ### NAME
@@ -363,7 +363,7 @@ or “`/`”.
 | `-w`    | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
 | `-z`    | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
 | `!blk`  | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
-| \-      | `!multimodal`           | Toggle model as multimodal (image support).    |
+| \-      | `!multimodal`           | Toggle model as multimodal.                    |
 
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|
@@ -703,14 +703,13 @@ Optional packages for specific features.
 - `Base64` - Image endpoint, vision models
 - `ImageMagick` - Image edits and variations
 - `Python` - Tiktoken support
-- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (Termux) - Play TTS
-  output
-- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - Record input
-  (Whisper)
-- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` -
-  Open images, set clipboard
+- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
+- `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
-- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless`/`Pandoc` - Markdown support
+- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
+- `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` -
+  Termux system
 
 ### BUGS AND LIMITS
 
@@ -795,7 +794,7 @@ Set language *MODEL* name. Def=*text-davinci-003*, *gpt-3.5-turbo-0301*.
 Set *MODEL* name as “*.*” to pick from the list.
 
 **--multimodal**  
-Set model as multimodal (enable image support).
+Set model as multimodal.
 
 **-n**, **--results** \[*NUM*\]  
 Set number of results. Def=*1*.
@@ -960,7 +959,7 @@ Set Mistral AI integration (chat).
 
 **--md**, **--markdown**, **--markdown**=\[*SOFTWARE*\]  
 Enable markdown rendering in response. Software is optional: *bat*,
-*pygmentize*, *glow*, *mdcat*, *mdless*, or *pandoc*.
+*pygmentize*, *glow*, *mdcat*, or *mdless*.
 
 **--no-md**, **--no-markdown**  
 Disable markdown rendering.

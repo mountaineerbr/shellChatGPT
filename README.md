@@ -66,11 +66,12 @@ These are required for specific features.
 - `Base64` - Image endpoint, vision models
 - `ImageMagick` - Image edits and variations
 - `Python` - Tiktoken
-- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay`/`play-audio` (Termux) - Play TTS output
-- `SoX`/`Arecord`/`FFmpeg`/`termux-microphone-record` - Record input (Whisper)
-- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy`/`termux-clipboard-set` - Open images, set clipboard
+- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
+- `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
-- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless`/`Pandoc` - Markdown support
+- `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
+- `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
 
 
 ### 💾 Installation
@@ -287,7 +288,7 @@ however other software is supported.
 Set it such as `--markdown=glow` or `/md mdless` on chat mode.
 
 Type in any of the following markdown software as argument to the option:
-`bat`, `pygmentize`, `glow`, `mdcat`, `mdless`, or `pandoc`.
+`bat`, `pygmentize`, `glow`, `mdcat`, or `mdless`.
 
 
 ## ⚙️ Prompts
@@ -642,7 +643,7 @@ with `option --google`, such as:
     chatgpt.sh --google -cc -m gemini-pro-vision
 
 
-*OBS*: Google Gemini vision models _are not_ enabled for multiturn at the API side yet.
+*OBS*: Google Gemini vision models _are not_ enabled for multiturn at the API side, so we hack it.
 
 To list all available models, run `chatgpt.sh --google -l`.
 
@@ -731,10 +732,12 @@ Below is an installation example with just the PKGBUILD.
 
 ### Optional Dependencies
 
-For recording audio (Whisper, `option -w`), we recommend `termux-microphone-record`, and
-for playing audio (TTS, `option -z`), install `play-audio`.
+Install the `termux-api` package.
 
-To set the clipboard, it is required `termux-clipboard-set`.
+For recording audio (Whisper, `option -w`), we defaults to `termux-microphone-record`
+and for playing audio (TTS, `option -z`). Optionally, install `play-audio`.
+
+To set the clipboard, it is required `termux-clipboard-set` from the `termux-api` package.
 
 
 ### Tiktoken

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.56.4 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.56.7 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.56.4 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.56.7 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">April 2024</p>
 </header>
@@ -758,7 +758,7 @@ flush.</td>
 <tr class="odd">
 <td style="text-align: left;">-</td>
 <td style="text-align: left;"><code>!multimodal</code></td>
-<td>Toggle model as multimodal (image support).</td>
+<td>Toggle model as multimodal.</td>
 </tr>
 </tbody>
 </table>
@@ -1163,16 +1163,18 @@ escape sequences (these must not change cursor position).</p>
 <li><code>Base64</code> - Image endpoint, vision models</li>
 <li><code>ImageMagick</code> - Image edits and variations</li>
 <li><code>Python</code> - Tiktoken support</li>
-<li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFmpeg</code>/<code>afplay</code>/<code>play-audio</code>
-(Termux) - Play TTS output</li>
-<li><code>SoX</code>/<code>Arecord</code>/<code>FFmpeg</code>/<code>termux-microphone-record</code>
-- Record input (Whisper)</li>
-<li><code>xdg-open</code>/<code>open</code>/<code>xsel</code>/<code>xclip</code>/<code>pbcopy</code>/<code>termux-clipboard-set</code>
+<li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFmpeg</code>/<code>afplay</code>
+- Play TTS output</li>
+<li><code>SoX</code>/<code>Arecord</code>/<code>FFmpeg</code> - Record
+input (Whisper)</li>
+<li><code>xdg-open</code>/<code>open</code>/<code>xsel</code>/<code>xclip</code>/<code>pbcopy</code>
 - Open images, set clipboard</li>
 <li><code>W3M</code>/<code>Lynx</code>/<code>ELinks</code>/<code>Links</code>
 - Dump URL text</li>
-<li><code>bat</code>/<code>Pygmentize</code>/<code>Glow</code>/<code>mdcat</code>/<code>mdless</code>/<code>Pandoc</code>
+<li><code>bat</code>/<code>Pygmentize</code>/<code>Glow</code>/<code>mdcat</code>/<code>mdless</code>
 - Markdown support</li>
+<li><code>termux-api</code>/<code>play-audio</code>/<code>termux-microphone-record</code>/<code>termux-clipboard-set</code>
+- Termux system</li>
 </ul>
 <h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
 <p>The script objective is to implement most features of OpenAI API
@@ -1271,7 +1273,7 @@ Def=<em>1</em>.</p>
 </dd>
 <dt><strong>--multimodal</strong></dt>
 <dd>
-<p>Set model as multimodal (enable image support).</p>
+<p>Set model as multimodal.</p>
 </dd>
 <dt><strong>-n</strong>, <strong>--results</strong> [<em>NUM</em>]</dt>
 <dd>
@@ -1486,8 +1488,8 @@ and start sequences.</p>
 <strong>--markdown</strong>=[<em>SOFTWARE</em>]</dt>
 <dd>
 <p>Enable markdown rendering in response. Software is optional:
-<em>bat</em>, <em>pygmentize</em>, <em>glow</em>, <em>mdcat</em>,
-<em>mdless</em>, or <em>pandoc</em>.</p>
+<em>bat</em>, <em>pygmentize</em>, <em>glow</em>, <em>mdcat</em>, or
+<em>mdless</em>.</p>
 </dd>
 <dt><strong>--no-md</strong>, <strong>--no-markdown</strong></dt>
 <dd>

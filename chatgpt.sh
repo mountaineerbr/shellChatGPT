@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.6  apr/2024  by mountaineerbr  GPL+3
+# v0.56.7  apr/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -350,7 +350,7 @@ Chat Commands
        -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
        -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk      !block   [ARGS]   Set and add options to JSON request.
-        -      !multimodal       Toggle model as multimodal (image support).
+        -      !multimodal       Toggle model as multimodal.
     --- Session Management ----------------------------------------
        -H      !hist             Edit raw history file in editor.
       -HH      !req              Print session history (see -V).
@@ -419,7 +419,7 @@ Options
 		Set language MODEL name, or set it as \`.' to pick
 		from the list. Def=$MOD, $MOD_CHAT.
 	--multimodal
- 		Set model as multimodal (enable image support).
+ 		Set model as multimodal.
 	-n, --results   [NUM]
 		Set number of results. Def=$OPTN.
 	-p, --top-p     [VAL]
@@ -516,7 +516,7 @@ Options
 		Set Mistral AI integration (chat).
 	--md, --markdown, --markdown=[SOFTWARE]
 		Enable markdown rendering in response. Software is optional:
-		\`bat', \`pygmentize', \`glow', \`mdcat', \`mdless', or \`pandoc'.
+		\`bat', \`pygmentize', \`glow', \`mdcat', or \`mdless'.
 	--no-md, --no-markdown
 		Disable markdown rendering.
 	-o, --clipboard
@@ -645,7 +645,7 @@ function model_capf
 		aqa) 	MODMAX=7168;;
 		*) 	MODMAX=4000;;
 	esac
-}  #obs: models may have different max input and max output tokens
+}
 
 #make cmpls request
 function __promptf
@@ -1354,7 +1354,7 @@ function set_mdcmdf
 	set -- "$(trimf "$*" "$SPC")";
 
 	if ! command -v "${1%% *}" &>/dev/null
-	then 	for cmd in "bat" "pygmentize" "glow" "mdcat" "mdless" "pandoc"
+	then 	for cmd in "bat" "pygmentize" "glow" "mdcat" "mdless"
 		do 	command -v $cmd &>/dev/null || continue;
 			set -- $cmd; break;
 		done;
@@ -1375,13 +1375,6 @@ function set_mdcmdf
 		pygmentize*)
 			eval "function mdf { 	$* \"\$@\" | foldf ;}"
 			[[ $* = *-s* ]] && MD_CMD_UNBUFF=1
-			;;
-		pandoc*)  #pandoc needs a good markup renderer
-			if browser=$(set_browsercmdf)
-			then 	eval "function mdf ( 	pandoc - -f markdown -t html >\"\${FILE%%.json}.html\";
-				exec 0<&-; $browser \"\${FILE%%.json}.html\"; )";
-			else 	unset OPTMD; __warmsgf 'Err:' 'pandoc markdown'; return 1;
-			fi
 			;;
 		glow*|mdcat*|mdless*|*)
 			command -v "${1%% *}" &>/dev/null || return 1;
@@ -2097,7 +2090,7 @@ function _mediachatf
 		fi
 
 		#check if file or url and add to array (max 20MB)
-		if is_imagef "$var" || { ((GOOGLEAI)) && is_videof "$var" ;} || is_linkf "$var"
+		if is_imagef "$var" || { ((GOOGLEAI)) && is_videof "$var" ;} || is_linkf "$var"  #|| ((MULTIMODAL))
 		then 	((++n));
 			if ((CMD_CHAT))
 			then 	MEDIA_CMD=("${MEDIA_CMD[@]}" "$var");
@@ -2585,11 +2578,13 @@ function ttsf
 			((CHAT_ENV)) || __sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
 			case "$PLAY_CMD" in false) 	return $ret;; esac;
 		while 	${PLAY_CMD} "$FOUT" & pid=$! PIDS+=($!);
-		do 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
+		do 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; case \"\$PLAY_CMD\" in *termux-media-player*) termux-media-player stop;; esac;" INT;
 			wait $pid;
 			case $? in
-				0) 	var=2;;
-				*) 	var=7; wait $pid;;
+				0) 	case "$PLAY_CMD" in *termux-media-player*) while sleep 1 ;[[ $(termux-media-player info 2>/dev/null) = *[Pp]laying* ]] ;do : ;done;; esac;  #termux fix
+					var=3;;  #3+1 secs
+				*) 	wait $pid;
+					var=8;;  #8+1 secs
 			esac;
 			trap 'exit' INT;
 			__warmsgf $'\nReplay?' '[N/y/w] ' '';  #!#
@@ -2597,8 +2592,8 @@ function ttsf
 			do 	printf '%s\b' "$n" >&2
 				if var=$(NO_CLR=1 __read_charf -t 1)
 				then 	case "$var" in
-					[RrYy]|[$'\t\e']) continue 2;;
-					[PpWw]|$' ') printf '%s' waiting.. >&2; __read_charf >/dev/null;
+					[RrYy]|$'\t') continue 2;;
+					[PpWw]|[$' \e']) printf '%s' waiting.. >&2; __read_charf >/dev/null;
 						continue 2;;  #wait until key press
 					*) 	break;;
 					esac;
