@@ -13,7 +13,7 @@ optdepends=(
 	'imagemagick: edit input images'
 	'xdg-utils: open images (xdg-open, open)'
 	'sox: audio recorder (arecod, ffmpeg)'
-	'mpv: audio player (sox, vlc, ffmpeg, afplay, play-audio)'
+	'mpv: audio player (sox, vlc, ffmpeg, afplay)'
 	'xsel: copy output to clipboard (xclip)'
 	'python: count input tokens (tiktoken)'
 	'bat: render markdown (pygmentize, glow, mdcat, mdless)'
