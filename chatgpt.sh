@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.10  apr/2024  by mountaineerbr  GPL+3
+# v0.56.11  apr/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1904,6 +1904,15 @@ function _onoff
 	((${1:-0})) && echo ON || echo OFF
 }
 
+#check if buffer file is open and set another one
+function set_filetxtf
+{
+	typeset n;
+	while [[ $(ps a) = *"${VISUAL:-${EDITOR:-vim}}"[\ ]"$FILETXT"* ]] && ((n<32))
+	do 	((++n)); FILETXT=${FILETXT%%[0-9]}${n};
+	done;
+}
+
 #main plain text editor
 function __edf
 {
@@ -1913,6 +1922,7 @@ function __edf
 #text editor stdout wrapper
 function ed_outf
 {
+	set_filetxtf
 	printf "%s${*:+\\n}" "${*}" > "$FILETXT"
 	__edf "$FILETXT" &&
 	cat -- "$FILETXT"
@@ -1936,9 +1946,10 @@ function edf
 	((OPTCMPL)) || [[ $pre = *([$IFS]) ]] || pre="${pre}${ed_msg}"
 	printf "%s\\n" "${pre}"$'\n\n'"${rest}${*}" > "$FILETXT"
 
+	set_filetxtf
 	__edf "$FILETXT"
 
-	while pos="$(<"$FILETXT")"
+	while [[ -f $FILETXT ]] && pos="$(<"$FILETXT")"
 		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
 	do 	__warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [r]edo or [a]bort? " ''
 		case "$(__read_charf)" in
@@ -4174,6 +4185,7 @@ else
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
+	((OPTRESUME)) && [[ $(tail -n 1 "$FILECHAT") = *[Bb][Rr][Ee][Aa][Kk] ]] && sed -i -e '$d' "$FILECHAT";
 	if ((MTURN+OPTRESUME))
 	then 	INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		shell_histf "$INSTRUCTION"
@@ -4234,7 +4246,8 @@ else
 				179|180) :;;        #jumps
 				200) 	continue;;  #redo
 				201) 	set --; false;;   #abort
-				*) 	while REPLY=$(<"$FILETXT"); (($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
+				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
+						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}" | tail -n $((LINES-2))
 					do 	((OPTV)) || new_prompt_confirmf
 						case $? in
