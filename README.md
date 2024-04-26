@@ -142,6 +142,26 @@ Create **Marv, the sarcastic bot** manually:
 <!-- https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset -->
 
 
+Start new chat session from the "unix.txt" Instruction file.
+The commands below are aliases for command line option `-S .prompt_name`.
+
+
+    chatgpt.sh -cc -S ..unix
+    
+    chatgpt.sh -cc -..unix
+    
+    chatgpt.sh -cc..unix
+
+In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "unix.tsv" file at the cache directory.
+
+The command below starts a chat session, loads the "unix" instruction, and changes to the defaults "chatgpt.tsv" history.
+
+
+    chatgpt.sh -cc..unix /chatgpt
+
+    chatgpt.sh -cc -S "..unix" /session chatgpt
+
+
 #### Vision Models (GPT-4-Vision)
 
 To send an `image` / `url` to vision models, start the script and then either

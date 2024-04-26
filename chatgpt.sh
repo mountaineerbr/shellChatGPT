@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.11  apr/2024  by mountaineerbr  GPL+3
+# v0.56.12  apr/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1851,7 +1851,7 @@ function cmd_runf
 			if ((${#REPLAY_FILES[@]}))
 			then 	for var in "${REPLAY_FILES[@]}"
 				do 	[[ -f $var ]] || continue
-					du -h "$var" >&2 2>/dev/null
+					du -h "$var" 2>/dev/null
 					${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
 					trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 					wait $pid;
@@ -2368,10 +2368,12 @@ function whisperf
 	typeset file rec var pid ret;
 	typeset -a args;
        	unset WHISPER_OUT;
+	
 	if ((!(CHAT_ENV+MTURN) ))
 	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "$OPTT";
 	fi;
 	check_optrangef "$OPTT" 0 1.0 Temperature
+	set_model_epnf "$MOD_AUDIO"
 	
 	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
 	for var
@@ -2587,7 +2589,7 @@ function ttsf
 		esac
 
 	[[ $FOUT = "-"* ]] || [[ ! -e $FOUT ]] || { 
-		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
+		du -h "$FOUT" 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
 		((OPTV)) || [[ ! -s $FOUT ]] || {
 			((CHAT_ENV)) || __sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
 			case "$PLAY_CMD" in false) 	return $ret;; esac;
@@ -3853,16 +3855,16 @@ else
 	then 	MOD=$MOD_MISTRAL
 	elif ((LOCALAI))
 	then 	MOD=$MOD_LOCALAI
-	elif ((OPTCMPL))
-	then 	:;
-	elif ((OPTC>1))  #chat
-	then 	MOD=$MOD_CHAT
-	elif ((OPTW)) && ((!MTURN))  #whisper endpoint
-	then 	MOD=$MOD_AUDIO
-	elif ((OPTZ)) && ((!MTURN))  #speech endpoint
-	then 	MOD=$MOD_SPEECH
-	elif ((OPTI))
-	then 	MOD=$MOD_IMAGE
+	elif ((!OPTCMPL))
+	then 	if ((OPTC>1))  #chat
+		then 	MOD=$MOD_CHAT
+		elif ((OPTW)) && ((!MTURN))  #whisper endpoint
+		then 	MOD=$MOD_AUDIO
+		elif ((OPTZ)) && ((!MTURN))  #speech endpoint
+		then 	MOD=$MOD_SPEECH
+		elif ((OPTI))
+		then 	MOD=$MOD_IMAGE
+		fi
 	fi
 fi
 
@@ -4282,7 +4284,6 @@ else
 						0) 	if ((RESUBW)) || recordf "$FILEINW"
 							then 	REPLY=$(
 								set --; MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
-								set_model_epnf "$MOD_AUDIO";
 								[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
 								whisperf "$FILEINW" "$@";
 							)
@@ -4404,7 +4405,7 @@ else
 					p=$(hist_lastlinef) q=${var:2}  #user feedback
 					n=$((COLUMNS-19>30 ? (COLUMNS-19)/2 : 30/2))
 					((${#p}>n)) && p=${p:${#p}-n+1} pp=".."
-					((${#q}>n)) && q=${q:0: n}       qq=".."
+					((${#q}>n)) && q=${q:0: n}      qq=".."
 					_sysmsgf $'\nText appended:' "$(printf "${NC}${CYAN}%s${BCYAN}%s${NC}" "${pp}${p}" "${q}${qq}")"
 				elif [[ ${*} = $SPC::* ]]
 				then
@@ -4562,7 +4563,7 @@ $( ((MISTRALAI)) || echo "\"n\": $OPTN," )
 		((${#START})) && printf "${YELLOW}%b\\n" "$START" >&2;
 		((OLLAMA)) && api_host=$API_HOST API_HOST=$OLLAMA_API_HOST;
 
-		if ((${#BLOCK}>32000))  #32KB
+		if ((${#BLOCK}>96000))  #96KB #https://stackoverflow.com/questions/19354870/bash-command-line-and-input-limit
 		then 	buff="${FILE%.*}.block.json"
 			printf '%s\n' "$BLOCK" >"$buff"
 			BLOCK="@${buff}" promptf
