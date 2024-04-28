@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.12  apr/2024  by mountaineerbr  GPL+3
+# v0.56.13  apr/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1587,8 +1587,9 @@ function cmd_runf
 			set -- "${*##@(media|img)*([$IFS])}";
 			set -- "$(trim_trailf "$*" $'*([ \t\n])')";
 			CMD_CHAT=1 _mediachatf "$1" && {
-			  [[ -f $1 ]] && set -- "$(du -h -- "$1" 2>/dev/null||du -- "$1")";
-			  _sysmsgf "img ?$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}))" "${1:0: COLUMNS-12}$([[ -n ${1: COLUMNS-12} ]] && echo ...)";
+			  [[ -f $1 ]] && set -- "$(du -h -- "$1" 2>/dev/null||du -- "$1")" && set -- "${@//$'\t'/ }";
+			  var=$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}))
+			  _sysmsgf "img ?$var" "${1:0: COLUMNS-6-${#var}}$([[ -n ${1: COLUMNS-6-${#var}} ]] && printf '\b\b\b%s' ...)";
 			};
 			;;
 		multimodal|[/!-]multimodal|--multimodal)
@@ -4483,8 +4484,8 @@ else
 			#((REGEN || RETRY)) ||
 			for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 			do 	((media_i++));
-				[[ -f $media ]] && media=$(du -h -- "$media" 2>/dev/null||du -- "$media");
-				_sysmsgf "img #${media_i}" "${media:0: COLUMNS-12}$([[ -n ${media: COLUMNS-12} ]] && echo ...)";
+				[[ -f $media ]] && media=$(du -h -- "$media" 2>/dev/null||du -- "$media") media=${media//$'\t'/ };
+				_sysmsgf "img #${media_i}" "${media:0: COLUMNS-6-${#media_i}}$([[ -n ${media: COLUMNS-6-${#media_i}} ]] && printf '\b\b\b%s' ...)";
 			done; unset media media_i;
 		fi
 		
