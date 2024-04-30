@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.13  apr/2024  by mountaineerbr  GPL+3
+# v0.56.14  apr/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1349,7 +1349,7 @@ function set_maxtknf
 #set the markdown command
 function set_mdcmdf
 {
-	typeset cmd browser; unset MD_CMD_UNBUFF;
+	typeset cmd; unset MD_CMD_UNBUFF;
 	set -- "$(trimf "$*" "$SPC")";
 
 	if ! command -v "${1%% *}" &>/dev/null
@@ -1390,22 +1390,20 @@ function set_browsercmdf
 	then 	_set_browsercmdf "$BROWSER";
 	else 	for cmd in "w3m" "lynx" "elinks" "links" "curl"
 		do 	command -v $cmd &>/dev/null || continue;
-			_set_browsercmdf $cmd || return;
-		done;
-	fi
+			_set_browsercmdf $cmd && return;
+		done; false;
+	fi;
 }
 function _set_browsercmdf
 {
 	case "$1" in
-		w3m*) 	echo "w3m -T text/html";;
-		lynx*) 	echo "lynx -force_html -nolist";; #" -stdin";;
-		elinks*) echo "elinks -force-html -no-references";;
-		links*) echo "links -force-html";;
-		google-chrome*|chromium*) echo "${1%% *} --disable-gpu --headless --dump-dom"
-			return 1;;
-		*) 	echo "curl -L -f --progress-bar";
-			return 1;;
-	esac; ((!DUMP)) || printf '%s' "--dump";
+		w3m*) 	printf '%s' "w3m -T text/html";;
+		lynx*) 	printf '%s' "lynx -force_html -nolist";;
+		elinks*) printf '%s' "elinks -force-html -no-references";;
+		links*) printf '%s' "links -force-html";;
+		google-chrome*|chromium*) printf '%s' "${1%% *} --disable-gpu --headless --dump-dom";;
+		*) 	printf '%s' "curl -L -f --progress-bar";;
+	esac;
 }
 
 #check input and run a chat command
@@ -1578,9 +1576,14 @@ function cmd_runf
 		url*|[/!]url*)
 			set -- "$(trimf "${*##@(url|[/!]url)}" "$SPC")"; xskip=1;
 			[[ $* = :* ]] && { 	opt_append=1; set -- "${1##:*([$IFS])}" ;};  #append as user message
-			if var=$(DUMP=1 set_browsercmdf)
-			then 	cmd_runf /sh${opt_append:+:} "${var}" "${1// /%20}";  #html browser
-			else 	cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'"; #sed 's/<[^>]*>//g'  #curl+sed
+			if var=$(set_browsercmdf)
+			then 	case "$var" in
+				curl*|google-chrome*|chromium*)
+				    cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'";  #curl+sed
+				    ;;
+				*)  cmd_runf /sh${opt_append:+:} "${var} -dump" "${1// /%20}"
+				    ;;
+				esac;
 			fi
 			;;
 		media*|img*)
