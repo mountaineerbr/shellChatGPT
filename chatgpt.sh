@@ -3520,6 +3520,7 @@ function set_localaif
 				curl -\# -fL "${API_HOST}/models/available" -o "$FILE" &&
 				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;} ||
 				! curl -\# -L "${API_HOST}/models/" | jq .
+				#bug# https://github.com/mudler/LocalAI/issues/2045
 			fi
 		}  #https://localai.io/models/
 		set_model_epnf "$MOD";

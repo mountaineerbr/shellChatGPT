@@ -562,9 +562,11 @@ for an idea on how to install, download a model and set it up.
 
 *3.* Set up `$GALLERIES` before starting up the server:
 
-    export GALLERIES='[{"name":"localai", "url":"github:mudler/localai/gallery/index.yaml"}]'  #defaults gallery
+    export GALLERIES='[{"name":"localai", "url":"github:mudler/localai/gallery/index.yaml"}]'  #defaults
 
-    export GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}, {"url": "github:go-skynet/model-gallery/huggingface.yaml","name":"huggingface"}]'
+    export GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}]'
+
+    export GALLERIES='[{"name":"huggingface", "url": "github:go-skynet/model-gallery/huggingface.yaml"}]'
 
 
 *4.* Install the model named `phi-2-chat` from a `yaml` file manually, while the server is running:
