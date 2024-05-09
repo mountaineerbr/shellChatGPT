@@ -556,18 +556,18 @@ for an idea on how to install, download a model and set it up.
 
 ### Tips
 
-\1. Download a binary of `localai` for your system from [Mudler's release GitHub repo](https://github.com/mudler/LocalAI/releases).
+1. Download a binary of `localai` for your system from [Mudler's release GitHub repo](https://github.com/mudler/LocalAI/releases).
 
-\2. Run `localai run --help` to check comamnd line options and environment variables.
+2. Run `localai run --help` to check comamnd line options and environment variables.
 
-\3. Set up `$GALLERIES` before starting up the server:
+3. Set up `$GALLERIES` before starting up the server:
 
     export GALLERIES='[{"name":"localai", "url":"github:mudler/localai/gallery/index.yaml"}]'  #defaults gallery
 
     export GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}, {"url": "github:go-skynet/model-gallery/huggingface.yaml","name":"huggingface"}]'
 
 
-\4. Install the model named `phi-2-chat` from a `yaml` file manually, while the server is running:
+4. Install the model named `phi-2-chat` from a `yaml` file manually, while the server is running:
 
     curl -L http://localhost:8080/models/apply -H "Content-Type: application/json" -d '{ "config_url": "https://raw.githubusercontent.com/mudler/LocalAI/master/embedded/models/phi-2-chat.yaml" }'
 
