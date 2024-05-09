@@ -1,6 +1,6 @@
-CHATGPT.SH(1) v0.56.7 | General Commands Manual
+CHATGPT.SH(1) v0.57 | General Commands Manual
 mountaineerbr
-April 2024
+May 2024
 
 NAME
 

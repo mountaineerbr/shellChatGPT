@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.56.14  apr/2024  by mountaineerbr  GPL+3
+# v0.57  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -679,7 +679,7 @@ function _promptf
 					then 	str='content":';
 					fi
 					chunk_n="${chunk/${str}*(\ )\"+(\ |\\[ntr])/$str\"}"
-					[[ $chunk_n = *"${str}"\"[\]\},$IFS]* ]] && continue
+					[[ $chunk_n = *"${str}"\"\"* ]] && continue
 				}; ((++n));
 				printf '%s\n' "${chunk_n:-$chunk}"; chunk_n= ;
 			else 	printf '%s\n' "$chunk"
@@ -703,7 +703,7 @@ function promptf
 	if ((STREAM))
 	then 	if ((RETRY>1))
 		then 	cat -- "$FILE"
-		else 	printf "${BYELLOW}%s\\b${NC}" "X" >&2;
+		else 	((OPTK)) || printf "${BYELLOW}%s\\b${NC}" "X" >&2;
 			_promptf;
 		fi | prompt_printf
 	else
@@ -886,10 +886,11 @@ function prompt_printf
 function prompt_prettyf
 {
 	jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
-	  (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
-	  byellow + ( (.text//.response//(.message.content)//(.delta.content)//\"\" ) |
+	  byellow
+	  + (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
+	  ( (.text//.response//(.message.content)//(.delta.content)//\"\" ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
-	  + if .finish_reason? != \"stop\" then (if .finish_reason? != null then red+\"(\"+.finish_reason+\")\"+reset else null end) else null end,
+	  + if .finish_reason? != \"stop\" then (if .finish_reason? != null then (if .finish_reason? != \"\" then red+\"(\"+.finish_reason+\")\"+byellow else null end) else null end) else null end,
 	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf;
 }
 function prompt_pf
@@ -2221,7 +2222,7 @@ function foldf
 	fi; return 0;
 }
 
-#check if a value if within a fp range
+#check if a value is within a fp range
 #usage: check_optrangef [val] [min] [max]
 function check_optrangef
 {
@@ -3516,8 +3517,9 @@ function set_localaif
 				curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
 				{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
 			else
-				curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
-				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;}
+				curl -\# -fL "${API_HOST}/models/available" -o "$FILE" &&
+				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;} ||
+				! curl -\# -L "${API_HOST}/models/" | jq .
 			fi
 		}  #https://localai.io/models/
 		set_model_epnf "$MOD";
@@ -3630,7 +3632,7 @@ function set_googleaif
 #@#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #sourced file
 
 
-unset OPTMM STOPS
+unset OPTMM STOPS MAIN_LOOP
 #parse opts
 optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
@@ -3707,7 +3709,7 @@ do
 		b) 	OPTB="$OPTARG";;
 		B) 	OPTBB="$OPTARG";;
 		c) 	((++OPTC));;
-		C) 	((++OPTRESUME));;
+		C) 	((++OPTRESUME)); MAIN_LOOP=2;;
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
@@ -3791,7 +3793,7 @@ do
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV MAIN_LOOP SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP init buff var n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP init buff var n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -4456,6 +4458,7 @@ else
 		if ((RETRY<2))
 		then 	((MTURN+OPTRESUME)) &&
 			if ((EPN==6)); then 	set_histf "${*}"; else 	set_histf "${Q_TYPE}${*}"; fi
+			((MAIN_LOOP||TOTAL_OLD)) || TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-$GINSTRUCTION}")
 			if ((OPTC)) || [[ -n "${RESTART}" ]]
 			then 	rest="${RESTART:-$Q_TYPE}"
 				((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
@@ -4551,7 +4554,8 @@ $BLOCK $OPTSUFFIX_OPT
 $( ((OPTMAX_NILL && EPN==6)) || echo "\"max_tokens\": $OPTMAX," )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTBB_OPT $OPTSTOP
-$( ((MISTRALAI)) || echo "\"n\": $OPTN," )
+$( ((MISTRALAI)) || echo "\"n\": $OPTN," ) \
+$( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
 \"model\": \"$MOD\", \"temperature\": $OPTT${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
 		fi
@@ -4584,9 +4588,13 @@ $( ((MISTRALAI)) || echo "\"n\": $OPTN," )
 		if 	if ((STREAM))  #no token information in response
 			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}
 				ans=$(escapef "$ans")
-				((OLLAMA)) || {
+				((LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI)) ||
+				tkn=( $(jq -s '.[-1]' "$FILE" | jq -r '.usage.prompt_tokens//empty,
+					.usage.completion_tokens//empty,
+					(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))') )  #https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
+				((${#tkn[@]}>2)) || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6)) && unset A_TYPE; __tiktokenf "${A_TYPE}${ans}");
-				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD
+				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD tkn;
 				}
 			else
 				((OLLAMA)) ||
@@ -4642,9 +4650,9 @@ $( ((MISTRALAI)) || echo "\"n\": $OPTN," )
 			fi
 			ans="${A_TYPE##$SPC1}${ans}"
 			((${#SUFFIX})) && ans=${ans}${SUFFIX}
-			((${#INSTRUCTION}+${#GINSTRUCTION})) && push_tohistf "$(escapef ":${INSTRUCTION:-$GINSTRUCTION}")"
+			((${#INSTRUCTION}+${#GINSTRUCTION})) && push_tohistf "$(escapef ":${INSTRUCTION:-$GINSTRUCTION}")" $( ((MAIN_LOOP)) || echo $TOTAL_OLD )
 			((OPTAWE)) ||
-			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : TKN_PREV ))" "${tkn[2]}"
+			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : 0 ))" "${tkn[2]}"
 			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || unset OPTC OPTRESUME OPTCMPL MTURN
 			
 			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
