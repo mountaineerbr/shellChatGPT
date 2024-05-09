@@ -569,6 +569,9 @@ for an idea on how to install, download a model and set it up.
     export GALLERIES='[{"name":"huggingface", "url": "github:go-skynet/model-gallery/huggingface.yaml"}]'
 
 
+<!-- broken huggingface gallery: https://github.com/mudler/LocalAI/issues/2045 -->
+
+
 *4.* Install the model named `phi-2-chat` from a `yaml` file manually, while the server is running:
 
     curl -L http://localhost:8080/models/apply -H "Content-Type: application/json" -d '{ "config_url": "https://raw.githubusercontent.com/mudler/LocalAI/master/embedded/models/phi-2-chat.yaml" }'

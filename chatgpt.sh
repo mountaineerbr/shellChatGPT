@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57  may/2024  by mountaineerbr  GPL+3
+# v0.57.1  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2084,7 +2084,7 @@ function ollama_mediaf
 #will _NOT_ work with whitespace in filename if not pipe-delimited and may not work with mixed pipe- and whitespace-delimited input
 function _mediachatf
 {
-	typeset var spc spc2 spc_sep ftrim break i n; unset TRUNC_IND;
+	typeset var spc spc2 spc_sep ftrim break err_n i n; unset TRUNC_IND;
        	i=${#1} spc=$'(\\[tnr]|[ \t\n\r])' spc2="+$spc" spc="*$spc";
 
 	#process only the last line of input, fix for escaped white spaces in filename, del trailing spaces and trailing pipe separator
@@ -2118,13 +2118,14 @@ function _mediachatf
 			elif [[ $1 = *\|* ]]
 			then 	set -- "${1%\|*}";
 			else 	set -- "${1%${spc2}*}";
-			fi; spc_sep= ;
+			fi; spc_sep= err_n= ;
 			set -- "${1%%${spc}}";
 			((TRUNC_IND = i - ${#1}));
 		else
 			((spc_sep)) ||
 			__warmsgf 'err: invalid --' "${var:0: COLUMNS-20}$([[ -n ${var: COLUMNS-20} ]] && echo ...)";
 
+			((err_n)) && break; ((++err_n));
 			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
 			set -- "${1%\|*}";
 		fi  #https://stackoverflow.com/questions/12199059/
