@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.2  may/2024  by mountaineerbr  GPL+3
+# v0.57.3  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2004,8 +2004,12 @@ function escapef {
 
 function break_sessionf
 {
-	[[ -f "$FILECHAT" ]] || return;
-	[[ BREAK"$(tail -n 20 -- "$FILECHAT")" = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]] \
+	[[ -f "$FILECHAT" ]] || return; typeset tail;
+	
+	tail=$(tail -n 20 -- "$FILECHAT") || return;
+	((${#tail}>12000)) && tail=${tail:${#tail} -10000};
+	
+	[[ BREAK${tail} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]] \
 	|| printf '%s\n' 'SESSION BREAK' >> "$FILECHAT";
 	_sysmsgf 'SESSION BREAK';
 }
