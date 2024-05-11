@@ -942,7 +942,7 @@ _Mirror_
 
 This is the version number history recorded throughout the script evolution over time.
 
-The lowest record is **0.06.04** and the highest (so far) is **0.57.01**.
+The lowest record is **0.06.04** _3/Mar/2023_ and the highest is **0.57.01** _May/2024_.
 
 <br />
 <a href="https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chatgpt.sh_version_evol.png"><p align="center">
