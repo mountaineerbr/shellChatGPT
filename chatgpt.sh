@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.1  may/2024  by mountaineerbr  GPL+3
+# v0.57.2  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1630,7 +1630,7 @@ function cmd_runf
 		-?(S)*([$' \t'])[.,]*)
 			set -- "${*##-?(S)*([$' \t'])}"; SKIP=1 EDIT=1 
 			var=$(INSTRUCTION=$* OPTRESUME=1 CMD_CHAT=1; custom_prf "$@" && echo "$INSTRUCTION")
-			case $? in [1-9]*|201|[!0]*) 	REPLY="!${args[*]}";; 	*) REPLY=$var;; esac
+			case $? in [1-9]*|201|[!0]*) 	REPLY=${args[*]};; 	*) REPLY=$var;; esac
 			;;
 		-?(S)*([$' \t'])[/%]*)
 			set -- "${*##-?(S)*([$' \t'])}"; SKIP=1 EDIT=1 
@@ -1845,7 +1845,7 @@ function cmd_runf
 				*) 	REGEN=1 REPLY= ;;
 			esac
 			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
-			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]$'\n'* ]]
+			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]*([$' \t'])$'\n'* ]]
 			then 	# comment out two lines from tail
 				wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
 				&& sed -i -e "$((wc-1)),${wc} s/^/#/" "$FILECHAT";
@@ -2004,9 +2004,10 @@ function escapef {
 
 function break_sessionf
 {
-	[[ -f "$FILECHAT" ]] || return
-	[[ BREAK"$(tail -n 20 "$FILECHAT")" = *[Bb][Rr][Ee][Aa][Kk] ]] \
-	|| _sysmsgf "$(tee -a -- "$FILECHAT" <<<'SESSION BREAK')"
+	[[ -f "$FILECHAT" ]] || return;
+	[[ BREAK"$(tail -n 20 -- "$FILECHAT")" = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]] \
+	|| printf '%s\n' 'SESSION BREAK' >> "$FILECHAT";
+	_sysmsgf 'SESSION BREAK';
 }
 
 #fix variable value, add zero before/after dot.
@@ -4195,7 +4196,7 @@ else
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
-	((OPTRESUME)) && [[ $(tail -n 1 "$FILECHAT") = *[Bb][Rr][Ee][Aa][Kk] ]] && sed -i -e '$d' "$FILECHAT";
+	((OPTRESUME)) && [[ $(tail -n 1 "$FILECHAT") = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] && sed -i -e '$d' "$FILECHAT";
 	if ((MTURN+OPTRESUME))
 	then 	INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		shell_histf "$INSTRUCTION"
