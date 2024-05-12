@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.3  may/2024  by mountaineerbr  GPL+3
+# v0.57.4  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -730,6 +730,15 @@ function promptf
 		return 0
 	fi
 }
+
+#print tokens from response
+function response_tknf
+{
+	jq -r '.usage.prompt_tokens//"0",
+		.usage.completion_tokens//"0",
+		(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$@";
+}
+#https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
 
 #clear impending stream (tty)
 function __clr_ttystf
@@ -4595,19 +4604,15 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 		if 	if ((STREAM))  #no token information in response
 			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}
 				ans=$(escapef "$ans")
-				((LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI)) ||
-				tkn=( $(jq -s '.[-1]' "$FILE" | jq -r '.usage.prompt_tokens//empty,
-					.usage.completion_tokens//empty,
-					(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))') )  #https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
-				((${#tkn[@]}>2)) || ((OLLAMA)) || {
+
+				((OLLAMA+LOCALAI+GOOGLEAI)) ||  #OpenAI and MistralAI
+				tkn=( $(jq -s '.[-1]' "$FILE" | response_tknf) )
+				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6)) && unset A_TYPE; __tiktokenf "${A_TYPE}${ans}");
 				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD tkn;
 				}
 			else
-				((OLLAMA)) ||
-				tkn=($(jq -r '.usage.prompt_tokens//"0",
-					.usage.completion_tokens//"0",
-					(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$FILE") )
+				((OLLAMA)) || tkn=($(response_tknf "$FILE") )
 				unset ans buff n
 				for ((n=0;n<OPTN;n++))  #multiple responses
 				do 	buff=$(INDEX=$n prompt_pf "$FILE")
@@ -4620,7 +4625,8 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 				((STREAM)) && ((MAX_PREV+=tkn[1]));
 			fi
 
-			if [[ -z "$ans" ]] && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI) ))
+			#check for OpenAI response length-type error
+			if [[ -z "$ans" ]] && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI) ))
 			then 	jq -e '(.error?)//(.[]?|.error?)//.' "$FILE" >&2 || ! cat -- "$FILE" >&2 || ((!GOOGLEAI)) || jq . "$FILE_PRE" >&2 2>/dev/null;
 				__warmsgf "(response empty)"
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
@@ -4638,6 +4644,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 					fi
 				fi  #adjust context err
 			fi;
+
 			unset BAD_RES PSKIP ESC_OLD;
 			((${#tkn[@]}>2 || STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
