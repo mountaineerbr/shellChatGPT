@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.5  may/2024  by mountaineerbr  GPL+3
+# v0.57.6  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1140,9 +1140,10 @@ function set_histf
 }
 #https://thoughtblogger.com/continuing-a-conversation-with-a-chatbot-using-gpt/
 
+#print the last line of tsv history file
 function hist_lastlinef
 {
-	sed -n -e 's/\t"/\t/; s/"$//;' -e '$s/^[^\t]*\t[^\t]*\t//p' "$FILECHAT" \
+	sed -n -e 's/\t"/\t/; s/"$//;' -e '$s/^[^\t]*\t[^\t]*\t//p' "$@" \
 	| sed -e "s/^://; s/^${Q_TYPE//\\n}//; s/^${A_TYPE//\\n}//;"
 }
 
@@ -1660,7 +1661,7 @@ function cmd_runf
 			__cmdmsgf 'Clipboard' $(_onoff $OPTCLIP)
 			if ((OPTCLIP))  #set clipboard
 			then 	set_clipcmdf;
-				set -- "$(hist_lastlinef)"; [[ $* != *([$IFS]) ]] &&
+				set -- "$(hist_lastlinef "$FILECHAT")"; [[ $* != *([$IFS]) ]] &&
 				unescapef "$*" | ${CLIP_CMD:-false} &&
 				  printf "${NC}Clipboard Set -- %.*s..${CYAN}\\n" $((COLUMNS-20>20?COLUMNS-20:20)) "$*" >&2;
 			fi
@@ -4234,11 +4235,14 @@ else
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	history -c; history -r; history -w;  #prune & fix history file
-		[[ -s $HISTFILE ]] &&
-		case "$BASH_VERSION" in  #avoid bash4 hanging
-			[0-3]*|4.[01]*) 	:;;
-			*) 	REPLY_OLD=$(trim_leadf "$(fc -ln -1 | cut -c1-1000)" "*([$IFS])");;
-		esac
+		if ((OPTRESUME)) && [[ -s $FILECHAT ]]
+		then 	REPLY_OLD=$(grep -F -e $'\t"'${Q_TYPE//$SPC1} "$FILECHAT" | hist_lastlinef);  #little slow with big tsv files
+		elif [[ -s $HISTFILE ]]
+		then 	case "$BASH_VERSION" in  #avoid bash4 hanging
+				[0-3]*|4.[01]*|4|'') 	:;;
+				*) 	REPLY_OLD=$(trim_leadf "$(fc -ln -1)" "*([$IFS])");;
+			esac;
+		fi
 		shell_histf "$*";
 	fi
 	cmd_runf "$@" && set -- ;
@@ -4411,7 +4415,7 @@ else
 		then
 			[[ -n $REPLY ]] || REPLY="${*}" #set buffer for EDIT
 
-			if ((RETRY!=1))
+			if ((RETRY!=1))  ##((${#1}<10000))
 			then 	shell_histf "$*"
 				history -a
 			fi
@@ -4424,7 +4428,7 @@ else
 				if [[ ${*} = $SPC:::* ]] &&  #append (text cmpls) 
 				{ 	((EPN!=6)) || ! var=${var:1} ;}
 				then
-					p=$(hist_lastlinef) q=${var:2}  #user feedback
+					p=$(hist_lastlinef "$FILECHAT") q=${var:2}  #user feedback
 					n=$((COLUMNS-19>30 ? (COLUMNS-19)/2 : 30/2))
 					((${#p}>n)) && p=${p:${#p}-n+1} pp=".."
 					((${#q}>n)) && q=${q:0: n}      qq=".."
