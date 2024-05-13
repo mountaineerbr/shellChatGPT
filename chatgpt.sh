@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.8  may/2024  by mountaineerbr  GPL+3
+# v0.57.9  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2137,8 +2137,9 @@ function _mediachatf
 			set -- "${1%%${spc}}";
 			((TRUNC_IND = i - ${#1}));
 		else
-			((spc_sep)) || {  var=${var//$'\t'/ };
+			((spc_sep)) || {
 			  var="${var:0: COLUMNS-25}$([[ -n ${var: COLUMNS-25} ]] && printf '\b\b\b%s' ...)";
+			  var=${var//$'\t'/ };
 			  __warmsgf 'multimodal: invalid --' "\"$var\"";
 			}
 
