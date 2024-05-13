@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.9  may/2024  by mountaineerbr  GPL+3
+# v0.57.10  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -629,7 +629,7 @@ function model_capf
 		davinci-002|babbage-002) 	MODMAX=16384;;
 		davinci|curie|babbage|ada) 	MODMAX=2049;;
 		code-davinci-00[2-9]) MODMAX=8001;;
-		gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]) MODMAX=128000;;
+		gpt-4o*|gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]) MODMAX=128000;;
 		gpt-3.5-turbo-1106) MODMAX=16385;;
 		gpt-4*32k*|*32k) 	MODMAX=32768;; 
 		gpt-3.5*16K*|*turbo*16k*|*16k) 	MODMAX=16384;;
