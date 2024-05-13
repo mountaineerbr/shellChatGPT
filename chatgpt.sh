@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.11  may/2024  by mountaineerbr  GPL+3
+# v0.57.12  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -899,7 +899,7 @@ function prompt_prettyf
 	  + (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
 	  ( (.text//.response//(.message.content)//(.delta.content)//\"\" ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
-	  + if .finish_reason? != \"stop\" then (if .finish_reason? != null then (if .finish_reason? != \"\" then red+\"(\"+.finish_reason+\")\"+byellow else null end) else null end) else null end,
+	  + if .finish_reason? != \"stop\" then (if (.finish_reason? + \"\") != \"\" then red+\"(\"+.finish_reason+\")\"+byellow else null end) else null end,
 	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf;
 }
 function prompt_pf
@@ -2120,7 +2120,8 @@ function _mediachatf
 		fi
 
 		#check if file or url and add to array (max 20MB)
-		if is_imagef "$var" || { ((GOOGLEAI)) && is_videof "$var" ;} || is_linkf "$var"  #|| ((MULTIMODAL))
+		if is_imagef "$var" || { ((GOOGLEAI)) && is_videof "$var" ;} \
+			|| { ((!GOOGLEAI)) && is_linkf "$var" ;}  #|| ((MULTIMODAL))
 		then 	((++n));
 			if ((CMD_CHAT))
 			then 	MEDIA_CMD=("${MEDIA_CMD[@]}" "$var");
@@ -2194,7 +2195,8 @@ function is_visionf
 {
 	case "$1" in 
 	*vision*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
-	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]) 	:;;
+	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
+	gemini-1.5-pro*|*multimodal*) 	:;;
 	*) 	((MULTIMODAL));;
 	esac;
 }
@@ -3644,6 +3646,9 @@ function set_googleaif
       "data": "%s"
     }
 }' "$(_is_videof "$var" && echo video || echo image)" "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
+			elif is_linkf "$var"
+			then 	__warmsgf 'GoogleAI: illegal URL --' "${var:0: COLUMNS-25}";
+				continue;
 			fi
 		done;
 		printf '%s\n'  ' ] }';
@@ -4495,7 +4500,7 @@ else
 			if ((EPN==6))
 			then 	#chat cmpls
 				[[ ${*} = *([$IFS]):* ]] && role=system || role=user
-				((GOOGLEAI)) &&  #gemini-vision cannot take it multiturn
+				((GOOGLEAI)) &&  [[ $MOD = *gemini*-pro-vision* && $MOD != *gemini*-1.5-* ]] &&  #gemini-1.0-pro-vision cannot take it multiturn
 				if { (( (REGEN<0 || RETRY) && MAIN_LOOP<1)) && ((${#INSTRUCTION_OLD})) ;} || is_visionf "$MOD"
 				then 	HIST_G=${HIST}${HIST:+\\n\\n} HIST_C= ;
 					((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
