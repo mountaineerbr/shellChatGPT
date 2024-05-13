@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.7  may/2024  by mountaineerbr  GPL+3
+# v0.57.8  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2137,12 +2137,14 @@ function _mediachatf
 			set -- "${1%%${spc}}";
 			((TRUNC_IND = i - ${#1}));
 		else
-			((spc_sep)) ||
-			__warmsgf 'err: invalid --' "${var:0: COLUMNS-20}$([[ -n ${var: COLUMNS-20} ]] && echo ...)";
-			break;
+			((spc_sep)) || {  var=${var//$'\t'/ };
+			  var="${var:0: COLUMNS-25}$([[ -n ${var: COLUMNS-25} ]] && printf '\b\b\b%s' ...)";
+			  __warmsgf 'multimodal: invalid --' "\"$var\"";
+			}
 
-			[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
-			set -- "${1%\|*}";
+			break;
+			#[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
+			#set -- "${1%\|*}";
 		fi  #https://stackoverflow.com/questions/12199059/
 		((break)) && break;
 	done; ((n));
@@ -2317,9 +2319,10 @@ function start_compf { ((${#1})) && START=$(escapef "$(unescapef "${*:-$START}")
 function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
-	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * Press ENTER to START record * ' >&2
-		case "$(__read_charf)" in [OoQqWw]) 	return 196;; [Ee]|$'\e') 	return 199;; [AaNnQq]) 	return 201;; esac
-		__clr_lineupf 33  #!#
+	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * [e]dit text,  [w]hisper off * ' \
+							      ' * Press ENTER to START record * ' >&2;
+		case "$(__read_charf)" in [AaOoQqWw]) 	return 196;; [Ee]|$'\e') 	return 199;; esac;
+		__clr_lineupf 33; __clr_lineupf 33;  #!#
 	fi
 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr off * ' >&2
 	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
@@ -2341,8 +2344,9 @@ function recordf
 	$REC_CMD "$1" & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; ret=199;" INT;
 	
+	#see record_confirmf()
 	case "$(__read_charf)" in
-		[OoQqWw])   ret=196  #whisper off
+		[AaOoQqWw])   ret=196  #whisper off
 			;;
 		[Ee]|$'\e') ret=199  #text edit (single-shot)
 			;;
@@ -4319,7 +4323,7 @@ else
 								esac;
 								echo record abort >&2;
 							fi;;
-						196) 	unset WSKIP OPTW REPLY; continue 1;;  #whisper off
+						196|201) 	unset WSKIP OPTW REPLY; continue 1;;  #whisper off
 						199) 	EDIT=1; continue 1;;  #text edit
 						*) 	unset REPLY; continue 1;;
 					esac; unset RESUBW;
