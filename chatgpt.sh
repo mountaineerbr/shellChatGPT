@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.12  may/2024  by mountaineerbr  GPL+3
+# v0.57.13  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -900,7 +900,7 @@ function prompt_prettyf
 	  ( (.text//.response//(.message.content)//(.delta.content)//\"\" ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if .finish_reason? != \"stop\" then (if (.finish_reason? + \"\") != \"\" then red+\"(\"+.finish_reason+\")\"+byellow else null end) else null end,
-	  if \$sep then \"---\" else empty end)" "$@" && _p_suffixf;
+	  if \$sep then \"---\" else empty end) + reset" "$@" && _p_suffixf;
 }
 function prompt_pf
 {
@@ -2618,7 +2618,7 @@ function ttsf
 
 	[[ $FOUT = "-"* ]] || [[ ! -e $FOUT ]] || { 
 		du -h "$FOUT" 2>/dev/null || _sysmsgf 'TTS file:' "$FOUT"; 
-		((OPTV)) || [[ ! -s $FOUT ]] || {
+		((OPTV && !CHAT_ENV)) || [[ ! -s $FOUT ]] || {
 			((CHAT_ENV)) || __sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
 			case "$PLAY_CMD" in false) 	return $ret;; esac;
 		while 	${PLAY_CMD} "$FOUT" & pid=$! PIDS+=($!);
@@ -2626,7 +2626,8 @@ function ttsf
 			wait $pid;
 			case $? in
 				0) 	case "$PLAY_CMD" in *termux-media-player*) while sleep 1 ;[[ $(termux-media-player info 2>/dev/null) = *[Pp]laying* ]] ;do : ;done;; esac;  #termux fix
-					var=3;;  #3+1 secs
+					var=3;  #3+1 secs
+					((OPTV)) && var=1;;
 				*) 	wait $pid;
 					var=8;;  #8+1 secs
 			esac;
@@ -4713,7 +4714,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 		elif ((OPTZ))
 		then
 			trap '' INT;
-			OPTV= MOD=$MOD_SPEECH EPN=10 \
+			MOD=$MOD_SPEECH EPN=10 \
 			ttsf "${ZARGS[@]}" "${ans##"${A_TYPE##$SPC1}"}";
 			trap 'exit' INT;
 		fi
