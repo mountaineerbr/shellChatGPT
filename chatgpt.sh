@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.15  may/2024  by mountaineerbr  GPL+3
+# v0.57.16  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1567,7 +1567,7 @@ function cmd_runf
 			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 			;;
 		markdown*|md*)
-			((OPTMD)) || OPTMD=1 cmd_runf //"${args[@]}";
+			((OPTMD)) || (OPTMD=1 cmd_runf //"${args[@]}");
 			set -- "${*##@(markdown|md)$SPC}"
 			((OPTMD)) && [[ $1 != $SPC ]] && OPTMD= ;
 			if ((++OPTMD)); ((OPTMD%=2))
