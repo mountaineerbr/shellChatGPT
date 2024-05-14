@@ -606,11 +606,6 @@ Defaults="*~/.chatgpt.conf*"
 **FILECHAT**  
 Path to a history / session TSV file (script-formatted).
 
-**GOOGLE_API_KEY**
-
-**MISTRAL_API_KEY**  
-Google / Mistral AI API keys.
-
 **INSTRUCTION**  
 Initial initial instruction, or system message.
 
@@ -645,8 +640,12 @@ selection.
 
 **OPENAI_KEY**
 
-**OPENAI_API_KEY**  
-Personal OpenAI API key.
+**OPENAI_API_KEY**
+
+**GOOGLE_API_KEY**
+
+**MISTRAL_API_KEY**  
+OpenAI, GoogleAI, and MistralAI API keys.
 
 **OUTDIR**  
 Output directory for received images and audio.

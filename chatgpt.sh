@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.13  may/2024  by mountaineerbr  GPL+3
+# v0.57.14  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -246,9 +246,6 @@ Environment
 
 	FILECHAT 	Path to a history / session TSV file.
 
-	GOOGLE_API_KEY
-	MISTRAL_API_KEY Google / Mistral AI API keys.
-	
 	INSTRUCTION 	Initial instruction, or system message.
 
 	INSTRUCTION_CHAT
@@ -271,7 +268,10 @@ Environment
 			endpoint auto-selection.
 
 	OPENAI_KEY
-	OPENAI_API_KEY  Personal OpenAI API key.
+	OPENAI_API_KEY
+	GOOGLE_API_KEY
+	MISTRAL_API_KEY OpenAI, GoogleAI, and MistralAI API keys.
+	
 
 	OUTDIR 		Output directory for received images and audio.
 
@@ -1834,9 +1834,9 @@ function cmd_runf
 				_sysmsgf 'Edit buffer?' '[Y]es, [n]o, [e]dit, te[x]t editor, [s]hell, or [r]edo ' ''
 				case "$(__read_charf)" in
 					[AaQqRr]) 	SKIP=1 EDIT=1 REPLY="!${args[*]}"; break;;  #abort, redo
-					[Ee]|$'\e') 	SKIP=1 EDIT=1; break;; #yes, bash `read`
-					[VvXx]) 	SKIP=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
-					[NnOo]) 	SKIP=1 PSKIP=1; break;;  #no need to edit
+					[Ee]) 	SKIP=1 EDIT=1; break;; #yes, bash `read`
+					[VvXx]|$'\t'|\ ) 	SKIP=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
+					[NnOo]|$'\e') 	SKIP=1 PSKIP=1; break;;  #no need to edit
 					[!Ss]|'') 	SKIP=1 EDIT=1;
 							printf '\n%s\n' '---' >&2; break;;  #yes
 				esac ;set --
