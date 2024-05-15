@@ -13,7 +13,7 @@ Markdown rendering of chat response (_optional_).
 
 ## 🚀 Features
 
-- Text and chat completions with [**gtp-4-vision** support](#vision-models-gpt-4-vision)
+- Text and chat completions with **gpt-4o** and [**gtp-4-vision** support](#vision-models-gpt-4-vision)
 - **Text editor interface**, _Bash readline_, and _cat_ input modes
 - [**Markdown rendering**](#markdown) support in response
 - **Preview**, and  [**regenerate responses**](#--notes-and-tips)

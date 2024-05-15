@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.17  may/2024  by mountaineerbr  GPL+3
+# v0.57.18  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2180,14 +2180,15 @@ function is_linkf
 
 function is_txtfilef
 {
+	! _is_imagef "$@" && ! _is_videof "$@" &&
+	! _is_audiof "$@" && ! (__set_outfmtf "$@") &&
 	[[ "$(file -- "$1")" = *[Tt][Ee][Xx][Tt]* ]]
 }
 
 function _is_imagef
 {
 	case "$1" in
-		*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] | *[Hh][Ee][Ii][CcFf] )
-			:;;
+		*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] | *[Hh][Ee][Ii][CcFf] ) :;;
 		*) 	false;;
 	esac;
 }
@@ -2206,6 +2207,17 @@ function _is_videof
 function is_videof
 {
 	[[ -f $1 ]] && _is_videof "$1";
+}
+function _is_audiof
+{
+	case "$1" in
+		*[Mm][Pp][34] | *[Mm][Pp][Gg] | *[Mm][Pp][Ee][Gg] | *[Mm][Pp][Gg][Aa] | *[Mm]4[Aa] | *[Ww][Aa][Vv] | *[Ww][Ee][Bb][Mm] ) :;;
+		*) 	false;;
+	esac
+}
+function is_audiof
+{
+	[[ -f $1 ]] && _is_audiof "$1";
 }
 
 #check for multimodal (vision) model
@@ -2445,10 +2457,9 @@ function whisperf
 		esac
 	fi
 	
-	var='@([Mm][Pp][34]|[Mm][Pp][Gg]|[Mm][Pp][Ee][Gg]|[Mm][Pp][Gg][Aa]|[Mm]4[Aa]|[Ww][Aa][Vv]|[Ww][Ee][Bb][Mm])'
-	if [[ -f $1 && $1 = *${var} ]] #mp3|mp4|mpeg|mpga|m4a|wav|webm
+	if is_audiof "$1"
 	then 	file="$1"; shift;
-	elif (($#)) && [[ -f ${@:${#}} && ${@:${#}} = *${var} ]]
+	elif ((${#} >1)) && is_audiof "${@:${#}}"
 	then 	file="${@:${#}}"; set -- "${@:1:$((${#}-1))}";
 	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "${1:-nill}" >&2
 		return 1
@@ -2690,8 +2701,8 @@ function __set_voicef
 function __set_outfmtf
 {
 	case "$1" in  #mp3|opus|aac|flac
-		mp3|[Mm][Pp]3|[Oo][Pp][Uu][Ss]|[Aa][Aa][Cc]|[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=$1;;
-		*?.[Mm][Pp]3|*.[Oo][Pp][Uu][Ss]|*.[Aa][Aa][Cc]|*.[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
+		[Mm][Pp]3|[Oo][Pp][Uu][Ss]|[Aa][Aa][Cc]|[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=$1;;
+		*?.[Mm][Pp]3|*?.[Oo][Pp][Uu][Ss]|*?.[Aa][Aa][Cc]|*?.[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
 		*?/) 	[[ -d $1 ]] && FILEOUT_TTS=${1%%/}/${FILEOUT_TTS##*/};;
 		-) 	FOUT='-';;
 		*) 	false;;
@@ -3993,11 +4004,16 @@ then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
 else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 
-#load text file (last arg) and stdin
+#load text file from last arg or first arg, and stdin
 if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN))
 then
-	((OPTEMBED+OPTI+OPTZ)) && ((${#})) && [[ -f ${@:${#}} ]] &&
-	  is_txtfilef "${@:${#}}" && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+	if ((OPTEMBED+OPTI+OPTZ)) && ((${#}))
+	then 	if [[ -f ${@:${#}} ]] && is_txtfilef "${@:${#}}"
+		then 	set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+		elif [[ -f $1 ]] && is_txtfilef "$1"
+		then 	set -- "$(<"$1")" "${@:2}";
+		fi
+	fi
 
 	{ ((OPTI)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
 	  [[ -t 0 ]] || set -- "$@" "$(<$STDIN)";
@@ -4005,8 +4021,13 @@ then
 	edf "$@" && set -- "$(<"$FILETXT")";
 elif ! ((OPTTIKTOKEN+OPTI))
 then
-	! ((OPTW && !MTURN)) && ((${#})) && [[ -f ${@:${#}} ]] && 
-	  is_txtfilef "${@:${#}}" && set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+	if ((${#}))
+	then 	if [[ -f ${@:${#}} ]] && is_txtfilef "${@:${#}}"
+		then 	set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+		elif [[ -f $1 ]] && is_txtfilef "$1"
+		then 	set -- "$(<"$1")" "${@:2}";
+		fi
+	fi
 
 	[[ -t 0 ]] || ((OPTZZ+OPTL+OPTFF+OPTHH)) || set -- "$@" "$(<$STDIN)";
 fi
