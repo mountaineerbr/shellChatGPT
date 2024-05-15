@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.18  may/2024  by mountaineerbr  GPL+3
+# v0.58  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -635,7 +635,7 @@ function model_capf
 		gpt-3.5*16K*|*turbo*16k*|*16k) 	MODMAX=16384;;
 		gpt-4*|*-bison*|*-unicorn) 	MODMAX=8192;;
 		*turbo*|*davinci*) 	MODMAX=4096;;
-		gemini*-1.5*) 	MODMAX=128000;;
+		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=128000;;
 		gemini*-vision*) 	MODMAX=16384;;
 		gemini*-pro*) 	MODMAX=32760;;
 		*mi[sx]tral*) 	MODMAX=32000;;
@@ -2226,7 +2226,7 @@ function is_visionf
 	case "$1" in 
 	*vision*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
-	gemini-1.5-pro*|*multimodal*) 	:;;
+	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*) 	:;;
 	*) 	((MULTIMODAL));;
 	esac;
 }
