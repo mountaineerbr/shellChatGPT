@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.57.16  may/2024  by mountaineerbr  GPL+3
+# v0.57.17  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1308,6 +1308,23 @@ else:
 #cl100k_base gpt-3.5-turbo
 #json specials \" \\ b f n r t \uHEX
 
+#convert markdown to plain text
+function unmarkdownf
+{
+	python -c "import sys
+import markdown
+from bs4 import BeautifulSoup
+
+def remove_markdown(text):
+    html = markdown.markdown(text)
+    soup = BeautifulSoup(html, 'html.parser')
+    return soup.get_text()
+
+markdown_text = sys.stdin.read()
+stripped_text = remove_markdown(markdown_text)
+print(stripped_text)"
+}
+
 #set output image size
 function set_imgsizef
 {
@@ -2544,13 +2561,19 @@ function ttsf
 	fi
 
 	if [[ $FOUT != "-" ]]
-	then 	n=0 m=0  #set a filename for output
-		for fname in "${FILEOUT_TTS%.*}"*
-		do 	fname=${fname##*/} fname=${fname%.*}
-			fname=${fname%-*([0-9])} fname=${fname##*[!0-9]}
-			((m>fname)) || ((m=fname+1)) 
-		done
-		FOUT="${FILEOUT_TTS%.*}${m}.${OPTZ_FMT}"
+	then 	if [[ -s $FILEOUT_TTS ]]
+		then 	n=0 m=0  #set a filename for output
+			for fname in "${FILEOUT_TTS%.*}"*
+			do 	fname=${fname##*/} fname=${fname%.*}
+				fname=${fname%%-*([0-9])} fname=${fname##*[!0-9]}
+				((m>fname)) || ((m=fname+1)) 
+			done
+			FOUT=${FILEOUT_TTS%.*} FOUT=${FOUT%%?(-)*([0-9])};
+			while [[ -s ${FOUT}${m}.${OPTZ_FMT} ]]; do 	((++m)); done;
+			FOUT=${FOUT}${m}.${OPTZ_FMT};
+		else
+			FOUT=${FILEOUT_TTS%.*}.${OPTZ_FMT};
+		fi
 	fi
 
 	xinput=$*; [[ ${MOD_SPEECH} = tts-1* ]] && max=4096 || max=40960;
@@ -2668,8 +2691,8 @@ function __set_outfmtf
 {
 	case "$1" in  #mp3|opus|aac|flac
 		mp3|[Mm][Pp]3|[Oo][Pp][Uu][Ss]|[Aa][Aa][Cc]|[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=$1;;
-		*.[Mm][Pp]3|*.[Oo][Pp][Uu][Ss]|*.[Aa][Aa][Cc]|*.[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
-		*/) 	[[ -d $1 ]] && FILEOUT_TTS=${1%%/}/${FILEOUT_TTS##*/};;
+		*?.[Mm][Pp]3|*.[Oo][Pp][Uu][Ss]|*.[Aa][Aa][Cc]|*.[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
+		*?/) 	[[ -d $1 ]] && FILEOUT_TTS=${1%%/}/${FILEOUT_TTS##*/};;
 		-) 	FOUT='-';;
 		*) 	false;;
 	esac
@@ -4714,9 +4737,17 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			((++SLEEP_WORDS));
 		elif ((OPTZ))
 		then
-			trap '' INT;
-			MOD=$MOD_SPEECH EPN=10 \
-			ttsf "${ZARGS[@]}" "${ans##"${A_TYPE##$SPC1}"}";
+			ans=${ans##"${A_TYPE##$SPC1}"};
+			#detect and remove possible markdown from $ans to avoid some tts glitches
+			if [[ OPTMD -gt 0 || \\n$ans = *\\n@(\#\ |[\*-]\ |\>\ )* ]]
+			then 	ans_tts=$(unescapef "$ans");
+				ans_tts=$(unmarkdownf <<<"$ans_tts" || {
+					command -v pandoc >/dev/null 2>&1 && pandoc --from markdown --to plain <<<"$ans_tts" ;} ) 2>/dev/null;
+ 				ans_tts=$(escapef "$ans_tts");
+			fi
+
+			trap '' INT; 
+			MOD=$MOD_SPEECH EPN=10 ttsf "${ZARGS[@]}" "${ans_tts:-$ans}";
 			trap 'exit' INT;
 		fi
 		if ((OPTW))
@@ -4731,7 +4762,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 
 		((++MAIN_LOOP)) ;set --
 		unset INSTRUCTION GINSTRUCTION HIST_G REGEN OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE RETRY BAD_RES INT_RES ESC RET_PRF Q
-		unset role rest tkn tkn_ans ans buff glob out var pid s n
+		unset role rest tkn tkn_ans ans_tts ans buff glob out var pid s n
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
