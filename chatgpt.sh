@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.58  may/2024  by mountaineerbr  GPL+3
+# v0.58.1  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2040,6 +2040,13 @@ function break_sessionf
 	[[ BREAK${tail} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]] \
 	|| printf '%s\n' 'SESSION BREAK' >> "$FILECHAT";
 	_sysmsgf 'SESSION BREAK';
+}
+
+#remove last line of a history file with session break mark
+function rm_breakf
+{
+	[[ -s $1 ]] && [[ $(tail -n 1 "$1") = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] \
+	&& sed -i -e '$d' "$1";
 }
 
 #fix variable value, add zero before/after dot.
@@ -4130,7 +4137,8 @@ then 	OPTRESUME=1
 	session_mainf "${@}"
 
 	if ((OPTHH>1))
-	then 	((OPTC || EPN==6)) && OPTC=2
+	then 	rm_breakf "$FILECHAT";
+		((OPTC || EPN==6)) && OPTC=2
 		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1
 		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
 		MODMAX=65536 OLLAMA= set_histf ''
@@ -4266,7 +4274,7 @@ else
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
-	((OPTRESUME)) && [[ $(tail -n 1 "$FILECHAT") = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] && sed -i -e '$d' "$FILECHAT";
+	((OPTRESUME)) && rm_breakf "$FILECHAT";
 	if ((MTURN+OPTRESUME))
 	then 	INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		shell_histf "$INSTRUCTION"
