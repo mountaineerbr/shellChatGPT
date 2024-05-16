@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: May 2024
-title: CHATGPT.SH(1) v0.58 \| General Commands Manual
+title: CHATGPT.SH(1) v0.58.4 \| General Commands Manual
 ---
 
 ### NAME
@@ -303,7 +303,7 @@ or “`/`”.
 
 | Misc    | Commands                   |                                                        |
 |:--------|:---------------------------|--------------------------------------------------------|
-| `:`     | `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.        |
+| `-S`    | `:`, `::` \[*PROMPT*\]     | Append user or system prompt to request buffer.        |
 | `-S.`   | `-.` \[*NAME*\]            | Load and edit custom prompt.                           |
 | `-S/`   | `-S%` \[*NAME*\]           | Load and edit awesome prompt (zh).                     |
 | `-Z`    | `!last`                    | Print last response JSON.                              |

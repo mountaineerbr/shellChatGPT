@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.58.1  may/2024  by mountaineerbr  GPL+3
+# v0.58.4  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -13,7 +13,7 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-gpt-4-turbo}"  #"gpt-4-turbo-2024-04-09"
+MOD_CHAT="${MOD_CHAT:-gpt-4-turbo}"  #"gpt-4o"
 # Image model (generations)
 MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
 # Whisper model (STT)
@@ -293,7 +293,7 @@ Chat Commands
 
     ------    ----------    ---------------------------------------
     --- Misc Commands ---------------------------------------------
-        :     ::       [PROMPT]  Append user/system prompt to request.
+       -S      :, ::   [PROMPT]  Append user/system prompt to request.
        -S.     -.       [NAME]   Load and edit custom prompt.
        -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
        -Z      !last             Print last response JSON.
@@ -1028,6 +1028,7 @@ function set_histf
 	typeset time token string stringc stringd max_prev q_type a_type role role_last rest com sub ind herr nl x r n;
 	typeset -a MEDIA MEDIA_CMD;
 	[[ -s $FILECHAT ]] || return; HIST= HIST_C= ;
+	((BREAK_SET)) && return;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
 	q_type=${Q_TYPE##$SPC1} a_type=${A_TYPE##$SPC1}
@@ -1081,7 +1082,7 @@ function set_histf
 
 			role_last=$role role= rest= nl=
 			case "${string}" in
-				::*) 	role=system rest=
+				::*) 	role=system rest=  #[DEPRECATED]
 					stringc=$(INDEX=16 trim_leadf "$stringc" :)  #append (txt cmpls)
 					;;
 				:*) 	role=system
@@ -1495,7 +1496,7 @@ function cmd_runf
 			__cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
 			;;
 		break|br|new)
-			break_sessionf
+			break_sessionf;
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} INSTRUCTION= ||
@@ -1580,7 +1581,7 @@ function cmd_runf
 			fi
 			set_model_epnf "$MOD"; model_capf "$MOD"
 			send_tiktokenf '/END_TIKTOKEN/'
-			__cmdmsgf 'Model Name' "$MOD"
+			__cmdmsgf 'Model Name' "$MOD$(is_visionf "$MOD" && printf ' / %s' 'multimodal')"
 			__cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 			;;
 		markdown*|md*)
@@ -1604,13 +1605,13 @@ function cmd_runf
 			;;
 		url*|[/!]url*)
 			set -- "$(trimf "${*##@(url|[/!]url)}" "$SPC")"; xskip=1;
-			[[ $* = :* ]] && { 	opt_append=1; set -- "${1##:*([$IFS])}" ;};  #append as user message
+			[[ $* = :* ]] && opt_append=${1:0:10} opt_append=${opt_append//[^:]}  #append as user / sys message
 			if var=$(set_browsercmdf)
 			then 	case "$var" in
 				curl*|google-chrome*|chromium*)
-				    cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'";  #curl+sed
+				    cmd_runf /sh${opt_append} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'";  #curl+sed
 				    ;;
-				*)  cmd_runf /sh${opt_append:+:} "${var} -dump" "${1// /%20}"
+				*)  cmd_runf /sh${opt_append} "${var} -dump" "${1// /%20}"
 				    ;;
 				esac;
 			fi
@@ -1842,7 +1843,7 @@ function cmd_runf
 			;;
 		shell*|sh*)
 			set -- "${*##sh?(ell)*([$IFS])}"
-			[[ $* = :* ]] && { 	opt_append=1; set -- "${1##:*([$IFS])}" ;};  #append as user message
+			[[ $* = :* ]] && opt_append=${1:0:10} opt_append=${opt_append//[^:]}  #append as user / sys message
 			[[ -n $* ]] || set --; xskip=1;
 			while :
 			do 	REPLY=$(bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR); echo >&2
@@ -1859,7 +1860,7 @@ function cmd_runf
 							printf '\n%s\n' '---' >&2; break;;  #yes
 				esac ;set --
 			done ;__clr_lineupf $((12+1+55))  #!#
-			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=":$REPLY";
+			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=${opt_append}${REPLY};
 			((${#args[@]})) && shell_histf "!${args[*]}"
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
@@ -2030,7 +2031,7 @@ function escapef {
 # json special chars: \" \/ b f n r t \\uHEX
 # characters from U+0000 through U+001F must be escaped
 
-function break_sessionf
+function _break_sessionf
 {
 	[[ -f "$FILECHAT" ]] || return; typeset tail;
 	
@@ -2039,14 +2040,10 @@ function break_sessionf
 	
 	[[ BREAK${tail} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]] \
 	|| printf '%s\n' 'SESSION BREAK' >> "$FILECHAT";
-	_sysmsgf 'SESSION BREAK';
 }
-
-#remove last line of a history file with session break mark
-function rm_breakf
+function break_sessionf
 {
-	[[ -s $1 ]] && [[ $(tail -n 1 "$1") = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] \
-	&& sed -i -e '$d' "$1";
+	BREAK_SET=1; _sysmsgf 'SESSION BREAK';
 }
 
 #fix variable value, add zero before/after dot.
@@ -3863,7 +3860,7 @@ do
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP init buff var n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET init buff var n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -4137,12 +4134,13 @@ then 	OPTRESUME=1
 	session_mainf "${@}"
 
 	if ((OPTHH>1))
-	then 	rm_breakf "$FILECHAT";
-		((OPTC || EPN==6)) && OPTC=2
-		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1
+	then
+		((OPTC || EPN==6)) && OPTC=2;
+		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1;
 		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
-		MODMAX=65536 OLLAMA= set_histf ''
-		HIST=$(unescapef "$HIST")
+		 MODMAX=65536 OLLAMA= set_histf '';
+
+		HIST=$(unescapef "${HIST:-"-*>[SESSION BREAK]<*-"}")
 		if ((OPTMD))
 		then 	usr_logf "$HIST" | mdf
 		else 	usr_logf "$HIST" | foldf
@@ -4274,14 +4272,13 @@ else
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
-	((OPTRESUME)) && rm_breakf "$FILECHAT";
 	if ((MTURN+OPTRESUME))
 	then 	INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		shell_histf "$INSTRUCTION"
 		((OPTC)) && INSTRUCTION="${INSTRUCTION:-$INSTRUCTION_CHAT}"
 		if ((OPTC && OPTRESUME)) || ((OPTCMPL==1 || OPTRESUME==1))
-		then 	unset INSTRUCTION
-		else 	break_sessionf
+		then 	unset INSTRUCTION;
+		else 	break_sessionf;
 		fi
 		INSTRUCTION_OLD="$INSTRUCTION"
 	elif [[ $INSTRUCTION = *([:$IFS]) ]]
@@ -4489,30 +4486,23 @@ else
 			then
 				var=$(escapef "$( trim_leadf "$*" "$SPC:" )")
 
-				if [[ ${*} = $SPC:::* ]] &&  #append (text cmpls) 
-				{ 	((EPN!=6)) || ! var=${var:1} ;}
+				   [[ ${*} = $SPC:::* ]] && var=${var:1}  #[DEPRECATED] 
+				if [[ ${*} = $SPC::* ]]
 				then
-					p=$(hist_lastlinef "$FILECHAT") q=${var:2}  #user feedback
-					n=$((COLUMNS-19>30 ? (COLUMNS-19)/2 : 30/2))
-					((${#p}>n)) && p=${p:${#p}-n+1} pp=".."
-					((${#q}>n)) && q=${q:0: n}      qq=".."
-					_sysmsgf $'\nText appended:' "$(printf "${NC}${CYAN}%s${BCYAN}%s${NC}" "${pp}${p}" "${q}${qq}")"
-				elif [[ ${*} = $SPC::* ]]
-				then
+					if ((GOOGLEAI))
+					then 	RINSERT=${RINSERT}${var:1}${NL}${NL};
+					else 	INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD}
+						INSTRUCTION=${INSTRUCTION}${INSTRUCTION:+${NL}${NL}}${var:1}
+					fi
 					_sysmsgf 'System prompt added'
-					((${#INSTRUCTION_OLD})) || INSTRUCTION_OLD=${INSTRUCTION:-${GINSTRUCTION:-${var:1}}}
 				else
-					var=${Q_TYPE##$SPC1}${var}
+					RINSERT=${RINSERT}${var}${NL};
 					_sysmsgf 'User prompt added'
 				fi
-				if ((GOOGLEAI))
-				then 	GINSERT=${GINSERT}${var##?("${Q_TYPE##$SPC1}")*(:)}${NL}${NL};
-				else 	INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION=${var};
-				fi
-				unset EDIT SKIP REPLY REPLY_OLD p q n pp qq var;
+				unset EDIT SKIP REPLY REPLY_OLD var;
 				set --; continue;
 			fi
-			((${#GINSERT})) && { 	set -- "${GINSERT}${*}"; REPLY=${GINSERT}${REPLY}; unset GINSERT ;}
+			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY}; unset RINSERT ;}
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
 
@@ -4548,8 +4538,9 @@ else
 				((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
 			fi
 			((JUMP)) && set -- && unset rest
-			ESC="${HIST}${rest}$(escapef "${*}")"
-			ESC="$(escapef "${INSTRUCTION:-$GINSTRUCTION}")${INSTRUCTION:+\\n\\n}${GINSTRUCTION:+\\n\\n}$(INDEX=16 trim_leadf "$ESC" "\\n")"
+			var="$(escapef "${INSTRUCTION:-$GINSTRUCTION}")${INSTRUCTION:+\\n\\n}${GINSTRUCTION:+\\n\\n}";
+			ESC="${HIST}${HIST:+${var:+\\n\\n}}${var}${rest}$(escapef "${*}")";
+			ESC=$(INDEX=16 trim_leadf "$ESC" "\\n");
 			
 			if ((EPN==6))
 			then 	#chat cmpls
@@ -4560,10 +4551,9 @@ else
 					((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
 					MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");
 				fi
-				set -- "$(unset MEDIA MEDIA_CMD;
-				  fmt_ccf "$(escapef "$INSTRUCTION")" system;
-				  )${INSTRUCTION:+,${NL}}${HIST_C}${HIST_C:+,${NL}}$(
-				  fmt_ccf "${HIST_G}$(escapef "${GINSTRUCTION}${GINSTRUCTION:+$NL$NL}${*}")" "$role")";
+				var="$(unset MEDIA MEDIA_CMD; fmt_ccf "$(escapef "$INSTRUCTION")" system;)${INSTRUCTION:+,${NL}}"
+				set -- "${HIST_C}${HIST_C:+,${NL}}${var}$(
+					fmt_ccf "${HIST_G}$(escapef "${GINSTRUCTION}${GINSTRUCTION:+$NL$NL}${*}")" "$role")";
 			else 	#text cmpls
 				if { 	((OPTC)) || [[ -n "${START}" ]] ;} && ((JUMP<2))
 				then 	set -- "${ESC}${START:-$A_TYPE}"
@@ -4732,13 +4722,14 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			fi
 			ans="${A_TYPE##$SPC1}${ans}"
 			((${#SUFFIX})) && ans=${ans}${SUFFIX}
+			((BREAK_SET)) && _break_sessionf;
 			((${#INSTRUCTION}+${#GINSTRUCTION})) && push_tohistf "$(escapef ":${INSTRUCTION:-$GINSTRUCTION}")" $( ((MAIN_LOOP)) || echo $TOTAL_OLD )
 			((OPTAWE)) ||
 			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : 0 ))" "${tkn[2]}"
 			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || unset OPTC OPTRESUME OPTCMPL MTURN
 			
 			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
-			unset HIST_TIME
+			unset HIST_TIME BREAK_SET
 		elif ((MTURN))
 		then
 			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP REGEN INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND;

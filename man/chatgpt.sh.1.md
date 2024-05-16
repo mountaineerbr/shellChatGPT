@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.58 | General Commands Manual
+% CHATGPT.SH(1) v0.58.4 | General Commands Manual
 % mountaineerbr
 % May 2024
 
@@ -300,7 +300,7 @@ may be either "`!`", or "`/`".
 
   Misc        Commands
   --------    ------------------------    ----------------------------------------------------------
-       `:`    `::`       \[_PROMPT_]      Append user or system prompt to request buffer.
+      `-S`    `:`, `::`    \[_PROMPT_]    Append user or system prompt to request buffer.
      `-S.`    `-.`         \[_NAME_]      Load and edit custom prompt.
      `-S/`    `-S%`        \[_NAME_]      Load and edit awesome prompt (zh).
       `-Z`    `!last`                     Print last response JSON.
