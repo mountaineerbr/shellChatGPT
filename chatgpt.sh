@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.58.6  may/2024  by mountaineerbr  GPL+3
+# v0.58.7  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2557,7 +2557,7 @@ function prompt_ttsf
 #speech synthesis (tts)
 function ttsf
 {
-	typeset FOUT VOICEZ SPEEDZ fname xinput input max ret pid var secs ok n m i
+	typeset FOUT VOICEZ SPEEDZ fname input max ret pid var secs ok n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -2589,38 +2589,40 @@ function ttsf
 		fi
 	fi
 
-	xinput=$*; [[ ${MOD_SPEECH} = tts-1* ]] && max=4096 || max=40960;
+	[[ ${MOD_SPEECH} = tts-1* ]] && max=4096 || max=40960;
+	((${#} >1)) && set -- "$*";
+
 	if ((!CHAT_ENV))
 	then 	__sysmsgf 'Speech Model:' "$MOD_SPEECH";
 		__sysmsgf 'Voice:' "$VOICEZ";
 		__sysmsgf 'Speed:' "${SPEEDZ:-1}";
 	fi; ((${#SPEEDZ})) && check_optrangef "$SPEEDZ" 0.25 4 'TTS speed'
-	[[ $* != *([$IFS]) ]] || ! echo '(empty)' >&2 || return 2
+	[[ $1 != *([$IFS]) ]] || ! echo '(empty)' >&2 || return 2
 
-	if ((${#xinput}>max))
-	then 	__warmsgf 'Warning:' "User input ${#xinput} chars / max ${max} chars"  #max ~5 minutes
+	if ((${#1}>max))
+	then 	__warmsgf 'Warning:' "User input ${#1} chars / max ${max} chars"  #max ~5 minutes
 		i=1 FOUT=${FOUT%.*}-${i}.${OPTZ_FMT};
 	fi  #https://help.openai.com/en/articles/8555505-tts-api
 	REPLAY_FILES=();
 
-	while input=${xinput:0: max};
+	while input=${1:0: max}; set -- "${1:max}";
 	do
 		if ((!CHAT_ENV))
-		then 	var=${xinput//\\\\[nt]/  };
+		then 	var=${input//\\\\[nt]/ };
 			_sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
-			__sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${xinput: COLUMNS-17} ]] && echo ...)";
+			__sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${input: COLUMNS-17} ]] && echo ...)";
 		fi; REPLAY_FILES=("${REPLAY_FILES[@]}" "$FOUT"); var= ;
 		
 		BLOCK="{
 \"model\": \"${MOD_SPEECH}\",
-\"input\": \"${*}\",
+\"input\": \"${input:-$*}\",
 \"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
 \"response_format\": \"${OPTZ_FMT}\"${BLOCK_USR_TTS:+,$NL}$BLOCK_USR_TTS
 }"
 		((OPTVV)) && __warmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}, Block: ${BLOCK}"
 		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play ' '';  #!#
 
-		prompt_ttsf "${input:-$*}" &
+		prompt_ttsf &
 		pid=$! secs=$SECONDS;
 		trap "trap 'exit' INT; kill -- $pid 2>/dev/null; return;" INT;
 		while __spinf; ok=
@@ -2684,8 +2686,7 @@ function ttsf
 		done
 		}
 		((++i)); FOUT=${FOUT%-*}-${i}.${OPTZ_FMT};
-		xinput=${xinput: max};
-		((${#xinput})) && ((!ret)) || break 1;
+		((${#1})) && ((!ret)) || break 1;
 	}
 	done;
 	return $ret
@@ -4034,7 +4035,7 @@ then
 fi
 
 #tips and warnings
-if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) )) && [[ $MOD != *moderation* ]]
+if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
 	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 		if ((${#})) && [[ ! -f $1 ]]
