@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.58.4  may/2024  by mountaineerbr  GPL+3
+# v0.58.5  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1667,7 +1667,8 @@ function cmd_runf
 			;;
 		-S*|-:*)
 			set -- "${*##-[S:]*([$': \t'])}"
-			SKIP=1 EDIT=1 REPLY=":${*}"
+			SKIP=1 PSKIP=1 REPLY="::${*}"
+			unset INSTRUCTION GINSTRUCTION
 			;;
 		-t*|temperature*|temp*)
 			set -- "${*//[!0-9.]}"
@@ -4489,17 +4490,18 @@ else
 				   [[ ${*} = $SPC:::* ]] && var=${var:1}  #[DEPRECATED] 
 				if [[ ${*} = $SPC::* ]]
 				then
+					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=added || v=set;
+					_sysmsgf "System prompt $v";
 					if ((GOOGLEAI))
 					then 	RINSERT=${RINSERT}${var:1}${NL}${NL};
 					else 	INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD}
 						INSTRUCTION=${INSTRUCTION}${INSTRUCTION:+${NL}${NL}}${var:1}
 					fi
-					_sysmsgf 'System prompt added'
 				else
 					RINSERT=${RINSERT}${var}${NL};
 					_sysmsgf 'User prompt added'
 				fi
-				unset EDIT SKIP REPLY REPLY_OLD var;
+				unset EDIT SKIP REPLY REPLY_OLD var v;
 				set --; continue;
 			fi
 			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY}; unset RINSERT ;}
