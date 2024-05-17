@@ -783,11 +783,11 @@ and for playing audio (TTS, `option -z`), optionally install `play-audio`.
 To set the clipboard, it is required `termux-clipboard-set` from the `termux-api` package.
 
 
-## TTS Chat - Removal of Markdown
+### TTS Chat - Removal of Markdown
 
-Markdown in TTS input may stutter the model audio generation a little.
+*Markdown in TTS input* may stutter the model audio generation a little.
 If `python` modules `markdown` and `bs4` are available, TTS input will
-be converted to plain text. As flalback, `pandoc` is used if present.
+be converted to plain text. As fallback, `pandoc` is used if present.
 
 
 ### Tiktoken
