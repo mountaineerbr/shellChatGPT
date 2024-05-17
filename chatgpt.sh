@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.58.7  may/2024  by mountaineerbr  GPL+3
+# v0.58.8  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1313,8 +1313,11 @@ else:
 function unmarkdownf
 {
 	python -c "import sys
-import markdown
-from bs4 import BeautifulSoup
+try:
+    import markdown
+    from bs4 import BeautifulSoup
+except:
+    sys.exit(2)
 
 def remove_markdown(text):
     html = markdown.markdown(text)
