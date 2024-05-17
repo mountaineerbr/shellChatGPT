@@ -65,7 +65,7 @@ These are required for specific features.
 
 - `Base64` - Image endpoint, vision models
 - `ImageMagick` - Image edits and variations
-- `Python` - Tiktoken
+- `Python` - Modules tiktoken, markdown, bs4
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
@@ -781,6 +781,13 @@ For recording audio (Whisper, `option -w`), we defaults to `termux-microphone-re
 and for playing audio (TTS, `option -z`), optionally install `play-audio`.
 
 To set the clipboard, it is required `termux-clipboard-set` from the `termux-api` package.
+
+
+## TTS Chat - Removal of Markdown
+
+Markdown in TTS input may stutter the model audio generation a little.
+If `python` modules `markdown` and `bs4` are available, TTS input will
+be converted to plain text. As flalback, `pandoc` is used if present.
 
 
 ### Tiktoken

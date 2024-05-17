@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.58.4 | General Commands Manual
+% CHATGPT.SH(1) v0.58.8 | General Commands Manual
 % mountaineerbr
 % May 2024
 
@@ -755,7 +755,7 @@ Optional packages for specific features.
 
 - `Base64` - Image endpoint, vision models
 - `ImageMagick` - Image edits and variations
-- `Python` - Tiktoken support
+- `Python` - Modules tiktoken, markdown, bs4
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard

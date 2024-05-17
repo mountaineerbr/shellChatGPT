@@ -15,7 +15,7 @@ optdepends=(
 	'sox: audio recorder (arecod, ffmpeg)'
 	'mpv: audio player (sox, vlc, ffmpeg, afplay)'
 	'xsel: copy output to clipboard (xclip)'
-	'python: count input tokens (tiktoken)'
+	'python: modules (tiktoken, markdown, bs4)'
 	'bat: render markdown (pygmentize, glow, mdcat, mdless)'
 	'w3m: dump url text (lynx, elinks, links)'
 )
