@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.58.5  may/2024  by mountaineerbr  GPL+3
+# v0.58.6  may/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1850,19 +1850,16 @@ function cmd_runf
 			do 	REPLY=$(bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR); echo >&2
 				#abort on empty
 				[[ $REPLY = *([$IFS]) ]] && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
-
-				_sysmsgf 'Edit buffer?' '[Y]es, [n]o, [e]dit, te[x]t editor, [s]hell, or [r]edo ' ''
+				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
 				case "$(__read_charf)" in
 					[AaQqRr]) 	SKIP=1 EDIT=1 REPLY="!${args[*]}"; break;;  #abort, redo
-					[Ee]) 	SKIP=1 EDIT=1; break;; #yes, bash `read`
-					[VvXx]|$'\t'|\ ) 	SKIP=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
-					[NnOo]|$'\e') 	SKIP=1 PSKIP=1; break;;  #no need to edit
-					[!Ss]|'') 	SKIP=1 EDIT=1;
-							printf '\n%s\n' '---' >&2; break;;  #yes
+					[EeYy]|$'\e') 	SKIP=1 EDIT=1; break;; #yes, bash `read`
+					[VvXx]|$'\t'|' ') 	SKIP=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
+					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break;;  #no need to edit
 				esac ;set --
-			done ;__clr_lineupf $((12+1+55))  #!#
+			done ;__clr_lineupf $((12+1+47))  #!#
 			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=${opt_append}${REPLY};
-			((${#args[@]})) && shell_histf "!${args[*]}"
+			((${#args[@]})) && shell_histf "!${args[*]}"; SKIP_SH_HIST=1;
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
 			echo Session and History >&2
@@ -2628,15 +2625,14 @@ function ttsf
 		trap "trap 'exit' INT; kill -- $pid 2>/dev/null; return;" INT;
 		while __spinf; ok=
 			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
-		do 	var=$(NO_CLR=1 __read_charf -t 0.3) &&
+		do 	var=$( ((OPTV>1)) && printf '%s\n' '*' >&2 \
+				|| NO_CLR=1 __read_charf -t 0.3) &&
 			case "$var" in
-				[Pp]|' '|''|$'\t')
-					ok=1
+				[Pp]|' '|''|$'\t')  ok=1;
 					((SECONDS>secs+3)) ||
-					__read_charf -t 1  >/dev/null 2>&1
+					__read_charf -t $((secs+3-SECONDS)) >/dev/null 2>&1;
 					break 1;;
-				[CcEeKkQqSs]|$'\e')
-					ok=1
+				[CcEeKkQqSs]|$'\e')  ok=1;
 					kill -- $pid 2>/dev/null;
 					break 1;;
 			esac
@@ -2667,7 +2663,7 @@ function ttsf
 			case $? in
 				0) 	case "$PLAY_CMD" in *termux-media-player*) while sleep 1 ;[[ $(termux-media-player info 2>/dev/null) = *[Pp]laying* ]] ;do : ;done;; esac;  #termux fix
 					var=3;  #3+1 secs
-					((OPTV)) && var=1;;
+					((OPTV)) && var=2;;
 				*) 	wait $pid;
 					var=8;;  #8+1 secs
 			esac;
@@ -3861,7 +3857,7 @@ do
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET init buff var n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST init buff var n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -4412,7 +4408,7 @@ else
 					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"
 					set -- ;continue  #A#
 				elif cmd_runf "$REPLY"
-				then 	shell_histf "$REPLY"
+				then 	((SKIP_SH_HIST)) || shell_histf "$REPLY"; SKIP_SH_HIST=1;
 					if ((REGEN>0))
 					then 	REPLY="${REPLY_OLD:-$REPLY}"
 					else 	((SKIP)) || REPLY=
@@ -4478,7 +4474,7 @@ else
 			[[ -n $REPLY ]] || REPLY="${*}" #set buffer for EDIT
 
 			if ((RETRY!=1))
-			then 	shell_histf "$*"
+			then 	((SKIP_SH_HIST)) || shell_histf "$*"; unset SKIP_SH_HIST;
 				history -a
 			fi
 
@@ -4739,7 +4735,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			set -- ;continue
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_CMD_IND[@]}));
-		unset MEDIA  MEDIA_CMD  MEDIA_IND  MEDIA_CMD_IND INT_RES GINSTRUCTION HIST_G REGEN;
+		unset MEDIA  MEDIA_CMD  MEDIA_IND  MEDIA_CMD_IND INT_RES GINSTRUCTION HIST_G REGEN SKIP_SH_HIST;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
