@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: May 2024
-title: CHATGPT.SH(1) v0.58.8 \| General Commands Manual
+date: June 2024
+title: CHATGPT.SH(1) v0.59 \| General Commands Manual
 ---
 
 ### NAME
@@ -43,9 +43,9 @@ This does not set further options automatically.
 
 Set `option -c` to start a multi-turn chat mode via **text completions**
 and record conversation. This option accepts davinci and lesser models,
-defaults to *text-davinci-003* if none set. In chat mode, some options
-are automatically set to un-lobotomise the bot. Set `option -E` to exit
-on the first response.
+defaults to *gpt-3.5-turbo-instruct* if none set. In chat mode, some
+options are automatically set to un-lobotomise the bot. Set `option -E`
+to exit on the first response.
 
 Set `option -cc` to start the chat mode via **native chat completions**
 and defaults to *gpt-3.5-turbo-0301*, and may be set to use *gpt-4*

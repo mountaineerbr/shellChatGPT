@@ -859,10 +859,15 @@ unaffected. Use the text editor interface for big prompt editing.
 
 - Garbage in, garbage out. An idiot savant.
 
-
 <!--
 - User input must double escape `\n` and `\t` to have them as literal sequences.
   **NO LONGER the case as of v.018**  -->
+
+
+## Bug report
+
+Please leave bug reports at the
+[GitHub issues page](https://github.com/mountaineerbr/shellChatGPT/issues).
 
 
 ## 📖 Help Pages 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.58.8  may/2024  by mountaineerbr  GPL+3
+# v0.59  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -827,18 +827,19 @@ function block_printf
 function new_prompt_confirmf
 {
 	typeset REPLY extra
-	((${#1})) && extra=", te[x]t editor, m[u]ltiline"
-	((${#2})) && ((OPTW)) && extra="${extra}, [w]hisper_off"
+	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor, m[u]ltiline";; esac;
+	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hspr_Add, [w]hspr_off";; esac;
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
 	REPLY=$(__read_charf); __clr_lineupf $((8+1+40+${#extra}))  #!#
 	case "$REPLY" in
-		[AaQq]) 	return 201;;  #break
+		[aQq]) 		return 201;;  #break
 		[Rr]) 		return 200;;  #redo
 		[Ee]|$'\e') 	return 199;;  #edit
 		[VvXx]) 	return 198;;  #text editor
 		[UuMm]) 	return 197;;  #multiline
-		[Ww]) 		return 196;;  #whisper off
+		[w]) 		return 196;;  #whisper off
+		[WA]) 		return 195;;  #whisper append
 		[NnOo]) 	unset REC_OUT ;return 1;;  #no
 	esac  #yes
 }
@@ -1720,16 +1721,17 @@ function cmd_runf
 			((++OPTTIK)) ;((OPTTIK%=2))
 			__cmdmsgf 'Tiktoken' $(_onoff $OPTTIK)
 			;;
-		-w*|-W*|[Ww]*|rec*|whisper*)
-			[[ $* = -W* ]] && var=translate;
-			set -- "${*##@(-[wW][wW]|-[wW]|[Ww]|rec|whisper)$SPC}";
-
+		-[Ww]*|[Ww]*|rec*|whisper*)
+			set -- "${*##@(-[wW][wW]|-[wW]|[wW][wW]|[wW]|rec|whisper)$SPC}";
 			((OPTW+OPTWW)) && [[ $* != $SPC ]] && OPTW= OPTWW= ;
-			if [[ $var = translate ]]
-			then 	((++OPTWW)); OPTW= ;
-			else 	((++OPTW)); OPTWW= ;
-			fi
+			case "${args[*]}" in
+				-W*|W*) OPTWW=1; OPTW= ;;
+				*)      OPTW=1; OPTWW= ;;
+			esac;
+
 			((OPTW%=2)); ((OPTWW%=2));
+			case "${args[*]}" in 	-[Ww][Ww]*|[Ww][Ww]*) OPTW=2;; esac;
+			
 			if ((OPTW+OPTWW))
 			then
 			  set_reccmdf
@@ -2357,12 +2359,12 @@ function start_compf { ((${#1})) && START=$(escapef "$(unescapef "${*:-$START}")
 function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
-	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * [e]dit text,  [w]hisper off * ' \
+	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * [e]dit text,  [w]hisper_off * ' \
 							      ' * Press ENTER to START record * ' >&2;
 		case "$(__read_charf)" in [AaOoQqWw]) 	return 196;; [Ee]|$'\e') 	return 199;; esac;
 		__clr_lineupf 33; __clr_lineupf 33;  #!#
 	fi
-	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr off * ' >&2
+	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr_off * ' >&2
 	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
 }
 
@@ -2634,8 +2636,8 @@ function ttsf
 				|| NO_CLR=1 __read_charf -t 0.3) &&
 			case "$var" in
 				[Pp]|' '|''|$'\t')  ok=1;
-					((SECONDS>secs+3)) ||
-					__read_charf -t $((secs+3-SECONDS)) >/dev/null 2>&1;
+					((SECONDS>secs+2)) ||  #buffer
+					__read_charf -t $((secs+2-SECONDS)) >/dev/null 2>&1;
 					break 1;;
 				[CcEeKkQqSs]|$'\e')  ok=1;
 					kill -- $pid 2>/dev/null;
@@ -3781,7 +3783,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD WAPPEND;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -4375,12 +4377,13 @@ else
 								[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
 								whisperf "$FILEINW" "$@";
 							)
+								((WAPPEND)) && REPLY=$REPLY_OLD${REPLY_OLD:+${REPLY:+ }}$REPLY WAPPEND= ;
 							else 	case $? in
 									196) 	unset WSKIP OPTW REPLY; continue 1;;
 									199) 	EDIT=1; continue 1;;
 								esac;
 								echo record abort >&2;
-							fi;;
+							fi; ((OPTW>1)) && unset OPTW;;
 						196|201) 	unset WSKIP OPTW REPLY; continue 1;;  #whisper off
 						199) 	EDIT=1; continue 1;;  #text edit
 						*) 	unset REPLY; continue 1;;
@@ -4431,15 +4434,20 @@ else
 					|| new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;  #abort
-						200) 	WSKIP=1; printf '\n%s\n' '--- redo ---' >&2; continue;;  #redo
-						199) 	WSKIP=1 EDIT=1; printf '\n%s\n' '--- edit ---' >&2; continue;;  #edit
+						200) 	WSKIP=1;
+							printf '\n%s\n' '--- redo ---' >&2; continue;;  #redo
+						199) 	WSKIP=1 EDIT=1;
+							printf '\n%s\n' '--- edit ---' >&2; continue;;  #edit
 						198) 	((OPTX)) || OPTX=2
-							((OPTX==2)) && printf '\n%s\n' '--- text editor one-shot ---' >&2
+							((OPTX==2)) &&
+							printf '\n%s\n' '--- text editor one-shot ---' >&2
 							set -- ;continue 2;;
 						197) 	EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
 							((OPTCTRD==2)) && printf '\n%s\n' '--- prompter <ctr-d> one-shot ---' >&2
 							REPLY="$REPLY"$'\n'; set -- ;continue;;  #multiline one-shot  #A#
 						196) 	WSKIP=1 EDIT=1 OPTW= ; continue 2;;  #whisper off
+						195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY; ((OPTW)) || cmd_runf -ww;
+							printf '\n%s\n' '--- whisper append ---' >&2; continue;;  #whisper append
 						0) 	:;;  #yes
 						*) 	unset REPLY; set -- ;break;;  #no
 					esac
