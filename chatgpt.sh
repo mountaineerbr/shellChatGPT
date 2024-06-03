@@ -224,7 +224,8 @@ Description
 	Input sequences \`\\n' and \`\\t' are only treated specially in
 	restart, start and stop sequences!
 
-	A personal OpenAI API is required, set environment or option -K.
+	A personal OpenAI API is required, set environment or command
+	line option --api-key.
 
 
 See Also
@@ -412,7 +413,7 @@ Options
 		Request log probabilities, see -Z (cmpls, 0 - 5),
 	-K, --top-k     [NUM]
 		Set Top_k value (local-ai, ollama, google).
-	--keep-alive, --ka=[NUM]
+	--keep-alive, --ka [NUM]
 		Set how long the model will stay loaded into memory (ollama).
 	-m, --model     [MOD]
 		Set language MODEL name, or set it as \`.' to pick
