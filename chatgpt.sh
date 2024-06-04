@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.59  june/2024  by mountaineerbr  GPL+3
+# v0.59.1  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1483,7 +1483,7 @@ function cmd_runf
 			fix_dotf OPTAA
 			__cmdmsgf 'Frequency Penalty' "$OPTAA"
 			;;
-		-b*|best[_-]of*|best*)
+		-b*|best[_-]of*)
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
 			OPTB="${*:-$OPTB}"
 			__cmdmsgf 'Best_Of' "$OPTB"
@@ -1522,7 +1522,7 @@ function cmd_runf
 			((++STREAM)) ;((STREAM%=2))
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
-		-h*|h*|help*|-\?*|\?*)
+		-h|help|-\?|\?)
 			sed -n -e 's/^\t*//' -e '/^[[:space:]]*------ /,/^[[:space:]]*------ /p' <<<"$HELP" | less -S
 			xskip=1
 			;;
@@ -1547,7 +1547,7 @@ function cmd_runf
 			JUMP=2 REPLY=
 			return 180
 			;;
-		-K*|top[Kk]*|top[_-][Kk]*|topk*)
+		-K*|top[Kk]*|top[_-][Kk]*)
 			set -- "${*//[!0-9.]}"
 			OPTKK="${*:-$OPTKK}"
 			__cmdmsgf 'Top_K' "$OPTKK"
@@ -1609,14 +1609,15 @@ function cmd_runf
 			printf "${NC}\\n" >&2;
 			;;
 		url*|[/!]url*)
-			set -- "$(trimf "${*##@(url|[/!]url)}" "$SPC")"; xskip=1;
-			[[ $* = :* ]] && opt_append=${1:0:10} opt_append=${opt_append//[^:]}  #append as user / sys message
+			xskip=1;
+			[[ $* = ?([/!])url:* ]] && opt_append=1;  #append as user
+			set -- "$(trimf "$(trim_leadf "$*" '@(url|[/!]url)*(:)')" "$SPC")";
 			if var=$(set_browsercmdf)
 			then 	case "$var" in
 				curl*|google-chrome*|chromium*)
-				    cmd_runf /sh${opt_append} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'";  #curl+sed
+				    cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'";  #curl+sed
 				    ;;
-				*)  cmd_runf /sh${opt_append} "${var} -dump" "${1// /%20}"
+				*)  cmd_runf /sh${opt_append:+:} "${var} -dump" "${1// /%20}"
 				    ;;
 				esac;
 			fi
@@ -1640,7 +1641,7 @@ function cmd_runf
 			OPTN="${*:-$OPTN}"
 			__cmdmsgf 'Results' "$OPTN"
 			;;
-		-p*|top[Pp]*|top[_-][Pp]*|topp*)
+		-p*|top[Pp]*|top[_-][Pp]*)
 			set -- "${*//[!0-9.]}"
 			OPTP="${*:-$OPTP}"
 			fix_dotf OPTP
@@ -1695,7 +1696,7 @@ function cmd_runf
 			((++OPTSUFFIX)) ;((OPTSUFFIX%=2))
 			__cmdmsgf 'Insert Mode' $(_onoff $OPTSUFFIX)
 			;;
-		-v|verbose|ver)
+		-v|verbose)
 			((++OPTV)) ;((OPTV%=4))
 			case "${OPTV:-0}" in
 				1) var='Less';;  2) var='Much less';;
@@ -1833,24 +1834,26 @@ function cmd_runf
 			;;
 		cat*|[/!-]cat*)
 			set -- "${*##[/!-]}"
-			if [[ $* = cat:*[!$IFS]* ]]
-			then 	cmd_runf /sh: "cat${1:4}";
-			elif [[ $* = cat*[!$IFS]* ]]
-			then 	cmd_runf /sh "${@}"
-			else 	__warmsgf '*' 'Press <Ctrl-D> to flush * '
-				STDERR=/dev/null  cmd_runf /sh cat </dev/tty
-			fi; xskip=1
+			case "$*" in
+				cat:*[!$IFS]*)
+					cmd_runf /sh: "cat ${*##cat*(:)}";;
+				cat*[!$IFS]*)
+					cmd_runf /sh "${@}";;
+				*)
+					__warmsgf '*' 'Press <Ctrl-D> to flush * '
+					STDERR=/dev/null  cmd_runf /sh cat </dev/tty;;
+			esac; xskip=1;
 			;;
 		[/!]sh*)
-			set -- "${*##[/!]sh?(ell)*([$IFS])}"
+			set -- "${*##[/!]@(shell|sh)*([:$IFS])}"
 			if [[ -n $1 ]]
 			then 	bash -i -c "${1%%;}; exit"
 			else 	bash -i
 			fi </dev/tty;
 			;;
 		shell*|sh*)
-			set -- "${*##sh?(ell)*([$IFS])}"
-			[[ $* = :* ]] && opt_append=${1:0:10} opt_append=${opt_append//[^:]}  #append as user / sys message
+			[[ $* = @(shell|sh):* ]] && opt_append=1;  #append as user
+			set -- "${*##@(shell|sh)*([:$IFS])}";
 			[[ -n $* ]] || set --; xskip=1;
 			while :
 			do 	REPLY=$(bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR); echo >&2
@@ -1862,9 +1865,9 @@ function cmd_runf
 					[EeYy]|$'\e') 	SKIP=1 EDIT=1; break;; #yes, bash `read`
 					[VvXx]|$'\t'|' ') 	SKIP=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
 					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break;;  #no need to edit
-				esac ;set --
-			done ;__clr_lineupf $((12+1+47))  #!#
-			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=${opt_append}${REPLY};
+				esac; set --;
+			done; __clr_lineupf $((12+1+47));  #!#
+			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
 			((${#args[@]})) && shell_histf "!${args[*]}"; SKIP_SH_HIST=1;
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
