@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.59.1  june/2024  by mountaineerbr  GPL+3
+# v0.59.2  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1522,7 +1522,7 @@ function cmd_runf
 			((++STREAM)) ;((STREAM%=2))
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
-		-h|help|-\?|\?)
+		-h|h|help|-\?|\?)
 			sed -n -e 's/^\t*//' -e '/^[[:space:]]*------ /,/^[[:space:]]*------ /p' <<<"$HELP" | less -S
 			xskip=1
 			;;
@@ -4409,10 +4409,10 @@ else
 					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])') && echo >&2
 				fi; printf "${NC}" >&2;
 				
-				if [[ $REPLY = *\\ ]]
-				then 	printf '\n%s\n' '---' >&2
+				if [[ $REPLY = *\\ ]] && ((!OPTCTRD))
+				then 	printf '\n%s\n' '--- <ctrl-d> ---' >&2
 					EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
-					REPLY=$(trim_trailf "$REPLY" "*(\\)")$'\n'
+					REPLY=$(trim_trailf "$REPLY" "*(\\\\)")$'\n'
 					set --; continue;
 				elif [[ $REPLY = /cat*([$IFS]) ]]
 				then 	((CATPR)) || CATPR=2 ;REPLY= SKIP=1
