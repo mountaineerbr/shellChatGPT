@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.59 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.59.3 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.59 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.59.3 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">June 2024</p>
 </header>
@@ -860,7 +860,8 @@ file.</p>
 operator forward slash followed by a history file name, the command
 <code>/session</code> is assumed.</p>
 <p>A history file can contain many sessions. The last one (the tail
-session) is always read if the resume <code>option -C</code> is set.</p>
+session) is always loaded if the resume <code>option -C</code> is
+set.</p>
 <p>If “<code>/copy</code> <em>current</em>” is run, a selector is shown
 to choose and copy a session to the tail of the current history file,
 and resume it. This is equivalent to running “<code>/fork</code>”.</p>
@@ -868,8 +869,16 @@ and resume it. This is equivalent to running “<code>/fork</code>”.</p>
 file when a second argument is given to the command with the history
 file name, such as “<code>/copy</code> [<em>SRC_HIST_FILE</em>]
 [<em>DEST_HIST_FILE</em>]”.</p>
-<p>In order to change the chat context at run time, the history file may
-be edited with the “<code>/hist</code>” command (also for context
+<p>To load an older session from a history file that is different from
+the defaults, there are some options.</p>
+<p>Change to it with command <code>!session [name]</code>, and then
+<code>!fork</code> the older session to the active session.</p>
+<p>Or, <code>!copy [orign] [dest]</code> the session from a history file
+to the current oneor any other history file.</p>
+<p>In these cases, a pickup interface should open to let the user choose
+the correct session from the history file.</p>
+<p>To change the chat context at run time, the history file may be
+edited with the “<code>/hist</code>” command (also for context
 injection). Delete history entries or comment them out with
 “<code>#</code>”.</p>
 <h4 id="completion-preview-regeneration">2.8 Completion Preview /

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.59.2  june/2024  by mountaineerbr  GPL+3
+# v0.59.3  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3341,8 +3341,8 @@ do 	__spinf 	#grep session with user regex
 			  ((OPTPRINT)) && break 2;
 
 			  if ((${regex:+1}))
-			  then 	_sysmsgf "Right session?" '[Y/n/a] ' ''
-			  else 	_sysmsgf "Tail of the right session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
+			  then 	_sysmsgf "Correct session?" '[Y/n/a] ' ''
+			  else 	_sysmsgf "Tail of the correct session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
 			  fi;
 			  reply=$(__read_charf);
 			  case "$reply" in
@@ -3393,7 +3393,8 @@ function session_copyf
 
 	buff=$(session_sub_printf "$src") \
 	&& if [[ -f "$dest" ]] ;then 	[[ "$(<"$dest")" != *"${buff}" ]] || return 0 ;fi \
-	&& FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null \
+	&& { FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
+	     FILECHAT="${dest}" _break_sessionf; BREAK_SET= MAIN_LOOP=2 ;} \
 	&& _sysmsgf 'SESSION FORK' \
 	&& printf '%s\n' "$buff" >> "$dest" \
 	&& printf '%s\n' "$dest"
@@ -3497,7 +3498,8 @@ function session_mainf
 			_sysmsgf 'Break session?' '[N/ys] ' ''
 			case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
 			}
-		    then 	FILECHAT="$file" cmd_runf /break
+		    then 	FILECHAT="$file" cmd_runf /break;
+		    		FILECHAT="$file" _break_sessionf; unset BREAK_SET MAIN_LOOP;
 		    fi
 		fi
 	fi

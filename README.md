@@ -157,9 +157,27 @@ In this case, the custom prompt will be loaded, and the history will be recorded
 The command below starts a chat session, loads the "unix" instruction, and changes to the defaults "chatgpt.tsv" history.
 
 
-    chatgpt.sh -cc..unix /chatgpt
+    chatgpt.sh -cc..unix /current
 
-    chatgpt.sh -cc -S "..unix" /session chatgpt
+    chatgpt.sh -cc -S "..unix" /session current
+
+
+In the following example, load an older session from the current (defaults) history file.
+
+    chatgpt.sh -cc /fork current
+    
+    chatgpt.sh -cc /fork.
+
+To load an older session from a history file that is different from the defaults,
+there are some options.
+
+Change to it with command `!session [name]`, and then `!fork` the older session to the active session.
+
+Or, `!copy [orign] [dest]` the session from a history file to the current one
+or any other history file.
+
+In these cases, a pickup interface should open to let the user choose
+the correct session from the history file.
 
 
 #### Vision Models (GPT-4-Vision)

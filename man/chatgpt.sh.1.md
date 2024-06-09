@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.59 | General Commands Manual
+% CHATGPT.SH(1) v0.59.3 | General Commands Manual
 % mountaineerbr
 % June 2024
 
@@ -399,7 +399,7 @@ forward slash followed by a history file name,
 the command `/session` is assumed.
 
 A history file can contain many sessions. The last one (the tail session)
-is always read if the resume `option -C` is set.
+is always loaded if the resume `option -C` is set.
 
 If "`/copy` _current_" is run, a selector is shown to choose and copy
 a session to the tail of the current history file, and resume it.
@@ -409,7 +409,21 @@ It is also possible to copy sessions of a history file to another file
 when a second argument is given to the command with the history file name,
 such as "`/copy` \[_SRC_HIST_FILE_] \[_DEST_HIST_FILE_]".
 
-In order to change the chat context at run time, the history file may be
+
+To load an older session from a history file that is different from the
+defaults, there are some options.
+
+Change to it with command `!session [name]`, and then `!fork` the older
+session to the active session.
+
+Or, `!copy [orign] [dest]` the session from a history file to the current
+oneor any other history file.
+
+In these cases, a pickup interface should open to let the user choose
+the correct session from the history file.
+
+
+To change the chat context at run time, the history file may be
 edited with the "`/hist`" command (also for context injection).
 Delete history entries or comment them out with "`#`".
 
