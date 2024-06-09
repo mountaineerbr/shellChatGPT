@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.59.4  june/2024  by mountaineerbr  GPL+3
+# v0.60  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2128,8 +2128,8 @@ function ollama_mediaf
 #will _NOT_ work with whitespace in filename if not pipe-delimited and may not work with mixed pipe- and whitespace-delimited input
 function _mediachatf
 {
-	typeset var spc spc2 spc_sep ftrim break i n; unset TRUNC_IND;
-       	i=${#1} spc=$'(\\[tnr]|[ \t\n\r])' spc2="+$spc" spc="*$spc";
+	typeset var spc_sep ftrim break i n; unset TRUNC_IND;
+       	i=${#1}
 
 	#process only the last line of input, fix for escaped white spaces in filename, del trailing spaces and trailing pipe separator
 	set -- "$(sed -n 's/\\n/\n/g; s/\\\\ / /g; s/\\ / /g; s/[[:space:]|]*$//; $p' <<<"$*")";
@@ -2144,8 +2144,8 @@ function _mediachatf
 	do 	if ((break))
 		then var=$ftrim;
 		elif [[ $1 = *\|* ]]
-		then 	var=${1##*\|${spc}};  #pipe separator
-		else 	var=${1##*${spc2}} spc_sep=1;  #space separator
+		then 	var=$(sed 's/^.*[|][[:space:]]*//' <<<"$1");  #pipe separator
+		else 	var=$(sed 's/^.*[[:space:]][[:space:]]*//' <<<"$1") spc_sep=1;  #space separator
 		fi
 
 		#check if file or url and add to array (max 20MB)
@@ -2161,10 +2161,10 @@ function _mediachatf
 			if ((break))
 			then 	set -- ;
 			elif [[ $1 = *\|* ]]
-			then 	set -- "${1%\|*}";
-			else 	set -- "${1%${spc2}*}";
+			then 	set -- "$(sed 's/[[:space:]]*[|][^|]*$//' <<<"$1")";
+			else 	set -- "$(sed 's/\\[tnr]/ /g; s/[[:space:]]*[[:space:]][^[:space:]]*$//' <<<"$1")"
 			fi; spc_sep= ;
-			set -- "${1%%${spc}}";
+			set -- "$(trim_trailf "$1" $'*(\\[tnr]|[ \t\n\r])')";
 			((TRUNC_IND = i - ${#1}));
 		else
 			((spc_sep)) || {
@@ -2704,7 +2704,7 @@ function __set_voicef
 {
 	case "$1" in
 		#alloy|echo|fable|onyx|nova|shimmer
-		[Aa][Ll][Ll][Oo][Yy]|[Ee][Cc][Hh][Oo]|[Ff][Aa][Bb][Ll][Ee]|[Oo][Nn][YyIi][Xx]|[Nn][Oo][Vv][Aa]|[Ss][Hh][Ii][Mm][Mm][Ee][Rr]) 	VOICEZ=$1;;
+		[Aa][Ll][Ll][Oo][Yy]|[Ee][Cc][Hh][Oo]|[Ff][Aa][Bb][Ll][Ee]|[Oo][Nn][YyIi][Xx]|[Nn][Oo][Vv][Aa]|[Ss][Hh][Ii][Mm][Mm][Ee][Rr]|sky) 	VOICEZ=$1;;
 		*) 	false;;
 	esac
 }
