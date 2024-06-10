@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.60.2  june/2024  by mountaineerbr  GPL+3
+# v0.60.3  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4307,7 +4307,7 @@ else
 	elif cmd_runf "$@"
 	then 	set -- ;
 	else  #print session context?
-		((OPTRESUME)) && ((OPTV<2)) && OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO"; echo "$FILEFIFO")" >/dev/null;
+		((OPTRESUME)) && ((OPTV<2)) && OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
 	fi
 
 	#warnings and tips
