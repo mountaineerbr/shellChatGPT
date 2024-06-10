@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.60  june/2024  by mountaineerbr  GPL+3
+# v0.60.1  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4269,15 +4269,6 @@ else
 	    done ;STOPS=("$@")
 	} ;((${#STOPS[@]})) && unescape_stopsf
 
-	#session cmds
-	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
-	then 	case "$1" in
-			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )
-				session_mainf "$1" "${@:2:1}" && set -- "${@:3}";;
-			*) 	session_mainf "$1" && set -- "${@:2}";;
-		esac
-	fi
-
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
 	if ((MTURN+OPTRESUME))
@@ -4314,7 +4305,20 @@ else
 		fi
 		shell_histf "$*";
 	fi
-	cmd_runf "$@" && set -- ;
+	
+	#session and chat cmds
+	if [[ $1 = [/!]?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
+	then 	case "$1" in
+			[/!]?| [/!][/!]? | [/!]?([/!])@(session|list|ls|fork|sub|grep|copy|cp) )
+				session_mainf "$1" "${@:2:1}" && set -- "${@:3}";;
+			*) 	session_mainf "$1" && set -- "${@:2}";;
+		esac
+	elif cmd_runf "$@"
+	then 	set -- ;
+	else  #print session context?
+		((OPTRESUME)) && ((OPTV<2)) && OPTPRINT=1 session_sub_printf "$FILECHAT" >/dev/null;
+	fi
+	
 	#option -e, edit first user input
 	((OPTE && OPTX)) && unset OPTE;  #option -x always edits, anyways
 	((OPTE && ${#})) && { 	REPLY=$* EDIT=1 SKIP= WSKIP=; set -- ;}
