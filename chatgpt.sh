@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.60.1  june/2024  by mountaineerbr  GPL+3
+# v0.60.2  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4048,10 +4048,6 @@ fi
 if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
 	then 	__sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
-		if ((${#})) && [[ ! -f $1 ]]
-		then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
-			__sysmsgf "Prompt:" "~$TKN_PREV tokens"
-		fi
 	elif ((OPTHH>1))
 	then 	__sysmsgf 'Language Model:' "$MOD"
 	fi
@@ -4288,11 +4284,6 @@ else
 		((GOOGLEAI)) && GINSTRUCTION=$INSTRUCTION INSTRUCTION=;
 	fi
 
-	#warnings and tips
-	((OPTCTRD)) && __warmsgf '*' '<Ctrl-V> + <Ctrl-J> for newline * '
-	((OPTCTRD+CATPR)) && __warmsgf '*' '<Ctrl-D> to flush input * '
-	echo >&2  #!#
-
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	history -c; history -r; history -w;  #prune & fix history file
 		if ((OPTRESUME)) && [[ -s $FILECHAT ]]
@@ -4307,17 +4298,27 @@ else
 	fi
 	
 	#session and chat cmds
-	if [[ $1 = [/!]?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
+	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
 	then 	case "$1" in
-			[/!]?| [/!][/!]? | [/!]?([/!])@(session|list|ls|fork|sub|grep|copy|cp) )
+			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )
 				session_mainf "$1" "${@:2:1}" && set -- "${@:3}";;
 			*) 	session_mainf "$1" && set -- "${@:2}";;
 		esac
 	elif cmd_runf "$@"
 	then 	set -- ;
 	else  #print session context?
-		((OPTRESUME)) && ((OPTV<2)) && OPTPRINT=1 session_sub_printf "$FILECHAT" >/dev/null;
+		((OPTRESUME)) && ((OPTV<2)) && OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO"; echo "$FILEFIFO")" >/dev/null;
 	fi
+
+	#warnings and tips
+	((OPTCTRD)) && __warmsgf '*' '<Ctrl-V> + <Ctrl-J> for newline * '
+	((OPTCTRD+CATPR)) && __warmsgf '*' '<Ctrl-D> to flush input * '
+
+	if ((${#})) && [[ ! -e $1 ]]
+	then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
+		__sysmsgf "Inst+Prompt:" "~$TKN_PREV tokens"
+	fi
+	echo >&2  #!#
 	
 	#option -e, edit first user input
 	((OPTE && OPTX)) && unset OPTE;  #option -x always edits, anyways
