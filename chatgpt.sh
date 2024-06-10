@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.60.3  june/2024  by mountaineerbr  GPL+3
+# v0.60.4  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4251,7 +4251,7 @@ else
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 :Marv is a chatbot that reluctantly answers questions with sarcastic responses:
 		OPTA="${OPTA:-0.6}" OPTT="${OPTT:-0.8}"  #!#
-		STOPS+=("${Q_TYPE//$SPC1}" "${A_TYPE//$SPC1}")
+		STOPS+=("$Q_TYPE" "$A_TYPE")
 		((MISTRALAI)) && unset OPTA
 	else 	((EPN==6)) || __sysmsgf 'Text Completions'
 	fi
