@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.60.4  june/2024  by mountaineerbr  GPL+3
+# v0.61  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1150,6 +1150,13 @@ function hist_lastlinef
 	| sed -e "s/^://; s/^${Q_TYPE//\\n}//; s/^${A_TYPE//\\n}//;"
 }
 
+#grep the last line of a history file that contains a REGEX '\t"Q:'
+#little slow with big tsv files
+function grep_usr_lastlinef
+{
+	unescapef "$(grep -F -e $'\t"'${Q_TYPE//$SPC1} "$FILECHAT" | hist_lastlinef)"
+}
+
 #print to history file
 #usage: push_tohistf [string] [tokens] [time]
 function push_tohistf
@@ -1506,7 +1513,7 @@ function cmd_runf
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
-			}; unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP; xskip=1;
+			}; unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP TOTAL_OLD; xskip=1;
 			;;
 		block*|blk*)
 			set -- "${*##@(block|blk)$SPC}"
@@ -3393,7 +3400,7 @@ function session_copyf
 	buff=$(session_sub_printf "$src") \
 	&& if [[ -f "$dest" ]] ;then 	[[ "$(<"$dest")" != *"${buff}" ]] || return 0 ;fi \
 	&& { FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
-	     FILECHAT="${dest}" _break_sessionf; BREAK_SET= MAIN_LOOP=2 ;} \
+	     FILECHAT="${dest}" _break_sessionf; unset BREAK_SET MAIN_LOOP TOTAL_OLD MAX_PREV ;} \
 	&& _sysmsgf 'SESSION FORK' \
 	&& printf '%s\n' "$buff" >> "$dest" \
 	&& printf '%s\n' "$dest"
@@ -3498,7 +3505,8 @@ function session_mainf
 			case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
 			}
 		    then 	FILECHAT="$file" cmd_runf /break;
-		    		FILECHAT="$file" _break_sessionf; unset BREAK_SET MAIN_LOOP;
+		    		FILECHAT="$file" _break_sessionf;
+				unset BREAK_SET MAIN_LOOP TOTAL_OLD MAX_PREV;
 		    fi
 		fi
 	fi
@@ -3784,7 +3792,7 @@ do
 		b) 	OPTB="$OPTARG";;
 		B) 	OPTBB="$OPTARG";;
 		c) 	((++OPTC));;
-		C) 	((++OPTRESUME)); MAIN_LOOP=2;;
+		C) 	((++OPTRESUME));;
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
@@ -4287,7 +4295,7 @@ else
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	history -c; history -r; history -w;  #prune & fix history file
 		if ((OPTRESUME)) && [[ -s $FILECHAT ]]
-		then 	REPLY_OLD=$(unescapef "$(grep -F -e $'\t"'${Q_TYPE//$SPC1} "$FILECHAT" | hist_lastlinef)");  #little slow with big tsv files
+		then 	REPLY_OLD=$(grep_usr_lastlinef);
 		elif [[ -s $HISTFILE ]]
 		then 	case "$BASH_VERSION" in  #avoid bash4 hanging
 				[0-3]*|4.[01]*|4|'') 	:;;
@@ -4307,17 +4315,19 @@ else
 	elif cmd_runf "$@"
 	then 	set -- ;
 	else  #print session context?
-		((OPTRESUME)) && ((OPTV<2)) && OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
+		if ((OPTRESUME)) && ((OPTV<2)) && [[ -s $FILECHAT ]]
+		then 	OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
+		fi
 	fi
-
-	#warnings and tips
-	((OPTCTRD)) && __warmsgf '*' '<Ctrl-V> + <Ctrl-J> for newline * '
-	((OPTCTRD+CATPR)) && __warmsgf '*' '<Ctrl-D> to flush input * '
 
 	if ((${#})) && [[ ! -e $1 ]]
 	then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 		__sysmsgf "Inst+Prompt:" "~$TKN_PREV tokens"
 	fi
+
+	#warnings and tips
+	((OPTCTRD)) && __warmsgf '*' '<Ctrl-V> + <Ctrl-J> for newline * '
+	((OPTCTRD+CATPR)) && __warmsgf '*' '<Ctrl-D> to flush input * '
 	echo >&2  #!#
 	
 	#option -e, edit first user input
@@ -4427,7 +4437,8 @@ else
 				elif cmd_runf "$REPLY"
 				then 	((SKIP_SH_HIST)) || shell_histf "$REPLY"; SKIP_SH_HIST=1;
 					if ((REGEN>0))
-					then 	REPLY="${REPLY_OLD:-$REPLY}"
+					then 	((MAIN_LOOP)) || [[ ! -s $FILECHAT ]] || REPLY_OLD=$(grep_usr_lastlinef);
+						REPLY="${REPLY_OLD:-$REPLY}"
 					else 	((SKIP)) || REPLY=
 					fi; set --; continue 2
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0
@@ -4435,7 +4446,10 @@ else
 				then
 					((RETRY)) && [[ $REPLY_OLD != "$REPLY" ]] && 
 					  prev_tohistf "$(escapef "$REPLY_OLD")"
-					[[ $REPLY = *([$IFS])/* ]] && REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
+					if [[ $REPLY = *([$IFS])/* ]]
+					then 	((MAIN_LOOP)) || [[ ! -s $FILECHAT ]] || REPLY_OLD=$(grep_usr_lastlinef);
+						REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
+					fi
 					[[ $REPLY = */*([$IFS]) ]] && REPLY=$(SMALLEST=1 INDEX=16 trim_trailf "$REPLY" $'\/*')
 					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}"
 				elif [[ -n $REPLY ]]
@@ -4551,7 +4565,9 @@ else
 
 		if ((RETRY<2))
 		then 	((MTURN+OPTRESUME)) &&
-			if ((EPN==6)); then 	set_histf "${*}"; else 	set_histf "${Q_TYPE}${*}"; fi
+			if ((EPN==6));
+			then 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${*}";
+			else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*}"; fi
 			((MAIN_LOOP||TOTAL_OLD)) || TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-$GINSTRUCTION}")
 			if ((OPTC)) || [[ -n "${RESTART}" ]]
 			then 	rest="${RESTART:-$Q_TYPE}"
