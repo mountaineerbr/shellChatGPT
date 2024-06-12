@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61  june/2024  by mountaineerbr  GPL+3
+# v0.61.1  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -650,7 +650,7 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	curl "$@" --fail-with-body -L "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
+	curl "$@" --fail -L "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
@@ -970,7 +970,7 @@ function prompt_audiof
 {
 	((OPTVV)) && __warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTT:-unset}${*:+,  }${*}" >&2
 
-	curl -\# ${OPTV:+-Ss} --fail-with-body -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} --fail -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: multipart/form-data' \
@@ -987,7 +987,7 @@ function prompt_audiof
 function list_modelsf
 {
 	((MISTRALAI)) && typeset OPENAI_API_KEY=$MISTRAL_API_KEY API_HOST=$MISTRAL_API_HOST
-	curl -\# --fail-with-body -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
+	curl -\# --fail -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
 	if [[ -n $1 ]]
@@ -2560,7 +2560,7 @@ end;"
 #request tts prompt
 function prompt_ttsf
 {
-	curl -N -Ss --fail-with-body -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -N -Ss --fail -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -2637,8 +2637,7 @@ function ttsf
 		((OPTVV)) && __warmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}, Block: ${BLOCK}"
 		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play ' '';  #!#
 
-		prompt_ttsf &
-		pid=$! secs=$SECONDS;
+		prompt_ttsf & pid=$! secs=$SECONDS;
 		trap "trap 'exit' INT; kill -- $pid 2>/dev/null; return;" INT;
 		while __spinf; ok=
 			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
@@ -2649,24 +2648,25 @@ function ttsf
 					((SECONDS>secs+2)) ||  #buffer
 					__read_charf -t $((secs+2-SECONDS)) >/dev/null 2>&1;
 					break 1;;
-				[CcEeKkQqSs]|$'\e')  ok=1;
-					kill -- $pid 2>/dev/null;
+				[CcEeKkQqSs]|$'\e')  ok=1 ret=130;
+					kill -s INT -- $pid 2>/dev/null;
 					break 1;;
 			esac
 		done </dev/tty; __clr_lineupf $((4+1+29+${#var}));  #!#
-		((ok)) || wait $pid; ret=$?;
-		trap 'exit' INT
-		jq . "$FOUT" >&2 2>/dev/null && ret=1  #only if response is json
+
+		((ok)) || wait $pid || ((ret+=$?));
+		trap 'exit' INT;
+		jq . "$FOUT" >&2 2>/dev/null && ((ret+=$?));  #json response is an err
 
 		case $ret in
-			0|1[2-9][0-9]|2[0-5][0-9]) 	:;;
-			[1-9]|[1-9][0-9]) 	break 1;;
-			*) 	__warmsgf $'\rerr:' 'tts response'
+			1[2-9][0-9]|2[0-5][0-9]) break 1;;
+			[1-9]|[1-9][0-9])
+				__warmsgf $'\rerr:' 'tts response'
 				printf 'Retry request? Y/n ' >&2;
 				case "$(__read_charf)" in
 					[AaNnQq]) false;;  #no
 					*) 	continue;;
-				esac
+				esac;;
 		esac
 
 	[[ $FOUT = "-"* ]] || [[ ! -e $FOUT ]] || { 
@@ -2757,7 +2757,7 @@ function imggenf
 #image variations
 function prompt_imgvarf
 {
-	curl -\# ${OPTV:+-Ss} --fail-with-body -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} --fail -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
 		-F response_format="$OPTI_FMT" \
@@ -3622,8 +3622,8 @@ function set_googleaif
 	function list_modelsf
 	{
 		if [[ $* = $SPC1 ]]
-		then 	curl -\# --fail-with-body -L "$GOOGLE_API_HOST/models?key=$GOOGLE_API_KEY" -o "$FILE"
-		else 	curl -\# --fail-with-body -L "$GOOGLE_API_HOST/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
+		then 	curl -\# --fail -L "$GOOGLE_API_HOST/models?key=$GOOGLE_API_KEY" -o "$FILE"
+		else 	curl -\# --fail -L "$GOOGLE_API_HOST/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
 		fi && {
 		if ((OPTL>1))
 		then 	jq . -- "$FILE";
@@ -3635,7 +3635,7 @@ function set_googleaif
 		typeset epn;
 		epn='generateContent';
 		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
-		if curl "$@" --fail-with-body -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		if curl "$@" --fail -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$BLOCK" | tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
 		then 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
@@ -3644,7 +3644,7 @@ function set_googleaif
 	}
 	function embedf
 	{
-		curl --fail-with-body -L "$GOOGLE_API_HOST/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
+		curl --fail -L "$GOOGLE_API_HOST/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "{ \"model\": \"models/embedding-001\",
 				\"content\": { \"parts\":[{
