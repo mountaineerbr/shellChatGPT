@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61.1  june/2024  by mountaineerbr  GPL+3
+# v0.61.2  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1655,19 +1655,19 @@ function cmd_runf
 			__cmdmsgf 'Top_P' "$OPTP"
 			;;
 		-r*|restart*)
-			set -- "${*##@(-r|restart)$SPC}"
+			set -- "${*##@(-r|restart)?( )}"
 			restart_compf "$*"
 			__cmdmsgf 'Restart Sequence' "$RESTART"
 			;;
 		-R*|start*)
-			set -- "${*##@(-R|start)$SPC}"
+			set -- "${*##@(-R|start)?( )}"
 			start_compf "$*"
 			__cmdmsgf 'Start Sequence' "$START"
 			;;
 		-s*|stop*)
-			set -- "${*##@(-s|stop)$SPC}"
+			set -- "${*##@(-s|stop)?( )}"
 			((${#1})) && STOPS=("$(unescapef "${*}")" "${STOPS[@]}")
-			__cmdmsgf 'Stop Sequences' "${STOPS[*]}"
+			__cmdmsgf 'Stop Sequences' "[$(unset s v; for s in "${STOPS[@]}"; do v=${v}\"$(escapef "$s")\",; done; printf '%s' "${v%%,}")]"
 			;;
 		-?(S)*([$' \t'])[.,]*)
 			set -- "${*##-?(S)*([$' \t'])}"; SKIP=1 EDIT=1 
@@ -2641,7 +2641,7 @@ function ttsf
 		trap "trap 'exit' INT; kill -- $pid 2>/dev/null; return;" INT;
 		while __spinf; ok=
 			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
-		do 	var=$( ((OPTV>1)) && printf '%s\n' '*' >&2 \
+		do 	var=$( ((OPTV>1)) && printf '%s\n' 'p' >&2 \
 				|| NO_CLR=1 __read_charf -t 0.3) &&
 			case "$var" in
 				[Pp]|' '|''|$'\t')  ok=1;
@@ -4829,6 +4829,5 @@ fi
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 # - <https://help.openai.com/en/articles/6654000>
 # - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
-# - The number of tokens in streaming, may be had counting how many JSON objects received
 
 # vim=syntax sync minlines=1200
