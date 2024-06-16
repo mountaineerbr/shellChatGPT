@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61.2  june/2024  by mountaineerbr  GPL+3
+# v0.61.3  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1657,12 +1657,12 @@ function cmd_runf
 		-r*|restart*)
 			set -- "${*##@(-r|restart)?( )}"
 			restart_compf "$*"
-			__cmdmsgf 'Restart Sequence' "$RESTART"
+			__cmdmsgf 'Restart Sequence' "\"$RESTART\""
 			;;
 		-R*|start*)
 			set -- "${*##@(-R|start)?( )}"
 			start_compf "$*"
-			__cmdmsgf 'Start Sequence' "$START"
+			__cmdmsgf 'Start Sequence' "\"$START\""
 			;;
 		-s*|stop*)
 			set -- "${*##@(-s|stop)?( )}"
