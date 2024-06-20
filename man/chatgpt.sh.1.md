@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.61 | General Commands Manual
+% CHATGPT.SH(1) v0.61.4 | General Commands Manual
 % mountaineerbr
 % June 2024
 
@@ -539,6 +539,9 @@ such as "`-S` `/`_linux_terminal_", search for an *awesome-chatgpt-prompt(-zh)*
 Use with _davinci_ and _gpt-3.5+_ models.
 
 These options also set corresponding history files automatically.
+
+Please note and make sure to backup your important custom prompts!
+They are located at "`~/.cache/chatgptsh/`" with the extension "_.pr_".
 
 
 ### IMAGES / DALL-E

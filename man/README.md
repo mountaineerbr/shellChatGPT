@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: June 2024
-title: CHATGPT.SH(1) v0.61 \| General Commands Manual
+title: CHATGPT.SH(1) v0.61.4 \| General Commands Manual
 ---
 
 ### NAME
@@ -519,6 +519,9 @@ sign, such as “`-S` `/`*linux_terminal*”, search for an
 “`%%`” to refresh local cache. Use with *davinci* and *gpt-3.5+* models.
 
 These options also set corresponding history files automatically.
+
+Please note and make sure to backup your important custom prompts! They
+are located at “`~/.cache/chatgptsh/`” with the extension “*.pr*”.
 
 ### IMAGES / DALL-E
 

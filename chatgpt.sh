@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61.3  june/2024  by mountaineerbr  GPL+3
+# v0.61.4  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -19,11 +19,11 @@ MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
 # Whisper model (STT)
 MOD_AUDIO="${MOD_AUDIO:-whisper-1}"
 # Speech model (TTS)
-MOD_SPEECH="${MOD_SPEECH:-tts-1}"   #"tts-1-hd"
+MOD_SPEECH="${MOD_SPEECH:-tts-1}"
 # LocalAI model
 MOD_LOCALAI="${MOD_LOCALAI:-phi-2}"
 # Ollama model
-MOD_OLLAMA="${MOD_OLLAMA:-llama2}"  #"llama2-uncensored:latest"
+MOD_OLLAMA="${MOD_OLLAMA:-llama3}"
 # Google AI model
 MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.0-pro-latest}"
 # Mistral AI model
@@ -1670,13 +1670,13 @@ function cmd_runf
 			__cmdmsgf 'Stop Sequences' "[$(unset s v; for s in "${STOPS[@]}"; do v=${v}\"$(escapef "$s")\",; done; printf '%s' "${v%%,}")]"
 			;;
 		-?(S)*([$' \t'])[.,]*)
-			set -- "${*##-?(S)*([$' \t'])}"; SKIP=1 EDIT=1 
+			set -- "${*##-?(S)*([$' \t'])}"; PSKIP= SKIP=1 EDIT=1
 			var=$(INSTRUCTION=$* OPTRESUME=1 CMD_CHAT=1; custom_prf "$@" && echo "$INSTRUCTION")
-			case $? in [1-9]*|201|[!0]*) 	REPLY=${args[*]};; 	*) REPLY=$var;; esac
+			case $? in [1-9]*|201|[!0]*) 	REPLY=${args[*]};; 	*) REPLY="-S $var";; esac
 			;;
 		-?(S)*([$' \t'])[/%]*)
-			set -- "${*##-?(S)*([$' \t'])}"; SKIP=1 EDIT=1 
-			var=$(INSTRUCTION=$* CMD_CHAT=1; awesomef && echo "$INSTRUCTION") && REPLY=$var
+			set -- "${*##-?(S)*([$' \t'])}"; PSKIP= SKIP=1 EDIT=1 
+			var=$(INSTRUCTION=$* CMD_CHAT=1; awesomef && echo "$INSTRUCTION") && REPLY="-S $var"
 			;;
 		-S*|-:*)
 			set -- "${*##-[S:]*([$': \t'])}"
@@ -4103,7 +4103,8 @@ then 	typeset -a argn
 	unset n p ii var arg argn;
 fi
 
-mkdir -p "$CACHEDIR" || { 	_sysmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
+[[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR" ||
+{ 	_sysmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
 if ! command -v jq >/dev/null 2>&1
 then 	function jq { 	false ;}
 	function escapef { 	_escapef "$@" ;}
@@ -4242,7 +4243,8 @@ else
 			elif ((!${#}))
 			then 	unset REPLY
 				printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request, or append user prompt: ' >&2
-				case "$(__read_charf)" in 	?) SKIP=1 EDIT=1 OPTAWE= ;; 	*) JUMP=1;; esac
+				var=$(__read_charf)
+				case "$var" in 	?) SKIP=1 EDIT=1 OPTAWE= REPLY=$var;; 	*) JUMP=1;; esac; unset var;
 			fi
 		else 	custom_prf "$@"
 			case $? in
