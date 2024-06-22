@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61.4  june/2024  by mountaineerbr  GPL+3
+# v0.61.5  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2664,7 +2664,7 @@ function ttsf
 				__warmsgf $'\rerr:' 'tts response'
 				printf 'Retry request? Y/n ' >&2;
 				case "$(__read_charf)" in
-					[AaNnQq]) false;;  #no
+					[AaNnQq]) break 1;;  #no
 					*) 	continue;;
 				esac;;
 		esac
