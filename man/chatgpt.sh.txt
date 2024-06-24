@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.61.4 | General Commands Manual
+CHATGPT.SH(1) v0.61.7 | General Commands Manual
 mountaineerbr
 June 2024
 
@@ -199,10 +199,6 @@ preceded by a new line.
 To enable multiline input, set option -u. With this option set, press
 <CTRL-D> to flush input! This is useful to paste from clipboard.
 Alternatively, set option -U to set cat command as prompter.
-
-Type in a backslash “\” as the last character of the input line to
-append a literal newline once and return to edition, or press <CTRL-V> +
-<CTRL-J>.
 
 Bash bracketed paste is enabled, meaning multiline input may be pasted
 or typed, even without setting options -uU (v25.2+).

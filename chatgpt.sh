@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61.6  june/2024  by mountaineerbr  GPL+3
+# v0.61.7  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -383,9 +383,6 @@ Chat Commands
 	it with command \`!regen' or type in a single exclamation mark or
 	forward slash in the new empty prompt (twice for editing the
        	prompt before request).
-
-	Type in a backslash \`\\' as the last character of the input line
-	to append a literal newline, or press <CTRL-V> + <CTRL-J>.
 
 	Press <CTRL-\\> to terminate the script.
 
@@ -4427,12 +4424,12 @@ else
 					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])') && echo >&2
 				fi; printf "${NC}" >&2;
 				
-				if [[ $REPLY = *\\ ]] && ((!OPTCTRD))
-				then 	printf '\n%s\n' '--- <ctrl-d> ---' >&2
-					EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
-					REPLY=$(trim_trailf "$REPLY" "*(\\\\)")$'\n'
-					set --; continue;
-				elif [[ $REPLY = /cat*([$IFS]) ]]
+				#if [[ $REPLY = *\\ ]] && ((!OPTCTRD))  #[DISABLED FOR IMPROVED USER INTERFACE v0.61.7]
+				#then 	printf '\n%s\n' '--- <ctrl-d> ---' >&2
+				#	EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
+				#	REPLY=$(trim_trailf "$REPLY" "*(\\\\)")$'\n'
+				#	set --; continue;
+				if [[ $REPLY = /cat*([$IFS]) ]]
 				then 	((CATPR)) || CATPR=2 ;REPLY= SKIP=1
 					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"
 					set -- ;continue  #A#
@@ -4452,7 +4449,10 @@ else
 					then 	((MAIN_LOOP)) || [[ ! -s $FILECHAT ]] || REPLY_OLD=$(grep_usr_lastlinef);
 						REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					fi
-					[[ $REPLY = */*([$IFS]) ]] && REPLY=$(SMALLEST=1 INDEX=16 trim_trailf "$REPLY" $'\/*')
+					if [[ $REPLY = */*([$IFS]) ]]
+					then 	REPLY=$(INDEX=80 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n])')
+						printf '\n%s\n' '--- preview ---' >&2
+					fi
 					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}"
 				elif [[ -n $REPLY ]]
 				then

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: June 2024
-title: CHATGPT.SH(1) v0.61.4 \| General Commands Manual
+title: CHATGPT.SH(1) v0.61.7 \| General Commands Manual
 ---
 
 ### NAME
@@ -231,9 +231,11 @@ press \<*CTRL-D*\> to flush input! This is useful to paste from
 clipboard. Alternatively, set `option -U` to set *cat command* as
 prompter.
 
-Type in a backslash “*\\*” as the last character of the input line to
-append a literal newline once and return to edition, or press
-\<*CTRL-V*\> *+* \<*CTRL-J*\>.
+<!--  [DISABLED]
+Type in a backslash "_\\_" as the last character of the input line
+to append a literal newline once and return to edition,
+or press \<_CTRL-V_> _+_ \<_CTRL-J_>.
+-->
 
 Bash bracketed paste is enabled, meaning multiline input may be pasted
 or typed, even without setting `options -uU` (*v25.2+*).

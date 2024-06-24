@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.61.4 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.61.7 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.61.4 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.61.7 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">June 2024</p>
 </header>
@@ -392,9 +392,11 @@ optionally set and are always preceded by a new line.</p>
 &lt;<em>CTRL-D</em>&gt; to flush input! This is useful to paste from
 clipboard. Alternatively, set <code>option -U</code> to set <em>cat
 command</em> as prompter.</p>
-<p>Type in a backslash “<em>\</em>” as the last character of the input
-line to append a literal newline once and return to edition, or press
-&lt;<em>CTRL-V</em>&gt; <em>+</em> &lt;<em>CTRL-J</em>&gt;.</p>
+<!--  [DISABLED]
+Type in a backslash "_\\_" as the last character of the input line
+to append a literal newline once and return to edition,
+or press \<_CTRL-V_> _+_ \<_CTRL-J_>.
+-->
 <p>Bash bracketed paste is enabled, meaning multiline input may be
 pasted or typed, even without setting <code>options -uU</code>
 (<em>v25.2+</em>).</p>
