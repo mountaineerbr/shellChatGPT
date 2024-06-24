@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61.5  june/2024  by mountaineerbr  GPL+3
+# v0.61.6  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4359,13 +4359,13 @@ else
 			case $? in
 				179|180) :;;        #jumps
 				200) 	continue;;  #redo
-				201) 	set --; false;;   #abort
+				201) 	set --; unset OPTX; false;;   #abort
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}" | tail -n $((LINES-2))
 					do 	((OPTV)) || new_prompt_confirmf
 						case $? in
-							201) 	set --; break 1;;  #abort
+							201) 	set --; unset OPTX; break 1;;  #abort
 							200) 	continue 2;;  #redo
 							19[6789]) 	edf "${REPLY:-$*}" || break 1;;  #edit
 							0) 	set -- "$REPLY" ; break;;  #yes
