@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.61.7 | General Commands Manual
+% CHATGPT.SH(1) v0.61.8 | General Commands Manual
 % mountaineerbr
 % June 2024
 
@@ -683,7 +683,7 @@ Setting **temperature** has an effect, the higher the more random.
 
 **MOD_MISTRAL**
 
-**MOD_GOOGLEAI**
+**MOD_GOOGLE**
 
 :    Set defaults model for each endpoint / integration.
 

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: June 2024
-title: CHATGPT.SH(1) v0.61.7 \| General Commands Manual
+title: CHATGPT.SH(1) v0.61.8 \| General Commands Manual
 ---
 
 ### NAME
@@ -643,7 +643,7 @@ Initial initial instruction, or system message for chat mode.
 
 **MOD_MISTRAL**
 
-**MOD_GOOGLEAI**  
+**MOD_GOOGLE**  
 Set defaults model for each endpoint / integration.
 
 **OLLAMA_API_HOST**  

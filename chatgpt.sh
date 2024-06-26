@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61.7  june/2024  by mountaineerbr  GPL+3
+# v0.61.8  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -25,7 +25,7 @@ MOD_LOCALAI="${MOD_LOCALAI:-phi-2}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-llama3}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.0-pro-latest}"
+MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.0-pro-latest}"  #"gemini-1.5-flash-latest"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Bash readline mode
@@ -259,7 +259,7 @@ Environment
 	MOD_LOCALAI
 	MOD_OLLAMA
 	MOD_MISTRAL
-	MOD_GOOGLEAI 	Set defaults model for each endpoint / integration.
+	MOD_GOOGLE 	Set defaults model for each endpoint / integration.
 	
 	OLLAMA_API_HOST Ollama host URL (with option -O).
 
@@ -339,7 +339,7 @@ Chat Commands
        -A      !freq     [VAL]   Set frequency penalty.
        -b      !best     [NUM]   Set best-of n results.
        -K      !topk     [NUM]   Set top_k.
-       !ka     !keep-alive [NUM] Set duration of model load in memory
+      !ka      !keep-alive [NUM] Set duration of model load in memory
        -m      !mod      [MOD]   Set model by name, or pick from list.
        -n      !results  [NUM]   Set number of results.
        -p      !topp     [VAL]   Set top_p.
@@ -4122,7 +4122,7 @@ elif ((OPTFF))
 then 	if [[ -s "$CONFFILE" ]] && ((OPTFF<2))
 	then 	__edf "$CONFFILE";
 	else 	curl -f -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
-		CONFFILE=stdout;
+		CONFFILE="stdout [$CONFFILE]";
 	fi; _sysmsgf 'Conf File:' "$CONFFILE";
 elif ((OPTHH && OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN) )) && [[ -f $FILEWHISPERLOG ]]
 then  #whisper log
