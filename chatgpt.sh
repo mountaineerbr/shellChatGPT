@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.61.8  june/2024  by mountaineerbr  GPL+3
+# v0.61.9  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -108,8 +108,8 @@ Inv='\e[0;7m'      Nc='\e[m'           Alert=$BWhite$On_Red \
 Bold='\033[0;1m'
 
 # Load user defaults
-CONFFILE="${CHATGPTRC:-$HOME/.chatgpt.conf}"
-[[ -f "${OPTF}${CONFFILE}" ]] && . "$CONFFILE"; OPTMM=  #!#fix <=248c483-github
+((${#CHATGPTRC})) || CHATGPTRC="$HOME/.chatgpt.conf"
+[[ -f "${OPTF}${CHATGPTRC}" ]] && . "$CHATGPTRC"; OPTMM=  #!#fix <=248c483-github
 
 # Set file paths
 FILE="${CACHEDIR%/}/chatgpt.json"
@@ -243,7 +243,7 @@ Environment
 	CACHEDIR 	Script cache directory base.
 	
 	CHATGPTRC 	Path to the user configuration file.
-			Defaults=\"${CHATGPTRC:-${CONFFILE:-"$HOME/.chatgpt.conf"}}\"
+			Defaults=${CHATGPTRC/"$HOME"/"~"}
 
 	FILECHAT 	Path to a history / session TSV file.
 
@@ -486,7 +486,7 @@ Options
 	-f, --no-conf
 		Ignore user configuration file.
 	-F 	Edit configuration file, if it exists.
-		\$CHATGPTRC="${CONFFILE/"$HOME"/"~"}".
+		\$CHATGPTRC=${CHATGPTRC/"$HOME"/"~"}.
 	-FF 	Dump template configuration file to stdout.
 	--fold (defaults), --no-fold
 		Set or unset response folding (wrap at white spaces).
@@ -775,7 +775,7 @@ function __spinf
 #print input and backspaces for all chars
 function __printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
 
-#trim leading spaces
+#trim leading glob
 #usage: trim_leadf [string] [glob]
 function trim_leadf
 {
@@ -786,7 +786,7 @@ function trim_leadf
 	var="${sub}${var:$ind}"
 	printf '%s\n' "$var"
 }
-#trim trailing spaces
+#trim trailing glob
 #usage: trim_trailf [string] [glob]
 function trim_trailf
 {
@@ -799,7 +799,7 @@ function trim_trailf
 	else 	((SMALLEST)) && var="${var%$2}" || var="${var%%$2}"
 	fi; printf '%s\n' "$var"
 }
-#fast trim
+#fast shell glob trimmer
 #usage: trimf [string] [glob]
 function trimf
 {
@@ -3793,7 +3793,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	OPTEXIT=1;;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC CONFFILE REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD WAPPEND;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD WAPPEND;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -4119,11 +4119,11 @@ elif ((OPTL))  #model list
 then
 	list_modelsf "$@";
 elif ((OPTFF))
-then 	if [[ -s "$CONFFILE" ]] && ((OPTFF<2))
-	then 	__edf "$CONFFILE";
+then 	if [[ -s "$CHATGPTRC" ]] && ((OPTFF<2))
+	then 	__edf "$CHATGPTRC";
 	else 	curl -f -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
-		CONFFILE="stdout [$CONFFILE]";
-	fi; _sysmsgf 'Conf File:' "$CONFFILE";
+		CHATGPTRC="stdout [$CHATGPTRC]";
+	fi; _sysmsgf 'Conf File:' "${CHATGPTRC/"$HOME"/"~"}";
 elif ((OPTHH && OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN) )) && [[ -f $FILEWHISPERLOG ]]
 then  #whisper log
 	if ((OPTHH>1))

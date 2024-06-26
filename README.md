@@ -20,14 +20,15 @@ Markdown rendering of chat response (_optional_).
 - **Manage sessions**, _print out_ previous sessions
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
    easily create and set the initial system prompt
-- Voice in (**Whisper**) and voice out (**TTS**) _chat / REPL mode_ (`options -cczw`)
-- Integration with [awesome-chatgpt-prompts](#-awesome-prompts) and
-   [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh),
-   [mudler's LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), and [Mistral AI](#mistral-ai).
+- **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out-+-chat-completions) (`options -cczw`)
+- Integration with [mudler's LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), and [Mistral AI](#mistral-ai)
+- Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
+   [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 - _Tiktoken_ for accurate tokenization (optional)
 - Colour scheme personalisation, and a configuration file
 - Stdin and text file input support
-- Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users).
+- Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
+- Fast!
 
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
 <!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
@@ -205,13 +206,18 @@ Alternatively, set the image paths / URLs at the end of the prompt interactively
 
 #### Voice In and Out + Chat Completions
 
-🗣️ Chat completion with **Whisper**:
+🗣️ Chat completion with audio in and out (Whisper plus TTS):
 
-    chatgpt.sh -ccw
+    chatgpt.sh -ccwz
 
-Chat in Portuguese with voice in and out:
+Chat in Portuguese with Whisper and set _onyx_ as the TTS voice:
 
-    chatgpt.sh -cczw pt
+    chatgpt.sh -ccwz -- pt -- onyx
+
+
+**Chat mode** provides a conversational experience,
+prompting the user to confirm each step.
+For less verbose and automated execution, set `options -vvv`.
 
 
 ### Chat Mode of Text Completions
