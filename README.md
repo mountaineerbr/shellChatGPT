@@ -20,7 +20,7 @@ Markdown rendering of chat response (_optional_).
 - **Manage sessions**, _print out_ previous sessions
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
    easily create and set the initial system prompt
-- **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out-+-chat-completions) (`options -cczw`)
+- **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
 - Integration with [mudler's LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), and [Mistral AI](#mistral-ai)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
