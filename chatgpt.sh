@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.62  june/2024  by mountaineerbr  GPL+3
+# v0.62.1  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -384,6 +384,8 @@ Chat Commands
 	forward slash in the new empty prompt (twice for editing the
        	prompt before request).
 
+	Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
+	Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
 	Press <CTRL-\\> to terminate the script.
 
 
@@ -1825,7 +1827,7 @@ function cmd_runf
 					((OPTCTRD==2)) && __cmdmsgf 'Prompter <Ctrl-D>' 'one-shot';;
 				*) 	((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
 					__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD)
-					((OPTCTRD)) && __warmsgf '*' '<Ctrl-V> + <Ctrl-J> for newline * ';;
+					((OPTCTRD)) && __warmsgf '*' '<Ctrl-V Ctrl-J> for newline * ';;
 			esac
 			;;
 		-U|-UU*(U))
@@ -2019,6 +2021,19 @@ function edf
 	then 	return 200;
 	fi
 }
+
+#readline edit command line in text editor without executing it
+function _edit_no_execf
+{
+	set_filetxtf;
+	echo "$READLINE_LINE" >"$FILETXT";
+	if __edf "$FILETXT" && [[ -s $FILETXT ]]
+	then 	READLINE_LINE=$(<"$FILETXT");
+		READLINE_POINT=${#READLINE_LINE};
+		printf "${BCYAN}" >&2;
+	fi;
+}
+#https://superuser.com/questions/1601543/ctrl-x-e-without-executing-command-immediately
 
 #(un)escape from/to json (bash truncates input on \000)
 function _escapef
@@ -3879,7 +3894,8 @@ typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
 set -o ${READLINEOPT:-emacs}; 
 bind 'set enable-bracketed-paste on';
-bind '"\C-j": "\C-v\C-j"'  #CTRL-J for newline (instead of accept-line)
+bind -x '"\C-x\C-e": "_edit_no_execf"'
+bind '"\C-j": "\C-v\C-j"'  #add newline
 [[ $BASH_VERSION = [5-9]* ]] || ((OPTV)) || __warmsgf 'Warning:' 'Bash 5+ required';
 
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
@@ -4325,7 +4341,7 @@ else
 	fi
 
 	#warnings and tips
-	((OPTCTRD)) && __warmsgf '*' '<Ctrl-V> + <Ctrl-J> for newline * '
+	((OPTCTRD)) && __warmsgf '*' '<Ctrl-V Ctrl-J> for newline * '
 	((OPTCTRD+CATPR)) && __warmsgf '*' '<Ctrl-D> to flush input * '
 	echo >&2  #!#
 	
@@ -4424,11 +4440,6 @@ else
 					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])') && echo >&2
 				fi; printf "${NC}" >&2;
 				
-				#if [[ $REPLY = *\\ ]] && ((!OPTCTRD))  #[DISABLED FOR IMPROVED USER INTERFACE v0.61.7]
-				#then 	printf '\n%s\n' '--- <ctrl-d> ---' >&2
-				#	EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
-				#	REPLY=$(trim_trailf "$REPLY" "*(\\\\)")$'\n'
-				#	set --; continue;
 				if [[ $REPLY = /cat*([$IFS]) ]]
 				then 	((CATPR)) || CATPR=2 ;REPLY= SKIP=1
 					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"

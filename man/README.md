@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: June 2024
-title: CHATGPT.SH(1) v0.62 \| General Commands Manual
+title: CHATGPT.SH(1) v0.62.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -161,11 +161,16 @@ Stdin text is appended to PROMPT, to set a single PROMPT.
 While *cURL* is in the middle of transmitting a request, or receiving a
 response, \<*CTRL-C*\> may be pressed once to interrupt the call.
 
+Press \<*CTRL-X* *CTRL-E*\> to edit command line in text editor
+(readline).
+
+Press \<*CTRL-J*\> or \<*CTRL-V* *CTRL-J*\> for newline (readline).
+
 Press \<*CTRL-\\*\> to exit from the script, even if recording,
 requesting, or playing TTS.
 
 User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
-at “*~/.cache/chatgptsh*”.
+at “*~/.cache/chatgptsh/*”.
 
 A personal OpenAI API is required, set it with `option --api-key`. See
 also **ENVIRONMENT section**.
@@ -234,7 +239,7 @@ prompter.
 <!--  [DISABLED]
 Type in a backslash "_\\_" as the last character of the input line
 to append a literal newline once and return to edition,
-or press \<_CTRL-V_> _+_ \<_CTRL-J_>.
+or press \<_CTRL-V_ _CTRL-J_>.
 -->
 
 Bash bracketed paste is enabled, meaning multiline input may be pasted

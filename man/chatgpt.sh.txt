@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.62 | General Commands Manual
+CHATGPT.SH(1) v0.62.1 | General Commands Manual
 mountaineerbr
 June 2024
 
@@ -144,11 +144,15 @@ Stdin text is appended to PROMPT, to set a single PROMPT.
 While cURL is in the middle of transmitting a request, or receiving a
 response, <CTRL-C> may be pressed once to interrupt the call.
 
+Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
+
+Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
+
 Press <CTRL-\> to exit from the script, even if recording, requesting,
 or playing TTS.
 
 User configuration is kept at “~/.chatgpt.conf”. Script cache is kept at
-“~/.cache/chatgptsh”.
+“~/.cache/chatgptsh/”.
 
 A personal OpenAI API is required, set it with option --api-key. See
 also ENVIRONMENT section.
