@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.62.1  june/2024  by mountaineerbr  GPL+3
+# v0.62.2  june/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -734,8 +734,8 @@ function promptf
 #print tokens from response
 function response_tknf
 {
-	jq -r '.usage.prompt_tokens//"0",
-		.usage.completion_tokens//"0",
+	jq -r '.usage.prompt_tokens//(.usageMetadata.promptTokenCount)//"0",
+		.usage.completion_tokens//(.usageMetadata.candidatesTokenCount)//"0",
 		(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$@";
 }
 #https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
@@ -910,7 +910,8 @@ function prompt_pf
 	for var
 	do 	[[ -f $var ]] || { 	opt+=("$var"); shift ;}
 	done
-	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |.text//.response//(.message.content)//(.delta.content))//(.data?)//empty" "$@"
+	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |
+		(.delta.content)//.text//.response//(.message.content)//(.candidates[]?.content.parts[]?.text)//(.data?))//empty" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
 	{ jq "$@" && _p_suffixf ;} || ! cat -- "$@" >&2 2>/dev/null
 }
@@ -4753,7 +4754,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			fi;
 
 			unset BAD_RES PSKIP ESC_OLD;
-			((${#tkn[@]}>2 || STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
+			((${#tkn[@]}>1 || STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
 			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]
 			then 	Color200=${NC} __warmsgf \
@@ -4837,10 +4838,13 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 fi
 
 # Notes:
-# - Debug command performance by line in Bash:
-## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: '
+## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
-# - <https://help.openai.com/en/articles/6654000>
-# - Dall-e-3 trick: "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS: [very detailed prompt]"
+
+#   &=== &   & &==== ===== &==== &==== =====    &==== &   & 
+#   %  % %   % %   %   %   %   % %   %   %      %   " %   % 
+#   %=   %===% %===%   %=  %=    %===%   %=     %==== %===%     ^    ^ . 
+#   %%   %%  % %%  %   %%  %% "% %%      %%        %% %%  %    /a\  /i\  
+#   %%=% %%  % %%  %   %%  %%==% %%      %%  %% %==%% %%  %  ,<___><___>.
 
 # vim=syntax sync minlines=1200
