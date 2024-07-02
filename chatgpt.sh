@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.62.2  june/2024  by mountaineerbr  GPL+3
+# v0.62.3  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -913,7 +913,7 @@ function prompt_pf
 	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |
 		(.delta.content)//.text//.response//(.message.content)//(.candidates[]?.content.parts[]?.text)//(.data?))//empty" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
-	{ jq "$@" && _p_suffixf ;} || ! cat -- "$@" >&2 2>/dev/null
+	{ jq "$@" && _p_suffixf ;} || ! __warmsgf 'Err';
 }
 #https://stackoverflow.com/questions/57298373/print-colored-raw-output-with-jq-on-terminal
 #https://stackoverflow.com/questions/40321035/  #gsub(\"^[\\n\\t]\"; \"\")
@@ -960,8 +960,8 @@ function prompt_imgprintf
 			((OPTV)) ||  __openf "$fout" || function __openf { : ;}
 			((++n, ++m)); ((n<50)) || break;
 		done
-		((n)) || ! cat -- "$FILE" >&2;
-	else 	jq -r '.data[].url' "$FILE" || ! cat -- "$FILE" >&2;
+		((n)) || ! __warmsgf 'Err';
+	else 	jq -r '.data[].url' "$FILE" || ! __warmsgf 'Err';
 	fi &&
 	jq -r 'if .data[].revised_prompt then "\nREVISED PROMPT: "+.data[].revised_prompt else empty end' "$FILE" >&2
 }
@@ -991,10 +991,10 @@ function list_modelsf
 		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
 	if [[ -n $1 ]]
-	then  	jq . "$FILE" || ! cat -- "$FILE"
+	then  	jq . "$FILE" || ! __warmsgf 'Err';
 	else 	jq -r '.data[].id' "$FILE" | sort \
 		&& { ((MISTRALAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;} \
-		|| ! cat -- "$FILE"
+		|| ! __warmsgf 'Err';
 	fi || ! __warmsgf 'Err:' 'Model list'
 }
 
@@ -2525,12 +2525,12 @@ function whisperf
 			\"\\t\" + \"Dur: \(.duration|seconds_to_time_string)\" +
 			\"\\n\", (.segments[]| \"[\" + yellow + \"\(.start|seconds_to_time_string)\" + reset + \"]\" +
 			bpurple + .text + reset)" "$FILE" | foldf \
-		|| jq -r 'if .segments then (.segments[] | (.start|tostring) + (.text//empty)) else (.text//empty) end' "$FILE" || ! cat -- "$FILE" >&2 ;}
+		|| jq -r 'if .segments then (.segments[] | (.start|tostring) + (.text//empty)) else (.text//empty) end' "$FILE" || ! __warmsgf 'Err' ;}
 	else
 		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "${JQCOLNULL} ${JQCOL} ${JQDATE}
 		bpurple + (.text//empty) + reset" "$FILE" | foldf \
-		|| jq -r '.text//empty' "$FILE" || ! cat -- "$FILE" >&2 ;}
+		|| jq -r '.text//empty' "$FILE" || ! __warmsgf 'Err' ;}
 	fi & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 
@@ -2846,7 +2846,7 @@ function imgvarf
 	fi
 	[[ -n $prompt ]] && set -- "$@" -F prompt="$prompt"
 
-	prompt_imgvarf "$@"
+	prompt_imgvarf "$@" &&
 	prompt_imgprintf
 }
 #https://legacy.imagemagick.org/Usage/resize/
@@ -2896,7 +2896,11 @@ function img_convf
 		case "$(__read_charf)" in [AaNnQq]|$'\e') 	return 2;; esac
 	fi
 
-	if magick convert "$1" -background none -gravity center -extent 1:1 "${@:2}"
+	[[ $(magick convert 2>&1)  = *'convert command is deprecated'* \
+	|| $(magick -version 2>&1) = *'Version: ImageMagick '[!2-6]* ]] \
+	|| typeset convert=convert;
+
+	if magick $convert "$1" -background none -gravity center -extent 1:1 "${@:2}"
 	then 	if ((!OPTV))
 		then 	set -- "${@##png32:}" ;__openf "${@:${#}}"
 			__sysmsgf 'Confirm edit?' '[Y/n] ' ''
@@ -3555,13 +3559,13 @@ function set_ollamaf
 	{
 		if ((${#1}))
 		then 	curl -\# -L "${OLLAMA_API_HOST}/api/show" -d "{\"name\": \"$1\"}" -o "$FILE" &&
-			{ jq . "$FILE" || ! cat -- "$FILE" ;}; echo >&2;
+			{ jq . "$FILE" || ! __warmsgf 'Err' ;}; echo >&2;
 			ollama show "$1" --modelfile  2>/dev/null;
 		else 	{
 			  printf '\nName\tFamily\tFormat\tParam\tQLvl\tSize\tModification\n'
 			  curl -s -L "${OLLAMA_API_HOST}/api/tags" -o "$FILE" &&
-			  { jq -r '.models[]|.name?+"\t"+(.details.family)?+"\t"+(.details.format)?+"\t"+(.details.parameter_size)?+"\t"+(.details.quantization_level)?+"\t"+((.size/1000000)|tostring)?+"MB\t"+.modified_at?' "$FILE" || ! cat -- "$FILE" ;}
-			} | { 	column -t -s $'\t' 2>/dev/null || ! cat -- "$FILE" ;}  #tsv
+			  { jq -r '.models[]|.name?+"\t"+(.details.family)?+"\t"+(.details.format)?+"\t"+(.details.parameter_size)?+"\t"+(.details.quantization_level)?+"\t"+((.size/1000000)|tostring)?+"MB\t"+.modified_at?' "$FILE" || ! __warmsgf 'Err' ;}
+			} | { 	column -t -s $'\t' 2>/dev/null || ! __warmsgf 'Err' ;}  #tsv
 		fi
 	}
 	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
@@ -3607,10 +3611,10 @@ function set_localaif
 			elif ((${#1}))
 			then
 				curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
-				{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! cat -- "$FILE" ;}
+				{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! __warmsgf 'Err' ;}
 			else
 				curl -\# -fL "${API_HOST}/models/available" -o "$FILE" &&
-				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! cat -- "$FILE" ;} ||
+				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! __warmsgf 'Err' ;} ||
 				! curl -\# -L "${API_HOST}/models/" | jq .
 				#bug# https://github.com/mudler/LocalAI/issues/2045
 			fi
@@ -4735,7 +4739,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 
 			#check for OpenAI response length-type error
 			if [[ -z "$ans" ]] && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI) ))
-			then 	jq -e '(.error?)//(.[]?|.error?)//.' "$FILE" >&2 || ! cat -- "$FILE" >&2 || ((!GOOGLEAI)) || jq . "$FILE_PRE" >&2 2>/dev/null;
+			then 	jq -e '(.error?)//(.[]?|.error?)//.' "$FILE" >&2 || ! __warmsgf 'Err' || ((!GOOGLEAI)) || jq . "$FILE_PRE" >&2 2>/dev/null;
 				__warmsgf "(response empty)"
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
 					&& var=$(jq -e '(.error.message?)//(.[]?|.error?)//empty' "$FILE" 2>/dev/null) \
