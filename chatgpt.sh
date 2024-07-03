@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.62.3  jul/2024  by mountaineerbr  GPL+3
+# v0.62.4  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3417,7 +3417,10 @@ function session_copyf
 	buff=$(session_sub_printf "$src") \
 	&& if [[ -f "$dest" ]] ;then 	[[ "$(<"$dest")" != *"${buff}" ]] || return 0 ;fi \
 	&& { FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
-	     FILECHAT="${dest}" _break_sessionf; unset BREAK_SET MAIN_LOOP TOTAL_OLD MAX_PREV ;} \
+	     FILECHAT="${dest}" _break_sessionf; OLD_DEST="${dest}";
+	     #check if dest is the same as current
+	     [[ "${dest/"$HOME"/"~"}" = "${FILECHAT/"$HOME"/"~"}" ]] &&
+	     unset BREAK_SET MAIN_LOOP TOTAL_OLD MAX_PREV ;} \
 	&& _sysmsgf 'SESSION FORK' \
 	&& printf '%s\n' "$buff" >> "$dest" \
 	&& printf '%s\n' "$dest"
@@ -3493,6 +3496,9 @@ function session_mainf
 	elif ((optsession>2))
 	then
 		session_copyf "$@" >/dev/null || unset file
+		[[ "${OLD_DEST/"$HOME"/"~"}" = "${FILECHAT/"$HOME"/"~"}" ]] &&  #check if target is the same as current
+		INSTRUCTION_OLD=${GINSTRUCTION:-${INSTRUCTION:-$INSTRUCTION_OLD}} INSTRUCTION= GINSTRUCTION= OPTRESUME=1;
+		unset OLD_DEST;
 	#change to hist file
 	else
 		#set source session file
@@ -3893,7 +3899,7 @@ do
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST init buff var n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST init buff convert var n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
