@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.62.5  jul/2024  by mountaineerbr  GPL+3
+# v0.62.6  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -191,6 +191,11 @@ Description
 	\`!img [url|filepath]'. Image urls and files can also be appended
 	by typing the operator pipe and a valid input at the end of the
 	text prompt, such as \`| [url|filepath]'.
+
+	To create and reuse a custom prompt, set the prompt name as a command
+	line option, such as \`-S .[prompt_name]' or \`-S ..[prompt_name]'.
+	Alternatively, set the first positional argument with the operator
+	plus the name, such as  \`..[prompt]'.
 
 	If the first positional argument of the script starts with the
 	command operator \`/', the command \`/session [HIST_NAME]' to change
@@ -460,12 +465,13 @@ Options
 	-qq, --insert
 		Insert text mode. Use \`[insert]' tag within the prompt.
 		May be set twice for multi-turn.
-	-S .[PROMPT_NAME][.], -.[PROMPT_NAME][.]
+	-S .[PROMPT_NAME], -..[PROMPT_NAME]
 	-S ,[PROMPT_NAME],    -,[PROMPT_NAME]
 		Load, search for, or create custom prompt.
+		Set \`.[prompt]' to single-shot edit prompt.
 		Set \`..[prompt]' to silently load prompt.
-		Set \`.?' to list prompt template files.
 		Set \`,[prompt]' to edit the prompt file.
+		Set \`.?' to list prompt template files.
 	-S /[AWESOME_PROMPT_NAME]
 	-S %[AWESOME_PROMPT_NAME_ZH]
 		Set or search an awesome-chatgpt-prompt(-zh).
@@ -1877,8 +1883,8 @@ function cmd_runf
 			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
 			((${#args[@]})) && shell_histf "!${args[*]}"; SKIP_SH_HIST=1;
 			;;
-		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*)
-			echo Session and History >&2
+		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
+			echo Session and History >&2; [[ $* = . ]] && args=('fork current');
 			session_mainf /"${args[@]}"
 			;;
 		r|rr|''|[/!]|regenerate|regen|[/!]regenerate|[/!]regen|[$IFS])  #regenerate last response
@@ -3045,7 +3051,7 @@ function custom_prf
 	typeset file filechat name template list msg new skip ret
 	filechat="$FILECHAT"
 	FILECHAT="${FILECHAT%%.[Tt][SsXx][VvTt]}.pr"
-	case "$INSTRUCTION" in  #lax syntax
+	case "$INSTRUCTION" in  #lax syntax  -S.prompt.
 		*[!.,][.]) 	INSTRUCTION=".${INSTRUCTION%%[.]}";;
 		*[!.,][,]) 	INSTRUCTION=",${INSTRUCTION%%[,]}";;
 	esac
@@ -4162,6 +4168,7 @@ then  #whisper log
 	fi; _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
 elif ((OPTHH))  #edit history/pretty print last session
 then 	OPTRESUME=1 
+	[[ $INSTRUCTION = $SPC && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
 	if [[ $INSTRUCTION = [.,]* ]]
 	then 	custom_prf
 	elif [[ $* != $SPC ]] && [[ $* != *($SPC)/* ]]
@@ -4256,10 +4263,10 @@ else
 	CHAT_ENV=1; ((OPTW)) && unset OPTX;
 
 	#custom / awesome prompts
-	if [[ $INSTRUCTION = [/%.,]* ]]
-	then 	if [[ $INSTRUCTION = [/%]* ]]
-		then 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
-			awesomef || case $? in 	210) exit 0;; 	*) exit 1;; esac
+	[[ $INSTRUCTION = $SPC && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
+	case "$INSTRUCTION" in
+		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
+			awesomef || case $? in 	210) exit 0;; 	*) unset INSTRUCTION;; esac
 			_sysmsgf $'\nHist   File:' "${FILECHAT}"
 			if ((OPTRESUME==1))
 			then 	unset OPTAWE
@@ -4268,14 +4275,13 @@ else
 				printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request, or append user prompt: ' >&2
 				var=$(__read_charf)
 				case "$var" in 	?) SKIP=1 EDIT=1 OPTAWE= REPLY=$var;; 	*) JUMP=1;; esac; unset var;
-			fi
-		else 	custom_prf "$@"
+			fi;;
+		[.,]*) custom_prf "$@"
 			case $? in
 				200) 	set -- ;;  #create, read and clear pos args
-				[1-9]*|[!0]*) exit $? ;;  #err
-			esac
-		fi
-	fi
+				1|201|[1-9]*|[!0]*) 	unset INSTRUCTION;;  #err
+			esac;;
+	esac
 
 	#text/chat completions
 	if ((OPTC))
@@ -4331,6 +4337,7 @@ else
 	fi
 	
 	#session and chat cmds
+	[[ $1 = [/!]. ]] && set -- '/fork current' "${@:2}";
 	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
 	then 	case "$1" in
 			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )

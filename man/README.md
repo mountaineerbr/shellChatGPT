@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: June 2024
-title: CHATGPT.SH(1) v0.62.1 \| General Commands Manual
+date: July 2024
+title: CHATGPT.SH(1) v0.62.6 \| General Commands Manual
 ---
 
 ### NAME
@@ -74,6 +74,14 @@ With **vision models**, insert an image to the prompt with chat command
 “`!img` \[*url*\|*filepath*\]”. Image urls and files can also be
 appended by typing the operator pipe and a valid input at the end of the
 text prompt, such as “`|` \[*url*\|*filepath*\]”.
+
+To create and reuse a custom prompt, set the prompt name as a command
+line option, such as “`-S .[_prompt_name_]`” or
+“`-S ..[_prompt_name_]`”. Note that loading a custom prompt will also
+change to its respective history file.
+
+Alternatively, set the first positional argument with the operator plus
+the name, such as “`..[_prompt_]`”, unless instruction was set manually.
 
 If the first positional argument of the script starts with the command
 operator forward slash “`/`” and a history file name, the command
@@ -879,16 +887,18 @@ multi-turn.
 Use “*\[insert\]*” to indicate where the language model should insert
 text (`gpt-3.5-turbo-instruct+`).
 
-**-S** **.**\[*PROMPT_NAME*\]\[**.**\], **-.**\[*PROMPT_NAME*\]\[**.**\]
+**-S** **.**\[*PROMPT_NAME*\], **-..**\[*PROMPT_NAME*\]
 
 **-S** **,**\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]  
 Load, search for, or create custom prompt.
 
+Set `.`\[*PROMPT*\] to single-shot edit prompt.
+
 Set `..`\[*PROMPT*\] to silently load prompt.
 
-Set `.`*?*, or `.`*list* to list prompt template files.
-
 Set `,`\[*PROMPT*\] to edit a prompt file.
+
+Set `.`*?*, or `.`*list* to list prompt template files.
 
 **-S** **/**\[*AWESOME_PROMPT_NAME*\]
 

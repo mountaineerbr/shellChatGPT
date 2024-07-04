@@ -143,36 +143,57 @@ Create **Marv, the sarcastic bot** manually:
 <!-- https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset -->
 
 
-Start new chat session from the "unix.txt" Instruction file.
-The commands below are aliases for command line option `-S .prompt_name`.
+Load the *unix instruction* file ("unix.pr") for a new session.
+The command line syntaxes below are all aliases:
 
 
-    chatgpt.sh -cc -S ..unix
+    chatgpt.sh -cc ..unix
+    
+    chatgpt.sh -cc..unix
     
     chatgpt.sh -cc -..unix
     
-    chatgpt.sh -cc..unix
+    chatgpt.sh -cc -S ..unix
 
+<!--
 In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "unix.tsv" file at the cache directory.
+-->
 
+To only chage the history file that the session will be recorded,
+set the first positional argument in command line with the operator forward slash "`/`"
+and the name of the history file (defaults to the `/session` command).
+
+    
+    chatgpt.sh -cc /test
+
+    chatgpt.sh -cc /stest
+
+    chatgpt.sh -cc "/session test"
+
+
+<!--
 The command below starts a chat session, loads the "unix" instruction, and changes to the defaults "chatgpt.tsv" history.
 
 
     chatgpt.sh -cc..unix /current
 
     chatgpt.sh -cc -S "..unix" /session current
+-->
 
 
-In the following example, load an older session from the current (defaults) history file.
+Load an older session from the current (defaults) history file.
 
-    chatgpt.sh -cc /fork current
-    
+    chatgpt.sh -cc /.
+
     chatgpt.sh -cc /fork.
+
+    chatgpt.sh -cc "/fork current"
+
 
 To load an older session from a history file that is different from the defaults,
 there are some options.
 
-Change to it with command `!session [name]`, and then `!fork` the older session to the active session.
+Change to it with command `!session [name]`. Optionally `!fork` the older session to the active session.
 
 Or, `!copy [orign] [dest]` the session from a history file to the current one
 or any other history file.
@@ -364,17 +385,27 @@ Set a one-shot instruction prompt with `option -S`:
     chatgpt.sh -ccS'You are a professional software programmer.'
 
 
-To create or load a prompt template file, set `option -S` with the
-operator dot and the name of the prompt as argument:
+To create or load a prompt template file, set the first positional argument
+as `.prompt_name`, or `..prompt_name` or `~prompt_name`.
+In the second and third case, load the prompt as instruction
+without a single-shot editing.
 
-    chatgpt.sh -cc -S.psycologist 
+    chatgpt.sh -cc .psycologist 
+
+    chatgpt.sh -cc ~software_programmer
+
+
+Alternatively, set `option -S` with the operator and the name of
+the prompt as an argument:
+
+    chatgpt.sh -cc -S .psycologist 
 
     chatgpt.sh -cc -S..software_programmer
 
 
 This will load the custom prompt, or create it if it does not yet exist.
-In the second example, single-shot editing will be skipped after loading
-prompt _software_programmer_.
+In the second and third example, single-shot editing will be skipped after
+loading prompt _software_programmer_.
 
 Please note and make sure to backup your important custom prompts!
 They are located at "`~/.cache/chatgptsh/`" with the extension "_.pr_".
