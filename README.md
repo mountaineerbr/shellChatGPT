@@ -387,7 +387,7 @@ Set a one-shot instruction prompt with `option -S`:
 
 To create or load a prompt template file, set the first positional argument
 as `.prompt_name` or `..prompt_name`.
-In the second and third case, load the prompt as instruction
+In the second case, load the prompt as instruction
 without a single-shot editing.
 
     chatgpt.sh -cc .psycologist 
@@ -404,7 +404,7 @@ the prompt as an argument:
 
 
 This will load the custom prompt, or create it if it does not yet exist.
-In the second and third example, single-shot editing will be skipped after
+In the second example, single-shot editing will be skipped after
 loading prompt _software_programmer_.
 
 Please note and make sure to backup your important custom prompts!
