@@ -386,13 +386,13 @@ Set a one-shot instruction prompt with `option -S`:
 
 
 To create or load a prompt template file, set the first positional argument
-as `.prompt_name`, or `..prompt_name` or `~prompt_name`.
+as `.prompt_name` or `..prompt_name`.
 In the second and third case, load the prompt as instruction
 without a single-shot editing.
 
     chatgpt.sh -cc .psycologist 
 
-    chatgpt.sh -cc ~software_programmer
+    chatgpt.sh -cc ..software_programmer
 
 
 Alternatively, set `option -S` with the operator and the name of
