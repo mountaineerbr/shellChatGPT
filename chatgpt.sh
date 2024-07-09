@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.62.7  jul/2024  by mountaineerbr  GPL+3
+# v0.63  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -13,7 +13,7 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-gpt-4-turbo}"  #"gpt-4o"
+MOD_CHAT="${MOD_CHAT:-gpt-4o}"
 # Image model (generations)
 MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
 # Whisper model (STT)
@@ -123,6 +123,7 @@ FILEIN="${CACHEDIR%/}/dalle_in.png"
 FILEINW="${CACHEDIR%/}/whisper_in.mp3"
 FILEAWE="${CACHEDIR%/}/awesome-prompts.csv"
 FILEFIFO="${CACHEDIR%/}/fifo.buff"
+FILEMODEL="${CACHEDIR%/}/models.txt"
 USRLOG="${OUTDIR%/}/${FILETXT##*/}"
 HISTFILE="${CACHEDIR%/}/history_bash"
 HISTCONTROL=erasedups:ignoredups
@@ -150,7 +151,7 @@ HELP="Name
 
 
 Synopsis
-	${0##*/} [-cc|-d|-qq] [opt..] [PROMPT|TEXT_FILE]
+	${0##*/} [-cc|-d|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
 	${0##*/} -i [opt..] [X|L|P][hd] [PROMPT]  #dall-e-3
 	${0##*/} -i [opt..] [S|M|L] [PROMPT]
 	${0##*/} -i [opt..] [S|M|L] [PNG_FILE]
@@ -160,7 +161,7 @@ Synopsis
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 	${0##*/} -ccWwz [opt..] -- [whisper_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
-	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE]
+	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
 	${0##*/} -HHH [/HIST_FILE|.]
 	${0##*/} -HHw
 
@@ -181,6 +182,10 @@ Description
 	
 	Positional arguments are read as a single PROMPT. Optionally set
 	INTRUCTION with option -S.
+
+	If a plain text or PDF file path is set as the first positional
+	argument, or as an argument to \`option -S\`, the file is loaded
+	as text PROMPT.
 
 	In multi-turn interactions, prompts starting with a colon \`:' are
 	appended as user messages to the request block, while double colons
@@ -306,18 +311,20 @@ Chat Commands
         !      !r, !regen        Regenerate last response.
        !!      !rr               Regenerate response, edit prompt first.
        !i      !info             Info on model and session settings.
-      !img     !media [FILE|URL] Append image/media/url to prompt.
-      !url     -         [URL]   Dump URL text, optionally edit it.
-      !url:    -         [URL]   Same as !url but append output as user.
        !j      !jump             Jump to request, append response primer.
       !!j     !!jump             Jump to request, no response priming.
       !md      !markdown [SOFTW] Toggle markdown support in response.
      !!md     !!markdown [SOFTW] Render last response in markdown.
-     !rep      !replay           Replay last TTS audio response.
-     !res      !resubmit         Resubmit last TTS recorded input.
+      !rep     !replay           Replay last TTS audio response.
+      !res     !resubmit         Resubmit last TTS recorded input.
+      !cat     -                 Cat prompter (one-shot, ctrd-d).
+      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL (:append).
+      !img     !media [FILE|URL] Append image, media, or URL to prompt.
+      !pdf     !pdf:    [FILE]   Dump PDF text (:append as prompt).
       !sh      !shell    [CMD]   Run shell, or command, and edit output.
       !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
      !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
+      !url     !url:     [URL]   Dump URL text (add : to append prompt).
     --- Script Settings and UX ------------------------------------
      !fold     !wrap             Toggle response wrapping.
        -g      !stream           Toggle response streaming.
@@ -326,8 +333,6 @@ Chat Commands
        -u      !multi            Toggle multiline, ctrl-d flush.
        -uu    !!multi            Multiline, one-shot, ctrl-d flush.
        -U      -UU               Toggle cat prompter, or set one-shot.
-      !cat     -        [FILE]   Cat prompter (once, ctrd-d), or cat file.
-      !cat:    -        [FILE]   Same as !cat but append prompt as user.
        -V      !context          Print context before request (see -HH).
        -VV     !debug            Dump raw request block and confirm.
        -v      !ver              Toggle verbose modes.
@@ -344,7 +349,6 @@ Chat Commands
        -A      !freq     [VAL]   Set frequency penalty.
        -b      !best     [NUM]   Set best-of n results.
        -K      !topk     [NUM]   Set top_k.
-      !ka      !keep-alive [NUM] Set duration of model load in memory
        -m      !mod      [MOD]   Set model by name, or pick from list.
        -n      !results  [NUM]   Set number of results.
        -p      !topp     [VAL]   Set top_p.
@@ -354,7 +358,8 @@ Chat Commands
        -t      !temp     [VAL]   Set temperature.
        -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
        -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
-     !blk      !block   [ARGS]   Set and add options to JSON request.
+      !ka      !keep-alive [NUM] Set duration of model load in memory
+      !blk     !block   [ARGS]   Set and add options to JSON request.
         -      !multimodal       Toggle model as multimodal.
     --- Session Management ----------------------------------------
        -H      !hist             Edit raw history file in editor.
@@ -450,7 +455,7 @@ Options
 		Start new multi-turn session in plain text completions.
 	-e, --edit
 		Edit first input from stdin, or file read (cmpls/chat).
-	-E, --exit
+	-E, -EE, --exit
 		Exit on first run (even with -cc).
 	-g, --stream  (defaults)
 		Set response streaming.
@@ -998,9 +1003,9 @@ function list_modelsf
 
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! __warmsgf 'Err';
-	else 	jq -r '.data[].id' "$FILE" | sort \
-		&& { ((MISTRALAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;} \
-		|| ! __warmsgf 'Err';
+	else 	{   jq -r '.data[].id' "$FILE" | sort &&
+		    {    ((MISTRALAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;}
+		} | tee -- "$FILEMODEL" || ! __warmsgf 'Err';
 	fi || ! __warmsgf 'Err:' 'Model list'
 }
 
@@ -1035,7 +1040,7 @@ function set_histf
 {
 	typeset time token string stringc stringd max_prev q_type a_type role role_last rest com sub ind herr nl x r n;
 	typeset -a MEDIA MEDIA_CMD;
-	[[ -s $FILECHAT ]] || return; HIST= HIST_C= ;
+	[[ -s $FILECHAT ]] || return; unset HIST HIST_C;
 	((BREAK_SET)) && return;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
@@ -1456,7 +1461,7 @@ function _set_browsercmdf
 #check input and run a chat command
 function cmd_runf
 {
-	typeset opt_append var wc xskip pid n
+	typeset opt_append filein var wc xskip pid n
 	typeset -a args
 	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]* ]] || return;
 	((${#1}+${#2}<1024)) || return;
@@ -1545,7 +1550,8 @@ function cmd_runf
 			;;
 		-HH|-HHH*|HH|HHH*|request|req)
 			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
-			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= OLLAMA= set_histf
+			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
+			  MOD= OLLAMA= HERR= TKN_PREV= MAX_PREV= set_histf
 			var=$( usr_logf "$(unescapef "$HIST")" )
 			printf "\\n---\\n%s\\n---\\n" "$var" >&2
 			((OPTCLIP)) && ${CLIP_CMD:-false} <<<"$var" && echo 'Clipboard set!' >&2
@@ -1710,10 +1716,10 @@ function cmd_runf
 			__cmdmsgf 'Insert Mode' $(_onoff $OPTSUFFIX)
 			;;
 		-v|verbose)
-			((++OPTV)) ;((OPTV%=4))
+			((++OPTV)) ;((OPTV%=3))
 			case "${OPTV:-0}" in
 				1) var='Less';;  2) var='Much less';;
-				3) var='OFF';;   0) var='ON'; unset OPTV;;
+				0) var='ON'; unset OPTV;;
 			esac ;_cmdmsgf 'Verbose' "$var"
 			;;
 		-V|context)
@@ -1845,16 +1851,41 @@ function cmd_runf
 					__cmdmsgf 'Cat Prompter' $(_onoff $CATPR);;
 			esac
 			;;
-		cat*|[/!-]cat*)
-			set -- "${*##[/!-]}"
-			case "$*" in
+		cat*)
+			set -- "${*}"; filein=$(trimf "${1##cat*(:)}" "$SPC");
+			if is_pdff "$filein"
+			then 	cmd_runf /pdf"${*##cat}";
+			elif _is_linkf "$filein"
+			then 	cmd_runf /url"${*##cat}";
+			else 	false;
+			fi ||
+			case "$1" in
 				cat:*[!$IFS]*)
-					cmd_runf /sh: "cat ${*##cat*(:)}";;
+					cmd_runf /sh: "cat ${filein}";;
 				cat*[!$IFS]*)
-					cmd_runf /sh "${@}";;
+					cmd_runf /sh "cat ${filein}";;
 				*)
 					__warmsgf '*' 'Press <Ctrl-D> to flush * '
 					STDERR=/dev/null  cmd_runf /sh cat </dev/tty;;
+			esac; xskip=1;
+			;;
+		pdf*)
+			set -- "${*}"; filein=$(trimf "${1##pdf*(:)}" "$SPC");
+			if command -v pdftotext
+			then 	var="pdftotext -layout -nopgbrk ${filein} -";
+			elif command -v gs
+			then 	var="gs -sDEVICE=txtwrite -o - ${filein}"
+			elif command -v abiword
+			then 	var="abiword --to=txt --to-name='$FILEFIFO' ${filein}; cat -- '$FILEFIFO'"
+			elif command -v ebook-convert
+			then 	var="ebook-convert ${filein} '$FILEFIFO'; cat -- '$FILEFIFO'"
+			fi 2>/dev/null >&2
+			case "$*" in
+				pdf:*[!$IFS]*)
+					cmd_runf /sh: "$var";;
+				pdf*[!$IFS]*)
+					cmd_runf /sh "$var";;
+				*) 	__warmsgf 'Err:' 'No input or PDF-to-text software available';;
 			esac; xskip=1;
 			;;
 		[/!]sh*)
@@ -1873,6 +1904,7 @@ function cmd_runf
 				#abort on empty
 				[[ $REPLY = *([$IFS]) ]] && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
+				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
 				case "$(__read_charf)" in
 					[AaQqRr]) 	SKIP=1 EDIT=1 REPLY="!${args[*]}"; break;;  #abort, redo
 					[EeYy]|$'\e') 	SKIP=1 EDIT=1; break;; #yes, bash `read`
@@ -1923,7 +1955,9 @@ function cmd_runf
 			;;
 		*) 	return 1
 			;;
-	esac; ((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART:-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2;
+	esac;
+	((OPTEXIT>1)) && exit;
+	((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART:-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2;
 	if ((OPTX && REGEN<1 && !xskip)) 
 	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
 		__read_charf >/dev/null;
@@ -1993,7 +2027,7 @@ function edf
 
 	if ((CHAT_ENV))
 	then 	MAIN_LOOP=1 Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= \
-		OLLAMA= set_histf "${rest}${*}"
+		  OLLAMA= TKN_PREV= MAX_PREV= set_histf "${rest}${*}"
 	fi
 
 	pre="${INSTRUCTION}${INSTRUCTION:+$'\n\n'}""$(unescapef "$HIST")"
@@ -2207,55 +2241,70 @@ function _mediachatf
 	done; ((n));
 }
 
+function _is_linkf
+{
+	[[ ! -f $1 ]] || return;
+	case "$1" in
+		[Hh][Tt][Tt][Pp][Ss]://* | [Hh][Tt][Tt][Pp]://* | [Ff][Tt][Pp]://* | [Ff][Ii][Ll][Ee]://* | telnet://* | gopher://* | about://* | wais://* ) :;;
+		*?.[Hh][Tt][Mm] | *?.[Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm][Ll]? | *?.[Xx][Mm][Ll] ) [[ ! -e $1 ]];;
+		[Ww][Ww][Ww].?* ) [[ ! -e $1 ]];;
+		*) false;;
+	esac
+}
 function is_linkf
 {
 	[[ ! -f $1 ]] || return;
-	[[ $1 =~ ^(https|http|ftp|file|telnet|gopher|about|wais)://[-[:alnum:]\+\&@\#/%?=~_\|\!:,.\;]*[-[:alnum:]\+\&@\#/%=~_\|] ]] ||
-	[[ $1 = [Ww][Ww][Ww].* ]] || [[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] || {
-	curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1" 2>/dev/null && LINK_CACHE="$LINK_CACHE $1" ;}
+	_is_linkf "$1" || [[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] || {
+	  curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1" 2>/dev/null &&
+	  LINK_CACHE="$LINK_CACHE $1" ;}
 }
 
 function is_txtfilef
 {
+	[[ -f $1 ]] || return
+	case "$1" in
+        	*?.[Tt][Xx][Tt] | *?.[Mm][Dd] | *?.[Cc][Ff][Gg] | *?.[Ii][Nn][Ii] | *?.[Ll][Oo][Gg] | *?.[TtCc][Ss][Vv] | *?.[Jj][Ss][Oo][Nn] | *?.[Xx][Mm][Ll] | *?.[Cc][Oo][Nn][Ff] | *?.[Rr][Cc] | *?.[Yy][Aa][Mm][Ll] | *?.[Yy][Mm][Ll] | *?.[Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm] | *?.[Ss][Hh] | *?.[CcZz][Ss][Hh] | *?.[Bb][Aa][Ss][Hh] | *?.[Pp][Yy] | *?.[Jj][Ss] | *?.[Cc][Ss][Ss] | *?.[Jj][Aa][Vv][Aa] | *?.[Rr][Bb] | *?.[Pp][Hh][Pp] | *?.[Tt][Cc][Ll] | *?.[Pp][LlSs] | *?.[Rr][Ss][Tt] | *?.[Tt][Ee][Xx] | *?.[Ss][Qq][Ll] | *?.[Ll][Oo][Gg] | *?.c ) return;;
+	esac
 	! _is_imagef "$@" && ! _is_videof "$@" &&
 	! _is_audiof "$@" && ! (__set_outfmtf "$@") &&
 	[[ "$(file -- "$1")" = *[Tt][Ee][Xx][Tt]* ]]
 }
 
+function _is_pdff
+{
+	case "$1" in
+		*?.[Pp][Dd][Ff] | *?.[Pp][Dd][Ff]? ) :;;
+		*) false;
+	esac;
+}
+function is_pdff { 	[[ -f $1 ]] && _is_pdff "$1" ;}
+
 function _is_imagef
 {
 	case "$1" in
-		*[Pp][Nn][Gg] | *[Jj][Pp]?([Ee])[Gg] | *[Ww][Ee][Bb][Pp] | *[Gg][Ii][Ff] | *[Hh][Ee][Ii][CcFf] ) :;;
-		*) 	false;;
+		*?.[Pp][Nn][Gg] | *?.[Jj][Pp][Gg] | *?.[Jj][Pp][Ee][Gg] | *?.[Ww][Ee][Bb][Pp] | *?.[Gg][Ii][Ff] | *?.[Hh][Ee][Ii][CcFf] ) :;;
+		*) false;;
 	esac;
 }
-function is_imagef
-{
-	[[ -f $1 ]] && _is_imagef "$1";
-}
+function is_imagef { 	[[ -f $1 ]] && _is_imagef "$1" ;}
 
 function _is_videof
 {
 	case "$1" in
-		*[Mm][Oo][Vv] | *[Mm][Pp][Ee][Gg] | *[Mm][Pp][Gg4] | *[Aa][Vv][Ii] | *[Ww][Mm][Vv] | *[Mm][Pp][Ee][Gg][Pp][Ss] | *[Ff][Ll][Vv] ) :;;
+		*?.[Mm][Oo][Vv] | *?.[Mm][Pp][Ee][Gg] | *?.[Mm][Pp][Gg4] | *?.[Aa][Vv][Ii] | *?.[Ww][Mm][Vv] | *?.[Ff][Ll][Vv] ) :;;
 		*) false;;
 	esac;
 }
-function is_videof
-{
-	[[ -f $1 ]] && _is_videof "$1";
-}
+function is_videof { 	[[ -f $1 ]] && _is_videof "$1" ;}
+
 function _is_audiof
 {
 	case "$1" in
-		*[Mm][Pp][34] | *[Mm][Pp][Gg] | *[Mm][Pp][Ee][Gg] | *[Mm][Pp][Gg][Aa] | *[Mm]4[Aa] | *[Ww][Aa][Vv] | *[Ww][Ee][Bb][Mm] ) :;;
-		*) 	false;;
+		*?.[Mm][Pp][34] | *?.[Mm][Pp][Gg] | *?.[Mm][Pp][Ee][Gg] | *?.[Mm][Pp][Gg][Aa] | *?.[Mm]4[Aa] | *?.[Ww][Aa][Vv] | *?.[Ww][Ee][Bb][Mm] ) :;;
+		*) false;;
 	esac
 }
-function is_audiof
-{
-	[[ -f $1 ]] && _is_audiof "$1";
-}
+function is_audiof { 	[[ -f $1 ]] && _is_audiof "$1" ;}
 
 #check for multimodal (vision) model
 function is_visionf
@@ -3090,7 +3139,7 @@ function custom_prf
 			session_name_choosef "$name")
 		[[ -f $file ]] && msg=${msg:-LOAD} || msg=CREATE
 	fi
-	((list)) && exit
+	((list)) && { 	printf '%s\n' "$file"; exit ;}
 
 	case "$file" in
 		[Cc]urrent|.) 	file="${FILECHAT}";;
@@ -3231,7 +3280,8 @@ function session_globf
 	|| set -- *${glob}*.${sglob}  #set the glob
 	
 	if ((SESSION_LIST))
-	then 	ls -- "$@" >&2 ;return
+	then 	ls -- "$@";
+		return 0;
 	fi
 
 	if ((${#} >1)) && [[ "$glob" != *[$IFS]* ]]
@@ -3269,6 +3319,7 @@ function session_name_choosef
 {
 	typeset fname new print_name sglob ext
 	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}" 
+	((OPTEXIT>1)) && return
 	case "$fname" in [Nn]ew|*[N]ew.${sglob}) 	set --; fname= ;; esac
 	while
 		fname="${fname%%\/}"
@@ -3361,6 +3412,7 @@ do 	__spinf 	#grep session with user regex
 				done <<<"${buff}"
 			fi
 			
+			((OPTHH && OPTV)) && break 2;  #IPC#
 			((${#buff})) && {
 			  if ((${#buff_end}))
 			  then 	((${#buff_end}>672)) && ((index=${#buff_end}-672)) || index= ;
@@ -3447,14 +3499,15 @@ function session_mainf
 					INSTRUCTION=/list awesomef;
 					return 0;;  #e:210
 				[Pp][Rr]|[Pp]rompt|[Pp]rompts)
-					typeset SGLOB='[Pp][Rr]' EXT='pr' name= msg=Prompts;;  #duplicates opt `-S .list` fun
+					typeset SGLOB='[Pp][Rr]' EXT='pr' name= msg=Prompt;;  #duplicates opt `-S .list` fun
 				[Aa]ll|[Ee]verything|[Aa]nything|+([./*?-]))
 					typeset SGLOB='*' EXT='*' name= msg=All;;
 				[Tt][Ss][Vv]|[Ss]ession|[Ss]essions|*)
-					name= msg=Sessions;;
+					name= msg=Session;;
 			esac
 			_cmdmsgf "$msg Files" $'list\n'
-			session_listf "$name"; return 0
+			session_listf "$name"; ((OPTEXIT>1)) && exit;
+			return 0;
 			;;
 		#fork current session to [dest_hist]: /fork
 		fork*|f\ *)
@@ -3540,6 +3593,7 @@ function session_mainf
 
 	[[ ${file:-$FILECHAT} = "$FILECHAT" ]] && msg=Current || msg=Change;
        	FILECHAT="${file:-$FILECHAT}"; _sysmsgf "History $msg:" "${FILECHAT/"$HOME"/"~"}"$'\n';
+	((OPTEXIT>1)) && exit;
        	return 0
 }
 function session_sub_fifof
@@ -3607,7 +3661,7 @@ function set_localaif
 					[[ $1 = *@* ]] || set -- "huggingface@$1";
 					block="{\"id\": \"$1\"}";
 				fi; echo >&2;
-				( trap 'printf "%s\\a\\n" " The job is still running server-side!" >&2; exit 1;' HUP QUIT KILL TERM INT;
+				( trap 'printf "%s\\a\\n" " The job is still running server-side!" >&2; exit 1;' HUP QUIT TERM INT KILL;
 				response=$(curl -\# -L -H "Content-Type: application/json" "${API_HOST}/models/apply" -d "$block")
 				job_id=$(jq -r '.uuid' <<<"$response")
 				while proc=$(curl -s -L "${API_HOST}/models/jobs/$job_id") && [[ -n $proc ]] || break
@@ -3654,7 +3708,7 @@ function set_googleaif
 		fi && {
 		if ((OPTL>1))
 		then 	jq . -- "$FILE";
-		else 	jq -r '(.models|.[]?|.name|split("/")|.[1])//.' -- "$FILE";
+		else 	jq -r '(.models|.[]?|.name|split("/")|.[1])//.' -- "$FILE" | tee -- "$FILEMODEL";
 		fi || cat -- "$FILE" ;};
 	}
 	function __promptf
@@ -3822,7 +3876,7 @@ do
 		C) 	((++OPTRESUME));;
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
-		E) 	OPTEXIT=1;;
+		E) 	((++OPTEXIT));;
 		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD WAPPEND;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -4058,8 +4112,12 @@ then
 	if ((OPTEMBED+OPTI+OPTZ)) && ((${#}))
 	then 	if [[ -f ${@:${#}} ]] && is_txtfilef "${@:${#}}"
 		then 	set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+		elif [[ -f ${@:${#}} ]] && is_pdff "${@:${#}}"
+		then 	set -- "${@:1:${#}-1}" "$(OPTV=4 cmd_runf /pdf "${@:${#}}"; printf '%s\n' "$REPLY")";
 		elif [[ -f $1 ]] && is_txtfilef "$1"
 		then 	set -- "$(<"$1")" "${@:2}";
+		elif [[ -f $1 ]] && is_pdff "$1"
+		then 	set -- "$(OPTV=4 cmd_runf /pdf "$1"; printf '%s\n' "$REPLY")" "${@:2}";
 		fi
 	fi
 
@@ -4072,8 +4130,12 @@ then
 	if ((${#}))
 	then 	if [[ -f ${@:${#}} ]] && is_txtfilef "${@:${#}}"
 		then 	set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
+		elif [[ -f ${@:${#}} ]] && is_pdff "${@:${#}}"
+		then 	set -- "${@:1:${#}-1}" "$(OPTV=4 cmd_runf /pdf "${@:${#}}"; printf '%s\n' "$REPLY")";
 		elif [[ -f $1 ]] && is_txtfilef "$1"
 		then 	set -- "$(<"$1")" "${@:2}";
+		elif [[ -f $1 ]] && is_pdff "$1"
+		then 	set -- "$(OPTV=4 cmd_runf /pdf "$1"; printf '%s\n' "$REPLY")" "${@:2}";
 		fi
 	fi
 
@@ -4142,12 +4204,13 @@ fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 
 trap 'cleanupf; exit;' EXIT
-trap 'exit' HUP QUIT KILL TERM
+trap 'exit' HUP QUIT TERM KILL
 
 if ((OPTZZ))  #last response json
 then 	lastjsonf;
 elif ((OPTL))  #model list
-then
+then 	#(shell completion script)
+	((OPTL>2)) && [[ -s $FILEMODEL ]] && cat -- "$FILEMODEL" ||
 	list_modelsf "$@";
 elif ((OPTFF))
 then 	if [[ -s "$CHATGPTRC" ]] && ((OPTFF<2))
@@ -4169,7 +4232,8 @@ elif ((OPTHH))  #edit history/pretty print last session
 then 	OPTRESUME=1 
 	[[ $INSTRUCTION = $SPC && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
 	if [[ $INSTRUCTION = [.,]* ]]
-	then 	custom_prf
+	then 	##[[ $INSTRUCTION = [.,][.,]* ]] && OPTV=4  #when "..[prompt]"
+		custom_prf
 	elif [[ $* != $SPC ]] && [[ $* != *($SPC)/* ]]
 	then 	set -- /session"$@"
 	fi
@@ -4179,8 +4243,8 @@ then 	OPTRESUME=1
 	then
 		((OPTC || EPN==6)) && OPTC=2;
 		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1;
-		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
-		 MODMAX=65536 OLLAMA= set_histf '';
+		MODMAX=$((MODMAX+1048576)) || MODMAX=1048576;
+		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" OLLAMA= set_histf '';
 
 		HIST=$(unescapef "${HIST:-"-*>[SESSION BREAK]<*-"}")
 		if ((OPTMD))
@@ -4197,7 +4261,11 @@ elif ((OPTTIKTOKEN))
 then
 	((OPTTIKTOKEN>2)) || __sysmsgf 'Language Model:' "$MOD"
 	((${#})) || [[ -t 0 ]] || set -- "-"
-	[[ -f $* ]] && [[ -t 0 ]] && exec 0<"$*" && set -- "-"  #exec max one file
+	[[ -f $* ]] && [[ -t 0 ]] &&
+	if is_pdff "$*"
+	then 	exec 0< <(OPTV=4 cmd_runf /pdf "$*"; printf '%s\n' "$REPLY") && set -- "-";
+	else 	exec 0<"$*" && set -- "-";  #exec max one file
+	fi
 	if ((OPTYY))  #option -Y (debug, mostly)
 	then 	if [[ ! -t 0 ]]
        		then 	__tiktokenf "$(<$STDIN)";
@@ -4387,7 +4455,7 @@ else
 		then 	edf "${@:-$REPLY}"
 			case $? in
 				179|180) :;;        #jumps
-				200) 	continue;;  #redo
+				200) 	set --; unset REPLY; continue;;  #redo
 				201) 	set --; unset OPTX; false;;   #abort
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
@@ -4395,7 +4463,7 @@ else
 					do 	((OPTV)) || new_prompt_confirmf
 						case $? in
 							201) 	set --; unset OPTX; break 1;;  #abort
-							200) 	continue 2;;  #redo
+							200) 	set --; unset REPLY; continue 2;;  #redo
 							19[6789]) 	edf "${REPLY:-$*}" || break 1;;  #edit
 							0) 	set -- "$REPLY" ; break;;  #yes
 							*) 	set -- ; break;;  #no
@@ -4487,7 +4555,7 @@ else
 					|| new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;  #abort
-						200) 	WSKIP=1;
+						200) 	WSKIP=1; set --; unset REPLY;
 							printf '\n%s\n' '--- redo ---' >&2; continue;;  #redo
 						199) 	WSKIP=1 EDIT=1;
 							printf '\n%s\n' '--- edit ---' >&2; continue;;  #edit
@@ -4579,7 +4647,14 @@ else
 			do 	REC_OUT="$REC_OUT| $var" REPLY="$REPLY| $var";
 				set -- "$*| $var";
 			done; unset var;
-		#insert mode option
+		#basic multimodal -- text and pdf files, and text urls
+		elif ((${#1}>256)) && var=${1: ${#1}-256} || var=
+			var=$(trim_leadf "$(trim_trailf "${var:-$1}" "$SPC")" $'*[ \t\n]')
+			[[ -f ${var} ]] && { is_txtfilef "$var" || is_pdff "$var" ;} || _is_linkf "$var"
+		then
+			var=$(cmd_runf /cat"$var" 2>/dev/null; printf '%s\n' "$REPLY")
+			[[ -n $var ]] && { 	set -- "${*}:${var}"; REPLY="${REPLY}:${var}" ;}
+		#insert mode
 		elif ((OPTSUFFIX)) && [[ "$*" = *"${I_TYPE}"* ]]
 		then 	if ((EPN!=6))
 			then 	i=${I_TYPE//\[/\\[} i=${i//\]/\\]}
@@ -4852,14 +4927,14 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 	done
 fi
 
-# Notes:
-## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
-## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 
 #   &=== &   & &==== ===== &==== &==== =====    &==== &   & 
 #   %  % %   % %   %   %   %   % %   %   %      %   " %   % 
 #   %=   %===% %===%   %=  %=    %===%   %=     %==== %===%     ^    ^ . 
 #   %%   %%  % %%  %   %%  %% "% %%      %%        %% %%  %    /a\  /i\  
 #   %%=% %%  % %%  %   %%  %%==% %%      %%  %% %==%% %%  %  ,<___><___>.
+
+## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
+## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 
 # vim=syntax sync minlines=1200

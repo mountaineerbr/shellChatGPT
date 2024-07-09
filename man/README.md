@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.62.6 \| General Commands Manual
+title: CHATGPT.SH(1) v0.63 \| General Commands Manual
 ---
 
 ### NAME
@@ -12,7 +12,7 @@ title: CHATGPT.SH(1) v0.62.6 \| General Commands Manual
 ### SYNOPSIS
 
    **chatgpt.sh** \[`-cc`\|`-d`\|`-qq`\] \[`opt`..\]
-\[*PROMPT*\|*TEXT_FILE*\]  
+\[*PROMPT*\|*TEXT_FILE*\|*PDF_FILE*\]  
    **chatgpt.sh** `-i` \[`opt`..\] \[*X*\|*L*\|*P*\]\[*hd*\]
 \[*PROMPT*\] \#*Dall-E-3*  
    **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PROMPT*\]  
@@ -29,7 +29,7 @@ title: CHATGPT.SH(1) v0.62.6 \| General Commands Manual
 \[`tts_arg`..\]  
    **chatgpt.sh** `-l` \[*MODEL*\]  
    **chatgpt.sh** `-TTT` \[-v\] \[`-m`\[*MODEL*\|*ENCODING*\]\]
-\[*INPUT*\|*TEXT_FILE*\]  
+\[*INPUT*\|*TEXT_FILE*\|*PDF_FILE*\]  
    **chatgpt.sh** `-HHH` \[`/`*HIST_FILE*\|*.*\]  
    **chatgpt.sh** `-HHw`
 
@@ -48,8 +48,7 @@ options are automatically set to un-lobotomise the bot. Set `option -E`
 to exit on the first response.
 
 Set `option -cc` to start the chat mode via **native chat completions**
-and defaults to *gpt-3.5-turbo-0301*, and may be set to use *gpt-4*
-models.
+and defaults to *gpt-4o*.
 
 Set `option -C` to **resume** (continue from) last history session.
 
@@ -58,7 +57,6 @@ present in the middle of the input prompt. Insert mode works completing
 between the end of the text preceding the flag, and ends completion with
 the succeeding text after the flag. Insert mode works with model
 `gpt-3.5-turbo-instruct`.
-<!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
 
 Positional arguments are read as a single **PROMPT**. Model
 **INSTRUCTION** is usually optional and can be set with `option -S`.
@@ -69,6 +67,10 @@ making a new API call. Conversely, prompts starting with double colons
 “*::*” are appended as instruction / system messages. For text cmpls
 only, triple colons append the text immediately to the previous prompt
 without a restart sequence.
+
+If a plain text or PDF file path is set as the first positional
+argument, or as an argument to `option -S` (set instruction prompt), the
+file is loaded as text PROMPT.
 
 With **vision models**, insert an image to the prompt with chat command
 “`!img` \[*url*\|*filepath*\]”. Image urls and files can also be
@@ -102,9 +104,6 @@ also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
 *Model capacity* (maximum model tokens) can be set more intuitively with
 `option` “`-N` *NUM*”, otherwise model capacity is set automatically for
 known models, or to *2048* tokens as fallback.
-
-If a plain text file path is set as the first positional argument of the
-script, the file is loaded as text PROMPT (text cmpls, and chat cmpls).
 
 `Option -S` sets an INSTRUCTION prompt (the initial prompt) for text
 cmpls, and chat cmpls. A text file path may be supplied as the single
@@ -316,27 +315,29 @@ While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “`!`”,
 or “`/`”.
 
-| Misc    | Commands                   |                                                        |
-|:--------|:---------------------------|--------------------------------------------------------|
-| `-S`    | `:`, `::` \[*PROMPT*\]     | Append user or system prompt to request buffer.        |
-| `-S.`   | `-.` \[*NAME*\]            | Load and edit custom prompt.                           |
-| `-S/`   | `-S%` \[*NAME*\]           | Load and edit awesome prompt (zh).                     |
-| `-Z`    | `!last`                    | Print last response JSON.                              |
-| `!`     | `!r`, `!regen`             | Regenerate last response.                              |
-| `!!`    | `!rr`                      | Regenerate response, edit prompt first.                |
-| `!i`    | `!info`                    | Information on model and session settings.             |
-| `!img`  | `!media` \[*FILE*\|*URL*\] | Append image, media, or URL to prompt.                 |
-| `!url`  | \- \[*URL*\]               | Dump URL text (HTML filtering), optionally edit it.    |
-| `!url:` | \- \[*URL*\]               | Same as `!url` but append output as user.              |
-| `!j`    | `!jump`                    | Jump to request, append start seq primer (text cmpls). |
-| `!!j`   | `!!jump`                   | Jump to request, no response priming.                  |
-| `!md`   | `!markdown` \[*SOFTW*\]    | Toggle markdown rendering in response.                 |
-| `!!md`  | `!!markdown` \[*SOFTW*\]   | Render last response in markdown.                      |
-| `!rep`  | `!replay`                  | Replay last TTS audio response.                        |
-| `!res`  | `!resubmit`                | Resubmit last TTS recorded input from cache.           |
-| `!sh`   | `!shell` \[*CMD*\]         | Run shell, or *command*, and edit output.              |
-| `!sh:`  | `!shell:` \[*CMD*\]        | Same as `!sh` but apppend output as user.              |
-| `!!sh`  | `!!shell` \[*CMD*\]        | Run interactive shell (with *command*) and exit.       |
+| Misc   | Commands                        |                                                          |
+|:-------|:--------------------------------|----------------------------------------------------------|
+| `-S`   | `:`, `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.          |
+| `-S.`  | `-.` \[*NAME*\]                 | Load and edit custom prompt.                             |
+| `-S/`  | `-S%` \[*NAME*\]                | Load and edit awesome prompt (zh).                       |
+| `-Z`   | `!last`                         | Print last response JSON.                                |
+| `!`    | `!r`, `!regen`                  | Regenerate last response.                                |
+| `!!`   | `!rr`                           | Regenerate response, edit prompt first.                  |
+| `!i`   | `!info`                         | Information on model and session settings.               |
+| `!j`   | `!jump`                         | Jump to request, append start seq primer (text cmpls).   |
+| `!!j`  | `!!jump`                        | Jump to request, no response priming.                    |
+| `!md`  | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                   |
+| `!!md` | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                        |
+| `!rep` | `!replay`                       | Replay last TTS audio response.                          |
+| `!res` | `!resubmit`                     | Resubmit last TTS recorded input from cache.             |
+| `!cat` | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.            |
+| `!cat` | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text* or *PDF* file, or dump *URL* (*:* to append). |
+| `!img` | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                   |
+| `!pdf` | `!pdf:` \[*FILE*\]              | Convert PDF and dump text (*:* to append prompt).        |
+| `!sh`  | `!shell` \[*CMD*\]              | Run shell, or *command*, and edit output.                |
+| `!sh:` | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.                |
+| `!!sh` | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.         |
+| `!url` | `!url:` \[*URL*\]               | Dump URL text (add *:* to append prompt).                |
 
 | Script  | Settings and UX      |                                                           |
 |:--------|:---------------------|-----------------------------------------------------------|
@@ -347,8 +348,6 @@ or “`/`”.
 | `-u`    | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
 | `-uu`   | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
 | `-U`    | `-UU`                | Toggle cat prompter, or set one-shot. \<*CTRL-D*\> flush. |
-| `!cat`  | \- \[*FILE*\]        | Cat prompter as one-shot, or cat file.                    |
-| `!cat:` | \- \[*FILE*\]        | Same as `!cat` but append prompt as user.                 |
 | `-V`    | `!context`           | Print context before request (see `option -HH`).          |
 | `-VV`   | `!debug`             | Dump raw request block and confirm.                       |
 | `-v`    | `!ver`               | Toggle verbose modes.                                     |
@@ -367,7 +366,6 @@ or “`/`”.
 | `-A`    | `!freq` \[*VAL*\]       | Set frequency penalty.                         |
 | `-b`    | `!best` \[*NUM*\]       | Set best-of n results.                         |
 | `-K`    | `!topk` \[*NUM*\]       | Set top_k.                                     |
-| `!ka`   | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (ollama). |
 | `-m`    | `!mod` \[*MOD*\]        | Set model by name, empty to pick from list.    |
 | `-n`    | `!results` \[*NUM*\]    | Set number of results.                         |
 | `-p`    | `!topp` \[*VAL*\]       | Set top_p.                                     |
@@ -377,6 +375,7 @@ or “`/`”.
 | `-t`    | `!temp` \[*VAL*\]       | Set temperature.                               |
 | `-w`    | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
 | `-z`    | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
+| `!ka`   | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
 | `!blk`  | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
 | \-      | `!multimodal`           | Toggle model as multimodal.                    |
 
@@ -737,6 +736,7 @@ Optional packages for specific features.
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` -
   Termux system
+- `pdftotext`/`gs`/`abiword`/`ebook-convert` - Dump pdf as text
 
 ### BUGS AND LIMITS
 
@@ -806,7 +806,7 @@ Set frequency penalty (cmpls/chat, -2.0 - 2.0).
 **-b**, **--best-of** \[*NUM*\]  
 Set best of, must be greater than `option -n` (cmpls). Def=*1*.
 
-**-B**, **--log-prob** \[*NUM*\]  
+**-B**, **--logprobs** \[*NUM*\]  
 Request log probabilities, also see -Z (cmpls, 0 - 5),
 
 **-K**, **–top-k** \[*NUM*\]  
@@ -816,7 +816,7 @@ Set Top_k value (local-ai, ollama, google).
 Set how long the model will stay loaded into memory (ollama).
 
 **-m**, **--model** \[*MODEL*\]  
-Set language *MODEL* name. Def=*text-davinci-003*, *gpt-3.5-turbo-0301*.
+Set language *MODEL* name. Def=*gpt-3.5-turbo-instruct*, *gpt-4o*.
 
 Set *MODEL* name as “*.*” to pick from the list.
 
@@ -862,7 +862,7 @@ Start new multi-turn session in plain text completions.
 **-e**, **--edit**  
 Edit first input from stdin, or file read (cmpls/chat).
 
-**-E**, **--exit**  
+**-E**, **-EE**, **--exit**  
 Exit on first run (even with options -cc).
 
 **-g**, **--stream** (*defaults*)  

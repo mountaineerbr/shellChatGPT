@@ -24,11 +24,12 @@ Markdown rendering of chat response (_optional_).
 - Integration with [mudler's LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), and [Mistral AI](#mistral-ai)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-- _Tiktoken_ for accurate tokenization (optional)
+- Command line completion for [enhanced experience](#shell-completion)
 - Colour scheme personalisation, and a configuration file
+- _Tiktoken_ for accurate tokenization (optional)
 - Stdin and text file input support
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
-- Fast!
+- **Fast** shell code!
 
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
 <!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
@@ -73,6 +74,7 @@ These are required for specific features.
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
+- `pdftotext`/`gs`/`abiword`/`ebook-convert` - Dump pdf as text
 
 
 ### 💾 Installation
@@ -238,7 +240,7 @@ Chat in Portuguese with Whisper and set _onyx_ as the TTS voice:
 
 **Chat mode** provides a conversational experience,
 prompting the user to confirm each step.
-For less verbose and automated execution, set `options -vvv`.
+For less verbose and automated execution, set `options -vv`.
 
 
 ### Chat Mode of Text Completions
@@ -428,6 +430,75 @@ or [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompt
 _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 (see note on [shell interpreters](#shell-interpreters)).
 -->
+
+
+### Shell Completion
+
+This project includes shell completions to enhance the user command-line experience.
+
+#### Bash
+
+**Install** following one of the methods below.
+
+**System-wide**
+
+     ```
+     sudo cp comp/bash/chatgpt.sh /usr/share/bash-completion/completions/
+     ```
+
+**User-specific**
+
+     ```
+     mkdir -p ~/.local/share/bash-completion/completions/
+     cp comp/bash/chatgpt.sh ~/.local/share/bash-completion/completions/
+     ```
+
+Visit the [bash-completion repository](https://github.com/scop/bash-completion).
+
+
+#### Zsh
+
+**Install** at the **system location**
+
+   ```
+   sudo cp comp/zsh/_chatgpt.sh /usr/share/zsh/site-functions/
+   ```
+
+
+**User-specific** location
+
+To set **user-specific** completion, make sure to place the completion
+script under a directory in the `$fpath` array.
+
+The user may create the `~/.zfunc/` directory, for example, and
+add the following lines to her `~/.zshrc`:
+
+
+   ```
+   [[ -d ~/.zfunc ]] && fpath=(~/.zfunc $fpath)
+
+   autoload -Uz compinit
+   compinit
+   ```
+
+Make sure `compinit` is run **after setting `$fpath`**!
+
+<!--
+**Troubleshoot:**
+You may have to force rebuild `zcompdump`:
+
+   ```
+   rm ~/.zcompdump; compinit
+   ```
+-->
+Visit the [zsh-completion repository](https://github.com/zsh-users/zsh-completions).
+
+
+#### Troubleshoot
+
+Bash and Zsh completions should be active in new terminal sessions.
+If not, ensure your `~/.bashrc` and `~/.zshrc` source
+the completion files correctly.
 
 
 ## 💡  Notes and Tips
@@ -811,7 +882,7 @@ like `yay` or `paru`. For example, with `yay`:
 
 
 <!--
-There is a [*PKGBUILD*](PKGBUILD) file available to install
+There is a [*PKGBUILD*](pkg/PKGBUILD) file available to install
 the script and documentation at the right directories
 in Arch Linux and derivative distros.
 
@@ -820,7 +891,7 @@ Below is an installation example with just the PKGBUILD.
 
     cd $(mktemp -d)
     
-    wget https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/PKGBUILD
+    wget https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/pkg/PKGBUILD
      
     makepkg
         

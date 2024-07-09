@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.62.6 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.63 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.62.6 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.63 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -184,7 +184,7 @@ Whisper / TTS</div>
 <h3 id="synopsis">SYNOPSIS</h3>
 <div class="line-block">   <strong>chatgpt.sh</strong>
 [<code>-cc</code>|<code>-d</code>|<code>-qq</code>] [<code>opt</code>..]
-[<em>PROMPT</em>|<em>TEXT_FILE</em>]<br />
+[<em>PROMPT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>X</em>|<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
 #<em>Dall-E-3</em><br />
@@ -207,7 +207,7 @@ Whisper / TTS</div>
    <strong>chatgpt.sh</strong> <code>-l</code> [<em>MODEL</em>]<br />
    <strong>chatgpt.sh</strong> <code>-TTT</code> [-v]
 [<code>-m</code>[<em>MODEL</em>|<em>ENCODING</em>]]
-[<em>INPUT</em>|<em>TEXT_FILE</em>]<br />
+[<em>INPUT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HHH</code>
 [<code>/</code><em>HIST_FILE</em>|<em>.</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HHw</code></div>
@@ -224,16 +224,14 @@ accepts davinci and lesser models, defaults to
 are automatically set to un-lobotomise the bot. Set
 <code>option -E</code> to exit on the first response.</p>
 <p>Set <code>option -cc</code> to start the chat mode via <strong>native
-chat completions</strong> and defaults to <em>gpt-3.5-turbo-0301</em>,
-and may be set to use <em>gpt-4</em> models.</p>
+chat completions</strong> and defaults to <em>gpt-4o</em>.</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session.</p>
 <p>Set <code>option -q</code> for <strong>insert mode</strong>. The flag
 “<em>[insert]</em>” must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.
-Insert mode works with model <code>gpt-3.5-turbo-instruct</code>.
-<!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer --></p>
+Insert mode works with model <code>gpt-3.5-turbo-instruct</code>.</p>
 <p>Positional arguments are read as a single <strong>PROMPT</strong>.
 Model <strong>INSTRUCTION</strong> is usually optional and can be set
 with <code>option -S</code>.</p>
@@ -243,6 +241,9 @@ without making a new API call. Conversely, prompts starting with double
 colons “<em>::</em>” are appended as instruction / system messages. For
 text cmpls only, triple colons append the text immediately to the
 previous prompt without a restart sequence.</p>
+<p>If a plain text or PDF file path is set as the first positional
+argument, or as an argument to <code>option -S</code> (set instruction
+prompt), the file is loaded as text PROMPT.</p>
 <p>With <strong>vision models</strong>, insert an image to the prompt
 with chat command “<code>!img</code> [<em>url</em>|<em>filepath</em>]”.
 Image urls and files can also be appended by typing the operator pipe
@@ -274,9 +275,6 @@ capacity</em> will also be set. The option syntax takes the form of
 intuitively with <code>option</code> “<code>-N</code> <em>NUM</em>”,
 otherwise model capacity is set automatically for known models, or to
 <em>2048</em> tokens as fallback.</p>
-<p>If a plain text file path is set as the first positional argument of
-the script, the file is loaded as text PROMPT (text cmpls, and chat
-cmpls).</p>
 <p><code>Option -S</code> sets an INSTRUCTION prompt (the initial
 prompt) for text cmpls, and chat cmpls. A text file path may be supplied
 as the single argument. Also see <em>CUSTOM / AWESOME PROMPTS</em>
@@ -507,67 +505,79 @@ prompt to set a new parameter. The command operator may be either
 <td>Information on model and session settings.</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>!j</code></td>
+<td style="text-align: left;"><code>!jump</code></td>
+<td>Jump to request, append start seq primer (text cmpls).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!!j</code></td>
+<td style="text-align: left;"><code>!!jump</code></td>
+<td>Jump to request, no response priming.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!md</code></td>
+<td style="text-align: left;"><code>!markdown</code>
+[<em>SOFTW</em>]</td>
+<td>Toggle markdown rendering in response.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!!md</code></td>
+<td style="text-align: left;"><code>!!markdown</code>
+[<em>SOFTW</em>]</td>
+<td>Render last response in markdown.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!rep</code></td>
+<td style="text-align: left;"><code>!replay</code></td>
+<td>Replay last TTS audio response.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!res</code></td>
+<td style="text-align: left;"><code>!resubmit</code></td>
+<td>Resubmit last TTS recorded input from cache.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!cat</code></td>
+<td style="text-align: left;">-</td>
+<td>Cat prompter as one-shot, &lt;<em>CTRL-D</em>&gt; flush.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!cat</code></td>
+<td style="text-align: left;"><code>!cat:</code>
+[<em>TXT</em>|<em>URL</em>|<em>PDF</em>]</td>
+<td>Cat <em>text</em> or <em>PDF</em> file, or dump <em>URL</em>
+(<em>:</em> to append).</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>!img</code></td>
 <td style="text-align: left;"><code>!media</code>
 [<em>FILE</em>|<em>URL</em>]</td>
 <td>Append image, media, or URL to prompt.</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>!url</code></td>
-<td style="text-align: left;">- [<em>URL</em>]</td>
-<td>Dump URL text (HTML filtering), optionally edit it.</td>
+<td style="text-align: left;"><code>!pdf</code></td>
+<td style="text-align: left;"><code>!pdf:</code> [<em>FILE</em>]</td>
+<td>Convert PDF and dump text (<em>:</em> to append prompt).</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>!url:</code></td>
-<td style="text-align: left;">- [<em>URL</em>]</td>
-<td>Same as <code>!url</code> but append output as user.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!j</code></td>
-<td style="text-align: left;"><code>!jump</code></td>
-<td>Jump to request, append start seq primer (text cmpls).</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!!j</code></td>
-<td style="text-align: left;"><code>!!jump</code></td>
-<td>Jump to request, no response priming.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!md</code></td>
-<td style="text-align: left;"><code>!markdown</code>
-[<em>SOFTW</em>]</td>
-<td>Toggle markdown rendering in response.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!!md</code></td>
-<td style="text-align: left;"><code>!!markdown</code>
-[<em>SOFTW</em>]</td>
-<td>Render last response in markdown.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!rep</code></td>
-<td style="text-align: left;"><code>!replay</code></td>
-<td>Replay last TTS audio response.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!res</code></td>
-<td style="text-align: left;"><code>!resubmit</code></td>
-<td>Resubmit last TTS recorded input from cache.</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
 <td>Run shell, or <em>command</em>, and edit output.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!sh:</code></td>
 <td style="text-align: left;"><code>!shell:</code> [<em>CMD</em>]</td>
 <td>Same as <code>!sh</code> but apppend output as user.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!sh</code></td>
 <td style="text-align: left;"><code>!!shell</code> [<em>CMD</em>]</td>
 <td>Run interactive shell (with <em>command</em>) and exit.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!url</code></td>
+<td style="text-align: left;"><code>!url:</code> [<em>URL</em>]</td>
+<td>Dump URL text (add <em>:</em> to append prompt).</td>
 </tr>
 </tbody>
 </table>
@@ -615,16 +625,6 @@ prompt to set a new parameter. The command operator may be either
 <td style="text-align: left;"><code>-UU</code></td>
 <td>Toggle cat prompter, or set one-shot. &lt;<em>CTRL-D</em>&gt;
 flush.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!cat</code></td>
-<td style="text-align: left;">- [<em>FILE</em>]</td>
-<td>Cat prompter as one-shot, or cat file.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!cat:</code></td>
-<td style="text-align: left;">- [<em>FILE</em>]</td>
-<td>Same as <code>!cat</code> but append prompt as user.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-V</code></td>
@@ -714,55 +714,55 @@ flush.</td>
 <td>Set top_k.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>!ka</code></td>
-<td style="text-align: left;"><code>!keep-alive</code>
-[<em>NUM</em>]</td>
-<td>Set duration of model load in memory (ollama).</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;"><code>-m</code></td>
 <td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
 <td>Set model by name, empty to pick from list.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-n</code></td>
 <td style="text-align: left;"><code>!results</code> [<em>NUM</em>]</td>
 <td>Set number of results.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-p</code></td>
 <td style="text-align: left;"><code>!topp</code> [<em>VAL</em>]</td>
 <td>Set top_p.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-r</code></td>
 <td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]</td>
 <td>Set restart sequence.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-R</code></td>
 <td style="text-align: left;"><code>!start</code> [<em>SEQ</em>]</td>
 <td>Set start sequence.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-s</code></td>
 <td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>]</td>
 <td>Set one stop sequence.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-t</code></td>
 <td style="text-align: left;"><code>!temp</code> [<em>VAL</em>]</td>
 <td>Set temperature.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-w</code></td>
 <td style="text-align: left;"><code>!rec</code> [<em>ARGS</em>]</td>
 <td>Toggle Whisper. Optionally, set arguments.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-z</code></td>
 <td style="text-align: left;"><code>!tts</code> [<em>ARGS</em>]</td>
 <td>Toggle TTS chat mode (speech out).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!ka</code></td>
+<td style="text-align: left;"><code>!keep-alive</code>
+[<em>NUM</em>]</td>
+<td>Set duration of model load in memory (Ollama).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!blk</code></td>
@@ -1193,6 +1193,8 @@ input (Whisper)</li>
 - Markdown support</li>
 <li><code>termux-api</code>/<code>play-audio</code>/<code>termux-microphone-record</code>/<code>termux-clipboard-set</code>
 - Termux system</li>
+<li><code>pdftotext</code>/<code>gs</code>/<code>abiword</code>/<code>ebook-convert</code>
+- Dump pdf as text</li>
 </ul>
 <h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
 <p>The script objective is to implement most features of OpenAI API
@@ -1270,7 +1272,7 @@ Fallback=<em>4000</em>.</p>
 <p>Set best of, must be greater than <code>option -n</code> (cmpls).
 Def=<em>1</em>.</p>
 </dd>
-<dt><strong>-B</strong>, <strong>--log-prob</strong> [<em>NUM</em>]</dt>
+<dt><strong>-B</strong>, <strong>--logprobs</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
 </dd>
@@ -1285,8 +1287,8 @@ Def=<em>1</em>.</p>
 </dd>
 <dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
 <dd>
-<p>Set language <em>MODEL</em> name. Def=<em>text-davinci-003</em>,
-<em>gpt-3.5-turbo-0301</em>.</p>
+<p>Set language <em>MODEL</em> name.
+Def=<em>gpt-3.5-turbo-instruct</em>, <em>gpt-4o</em>.</p>
 <p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
 </dd>
 <dt><strong>--multimodal</strong></dt>
@@ -1348,7 +1350,8 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Edit first input from stdin, or file read (cmpls/chat).</p>
 </dd>
-<dt><strong>-E</strong>, <strong>--exit</strong></dt>
+<dt><strong>-E</strong>, <strong>-EE</strong>,
+<strong>--exit</strong></dt>
 <dd>
 <p>Exit on first run (even with options -cc).</p>
 </dd>
