@@ -19,7 +19,7 @@ __session_listf()
       _files
       ;;
     *)
-      local options ifs
+      local REPLY options ifs
       ifs=$IFS IFS=$'\t\n'
       options=( $("${script}" -EE /list 2>/dev/null | while read -r
         do
@@ -46,7 +46,7 @@ __session_or_pr_listf()
 #list prompt names
 __pr_listf()
 {
-  local options ifs
+  local REPLY options ifs
   ifs=$IFS IFS=$'\t\n'
   options=( $("${script}" -EE -S .list 2>/dev/null | while read -r
     do
@@ -100,7 +100,7 @@ _chatgpt.sh()
   local options ifs
 
   _arguments -s -S : \
-    {-@,--alpha=}'[Mask transparent colour]:alpha -- [[percent%%]colour]' \
+    {-@,--alpha}'[Mask transparent colour]:alpha -- [[percent%%]colour]' \
     '-Nill[Unset model max response]' \
     {-M,--max}'[Maximum response tokens]:max response -- [integer[-integer]]' \
     {-N,--modmax}'[Model capacity tokens]:model capacity -- [integer]' \

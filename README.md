@@ -442,16 +442,16 @@ This project includes shell completions to enhance the user command-line experie
 
 **System-wide**
 
-     ```
-     sudo cp comp/bash/chatgpt.sh /usr/share/bash-completion/completions/
-     ```
+   ```
+   sudo cp comp/bash/chatgpt.sh /usr/share/bash-completion/completions/
+   ```
 
 **User-specific**
 
-     ```
-     mkdir -p ~/.local/share/bash-completion/completions/
-     cp comp/bash/chatgpt.sh ~/.local/share/bash-completion/completions/
-     ```
+   ```
+   mkdir -p ~/.local/share/bash-completion/completions/
+   cp comp/bash/chatgpt.sh ~/.local/share/bash-completion/completions/
+   ```
 
 Visit the [bash-completion repository](https://github.com/scop/bash-completion).
 
