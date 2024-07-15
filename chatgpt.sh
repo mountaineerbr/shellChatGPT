@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.63  jul/2024  by mountaineerbr  GPL+3
+# v0.63.1  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -93,6 +93,7 @@ AWEURLZH="https://raw.githubusercontent.com/PlexPt/awesome-chatgpt-prompts-zh/ma
 # CACHE AND OUTPUT DIRECTORIES
 CACHEDIR="${CACHEDIR:-${XDG_CACHE_HOME:-$HOME/.cache}}/chatgptsh"
 OUTDIR="${OUTDIR:-${XDG_DOWNLOAD_DIR:-$HOME/Downloads}}"
+HISTSIZE=256
 
 # Colour palette
 # Normal Colours   # Bold              # Background
@@ -127,7 +128,7 @@ FILEMODEL="${CACHEDIR%/}/models.txt"
 USRLOG="${OUTDIR%/}/${FILETXT##*/}"
 HISTFILE="${CACHEDIR%/}/history_bash"
 HISTCONTROL=erasedups:ignoredups
-HISTSIZE=512 SAVEHIST=512 HISTTIMEFORMAT='%F %T '
+SAVEHIST=$HISTSIZE HISTTIMEFORMAT='%F %T '
 
 # API URL / endpoint
 API_HOST="https://api.openai.com";
@@ -1908,7 +1909,7 @@ function cmd_runf
 				case "$(__read_charf)" in
 					[AaQqRr]) 	SKIP=1 EDIT=1 REPLY="!${args[*]}"; break;;  #abort, redo
 					[EeYy]|$'\e') 	SKIP=1 EDIT=1; break;; #yes, bash `read`
-					[VvXx]|$'\t'|' ') 	SKIP=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
+					[VvXx]|$'\t'|' ') 	SKIP=1 EDIT=1; ((OPTX)) || OPTX=2; break;; #yes, text editor
 					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break;;  #no need to edit
 				esac; set --;
 			done; __clr_lineupf $((12+1+47));  #!#
@@ -2246,7 +2247,7 @@ function _is_linkf
 	[[ ! -f $1 ]] || return;
 	case "$1" in
 		[Hh][Tt][Tt][Pp][Ss]://* | [Hh][Tt][Tt][Pp]://* | [Ff][Tt][Pp]://* | [Ff][Ii][Ll][Ee]://* | telnet://* | gopher://* | about://* | wais://* ) :;;
-		*?.[Hh][Tt][Mm] | *?.[Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm][Ll]? | *?.[Xx][Mm][Ll] ) [[ ! -e $1 ]];;
+		*?.[Hh][Tt][Mm] | *?.[Hh][Tt][Mm][Ll] | *?.[Ss][Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm][Ll]? | *?.[Xx][Mm][Ll] | *?.com | *?.com/ | *?.com.[a-z][a-z] | *?.com.[a-z][a-z]/ ) [[ ! -e $1 ]];;
 		[Ww][Ww][Ww].?* ) [[ ! -e $1 ]];;
 		*) false;;
 	esac
@@ -2263,7 +2264,7 @@ function is_txtfilef
 {
 	[[ -f $1 ]] || return
 	case "$1" in
-        	*?.[Tt][Xx][Tt] | *?.[Mm][Dd] | *?.[Cc][Ff][Gg] | *?.[Ii][Nn][Ii] | *?.[Ll][Oo][Gg] | *?.[TtCc][Ss][Vv] | *?.[Jj][Ss][Oo][Nn] | *?.[Xx][Mm][Ll] | *?.[Cc][Oo][Nn][Ff] | *?.[Rr][Cc] | *?.[Yy][Aa][Mm][Ll] | *?.[Yy][Mm][Ll] | *?.[Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm] | *?.[Ss][Hh] | *?.[CcZz][Ss][Hh] | *?.[Bb][Aa][Ss][Hh] | *?.[Pp][Yy] | *?.[Jj][Ss] | *?.[Cc][Ss][Ss] | *?.[Jj][Aa][Vv][Aa] | *?.[Rr][Bb] | *?.[Pp][Hh][Pp] | *?.[Tt][Cc][Ll] | *?.[Pp][LlSs] | *?.[Rr][Ss][Tt] | *?.[Tt][Ee][Xx] | *?.[Ss][Qq][Ll] | *?.[Ll][Oo][Gg] | *?.c ) return;;
+        	*?.[Tt][Xx][Tt] | *?.[Mm][Dd] | *?.[Cc][Ff][Gg] | *?.[Ii][Nn][Ii] | *?.[Ll][Oo][Gg] | *?.[TtCc][Ss][Vv] | *?.[Jj][Ss][Oo][Nn] | *?.[Xx][Mm][Ll] | *?.[Cc][Oo][Nn][Ff] | *?.[Rr][Cc] | *?.[Yy][Aa][Mm][Ll] | *?.[Yy][Mm][Ll] | *?.[Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm] | *?.[Ss][Hh] | *?.[CcZz][Ss][Hh] | *?.[Bb][Aa][Ss][Hh] | *?.[Pp][Yy] | *?.[Jj][Ss] | *?.[Cc][Ss][Ss] | *?.[Jj][Aa][Vv][Aa] | *?.[Rr][Bb] | *?.[Pp][Hh][Pp] | *?.[Tt][Cc][Ll] | *?.[Pp][LlSs] | *?.[Rr][Ss][Tt] | *?.[Tt][Ee][Xx] | *?.[Ss][Qq][Ll] | *?.[Ll][Oo][Gg] | *?.c | *.bashrc | *.bash_profile | *.profile | *.zshrc | *.zshenv ) return;;
 	esac
 	! _is_imagef "$@" && ! _is_videof "$@" &&
 	! _is_audiof "$@" && ! (__set_outfmtf "$@") &&
@@ -3877,7 +3878,7 @@ do
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD WAPPEND;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -4391,7 +4392,9 @@ else
 	fi
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
-	then 	history -c; history -r; history -w;  #prune & fix history file
+	then 	__printbf 'history_bash'; var=$SECONDS;  #only visible when large and slow
+		history -c; history -r; history -w;  #prune & rewrite history file
+		__printbf '            '; ((SECONDS-var>1)) && __warmsgf 'Warning:' "Bash history size -- $(du -h "$HISTFILE" | sed 's/\t/ /')";
 		if ((OPTRESUME)) && [[ -s $FILECHAT ]]
 		then 	REPLY_OLD=$(grep_usr_lastlinef);
 		elif [[ -s $HISTFILE ]]
@@ -4637,9 +4640,28 @@ else
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
 
+		((${#}<2)) || set -- "$*";
+		#basic text and pdf file, and text url dumps
+		if ((${#1}>256)) && var=${1: ${#1}-256} || var=
+			var=$(trim_leadf "$(trim_trailf "${var:-$1}" "$SPC")" $'*[ \t\n]')
+			is_txtfilef "$var" || is_pdff "$var" || { _is_linkf "$var" && ! _is_imagef "$var" && ! _is_videof "$var" ;}
+		then
+			var=$(cmd_runf /cat"$var"; printf '%s\n' "$REPLY";
+			  ((EDIT && OPTX)) && exit 198;
+			  ((EDIT)) && exit 199;
+			  exit 0;
+			); ret=$?;  #get the exit signal
+			[[ -n $var ]] && {
+			  { [[ $1 = */ ]] && ((RETRY)) ;} || RETRY= BCYAN="${Color9}";  #fix: retry mode only if there is second trailing slash
+			  set -- "${*}:${var}"; REPLY="${REPLY}:${var}";
+			  case "$ret" in
+			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=1; set --; continue 1;;  #edit in text editor
+			    199) SKIP=1 EDIT=1; set --; continue 1;;  #edit in bash readline
+			  esac
+			};
 		#vision
-		if is_visionf "$MOD"
-		then 	((${#}<2)) || set -- "$*";
+		elif is_visionf "$MOD"
+		then
 			_mediachatf "$1";
 			#((TRUNC_IND)) && REPLY_OLD=$* && set -- "${1:0:${#1}-TRUNC_IND}";
 			((MTURN)) &&
@@ -4647,13 +4669,6 @@ else
 			do 	REC_OUT="$REC_OUT| $var" REPLY="$REPLY| $var";
 				set -- "$*| $var";
 			done; unset var;
-		#basic multimodal -- text and pdf files, and text urls
-		elif ((${#1}>256)) && var=${1: ${#1}-256} || var=
-			var=$(trim_leadf "$(trim_trailf "${var:-$1}" "$SPC")" $'*[ \t\n]')
-			[[ -f ${var} ]] && { is_txtfilef "$var" || is_pdff "$var" ;} || _is_linkf "$var"
-		then
-			var=$(cmd_runf /cat"$var" 2>/dev/null; printf '%s\n' "$REPLY")
-			[[ -n $var ]] && { 	set -- "${*}:${var}"; REPLY="${REPLY}:${var}" ;}
 		#insert mode
 		elif ((OPTSUFFIX)) && [[ "$*" = *"${I_TYPE}"* ]]
 		then 	if ((EPN!=6))
