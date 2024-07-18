@@ -17,8 +17,8 @@ optdepends=(
 	'xsel: copy output to clipboard (xclip)'
 	'python: modules (tiktoken, markdown, bs4)'
 	'bat: render markdown (pygmentize, glow, mdcat, mdless)'
-	'w3m: dump url text (lynx, elinks, links)'
-	'pdftotext: dump pdf as text (gs, abiword, ebook-convert)'
+	'w3m: dump URL text (lynx, elinks, links)'
+	'poppler: dump PDF as text (gs, abiword, ebook-convert)'
 )
 source=("${pkgname}-${pkgver}::git+${url}.git#commit=${_commit}")
 sha256sums=('SKIP')

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.63.1  jul/2024  by mountaineerbr  GPL+3
+# v0.63.2  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4392,9 +4392,9 @@ else
 	fi
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
-	then 	__printbf 'history_bash'; var=$SECONDS;  #only visible when large and slow
+	then 	[[ -t 1 ]] && __printbf 'history_bash'; var=$SECONDS;  #only visible when large and slow
 		history -c; history -r; history -w;  #prune & rewrite history file
-		__printbf '            '; ((SECONDS-var>1)) && __warmsgf 'Warning:' "Bash history size -- $(du -h "$HISTFILE" | sed 's/\t/ /')";
+		[[ -t 1 ]] && __printbf '            '; ((SECONDS-var>1)) && __warmsgf 'Warning:' "Bash history size -- $(du -h "$HISTFILE" | sed 's/\t/ /')";
 		if ((OPTRESUME)) && [[ -s $FILECHAT ]]
 		then 	REPLY_OLD=$(grep_usr_lastlinef);
 		elif [[ -s $HISTFILE ]]

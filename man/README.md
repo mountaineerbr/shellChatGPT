@@ -736,7 +736,7 @@ Optional packages for specific features.
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` -
   Termux system
-- `pdftotext`/`gs`/`abiword`/`ebook-convert` - Dump pdf as text
+- `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
 
 ### BUGS AND LIMITS
 
