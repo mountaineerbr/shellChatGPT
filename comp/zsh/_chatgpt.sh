@@ -6,9 +6,9 @@
 #               /usr/local/share/zsh/site-functions/
 # User-Specific: under $fpath
 
-local script operator
+local operator operator2 script
+operator="" operator2=""
 script="chatgpt.sh"
-operator=""
 
 
 #list session names
@@ -21,6 +21,8 @@ __session_listf()
     *)
       local REPLY options ifs
       ifs=$IFS IFS=$'\t\n'
+      __has_scriptf || script="false"
+
       options=( $("${script}" -EE /list 2>/dev/null | while read -r
         do
           printf '%s\n' "/${REPLY%%.[Tt][Ss][Vv]}"
@@ -48,6 +50,8 @@ __pr_listf()
 {
   local REPLY options ifs
   ifs=$IFS IFS=$'\t\n'
+  __has_scriptf || script="false"
+
   options=( $("${script}" -EE -S .list 2>/dev/null | while read -r
     do
       printf '%s\n' "${operator}${REPLY%%.[Pp][Rr]}"
@@ -72,6 +76,8 @@ __pr_list3f()
 __mod_listf()
 {
   local options
+  __has_scriptf || script="false"
+
   options=( $("${script}" -EE -lll 2>/dev/null) )
   ((${#options[@]})) || options=( 'davinci-002'  'gpt-3.5-turbo'  'gpt-3.5-turbo-instruct' 
     'gpt-4o'  'gpt-4-turbo'  'text-moderation-latest'
@@ -84,6 +90,8 @@ __mod_listf()
 __awesome_listf()
 {
   local options
+  __has_scriptf || return
+
   options=( $( "${script}" -EE -S ${operator:-/}list 2>&1 \
       | sed -n '/^ *[0-9][0-9]*/,$ p' \
       | sed "s/[0-9][0-9]*:/${operator2//\//\\/}/g" ) )
@@ -93,6 +101,12 @@ __awesome_list1f() { 	operator="/" operator2="/" __awesome_listf "$@" ;}
 __awesome_list2f() { 	operator="/" operator2=""  __awesome_listf "$@" ;}
 __awesome_list3f() { 	operator="%" operator2="%" __awesome_listf "$@" ;}
 __awesome_list4f() { 	operator="%" operator2=""  __awesome_listf "$@" ;}
+
+#check script path is valid
+__has_scriptf()
+{
+  command -v "${script:-chatgpt.sh}" >/dev/null 2>&1
+}
 
 #main fun
 _chatgpt.sh()
@@ -170,9 +184,6 @@ _chatgpt.sh()
     '1:session/file:__session_or_pr_listf' '*:file:_files'
     #-{0..9}'[Maximum response tokens]:max response -- integer [0-9]' \
 }
-
-
-command -v "${script}" >/dev/null 2>&1 || script="false";
 
 _chatgpt.sh "$@"
 
