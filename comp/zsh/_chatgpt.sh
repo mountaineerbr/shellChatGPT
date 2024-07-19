@@ -177,8 +177,8 @@ _chatgpt.sh()
     '-V[Pretty-print context]' \
     '-VV[Dump raw request (debug)]' \
     {-x,--editor}'[Edit prompt in text editor]' \
-    {-y,--tik}'[Set tiktoken]' \
-    {-Y,--no-tik}'[Unset tiktoken]' \
+    {-y,--tik}'[Set tiktoken for chat]' \
+    {-Y,--no-tik}'[Unset tiktoken for chat]' \
     {-z,--tts}'[Synthesize speech]' \
     {-Z,--last}'[Dump last response JSON]' \
     '1:session/file:__session_or_pr_listf' '*:file:_files'
