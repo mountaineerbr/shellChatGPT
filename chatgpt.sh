@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.63.2  jul/2024  by mountaineerbr  GPL+3
+# v0.63.3  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -25,7 +25,7 @@ MOD_LOCALAI="${MOD_LOCALAI:-phi-2}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-llama3}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.0-pro-latest}"  #"gemini-1.5-flash-latest"
+MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.5-flash-latest}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Bash readline mode
@@ -794,7 +794,7 @@ function __printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
 function trim_leadf
 {
 	typeset var ind sub
-	var="$1" ind=${INDEX:-160}
+	var="$1" ind=${INDEX:-320}
 	sub="${var:0:$ind}"
 	((SMALLEST)) && sub="${sub#$2}" || sub="${sub##$2}"
 	var="${sub}${var:$ind}"
@@ -805,7 +805,7 @@ function trim_leadf
 function trim_trailf
 {
 	typeset var ind sub
-	var="$1" ind=${INDEX:-160}
+	var="$1" ind=${INDEX:-320}
 	if ((${#var}>ind))
 	then 	sub="${var:$((${#var}-${ind}))}"
 		((SMALLEST)) && sub="${sub%$2}" || sub="${sub%%$2}"
@@ -1069,8 +1069,8 @@ function set_histf
 		then 	((token<1 && OPTVV>1)) && __warmsgf "Warning:" "Zero/Neg token in history"
 			start_tiktokenf
 			if ((EPN==6))
-			then 	token=$(__tiktokenf "$(INDEX=16 trim_leadf "$stringc" :)" )
-			else 	token=$(__tiktokenf "\\n$(INDEX=16 trim_leadf "$stringc" :)" )
+			then 	token=$(__tiktokenf "$(INDEX=32 trim_leadf "$stringc" :)" )
+			else 	token=$(__tiktokenf "\\n$(INDEX=32 trim_leadf "$stringc" :)" )
 			fi; ((token+=TKN_ADJ))
 		fi # every message follows <|start|>{role/name}\n{content}<|end|>\n (gpt-3.5-turbo-0301)
 		#trail nls are rm in (text) chat modes, so actual request prompt token count may be *less*
@@ -1097,7 +1097,7 @@ function set_histf
 			role_last=$role role= rest= nl=
 			case "${string}" in
 				::*) 	role=system rest=  #[DEPRECATED]
-					stringc=$(INDEX=16 trim_leadf "$stringc" :)  #append (txt cmpls)
+					stringc=$(INDEX=32 trim_leadf "$stringc" :)  #append (txt cmpls)
 					;;
 				:*) 	role=system
 					((OPTC)) && rest="$S_TYPE" nl="\\n"  #system message
@@ -2031,11 +2031,11 @@ function edf
 		  OLLAMA= TKN_PREV= MAX_PREV= set_histf "${rest}${*}"
 	fi
 
+	set_filetxtf
 	pre="${INSTRUCTION}${INSTRUCTION:+$'\n\n'}""$(unescapef "$HIST")"
 	((OPTCMPL)) || [[ $pre = *([$IFS]) ]] || pre="${pre}${ed_msg}"
 	printf "%s\\n" "${pre}"$'\n\n'"${rest}${*}" > "$FILETXT"
 
-	set_filetxtf
 	__edf "$FILETXT"
 
 	while [[ -f $FILETXT ]] && pos="$(<"$FILETXT")"
@@ -2068,7 +2068,7 @@ function edf
 function _edit_no_execf
 {
 	set_filetxtf;
-	echo "$READLINE_LINE" >"$FILETXT";
+	printf '%s\n' "$READLINE_LINE" >"$FILETXT";
 	if __edf "$FILETXT" && [[ -s $FILETXT ]]
 	then 	READLINE_LINE=$(<"$FILETXT");
 		READLINE_POINT=${#READLINE_LINE};
@@ -4548,7 +4548,7 @@ else
 						REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
 					fi
 					if [[ $REPLY = */*([$IFS]) ]]
-					then 	REPLY=$(INDEX=80 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n])')
+					then 	REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n])')
 						printf '\n%s\n' '--- preview ---' >&2
 					fi
 					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}"
@@ -4653,7 +4653,7 @@ else
 			); ret=$?;  #get the exit signal
 			[[ -n $var ]] && {
 			  { [[ $1 = */ ]] && ((RETRY)) ;} || RETRY= BCYAN="${Color9}";  #fix: retry mode only if there is second trailing slash
-			  set -- "${*}:${var}"; REPLY="${REPLY}:${var}";
+			  set -- "${*}${NL}${NL}${var}"; REPLY="${REPLY}${NL}${NL}${var}"; REC_OUT="${Q_TYPE##$SPC1}${*}";  # \n\n### Attached File Content:\n\n
 			  case "$ret" in
 			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=1; set --; continue 1;;  #edit in text editor
 			    199) SKIP=1 EDIT=1; set --; continue 1;;  #edit in bash readline
@@ -4695,7 +4695,7 @@ else
 			((JUMP)) && set -- && unset rest
 			var="$(escapef "${INSTRUCTION:-$GINSTRUCTION}")${INSTRUCTION:+\\n\\n}${GINSTRUCTION:+\\n\\n}";
 			ESC="${HIST}${HIST:+${var:+\\n\\n}}${var}${rest}$(escapef "${*}")";
-			ESC=$(INDEX=16 trim_leadf "$ESC" "\\n");
+			ESC=$(INDEX=32 trim_leadf "$ESC" "\\n");
 			
 			if ((EPN==6))
 			then 	#chat cmpls
