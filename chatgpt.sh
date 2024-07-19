@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.63.4  jul/2024  by mountaineerbr  GPL+3
+# v0.63.5  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4161,7 +4161,7 @@ done; unset arg init;
 if ((OPTW+OPTZ))  #handle options of combined modes in chat + whisper + tts
 then 	typeset -a argn
 	n=1; for arg
-	do 	case "${arg:0:4}" in --|--\ |--\ \ ) argn=(${argn[@]} $n);; esac; ((++n));
+	do 	case "${arg:0:4}" in --) argn=(${argn[@]} $n);; esac; ((++n));
 	done; #map double hyphens `--'
 	if ((${#argn[@]}>=2)) && ((OPTW)) && ((OPTZ))  #improbable case
 	then 	((ii=argn[1]-argn[0])); ((ii<1)) && ii=1;
