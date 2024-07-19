@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.63 | General Commands Manual
+% CHATGPT.SH(1) v0.63.4 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -18,7 +18,7 @@
 |    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_|_._] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_|_._] \[_PROMPT-EN_]
 |    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
-|    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[`whisper_arg`..] \-- \[`tts_arg`..] 
+|    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[`whisper_arg`..] \-- \[`tts_arg`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_|_PDF_FILE_]
 |    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_|_._]

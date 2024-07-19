@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.63 | General Commands Manual
+CHATGPT.SH(1) v0.63.4 | General Commands Manual
 mountaineerbr
 July 2024
 
@@ -16,7 +16,8 @@ SYNOPSIS
    chatgpt.sh -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
    chatgpt.sh -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
    chatgpt.sh -z [opt..] [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
-   chatgpt.sh -ccWwz [opt..] -- [whisper_arg..] -- [tts_arg..]
+   chatgpt.sh -ccWwz [opt..] -- [PROMPT] -- [whisper_arg..] --
+[tts_arg..]
    chatgpt.sh -l [MODEL]
    chatgpt.sh -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
    chatgpt.sh -HHH [/HIST_FILE|.]

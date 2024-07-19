@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.63.3  jul/2024  by mountaineerbr  GPL+3
+# v0.63.4  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -160,7 +160,7 @@ Synopsis
 	${0##*/} -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
 	${0##*/} -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
-	${0##*/} -ccWwz [opt..] -- [whisper_arg..] -- [tts_arg..]
+	${0##*/} -ccWwz [opt..] -- [PROMPT] -- [whisper_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
 	${0##*/} -HHH [/HIST_FILE|.]
@@ -2024,7 +2024,7 @@ function edf
 	ed_msg=$'\n\n'",,,,,,(edit below this line),,,,,,"
 	((OPTC)) && rest="${RESTART:-$Q_TYPE}" || rest="${RESTART}"
 	rest="$(_unescapef "$rest")"
-	((GOOGLEAI)) && typeset INSTRUCTION=${INSTRUCTION:-$GINSTRUCTION};
+	((GOOGLEAI)) && typeset INSTRUCTION=${GINSTRUCTION:-$INSTRUCTION};
 
 	if ((CHAT_ENV))
 	then 	MAIN_LOOP=1 Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= \
@@ -4108,7 +4108,7 @@ else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 
 #load text file from last arg or first arg, and stdin
-if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN))
+if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN)) && ((!(OPTC+OPTCMPL) ))
 then
 	if ((OPTEMBED+OPTI+OPTZ)) && ((${#}))
 	then 	if [[ -f ${@:${#}} ]] && is_txtfilef "${@:${#}}"
@@ -4161,7 +4161,7 @@ done; unset arg init;
 if ((OPTW+OPTZ))  #handle options of combined modes in chat + whisper + tts
 then 	typeset -a argn
 	n=1; for arg
-	do 	[[ ${arg:0:4} = -- ]] && argn=(${argn[@]} $n); ((++n));
+	do 	case "${arg:0:4}" in --|--\ |--\ \ ) argn=(${argn[@]} $n);; esac; ((++n));
 	done; #map double hyphens `--'
 	if ((${#argn[@]}>=2)) && ((OPTW)) && ((OPTZ))  #improbable case
 	then 	((ii=argn[1]-argn[0])); ((ii<1)) && ii=1;

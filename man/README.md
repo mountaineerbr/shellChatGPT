@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.63 \| General Commands Manual
+title: CHATGPT.SH(1) v0.63.4 \| General Commands Manual
 ---
 
 ### NAME
@@ -25,8 +25,8 @@ title: CHATGPT.SH(1) v0.63 \| General Commands Manual
 \[*PROMPT-EN*\]  
    **chatgpt.sh** `-z` \[`opt`..\] \[*OUTFILE*\|*FORMAT*\|*-*\]
 \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
-   **chatgpt.sh** `-ccWwz` \[`opt`..\] -- \[`whisper_arg`..\] --
-\[`tts_arg`..\]  
+   **chatgpt.sh** `-ccWwz` \[`opt`..\] -- \[*PROMPT*\] --
+\[`whisper_arg`..\] -- \[`tts_arg`..\]  
    **chatgpt.sh** `-l` \[*MODEL*\]  
    **chatgpt.sh** `-TTT` \[-v\] \[`-m`\[*MODEL*\|*ENCODING*\]\]
 \[*INPUT*\|*TEXT_FILE*\|*PDF_FILE*\]  
