@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.63.5  jul/2024  by mountaineerbr  GPL+3
+# v0.64  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -661,12 +661,18 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	curl "$@" --fail -L "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
+	if curl "$@" --fail -L "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
-		-d "$BLOCK" \
-	&& { 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf ;}
+		-d "$BLOCK"
+	then
+		[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
+	else
+		typeset ret=$?;
+		[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE";
+		return $ret;
+	fi
 }
 
 function _promptf
@@ -676,7 +682,7 @@ function _promptf
 	
 	if ((STREAM))
 	then 	set -- -s "$@" -S --no-buffer; [[ -s $FILE ]] &&
-		  mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
+		  [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
 		__promptf "$@" | while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
 			chunk=${chunk##*([$' \t'])[Dd][Aa][Tt][Aa]:*([$' \t'])}
@@ -716,11 +722,11 @@ function promptf
 	then 	if ((RETRY>1))
 		then 	cat -- "$FILE"
 		else 	((OPTK)) || printf "${BYELLOW}%s\\b${NC}" "X" >&2;
-			_promptf;
+			_promptf || exit;  #!#
 		fi | prompt_printf
 	else
 		printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
-		((RETRY>1)) || COLUMNS=$((COLUMNS-3)) _promptf;
+		((RETRY>1)) || COLUMNS=$((COLUMNS-1)) _promptf || exit;  #!#
 		printf "${NC}" >&2;
 		if ((OPTI))
 		then 	prompt_imgprintf
@@ -739,8 +745,8 @@ function promptf
 		)
 		((!OPTCLIP)) || (${CLIP_CMD:-false} <<<"$out" &)  #clipboard
 		[[ -t 1 ]] || printf '%s\n' "$out" >&2  #pipe + stderr
-		return 0
 	fi
+	wait $pid;  #curl exit code
 }
 
 #print tokens from response
@@ -840,7 +846,7 @@ function new_prompt_confirmf
 {
 	typeset REPLY extra
 	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor, m[u]ltiline";; esac;
-	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hspr_Add, [w]hspr_off";; esac;
+	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hspr_Add, [w]hspr_off, whspr_retr[y]";; esac;
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
 	REPLY=$(__read_charf); __clr_lineupf $((8+1+40+${#extra}))  #!#
@@ -852,6 +858,7 @@ function new_prompt_confirmf
 		[UuMm]) 	return 197;;  #multiline
 		[w]) 		return 196;;  #whisper off
 		[WA]) 		return 195;;  #whisper append
+		[Yy]) 		return 194;;  #whisper retry request
 		[NnOo]) 	unset REC_OUT ;return 1;;  #no
 	esac  #yes
 }
@@ -1032,8 +1039,11 @@ function pick_modelf
 function lastjsonf
 {
 	if [[ -s $FILE ]]
-	then 	jq "$@" . "$FILE" || cat "$@" -- "$FILE"
-	fi
+	then 	jq . "$FILE" 2>/dev/null || cat -- "$FILE";
+	elif typeset FILE="${FILE%.*}.2.${FILE##*.}"
+		[[ -s $FILE ]]
+	then 	! lastjsonf;
+	fi;
 }
 
 #set up context from history file ($HIST and $HIST_C)
@@ -1633,7 +1643,8 @@ function cmd_runf
 			[[ $* = ?([/!])url:* ]] && opt_append=1;  #append as user
 			set -- "$(trimf "$(trim_leadf "$*" '@(url|[/!]url)*(:)')" "$SPC")";
 			if var=$(set_browsercmdf)
-			then 	case "$var" in
+			then 	((OPTV)) || __printbf "${var%% *}";
+				case "$var" in
 				curl*|google-chrome*|chromium*)
 				    cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'";  #curl+sed
 				    ;;
@@ -2510,7 +2521,7 @@ function __set_langf
 #whisper
 function whisperf
 {
-	typeset file rec var pid ret;
+	typeset file rec var pid;
 	typeset -a args;
        	unset WHISPER_OUT;
 	
@@ -2590,7 +2601,7 @@ function whisperf
 	fi & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 
-	wait $pid; ret=$?; trap 'exit' INT; ((!ret)) &&
+	wait $pid; trap 'exit' INT; wait $pid &&  #check exit code
 	if WHISPER_OUT=$(jq -r "${JQDATE} if .segments then (.segments[] | \"[\(.start|seconds_to_time_string)]\" + (.text//empty)) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
 	then
@@ -3714,14 +3725,15 @@ function set_googleaif
 	}
 	function __promptf
 	{
-		typeset epn;
+		typeset epn ret;
 		epn='generateContent';
 		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
 		if curl "$@" --fail -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$BLOCK" | tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
 		then 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
-		else 	false;
+		else 	ret=$?; [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE";
+			return $ret;
 		fi
 	}
 	function embedf
@@ -4541,17 +4553,23 @@ else
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0
 					[[ ${REPLY: ind} = */ ]]  #preview / regen cmds
 				then
-					((RETRY)) && [[ $REPLY_OLD != "$REPLY" ]] && 
-					  prev_tohistf "$(escapef "$REPLY_OLD")"
+					((RETRY)) && [[ $REPLY_OLD != "$REPLY" ]] &&
+					  prev_tohistf "$(escapef "$REPLY_OLD")"; RETRY=1;
 					if [[ $REPLY = *([$IFS])/* ]]
 					then 	((MAIN_LOOP)) || [[ ! -s $FILECHAT ]] || REPLY_OLD=$(grep_usr_lastlinef);
-						REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration
-					fi
+						REPLY="${REPLY_OLD:-$REPLY}"  #regen cmd integration  #?#is this clause still useful?
+					fi;
 					if [[ $REPLY = */*([$IFS]) ]]
-					then 	REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n])')
-						printf '\n%s\n' '--- preview ---' >&2
-					fi
-					REPLY_OLD=$REPLY RETRY=1 BCYAN="${Color8}"
+					then 	#check if last arg is a url or a directory
+						var=$(trim_leadf "$(trim_trailf "${REPLY: ind}" "$SPC")" $'*[ \t\n]')  #C#
+						if { _is_linkf "$var" && ! _is_imagef "$var" && ! _is_videof "$var" && [[ $var != *\/\/ ]] ;} ||
+							{ [[ -d $var ]] && [[ $var != \/ ]] ;}
+						then 	unset RETRY;
+						else 	printf '\n%s\n' '--- preview ---' >&2;
+						fi
+						((RETRY)) && REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n])');  #del one trailing slash
+					fi;
+					((RETRY)) && REPLY_OLD=$REPLY BCYAN="${Color8}"; unset var;
 				elif [[ -n $REPLY ]]
 				then
 					((RETRY+OPTV)) || [[ $REPLY = $SPC:* ]] \
@@ -4572,6 +4590,7 @@ else
 						196) 	WSKIP=1 EDIT=1 OPTW= ; continue 2;;  #whisper off
 						195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY; ((OPTW)) || cmd_runf -ww;
 							printf '\n%s\n' '--- whisper append ---' >&2; continue;;  #whisper append
+						194) 	cmd_runf /resubmit; set --; continue 2;;  #whisper retry request
 						0) 	:;;  #yes
 						*) 	unset REPLY; set -- ;break;;  #no
 					esac
@@ -4642,8 +4661,8 @@ else
 
 		((${#}<2)) || set -- "$*";
 		#basic text and pdf file, and text url dumps
-		if ((${#1}>256)) && var=${1: ${#1}-256} || var=
-			var=$(trim_leadf "$(trim_trailf "${var:-$1}" "$SPC")" $'*[ \t\n]')
+		if ((${#1}>320)) && var=${1: ${#1}-320} || unset var
+			var=$(trim_leadf "$(trim_trailf "${var:-$1}" "$SPC")" $'*[ \t\n]')  #C#
 			is_txtfilef "$var" || is_pdff "$var" || { _is_linkf "$var" && ! _is_imagef "$var" && ! _is_videof "$var" ;}
 		then
 			var=$(cmd_runf /cat"$var"; printf '%s\n' "$REPLY";
@@ -4652,8 +4671,9 @@ else
 			  exit 0;
 			); ret=$?;  #get the exit signal
 			[[ -n $var ]] && {
-			  { [[ $1 = */ ]] && ((RETRY)) ;} || RETRY= BCYAN="${Color9}";  #fix: retry mode only if there is second trailing slash
-			  set -- "${*}${NL}${NL}${var}"; REPLY="${REPLY}${NL}${NL}${var}"; REC_OUT="${Q_TYPE##$SPC1}${*}";  # \n\n### Attached File Content:\n\n
+			  set -- "${*}${NL}${NL}${var}";
+			  REPLY="${REPLY}${NL}${NL}${var}" REC_OUT="${Q_TYPE##$SPC1}${*}";
+			  ((RETRY)) && REPLY_OLD="$REPLY";
 			  case "$ret" in
 			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=1; set --; continue 1;;  #edit in text editor
 			    199) SKIP=1 EDIT=1; set --; continue 1;;  #edit in bash readline
@@ -4810,7 +4830,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 		((OLLAMA)) && API_HOST=$api_host;
 		unset buff api_host;
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
-		(( (RET_PRF>120 && !STREAM) || RETRY==1)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B#
+		(( (RET_PRF>120 && !STREAM) || (!RET_PRF && RETRY==1) )) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B#
 		((RET_PRF>120)) && INT_RES='#'; REPLY_OLD="${REPLY:-$*}";
 
 		#record to hist file
@@ -4887,7 +4907,8 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			unset HIST_TIME BREAK_SET
 		elif ((MTURN))
 		then
-			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP REGEN INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND;
+			((RETRY)) && BCYAN="${Color9}";
+			BAD_RES=1 SKIP=1 EDIT=1; unset CKSUM_OLD PSKIP JUMP REGEN RETRY INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND;
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi;

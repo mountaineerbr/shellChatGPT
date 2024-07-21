@@ -123,7 +123,7 @@ _chatgpt.sh()
     {-b,--best-of}'[Best-of]:best-of -- [integer]' \
     {-B,--logprobs}'[Log probabilities]:log-probs -- [integer]' \
     {-K,--top-k}'[Top_k value]:top_k -- [integer]' \
-    {--keep-alive,--ka}'[Keep-alive seconds]:keep-alive -- [integer]' \
+    {--ka,--keep-alive}'[Keep-alive seconds]:keep-alive -- [integer]' \
     {-m+,--model}'[Set language model]:model name:__mod_listf' \
     '--multimodal[Enable multimodal mode]' \
     {-n,--results}'[Number of results]:results -- [integer]' \
