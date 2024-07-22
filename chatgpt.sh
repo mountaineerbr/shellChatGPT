@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.65.4  jul/2024  by mountaineerbr  GPL+3
+# v0.66  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3590,17 +3590,17 @@ function session_mainf
 		_cmdmsgf 'Session' "$msg ${break:+ + session break}"
 
 		#break session?
-		if ((OPTRESUME==1))  #print snippet of tail session
-		then 	((break)) || OPTPRINT=1 session_sub_printf "${file:-$FILECHAT}" >/dev/null
-		else
-		  [[ -f "$file" ]] &&
-		    if ((break))  || {
-			_sysmsgf 'Break session?' '[N/ys] ' ''
-			case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
-			}
-		    then 	FILECHAT="$file" cmd_runf /break;
-		    		FILECHAT="$file" _break_sessionf;
-				unset BREAK_SET MAIN_LOOP TOTAL_OLD MAX_PREV;
+		if [[ -f "${file:-$FILECHAT}" ]]
+		then
+		    if ((OPTRESUME!=1)) && {  ((break)) || {
+		        _sysmsgf 'Break session?' '[N/ys] ' ''
+		        case "$(__read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
+		        } ;}
+		    then  FILECHAT="${file:-$FILECHAT}" cmd_runf /break;
+		          unset MAIN_LOOP TOTAL_OLD MAX_PREV;
+		    else  #print snippet of tail session
+		          [[ ${file:-$FILECHAT} = "$FILECHAT" ]] || ((BREAK_SET+break)) ||
+		            OPTPRINT=1 session_sub_printf "${file:-$FILECHAT}" >/dev/null
 		    fi
 		fi
 	fi
@@ -3813,7 +3813,7 @@ function set_googleaif
 
 unset OPTMM STOPS MAIN_LOOP
 #parse opts
-optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
+optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"  #jDIJPQTX
 while getopts "$optstring" opt
 do
 	case "$opt" in -)  #long options
@@ -4425,7 +4425,7 @@ else
 	elif cmd_runf "$@"
 	then 	set -- ;
 	else  #print session context?
-		if ((OPTRESUME)) && ((OPTV<2)) && [[ -s $FILECHAT ]]
+		if ((OPTRESUME==1)) && ((OPTV<2)) && [[ -s $FILECHAT ]]
 		then 	OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
 		fi
 	fi
