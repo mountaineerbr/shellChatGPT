@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.66 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.66.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.66 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.66.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -793,7 +793,7 @@ flush.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-HH</code></td>
-<td style="text-align: left;"><code>!req</code></td>
+<td style="text-align: left;"><code>-P</code>, <code>!print</code></td>
 <td>Print session history (see <code>option -V</code>).</td>
 </tr>
 <tr class="odd">
@@ -1483,10 +1483,12 @@ translated to the target LANG.</p>
 <dt><strong>-HH</strong>, <strong>-HHH</strong>
 [<code>/</code><em>HIST_FILE</em>]</dt>
 <dd>
-<p>Pretty print last history session to stdout.</p>
+<p>Print out last history session to stdout.</p>
 <p>Heeds <code>options -ccdrR</code> to print with the specified restart
 and start sequences.</p>
 <p>Set thrice to print commented out hist entries, inclusive.</p>
+<p>These have aliases as <strong>-P</strong> and <strong>-PP</strong>,
+respectively.</p>
 </dd>
 <dt><strong>-k</strong>, <strong>--no-colour</strong></dt>
 <dd>
@@ -1546,12 +1548,9 @@ and start sequences.</p>
 <dd>
 <p>May be set multiple times.</p>
 </dd>
-</dl>
-<p><strong>-V</strong></p>
-<dl>
-<dt><strong>-VV</strong></dt>
+<dt><strong>-V</strong>, <strong>-VV</strong></dt>
 <dd>
-<p>Pretty-print context before request.</p>
+<p>Pretty-print all context before request.</p>
 <p>Set twice to dump raw request block (debug).</p>
 </dd>
 <dt><strong>-x</strong>, <strong>--editor</strong></dt>

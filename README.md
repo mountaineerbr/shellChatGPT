@@ -215,6 +215,18 @@ the correct session from the history file.
 -->
 
 
+Print out last session, optionally set the history name:
+
+    chatgpt.sh -P
+
+    chatgpt.sh -P /test
+
+
+<!-- Mind that `option -P` heads `-ccdrR`! -->
+
+<!-- The same as `chatgpt.sh -HH` -->
+
+
 #### Vision Models (GPT-4-Vision)
 
 To send an `image` / `url` to vision models, start the script and then either

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.66 \| General Commands Manual
+title: CHATGPT.SH(1) v0.66.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -382,7 +382,7 @@ or “`/`”.
 | Session | Management                             |                                                            |
 |:--------|:---------------------------------------|------------------------------------------------------------|
 | `-H`    | `!hist`                                | Edit history in editor.                                    |
-| `-HH`   | `!req`                                 | Print session history (see `option -V`).                   |
+| `-HH`   | `-P`, `!print`                         | Print session history (see `option -V`).                   |
 | `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                          |
 | `!br`   | `!break`, `!new`                       | Start new session (session break).                         |
 | `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*,                     |
@@ -967,12 +967,14 @@ Edit history file with text editor or pipe to stdout.
 A history file name can be optionally set as argument.
 
 **-HH**, **-HHH** \[`/`*HIST_FILE*\]  
-Pretty print last history session to stdout.
+Print out last history session to stdout.
 
 Heeds `options -ccdrR` to print with the specified restart and start
 sequences.
 
 Set thrice to print commented out hist entries, inclusive.
+
+These have aliases as **-P** and **-PP**, respectively.
 
 **-k**, **--no-colour**  
 Disable colour output. Def=*auto*.
@@ -1015,10 +1017,8 @@ Sleep after response in voice chat (`-vvccw`).
 
 May be set multiple times.
 
-**-V**
-
-**-VV**  
-Pretty-print context before request.
+**-V**, **-VV**  
+Pretty-print all context before request.
 
 Set twice to dump raw request block (debug).
 

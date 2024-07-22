@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.66 | General Commands Manual
+% CHATGPT.SH(1) v0.66.1 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -382,7 +382,7 @@ may be either "`!`", or "`/`".
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
       `-H`    `!hist`                                  Edit history in editor.
-     `-HH`    `!req`                                   Print session history (see `option -V`).
+     `-HH`    `-P`, `!print`                           Print session history (see `option -V`).
       `-L`    `!log`       \[_FILEPATH_]               Save to log file.
      `!br`    `!break`, `!new`                         Start new session (session break).
      `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
@@ -1120,11 +1120,13 @@ with history, so avoid it.
 
 **-HH**, **-HHH**   \[`/`_HIST_FILE_]
 
-:     Pretty print last history session to stdout.
+:     Print out last history session to stdout.
       
       Heeds `options -ccdrR` to print with the specified restart and start sequences.
 
       Set thrice to print commented out hist entries, inclusive.
+
+      These have aliases as **-P** and **-PP**, respectively.
 
 
 **-k**, **\--no-colour**
@@ -1192,11 +1194,9 @@ with history, so avoid it.
 :     May be set multiple times.
 
 
-**-V**
+**-V**, **-VV**
 
-**-VV**
-
-:     Pretty-print context before request.
+:     Pretty-print all context before request.
       
       Set twice to dump raw request block (debug).
 

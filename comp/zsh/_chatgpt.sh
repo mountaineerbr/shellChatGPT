@@ -159,7 +159,7 @@ _chatgpt.sh()
     {--fold,--no-fold}'[Response folding on/off]' \
     {-h,--help}'[Print help page]' \
     {-H,--hist}'[Edit history file]' \
-    {-HH,-HHH}'[Print last session from history]' \
+    {-HH,-HHH,-P,-PP,--print}'[Print out last session from history]' \
     {-k,--no-colour}'[Disable color output]' \
     {-l,--list-models}'[List models]:model name (optional)' \
     {-L,--log}'[Log file]:log filepath:_files' \

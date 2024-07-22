@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.66  jul/2024  by mountaineerbr  GPL+3
+# v0.66.1  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -364,7 +364,7 @@ Chat Commands
         -      !multimodal       Toggle model as multimodal.
     --- Session Management ----------------------------------------
        -H      !hist             Edit raw history file in editor.
-      -HH      !req              Print session history (see -V).
+      -HH      -P, !print        Print session history (see -V).
        -L      !log  [FILEPATH]  Save to log file (pretty-print).
       !br      !break, !new      Start new session (session break).
       !ls      !list    [GLOB]   List History files with name glob,
@@ -510,8 +510,8 @@ Options
 	-H, --hist  [/HIST_FILE]
 		Edit history file with text editor or pipe to stdout.
 		A hist file name can be optionally set as argument.
-	-HH, -HHH  [/HIST_FILE]
-		Pretty print last history session to stdout (set twice).
+	-HH, -HHH  [/HIST_FILE]  (alias -P and -PP)
+		Print out last history session to stdout (set twice).
 		Set thrice to print commented out hist entries, too.
 		Heeds -ccdrR to print the specified (re-)start seqs.
 	-k, --no-colour
@@ -540,7 +540,7 @@ Options
 	-v, --verbose
 		Less verbose. Sleep after response in voice chat (-vvccw).
 		May be set multiple times.
-	-V 	Pretty-print context before request.
+	-V 	Pretty-print all context before request.
 	-VV 	Dump raw request block to stderr (debug).
 	-x, --editor
 		Edit prompt in text editor.
@@ -1413,7 +1413,7 @@ function set_maxtknf
 function set_mdcmdf
 {
 	typeset cmd; unset MD_CMD_UNBUFF;
-	set -- "$(trimf "$*" "$SPC")";
+	set -- "$(trimf "${*:-$MD_CMD}" "$SPC")";
 
 	if ! command -v "${1%% *}" &>/dev/null
 	then 	for cmd in "bat" "pygmentize" "glow" "mdcat" "mdless"
@@ -1442,10 +1442,11 @@ function set_mdcmdf
 			command -v "${1%% *}" &>/dev/null || return 1;
 			eval "function mdf { 	$* \"\$@\" ;}";
 			;;
-	esac;
+	esac; MD_CMD="${1%% *}";
 	#turn off folding for some software
 	case "$1" in mdless*|less*|bat?*|cat*) OPTFOLD=1; cmd_runf /fold;; esac;
 }
+function mdf { 	cat ;}
 
 #set a terminal web browser
 function set_browsercmdf
@@ -1561,14 +1562,19 @@ function cmd_runf
 			__edf "$FILECHAT"
 			unset CKSUM_OLD; xskip=1
 			;;
-		-HH|-HHH*|HH|HHH*|request|req)
+		-HH|-HHH*|HH|HHH*|request|req|print)
 			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
 			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
 			  MOD= OLLAMA= HERR= TKN_PREV= MAX_PREV= set_histf
 			var=$( usr_logf "$(unescapef "$HIST")" )
-			printf "\\n---\\n%s\\n---\\n" "$var" >&2
+			if ((OPTMD))
+			then 	set_mdcmdf "$MD_CMD";
+				mdf <<<"$var" >&2 2>/dev/null;
+			else 	printf "\\n---\\n%s\\n---\\n" "$var" >&2;
+			fi
 			((OPTCLIP)) && ${CLIP_CMD:-false} <<<"$var" && echo 'Clipboard set!' >&2
 			;;
+		-P|P) 	cmd_runf -HHH;; -PP|PP) 	cmd_runf -HH;;
 		j|jump)
 			__cmdmsgf 'Jump:' 'append response primer'
 			JUMP=1 REPLY=
@@ -1626,8 +1632,9 @@ function cmd_runf
 			set -- "${*##@(markdown|md)$SPC}"
 			((OPTMD)) && [[ $1 != $SPC ]] && OPTMD= ;
 			if ((++OPTMD)); ((OPTMD%=2))
-			then 	set_mdcmdf "${1:-$MD_CMD}"; MD_CMD=${1:-$MD_CMD} xskip=1;
-				__sysmsgf 'MD Cmd:' "$(trimf "$(declare -f mdf | sed 's/[\t ][\t ]*/ /g;1d;2d;$d' | tr -d '\n')" "$SPC")"
+			then 	MD_CMD=${1:-$MD_CMD} xskip=1;
+				set_mdcmdf "$MD_CMD";
+				__sysmsgf 'MD Cmd:' "$MD_CMD"
 			fi;
 			__cmdmsgf 'Markdown' $(_onoff $OPTMD);
 			((OPTMD)) || unset OPTMD;
@@ -3599,7 +3606,7 @@ function session_mainf
 		    then  FILECHAT="${file:-$FILECHAT}" cmd_runf /break;
 		          unset MAIN_LOOP TOTAL_OLD MAX_PREV;
 		    else  #print snippet of tail session
-		          [[ ${file:-$FILECHAT} = "$FILECHAT" ]] || ((BREAK_SET+break)) ||
+		          [[ ${file:-$FILECHAT} = "$FILECHAT" ]] || ((OPTV+BREAK_SET+break)) ||
 		            OPTPRINT=1 session_sub_printf "${file:-$FILECHAT}" >/dev/null
 		    fi
 		fi
@@ -3813,7 +3820,7 @@ function set_googleaif
 
 unset OPTMM STOPS MAIN_LOOP
 #parse opts
-optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"  #jDIJPQTX
+optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"  #jDIJQTX
 while getopts "$optstring" opt
 do
 	case "$opt" in -)  #long options
@@ -3830,7 +3837,7 @@ m:mod  n:results  o:clipboard  o:clip  O:ollama  p:top-p  p:topp  q:insert \
 r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
 u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
-w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  #opt:long_name
+w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  #opt:long_name
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -3899,6 +3906,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  #opt:long_name
 			printf '%s\n' "$REPLY" "$HELP"
 			exit;;
 		H) 	((++OPTHH));;
+		P) 	((OPTHH)) && ((++OPTHH)) || OPTHH=2;;
 		i) 	OPTI=1 EPN=3;;
 		keep-alive)
 			if [[ $OPTARG != @(keep-alive|ka) ]]
