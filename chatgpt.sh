@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.66.3  jul/2024  by mountaineerbr  GPL+3
+# v0.66.4  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1573,7 +1573,7 @@ function cmd_runf
 			fi
 			((OPTCLIP)) && ${CLIP_CMD:-false} <<<"$var" && echo 'Clipboard set!' >&2
 			;;
-		-P|P) 	cmd_runf -HH;; -PP|PP) 	cmd_runf -HHH;;
+		-P|P) 	cmd_runf -HH;; -PP*|PP*) 	cmd_runf -HHH;;
 		j|jump)
 			__cmdmsgf 'Jump:' 'append response primer'
 			JUMP=1 REPLY=
