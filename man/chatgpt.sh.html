@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.65.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.65.4 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.65.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.65.4 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -803,8 +803,8 @@ flush.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!br</code></td>
-<td style="text-align: left;"><code>!new</code>,
-<code>!break</code></td>
+<td style="text-align: left;"><code>!break</code>,
+<code>!new</code></td>
 <td>Start new session (session break).</td>
 </tr>
 <tr class="odd">
@@ -876,6 +876,9 @@ operator forward slash followed by a history file name, the command
 <p>A history file can contain many sessions. The last one (the tail
 session) is always loaded if the resume <code>option -C</code> is
 set.</p>
+<p>To copy a previous session, run <code>/sub</code>, or
+<code>/grep [regex]</code> to copy that session to tail and resume from
+it.</p>
 <p>If “<code>/copy</code> <em>current</em>” is run, a selector is shown
 to choose and copy a session to the tail of the current history file,
 and resume it. This is equivalent to running “<code>/fork</code>”.</p>

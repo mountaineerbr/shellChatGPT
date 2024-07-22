@@ -185,6 +185,8 @@ The command below starts a chat session, loads the "unix" instruction, and chang
 
 Load an older session from the current (defaults) history file.
 
+    chatgpt.sh -cc /sub
+
     chatgpt.sh -cc /.
 
     chatgpt.sh -cc /fork.
@@ -192,16 +194,25 @@ Load an older session from the current (defaults) history file.
     chatgpt.sh -cc "/fork current"
 
 
+In chat mode, simple run `!sub` or the equivalent command `!fork current`.
+
 To load an older session from a history file that is different from the defaults,
 there are some options.
 
-Change to it with command `!session [name]`. Optionally `!fork` the older session to the active session.
+Change to it with command `!session [name]`.
+
+To copy a previous session, run `/sub`, or `/grep [regex]` to load that
+session and resume from it.
+
+<!--
+Optionally `!fork` the older session to the active session.
 
 Or, `!copy [orign] [dest]` the session from a history file to the current one
 or any other history file.
 
 In these cases, a pickup interface should open to let the user choose
 the correct session from the history file.
+-->
 
 
 #### Vision Models (GPT-4-Vision)

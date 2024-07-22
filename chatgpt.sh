@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.65.3  jul/2024  by mountaineerbr  GPL+3
+# v0.65.4  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -366,14 +366,13 @@ Chat Commands
        -H      !hist             Edit raw history file in editor.
       -HH      !req              Print session history (see -V).
        -L      !log  [FILEPATH]  Save to log file (pretty-print).
-      !br      !new, !break      Start new session (session break).
+      !br      !break, !new      Start new session (session break).
       !ls      !list    [GLOB]   List History files with name glob,
                                  Prompts \`pr', Awesome \`awe', or all \`.'.
       !grep    !sub    [REGEX]   Search sessions and copy to tail.
        !c      !copy [SRC_HIST] [DEST_HIST]
                                  Copy session from source to destination.
-       !f      !fork [DEST_HIST]
-                                 Fork current session to destination.
+       !f      !fork [DEST_HIST] Fork current session to destination.
        !k      !kill     [NUM]   Comment out n last entries in hist file.
       !!k     !!kill  [[0]NUM]   Dry-run of command !kill.
        !s      !session [HIST_FILE]
@@ -1445,7 +1444,7 @@ function set_mdcmdf
 			;;
 	esac;
 	#turn off folding for some software
-	case "$1" in mdless*|less*|bat?*) OPTFOLD=1; cmd_runf /fold;; esac;
+	case "$1" in mdless*|less*|bat?*|cat*) OPTFOLD=1; cmd_runf /fold;; esac;
 }
 
 #set a terminal web browser

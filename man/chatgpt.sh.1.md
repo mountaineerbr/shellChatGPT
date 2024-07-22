@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.65.1 | General Commands Manual
+% CHATGPT.SH(1) v0.65.4 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -384,7 +384,7 @@ may be either "`!`", or "`/`".
       `-H`    `!hist`                                  Edit history in editor.
      `-HH`    `!req`                                   Print session history (see `option -V`).
       `-L`    `!log`       \[_FILEPATH_]               Save to log file.
-     `!br`    `!new`, `!break`                         Start new session (session break).
+     `!br`    `!break`, `!new`                         Start new session (session break).
      `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
                                                          Prompts "_pr_", Awesome "_awe_", or all files "_._".
    `!grep`    `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
@@ -414,6 +414,9 @@ the command `/session` is assumed.
 
 A history file can contain many sessions. The last one (the tail session)
 is always loaded if the resume `option -C` is set.
+
+To copy a previous session, run `/sub`, or `/grep [regex]` to copy that
+session to tail and resume from it.
 
 If "`/copy` _current_" is run, a selector is shown to choose and copy
 a session to the tail of the current history file, and resume it.
