@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.65 | General Commands Manual
+% CHATGPT.SH(1) v0.65.1 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -1170,7 +1170,7 @@ with history, so avoid it.
 : Set and make requests to Ollama server (cmpls/chat).
 
 
-**-u**, **\--multi**
+**-u**, **\--multiline**
 
 : Toggle multiline prompter, \<_CTRL-D_> flush.
 

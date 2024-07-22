@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.65  jul/2024  by mountaineerbr  GPL+3
+# v0.65.1  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -534,7 +534,7 @@ Options
 		Copy response to clipboard.
 	-O, --ollama
 		Set and request to Ollama server (cmpls/chat).
-	-u, --multi
+	-u, --multiline
 		Toggle multiline prompter, <CTRL-D> flush.
 	-U, --cat
 		Set cat prompter, <CTRL-D> flush.
@@ -3816,28 +3816,20 @@ optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ01234567
 while getopts "$optstring" opt
 do
 	if [[ $opt = - ]]  #long options
-	then 	for opt in api-key  multimodal  markdown  markdown:md  no-markdown \
-			no-markdown:no-md   fold  fold:wrap  no-fold  no-fold:no-wrap \
-			localai  localai:local-ai google google:goo  mistral  keep-alive \
-			keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
-			a:presence-penalty      a:presence   a:pre \
-			A:frequency-penalty     A:frequency  A:freq \
-			b:best-of   b:best      B:logprobs   c:chat \
-			C:resume    C:resume    C:continue   C:cont  d:text \
-			e:edit      E:exit      f:no-conf    g:stream \
-			G:no-stream h:help      H:hist       i:image \
-			'j:synthesi[sz]e'  j:synth 'J:synthesi[sz]e-voice' \
-			J:synth-voice  'k:no-colo*' K:top-k  K:topk  l:list-model \
-			l:list-models    L:log    m:model    m:mod  \
-			n:results   o:clipboard o:clip  O:ollama \
-			p:top-p  p:topp  q:insert  \
-			r:restart-sequence  r:restart-seq  r:restart \
-			R:start-sequence  R:start-seq  R:start \
-			s:stop      S:instruction  t:temperature \
-			t:temp      T:tiktoken   u:multiline  u:multi  U:cat \
-			v:verbose   x:editor     X:media  w:transcribe w:stt \
-			W:translate y:tik  Y:no-tik  z:tts  z:speech  Z:last
-			#opt:long_name
+	then 	for opt in api-key  multimodal  markdown  markdown:md  \
+no-markdown  no-markdown:no-md  fold  fold:wrap  no-fold  no-fold:no-wrap \
+localai  localai:local-ai  google google:goo  mistral  keep-alive \
+keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
+a:presence-penalty  a:presence  a:pre  A:frequency-penalty  A:frequency \
+A:freq  b:best-of  b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue \
+d:text  e:edit  E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist \
+i:image  'j:synthesi[sz]e'  j:synth  'J:synthesi[sz]e-voice'  J:synth-voice \
+'k:no-colo*'  K:top-k  K:topk  l:list-model  l:list-models  L:log  m:model \
+m:mod  n:results  o:clipboard  o:clip  O:ollama  p:top-p  p:topp  q:insert \
+r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
+R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
+u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
+w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  #opt:long_name
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -4560,7 +4552,7 @@ else
 					[[ ${REPLY: ind} = */ ]]  #preview (mind no trailing spaces)
 				then
 					((RETRY)) && [[ ${REPLY_CMD:-$REPLY_OLD} != "$REPLY" ]] &&
-					  prev_tohistf "$(escapef "$REPLY_OLD")";
+					  prev_tohistf "$(escapef "${REPLY_CMD:-$REPLY_OLD}")";
 					
 					#check whether last arg is url or directory
 					var=$(trim_leadf "$(trim_trailf "${REPLY: ind}" "$SPC")" $'*[ \t\n]')  #C#
@@ -4603,7 +4595,7 @@ else
 					then 	case "$REPLY" in "$REPLY_OLD"|"$REPLY_CMD")
 						 	RETRY=2 BCYAN="${Color9}";;
 						*) 	#record prev resp
-							prev_tohistf "$(escapef "$REPLY_CMD")";;
+							prev_tohistf "$(escapef "${REPLY_CMD:-$REPLY_OLD}")";;
 						esac; REPLY_OLD="$REPLY";
 					fi
 				else

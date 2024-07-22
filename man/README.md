@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.65 \| General Commands Manual
+title: CHATGPT.SH(1) v0.65.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -999,7 +999,7 @@ Copy response to clipboard.
 **-O**, **--ollama**  
 Set and make requests to Ollama server (cmpls/chat).
 
-**-u**, **--multi**  
+**-u**, **--multiline**  
 Toggle multiline prompter, \<*CTRL-D*\> flush.
 
 **-U**, **--cat**  
