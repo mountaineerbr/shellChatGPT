@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.66.1 | General Commands Manual
+% CHATGPT.SH(1) v0.66.2 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -21,8 +21,8 @@
 |    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[`whisper_arg`..] \-- \[`tts_arg`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_|_PDF_FILE_]
-|    **chatgpt.sh** `-HHH` \[`/`_HIST_FILE_|_._]
-|    **chatgpt.sh** `-HHw`
+|    **chatgpt.sh** `-HHPP` \[`/`_HIST_FILE_|_._]
+|    **chatgpt.sh** `-HHPw`
 
 
 ### DESCRIPTION
@@ -346,7 +346,7 @@ may be either "`!`", or "`/`".
       `-u`    `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
      `-uu`    `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
       `-U`    `-UU`                      Toggle cat prompter, or set one-shot. \<_CTRL-D_> flush.
-      `-V`    `!context`                 Print context before request (see `option -HH`).
+      `-V`    `!context`                 Print context before request (see `option -P`).
      `-VV`    `!debug`                   Dump raw request block and confirm.
       `-v`    `!ver`                     Toggle verbose modes.
       `-x`    `!ed`                      Toggle text editor interface.
@@ -382,7 +382,7 @@ may be either "`!`", or "`/`".
   Session     Management
   --------    -------------------------------------    -----------------------------------------------------------
       `-H`    `!hist`                                  Edit history in editor.
-     `-HH`    `-P`, `!print`                           Print session history (see `option -V`).
+      `-P`    `-HH`, `!print`                          Print session history (see `option -V`).
       `-L`    `!log`       \[_FILEPATH_]               Save to log file.
      `!br`    `!break`, `!new`                         Start new session (session break).
      `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
@@ -1118,15 +1118,14 @@ with history, so avoid it.
       A history file name can be optionally set as argument.
 
 
-**-HH**, **-HHH**   \[`/`_HIST_FILE_]
+**-P**, **-PP**   \[`/`_HIST_FILE_]
 
-:     Print out last history session to stdout.
+:     Print out last history session.
       
-      Heeds `options -ccdrR` to print with the specified restart and start sequences.
+      Set twice to print commented out history entries, inclusive.
+      Heeds `options -ccdrR`.
 
-      Set thrice to print commented out hist entries, inclusive.
-
-      These have aliases as **-P** and **-PP**, respectively.
+      These are aliased to **-HH** and **-HHH**, respectively.
 
 
 **-k**, **\--no-colour**

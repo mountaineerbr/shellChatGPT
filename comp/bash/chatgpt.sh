@@ -107,7 +107,7 @@ _chatgptsh()
         --fold --no-fold
         --google
         -h --help
-        -H --hist -HH -HHH -P -PP --print
+        -H --hist -HH -P -PP --print
         -k --no-colour
         -l --list-models
         -L --log

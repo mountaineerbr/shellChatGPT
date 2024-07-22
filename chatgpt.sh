@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.66.1  jul/2024  by mountaineerbr  GPL+3
+# v0.66.2  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -163,8 +163,8 @@ Synopsis
 	${0##*/} -ccWwz [opt..] -- [PROMPT] -- [whisper_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
-	${0##*/} -HHH [/HIST_FILE|.]
-	${0##*/} -HHw
+	${0##*/} -HHPP [/HIST_FILE|.]
+	${0##*/} -HHPw
 
 
 Description
@@ -334,7 +334,7 @@ Chat Commands
        -u      !multi            Toggle multiline, ctrl-d flush.
        -uu    !!multi            Multiline, one-shot, ctrl-d flush.
        -U      -UU               Toggle cat prompter, or set one-shot.
-       -V      !context          Print context before request (see -HH).
+       -V      !context          Print context before request (see -P).
        -VV     !debug            Dump raw request block and confirm.
        -v      !ver              Toggle verbose modes.
        -x      !ed               Toggle text editor interface.
@@ -364,7 +364,7 @@ Chat Commands
         -      !multimodal       Toggle model as multimodal.
     --- Session Management ----------------------------------------
        -H      !hist             Edit raw history file in editor.
-      -HH      -P, !print        Print session history (see -V).
+       -P      -HH, !print       Print session history (see -V).
        -L      !log  [FILEPATH]  Save to log file (pretty-print).
       !br      !break, !new      Start new session (session break).
       !ls      !list    [GLOB]   List History files with name glob,
@@ -510,10 +510,9 @@ Options
 	-H, --hist  [/HIST_FILE]
 		Edit history file with text editor or pipe to stdout.
 		A hist file name can be optionally set as argument.
-	-HH, -HHH  [/HIST_FILE]  (alias -P and -PP)
-		Print out last history session to stdout (set twice).
-		Set thrice to print commented out hist entries, too.
-		Heeds -ccdrR to print the specified (re-)start seqs.
+	-P, -PP  [/HIST_FILE]    (aliased to -HH and -HHH)
+		Print out last history session. Set twice to print
+		commented out entries, too. Heeds -ccdrR.
 	-k, --no-colour
 		Disable colour output. Def=auto.
 	-l, --list-models  [MOD]
