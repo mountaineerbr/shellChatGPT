@@ -510,7 +510,7 @@ Options
 	-H, --hist  [/HIST_FILE]
 		Edit history file with text editor or pipe to stdout.
 		A hist file name can be optionally set as argument.
-	-P, -PP  [/HIST_FILE]    (aliased to -HH and -HHH)
+	-P, -PP, --print  [/HIST_FILE]    (aliases to -HH and -HHH)
 		Print out last history session. Set twice to print
 		commented out entries, too. Heeds -ccdrR.
 	-k, --no-colour

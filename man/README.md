@@ -966,13 +966,13 @@ Edit history file with text editor or pipe to stdout.
 
 A history file name can be optionally set as argument.
 
-**-P**, **-PP** \[`/`*HIST_FILE*\]  
+**-P**, **-PP**, **--print** \[`/`*HIST_FILE*\]  
 Print out last history session.
 
 Set twice to print commented out history entries, inclusive. Heeds
 `options -ccdrR`.
 
-These are aliased to **-HH** and **-HHH**, respectively.
+These are aliases to **-HH** and **-HHH**, respectively.
 
 **-k**, **--no-colour**  
 Disable colour output. Def=*auto*.

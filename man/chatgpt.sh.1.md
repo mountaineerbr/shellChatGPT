@@ -1118,14 +1118,14 @@ with history, so avoid it.
       A history file name can be optionally set as argument.
 
 
-**-P**, **-PP**   \[`/`_HIST_FILE_]
+**-P**, **-PP**, **\--print**   \[`/`_HIST_FILE_]
 
 :     Print out last history session.
       
       Set twice to print commented out history entries, inclusive.
       Heeds `options -ccdrR`.
 
-      These are aliased to **-HH** and **-HHH**, respectively.
+      These are aliases to **-HH** and **-HHH**, respectively.
 
 
 **-k**, **\--no-colour**
