@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.65.1  jul/2024  by mountaineerbr  GPL+3
+# v0.65.2  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3815,8 +3815,8 @@ unset OPTMM STOPS MAIN_LOOP
 optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:qr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
 do
-	if [[ $opt = - ]]  #long options
-	then 	for opt in api-key  multimodal  markdown  markdown:md  \
+	case "$opt" in -)  #long options
+		for opt in api-key  multimodal  markdown  markdown:md  \
 no-markdown  no-markdown:no-md  fold  fold:wrap  no-fold  no-fold:no-wrap \
 localai  localai:local-ai  google google:goo  mistral  keep-alive \
 keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
@@ -3850,8 +3850,8 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  #opt:long_name
 				;;
 			*) 	__warmsgf "Unkown option:" "--$OPTARG"
 				exit 2;;
-		esac ;unset name
-	fi
+		esac; unset name;;
+	esac
 	fix_dotf OPTARG
 
 	case "$opt" in
