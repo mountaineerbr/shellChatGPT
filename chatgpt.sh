@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.66.4  jul/2024  by mountaineerbr  GPL+3
+# v0.67  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -36,6 +36,8 @@ STREAM=1
 #OPTCTRD=
 # Temperature
 #OPTT=
+# Whisper temperature
+OPTTW=0
 # Top_p probability mass (nucleus sampling)
 #OPTP=1
 # Maximum response tokens
@@ -443,7 +445,7 @@ Options
 		Set an instruction prompt. It may be a text file.
 	-t, --temperature  [VAL]
 		Set temperature value (cmpls/chat/whisper),
-		(0.0 - 2.0, whisper 0.0 - 1.0). Def=${OPTT:-0}.
+		Def=${OPTT:-0} (0.0 - 2.0), Whisper=${OPTTW:-0} (0.0 - 1.0).
 
 	Script Modes
 	-c, --chat
@@ -985,7 +987,7 @@ function prompt_imgprintf
 
 function prompt_audiof
 {
-	((OPTVV)) && __warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTT:-unset}${*:+,  }${*}" >&2
+	((OPTVV)) && __warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTTW:-${OPTT:-unset}}${*:+,  }${*}" >&2
 
 	curl -\# ${OPTV:+-Ss} --fail -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
@@ -993,7 +995,7 @@ function prompt_audiof
 		-H 'Content-Type: multipart/form-data' \
 		-F file="@$1" \
 		-F model="${MOD_AUDIO}" \
-		-F temperature="$OPTT" \
+		-F temperature="${OPTTW:-$OPTT}" \
 		-o "$FILE" \
 		"${@:2}" && {
 	  [[ -d $CACHEDIR ]] && printf '%s\n\n' "$(<"$FILE")" >> "$FILEWHISPER";
@@ -2534,9 +2536,9 @@ function whisperf
        	unset WHISPER_OUT;
 	
 	if ((!(CHAT_ENV+MTURN) ))
-	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "$OPTT";
+	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "${OPTTW:-$OPTT}";
 	fi;
-	check_optrangef "$OPTT" 0 1.0 Temperature
+	check_optrangef "${OPTTW:-$OPTT}" 0 1.0 Temperature
 	set_model_epnf "$MOD_AUDIO"
 	
 	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
@@ -3890,7 +3892,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  #opt:long
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -3953,7 +3955,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  #opt:long
 			then 	INSTRUCTION="${opt##S}$(<"$OPTARG")"
 			else 	INSTRUCTION="${opt##S}$OPTARG"
 			fi;;
-		t) 	OPTT="$OPTARG";;
+		t) 	OPTT="$OPTARG" OPTTARG="$OPTARG";;
 		T) 	((++OPTTIKTOKEN));;
 		u) 	((OPTCTRD)) && unset OPTCTRD || OPTCTRD=1
 			__cmdmsgf 'Prompter <Ctrl-D>' $(_onoff $OPTCTRD);;
@@ -4293,11 +4295,12 @@ then
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then
 	[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
-	if [[ $1 = @(.|last) ]] && [[ -s $FILEINW ]]
+	if [[ $1 = @(.|last|retry) ]] && [[ -s $FILEINW ]]
 	then 	set -- "$FILEINW" "${@:2}";
-	elif ((${#} >1)) && [[ ${@:${#}} = @(.|last) ]] && [[ -s $FILEINW ]]
+	elif ((${#} >1)) && [[ ${@:${#}} = @(.|last|retry) ]] && [[ -s $FILEINW ]]
 	then 	set -- "$FILEINW" "${@:1:${#}-1}";
 	fi
+	((${#OPTTARG})) && OPTTW=$OPTTARG;
 	whisperf "$@" &&
 	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
@@ -4512,7 +4515,7 @@ else
 					case $? in
 						0) 	if ((RESUBW)) || recordf "$FILEINW"
 							then 	REPLY=$(
-								set --; MOD=$MOD_AUDIO OPTT=0 JQCOL= JQCOL2= ;
+								set --; MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2= ;
 								[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
 								whisperf "$FILEINW" "$@";
 							)
