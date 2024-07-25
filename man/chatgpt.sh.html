@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.67.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.67.8 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.67.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.67.8 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -1227,12 +1227,12 @@ input (Whisper)</li>
 <li><code>dialog</code>/<code>kdialog</code>/<code>zenity</code>/<code>osascript</code>/<code>termux-dialog</code>
 - File picker</li>
 </ul>
-<h3 id="bugs-and-limits">BUGS AND LIMITS</h3>
-<p>The script objective is to implement most features of OpenAI API
-version 1 but not all endpoints, or options will be covered.</p>
+<h3 id="bugs">BUGS</h3>
 <p>Bash “read command” may not correctly display input buffers larger
 than the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.</p>
+<p>File paths containing spaces may not work correctly with some script
+features.</p>
 <p>Bash truncates input on “\000” (null).</p>
 <p>Garbage in, garbage out. An idiot savant.</p>
 <!-- NOT ANYMORE
@@ -1260,6 +1260,9 @@ cursor one char and press the up arrow key.
 `Ksh2020` lacks functionality compared to `Ksh83u+`, such as `read`
 with history, so avoid it.
 -->
+<h3 id="limits">LIMITS</h3>
+<p>The script objective is to implement most features of OpenAI API
+version 1 but not all endpoints, or options will be covered.</p>
 <h3 id="options">OPTIONS</h3>
 <h4 id="model-settings">Model Settings</h4>
 <dl>

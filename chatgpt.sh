@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.7  jul/2024  by mountaineerbr  GPL+3
+# v0.67.8  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4849,7 +4849,7 @@ else
 					((RETRY==1)) && REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n/])') REPLY_OLD=$REPLY BCYAN=${Color8};
 				elif case "${REPLY: ind}" in *?[/!]pick|*?[/!]p) 	:;; *) 	false;; esac;
 				then
-					cmd_runf /pick "$(trim_trailf "$REPLY" "$SPC[/!]pick")";
+					cmd_runf /pick "$(trim_trailf "$REPLY" "$SPC[/!]@(pick|p)")";
 					set --; continue 2;
 				elif ((${#REPLY}))
 				then

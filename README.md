@@ -886,7 +886,7 @@ Zsh cannot read/load a history file in non-interactive mode,
 so only commands of the running session are available for retrieval in
 new prompts (with the up-arrow key).
 
-See [BUGS](https://github.com/mountaineerbr/shellChatGPT/tree/main/man#bugs-and-limits)
+See [BUGS](https://github.com/mountaineerbr/shellChatGPT/tree/main/man#bugs)
 in the man page.
 -->
 <!-- [Ksh93u+](https://github.com/ksh93/ksh) (~~_avoid_ Ksh2020~~), -->
@@ -1002,7 +1002,7 @@ _see_ [tkn-cnt.py](https://github.com/mountaineerbr/scripts/blob/main/tkn-cnt.py
 - OpenAI **API version 1** is the focus of the present project implementation.
 Not all features of the API will be covered.
 
-- See _BUGS AND LIMITS_ section in the [man page](man/README.md).
+- See _BUGS AND LIMITS_ section in the [man page](man/README.md#bugs).
 
 - Bash shell truncates input on `\000` (null).
 

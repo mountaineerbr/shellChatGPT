@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.67.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.67.8 \| General Commands Manual
 ---
 
 ### NAME
@@ -752,14 +752,14 @@ Optional packages for specific features.
 - `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
 
-### BUGS AND LIMITS
-
-The script objective is to implement most features of OpenAI API version
-1 but not all endpoints, or options will be covered.
+### BUGS
 
 Bash “read command” may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
+
+File paths containing spaces may not work correctly with some script
+features.
 
 Bash truncates input on “\000” (null).
 
@@ -788,6 +788,11 @@ cursor one char and press the up arrow key.
 &#10;`Ksh2020` lacks functionality compared to `Ksh83u+`, such as `read`
 with history, so avoid it.
 -->
+
+### LIMITS
+
+The script objective is to implement most features of OpenAI API version
+1 but not all endpoints, or options will be covered.
 
 ### OPTIONS
 
