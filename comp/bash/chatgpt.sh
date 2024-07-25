@@ -126,6 +126,7 @@ _chatgptsh()
         -Y --no-tik
         -z --tts
         -Z --last
+	--version
   "
 
 

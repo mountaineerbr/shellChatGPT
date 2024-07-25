@@ -181,6 +181,7 @@ _chatgpt.sh()
     {-Y,--no-tik}'[Unset tiktoken for chat]' \
     {-z,--tts}'[Synthesize speech]' \
     {-Z,--last}'[Dump last response JSON]' \
+    --version'[Print script version]' \
     '1:session/file:__session_or_pr_listf' '*:file:_files'
     #-{0..9}'[Maximum response tokens]:max response -- integer [0-9]' \
 }

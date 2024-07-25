@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.4  jul/2024  by mountaineerbr  GPL+3
+# v0.67.5  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2334,19 +2334,42 @@ function __set_fpick
 
 function _dialog_pickf
 {
-	((${#TIPS_DIALOG})) && dialog --timeout 3 --backtitle "File Picker Tips" --begin 3 2 --msgbox "$TIPS_DIALOG" 14 40  >/dev/tty;
+	((${#TIPS_DIALOG})) && dialog --colors --timeout 3 --backtitle "File Picker Tips" --begin 3 2 --msgbox "$TIPS_DIALOG" 14 40  >/dev/tty;
 	dialog --help-button --backtitle "File Picker" --title "Please choose a file" --fselect "$1" 24 80  2>&1 >/dev/tty;
 	case $? in
-		2) 	dialog --backtitle "File Picker" --title "File Picker Help" --msgbox "$HELP_DIALOG" 28 58  2>&1 >/dev/tty;
+		2) 	dialog --colors --backtitle "File Picker" --title "File Picker Help" --msgbox "$HELP_DIALOG" 24 56  2>&1 >/dev/tty;
 			return 2;;
 		*) 	return;;
 	esac
 	#-1:error, 1:cancel, 2:help, 3:extra, 5:timeout, 255:ESC
 }
+#whiptail warp
+function whiptailf
+{
+	typeset arg args; args=();
+	for arg  #option check
+	do 	case "$arg" in
+		    [!-]*|-1|--backtitle|-button|--checklist|--clear|\
+		    --defaultno|--fb|--gauge|-height|--infobox|\
+		    --inputbox|-key|--menu|--msgbox|--nocancel|\
+		    --noitem|-options|--passwordbox|--radiolist|\
+		    --scrolltext|-string|--title|--topleft|--yesno)
+		        args=("${args[@]}" "${arg//\\Z[[:alnum:]]}");;
+		    #*) echo "whiptail: ignore option -- $arg" >&2;;
+		esac;
+	done;
+	whiptail "${args[@]}";
+}
 function test_dialogf
 {
 	((!NO_DIALOG)) || return; ((OK_DIALOG)) && return;
-	command -v dialog >/dev/null 2>&1 && OK_DIALOG=1;
+	if command -v dialog
+	then 	OK_DIALOG=1;
+	elif command -v whiptail
+	then 	function dialog { 	whiptailf "$@" ;};
+		OK_DIALOG=1;
+	else 	false;
+	fi >/dev/null 2>&1;
 }
 
 function _termux-dialog_pickf
@@ -2355,6 +2378,8 @@ function _termux-dialog_pickf
 		termux-dialog sheet -v"$(IFS=$'\t\n'; printf '%q,' .. $(_ls_pickf "$1") ..)." | jq -r .text;
 	)" | rmimpf;
 }
+#{ termux-storage-get || am start -a android.intent.action.OPEN_DOCUMENT -d /storage/emulated/0 -t '*/*' ;}
+#https://wiki.termux.com/wiki/Internal_and_external_storage
 function _ls_pickf
 {
 	shopt -s nullglob; 
@@ -2377,8 +2402,8 @@ function _kdialog_pickf { kdialog --getopenfilename "$1" 2>/dev/null ;}
 function _zenity_pickf { zenity --file-selection --filename="$1" --title="Select a File" 2>/dev/null ;}
 function _osascript_pickf { osascript -l JavaScript -e 'a=Application.currentApplication();a.includeStandardAdditions=true;a.chooseFile({withPrompt:"Please select a file:"}).toString()' ;}
 
-TIPS_DIALOG=$'\n- Navigation: Use TAB, SHIFT-TAB and ARROW KEYS.\n\n-Select: Press SPACE-BAR.\n\n- Mouse: CLICK to select and SPACE to complete.'
-HELP_DIALOG=$'\n- Move: Use TAB, SHIFT+TAB, or ARROW KEYS.\n\n- Scroll: Use UP and DOWN arrow keys in lists.\n\n- Select: Press SPACE to copy to text box.\n\n- Autocomplete: Type SPACE to complete names.\n\n- Confirm: Press ENTER or click "OK".\n\n\nHappy browsing!'
+TIPS_DIALOG='\n- \ZbNavigation:\ZB Use \ZbTAB\ZB, \ZbSHIFT-TAB\ZB and \ZbARROW KEYS\ZB.\n\n- \ZbSelect:\ZB Press \ZbSPACE-BAR\ZB.\n\n- \ZbMouse:\ZB \ZbCLICK\ZB to select and \ZbSPACE\ZB to complete.'
+HELP_DIALOG='\n- \ZbMove:\ZB Use \ZbTAB\ZB, \ZbSHIFT+TAB\ZB, or \ZbARROW KEYS\ZB.\n\n- \ZbScroll:\ZB Use \ZbUP and DOWN\ZB arrow keys in lists.\n\n- \ZbSelect:\ZB Press \ZbSPACE\ZB to copy to text box.\n\n- \ZbAutocomplete:\ZB Type \ZbSPACE\ZB to complete names.\n\n- \ZbConfirm:\ZB Press \ZbENTER\ZB or click "\ZbOK\ZB".\n\n\n\ZuHappy browsing!\ZU'
 
 #set media for ollama *generation endpoint*
 function ollama_mediaf
@@ -3574,7 +3599,7 @@ function session_name_choosef
 			if test_dialogf
 			then 	fname=$(dialog --backtitle "${item} manager" \
 				--title "new ${item} file" \
-				--inputbox "enter new ${item} name" 8 32  2>&1 >/dev/tty )
+				--inputbox "enter new ${item} name" 10 32  2>&1 >/dev/tty )
 				__clr_dialogf;
 			else
 				_sysmsgf "New ${item} name <enter/abort>:" \
@@ -3604,11 +3629,11 @@ function session_name_choosef
 		if [[ ! -e $fname ]]
 		then 	case "$fname" in *[N]ew.${sglob}) 	:;; *[Aa]bort.${sglob}|*[Cc]ancel.${sglob}|*[Ee]xit.${sglob}|*[Qq]uit.${sglob}) 	echo abort; echo abort >&2; return 201;; esac
 			if test_dialogf
-			then 	dialog --backtitle "${item} manager" \
+			then 	dialog --colors --backtitle "${item} manager" \
 				--title "confirm${new} ${item} file?" \
-				--yesno "\\n${print_name}" 8 46  >/dev/tty
+				--yesno "\\n\\n \\Zb${new:+\\Z1}${print_name}\\Zn" 10 $((${#print_name}+6))  >/dev/tty
 				case $? in
-					-1|1|5|255) var=abort;;  #cancel
+					-1|1|5|255) var=abort;;
 				esac;
 				__clr_dialogf;
 			else
