@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.2  jul/2024  by mountaineerbr  GPL+3
+# v0.67.3  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2371,8 +2371,8 @@ function __ls_pickf
 	[[ -d $file ]] || [[ -L $file ]] || printf '%s\n' "$file"; done;
 }
 function _nnn_pickf { nnn -p - "$1" ;}
-function _vifm_pickf { vifm --no-configs -c "set nosave" -c "only" --choose-files - "$1" ;}
-function _ranger_pickf { : >"$FILEFIFO"; ranger -c --choosefile="$FILEFIFO" "$1" >/dev/tty; cat -- "$FILEFIFO" ;}
+function _vifm_pickf { vifm --no-configs -c "set nosave" -c "only" -c "set mouse=a" --choose-files - "$1" ;}
+function _ranger_pickf { : >"$FILEFIFO"; ranger -c --cmd="set mouse_enabled true" --choosefile="$FILEFIFO" "$1" >/dev/tty; cat -- "$FILEFIFO" ;}
 function _kdialog_pickf { kdialog --getopenfilename "$1" 2>/dev/null ;}
 function _zenity_pickf { zenity --file-selection --filename="$1" --title="Select a File" 2>/dev/null ;}
 function _osascript_pickf { osascript -l JavaScript -e 'a=Application.currentApplication();a.includeStandardAdditions=true;a.chooseFile({withPrompt:"Please select a file:"}).toString()' ;}
