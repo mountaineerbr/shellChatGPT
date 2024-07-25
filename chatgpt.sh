@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.6  jul/2024  by mountaineerbr  GPL+3
+# v0.67.7  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4858,7 +4858,7 @@ else
 					|| new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;  #abort
-						200) 	WSKIP=1 REPLY_CMD_DUMP=; set --; ((EDIT==2)) && REPLY=$REPLY_CMD;
+						200) 	WSKIP=1 REPLY= REPLY_CMD_DUMP=; set --; ((EDIT==2)) && REPLY=$REPLY_CMD;
 							printf '\n%s\n' '--- redo ---' >&2; continue;;  #redo
 						199) 	WSKIP=1 EDIT=1;
 							printf '\n%s\n' '--- edit ---' >&2; continue;;  #edit
