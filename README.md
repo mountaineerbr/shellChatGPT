@@ -75,7 +75,7 @@ These are required for specific features.
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
-- `kdialog`/`zenity`/`osascript`/`termux-dialog`/`dialog` - File picker
+- `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
 
 
 ### 💾 Installation

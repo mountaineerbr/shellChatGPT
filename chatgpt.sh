@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.3  jul/2024  by mountaineerbr  GPL+3
+# v0.67.4  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4069,7 +4069,7 @@ m:mod  n:results  o:clipboard  o:clip  O:ollama  p:top-p  p:topp  q:insert \
 r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
 u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
-w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  #opt:long_name
+w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  #opt:long_name
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -4132,9 +4132,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  #opt:long
 		no-fold) 	unset OPTFOLD;;
 		g) 	STREAM=1;;
 		G) 	unset STREAM;;
-		h) 	while read
-			do 	[[ $REPLY = \#\ v* ]] && break
-			done <"$0"
+		h) 	while read; do 	[[ $REPLY = \#\ v* ]] && break; done <"$0";
 			printf '%s\n' "$REPLY" "$HELP"
 			exit;;
 		H) 	((++OPTHH));;
@@ -4194,6 +4192,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  #opt:long
 		U) 	CATPR=1;;
 		v) 	((++OPTV));;
 		V) 	((++OPTVV));;  #debug
+		version) while read; do 	[[ $REPLY = \#\ v* ]] || continue; printf '%s\n' "$REPLY"; exit; done <"$0";;
 		x) 	OPTX=1;;
 		w) 	((++OPTW)); WSKIP=1;;
 		W) 	((OPTW)) || OPTW=1 ;((++OPTWW)); WSKIP=1;;
