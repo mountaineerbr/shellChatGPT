@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67  jul/2024  by mountaineerbr  GPL+3
+# v0.67.1  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -76,6 +76,8 @@ OPTZ_FMT=opus   #mp3, opus, aac, flac
 #MD_CMD="bat"
 # Fold response (wrap at white spaces)
 OPTFOLD=1
+# Avoid using dialog
+#NO_DIALOG=
 # Inject restart text
 #RESTART=""
 # Inject   start text
@@ -94,7 +96,10 @@ AWEURLZH="https://raw.githubusercontent.com/PlexPt/awesome-chatgpt-prompts-zh/ma
 
 # CACHE AND OUTPUT DIRECTORIES
 CACHEDIR="${CACHEDIR:-${XDG_CACHE_HOME:-$HOME/.cache}}/chatgptsh"
-OUTDIR="${OUTDIR:-${XDG_DOWNLOAD_DIR:-$HOME/Downloads}}"
+if [[ -n $TERMUX_VERSION ]] && [[ -d $HOME/storage/downloads ]]
+then 	OUTDIR=${OUTDIR:-$HOME/storage/downloads}
+else 	OUTDIR="${OUTDIR:-${XDG_DOWNLOAD_DIR:-$HOME/Downloads}}"
+fi
 HISTSIZE=256
 
 # Colour palette
@@ -287,7 +292,10 @@ Environment
 	MISTRAL_API_KEY OpenAI, GoogleAI, and MistralAI API keys.
 	
 
-	OUTDIR 		Output directory for received images and audio.
+	OUTDIR 		Output directory for received image and audio.
+
+	RESTART
+	START           Restart and start sequences. May be set to null.
 
 	VISUAL
 	EDITOR 		Text editor for external prompt editing.
@@ -322,8 +330,11 @@ Chat Commands
       !res     !resubmit         Resubmit last TTS recorded input.
       !cat     -                 Cat prompter (one-shot, ctrd-d).
       !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL (:append).
+      !dialog  -                 Toggle the \`dialog' interface.
       !img     !media [FILE|URL] Append image, media, or URL to prompt.
+      !p       !pick, [PROMPT]!p File picker (at start or end of prompt).
       !pdf     !pdf:    [FILE]   Dump PDF text (:append as prompt).
+      !photo  !!photo   [INDEX]  Take a photo, camera index (Termux only).
       !sh      !shell    [CMD]   Run shell, or command, and edit output.
       !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
      !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
@@ -758,6 +769,13 @@ function response_tknf
 }
 #https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
 
+#position cursor at end of screen
+function __clr_dialogf
+{
+	printf "${NC}\\n\\n\\033[${LINES};1H" >&2;
+}
+function __clr_dialoggf { 	((DIALOG_CLR)) && __clr_dialogf ;}
+
 #clear impending stream (tty)
 function __clr_ttystf
 {
@@ -1019,7 +1037,7 @@ function list_modelsf
 
 function pick_modelf
 {
-	typeset REPLY mod
+	typeset REPLY mod options
 	set -- "${1// }"; set -- "${1##*(0)}";
 	((${#1}<3)) || return
 	((${#MOD_LIST[@]})) || MOD_LIST=($(list_modelsf))
@@ -1027,10 +1045,26 @@ function pick_modelf
 	then 	mod=${MOD_LIST[REPLY-1]}  #pick model by number from the model list
 	else 	__clr_ttystf; REPLY=${REPLY//[!0-9]};
 		while ! ((REPLY && REPLY <= ${#MOD_LIST[@]}))
-		do 	echo $'\nPick model:' >&2;
-			select mod in ${MOD_LIST[@]:-err}
-			do 	break;
-			done </dev/tty; REPLY=${REPLY//[$' \t\b\r']}
+		do
+			if test_dialogf
+			then 	options=( $(
+				  set -- ${MOD_LIST[@]:-err};
+				  for ((i=0;i<${#};i++))
+				  do  printf "%q %s " "${@: i+1: 1}" "$( ((i<9)) && echo $((i + 1)) || echo .)";
+				  done
+				) )
+				REPLY=$(
+				  dialog --backtitle "Language Model Picker" --title "Select a Model" \
+				    --menu "Choose one of the following:" 0 40 0 \
+				    -- "${options[@]}"  2>&1 >/dev/tty;
+				) || typeset NO_DIALOG=1;
+				__clr_dialogf;
+			else
+				echo $'\nPick model:' >&2;
+				select mod in ${MOD_LIST[@]:-err}
+				do 	break;
+				done </dev/tty; REPLY=${REPLY//[$' \t\b\r']};
+			fi;
 			[[ \ ${MOD_LIST[*]:-err}\  = *\ "$REPLY"\ * ]] && mod=$REPLY && break;
 		done;  #pick model by number or name
 	fi; MOD=${mod:-$MOD};
@@ -1115,13 +1149,13 @@ function set_histf
 				"${a_type:-%#}"*|"${START:-%#}"*)
 					role=assistant
 					if ((OPTC)) || [[ -n "${START}" ]]
-					then 	rest="${START:-${A_TYPE}}"
+					then 	rest="${START-${A_TYPE}}"
 					fi
 					;;
 				*) #q_type, RESTART
 					role=user
 					if ((OPTC)) || [[ -n "${RESTART}" ]]
-					then 	rest="${RESTART:-$Q_TYPE}"
+					then 	rest="${RESTART-${Q_TYPE}}"
 					fi
 					;;
 			esac
@@ -1522,14 +1556,17 @@ function cmd_runf
 			__cmdmsgf 'Best_Of' "$OPTB"
 			;;
 		-[cC])
+			((OPTC)) && { 	cmd_runf -cc; return ;}
 			OPTC=1 EPN=0 OPTCMPL= ;
-			__cmdmsgf "Endpoint[$EPN]:" "Chat Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
+			__cmdmsgf "Endpoint[$EPN]:" "Text Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
 			;;
 		-[cC][cC])
+			((OPTC>1)) && { 	cmd_runf -d; return ;}
 			OPTC=2 EPN=6 OPTCMPL= ;
 			__cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
 			;;
-		-[dD])
+		-[dD]|-[dD][dD])
+			((!OPTC)) && { 	cmd_runf -c; return ;}
 			OPTC= EPN=0 OPTCMPL=1 ;
 			__cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
 			;;
@@ -1691,12 +1728,12 @@ function cmd_runf
 		-r*|restart*)
 			set -- "${*##@(-r|restart)?( )}"
 			restart_compf "$*"
-			__cmdmsgf 'Restart Sequence' "\"$RESTART\""
+			__cmdmsgf 'Restart Sequence' "\"${RESTART-unset}\""
 			;;
 		-R*|start*)
 			set -- "${*##@(-R|start)?( )}"
 			start_compf "$*"
-			__cmdmsgf 'Start Sequence' "\"$START\""
+			__cmdmsgf 'Start Sequence' "\"${START-unset}\""
 			;;
 		-s*|stop*)
 			set -- "${*##@(-s|stop)?( )}"
@@ -1704,7 +1741,7 @@ function cmd_runf
 			__cmdmsgf 'Stop Sequences' "[$(unset s v; for s in "${STOPS[@]}"; do v=${v}\"$(escapef "$s")\",; done; printf '%s' "${v%%,}")]"
 			;;
 		-?(S)*([$' \t'])[.,]*)
-			set -- "${*##-?(S)*([$' \t'])}"; PSKIP= SKIP=1 EDIT=1
+			set -- "${*##-?(S)*([$' \t.,'])}"; PSKIP= SKIP=1 EDIT=1
 			var=$(INSTRUCTION=$* OPTRESUME=1 CMD_CHAT=1; custom_prf "$@" && echo "$INSTRUCTION")
 			case $? in [1-9]*|201|[!0]*) 	REPLY=${args[*]};; 	*) REPLY="-S $var";; esac
 			;;
@@ -1849,9 +1886,9 @@ function cmd_runf
 			ctrld-prpter "${OPTCTRD:-unset}" \
 			cat-prompter "${CATPR:-unset}" \
 			restart-seq  "\"$( ((EPN==6)) && echo unavailable && exit;
-				((OPTC)) && printf '%s' "${RESTART:-$Q_TYPE}" || printf '%s' "${RESTART:-unset}")\"" \
+				((OPTC)) && printf '%s' "${RESTART-$Q_TYPE}" || printf '%s' "${RESTART-unset}")\"" \
 			start-seq    "\"$( ((EPN==6)) && echo unavailable && exit;
-				((OPTC)) && printf '%s' "${START:-$A_TYPE}"   || printf '%s' "${START:-unset}")\"" \
+				((OPTC)) && printf '%s' "${START-$A_TYPE}"   || printf '%s' "${START-unset}")\"" \
 			stop-seqs    "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
 			history-file "${FILECHAT/"$HOME"/"~"}"  >&2  #2>/dev/null
 			;;
@@ -1941,6 +1978,50 @@ function cmd_runf
 			echo Session and History >&2; [[ $* = . ]] && args=('fork current');
 			session_mainf /"${args[@]}"
 			;;
+		photo*)
+			set -- "$(trim_leadf "$*" "photo$SPC")";
+			if [[ -n $TERMUX_VERSION ]]
+			then
+				case "${1:0:2}" in [0-9]|[0-9][!0-9]) 	typeset INDEX=${1:0:1}; set -- "${1:1}";; esac;
+
+				while var=${OUTDIR%/}/camera_photo${n:+_}${n}.jpg
+					[[ -e "$var" ]]
+				do 	((++n));
+				done
+
+				if termux-camera-photo ${INDEX:+-c ${INDEX:-0}} "$var"
+				then 	# Rotate image if necessary
+					if command -v "exiftran" >/dev/null 2>&1;
+					then 	exiftran -ai "$var" >&2;
+					elif command -v "magick" >/dev/null 2>&1;
+					then 	magick mogrify -auto-orient "$var" >&2;
+					fi
+					REPLY="${1}${1:+ }${var}";
+					__sysmsgf "$(du -h "$var")" >&2;
+				else
+					false;
+				fi || __warmsgf 'Err:' 'photo camera';
+			else 	cmd_runf /pick "$*"; return;
+			fi;
+			SKIP=1 EDIT=1 xskip=1;
+			;;
+		[/!]photo*)
+			INDEX=1 cmd_runf "$*"; return;
+			;;
+		pick*|p*)
+			set -- "$(trim_leadf "$*" "@(pick|p)$SPC")";
+			trap "trap 'exit' INT; echo >&2;" INT;
+
+			if [[ -d $1 ]]
+			then 	var=$(trap '-' INT; _file_pickf "$1");
+				((${#var})) && REPLY="$var";
+			else 	var=$(trap '-' INT; _file_pickf "$PWD");
+				((${#var})) && REPLY="${1}${1:+ }${var}";
+			fi && unset TIPS_DIALOG || __warmsgf 'Err:' 'filepicker';
+			
+			trap 'exit' INT;
+			SKIP=1 EDIT=1 xskip=1;
+			;;
 		r|rr|''|[/!]|regenerate|regen|[/!]regenerate|[/!]regen|[$IFS])  #regenerate last response
 			SKIP=1 EDIT=1
 			case "$*" in
@@ -1971,6 +2052,10 @@ function cmd_runf
 		res|resub|resubmit)
 			RESUBW=1 SKIP=1 WSKIP=1;
 			;;
+		dialog|no-dialog)
+			((++NO_DIALOG)) ;((NO_DIALOG%=2))
+			__cmdmsgf 'Dialog' $(_onoff $( ((NO_DIALOG)) && echo 0 || echo 1) )
+			;;
 		q|quit|exit|bye)
 			send_tiktokenf '/END_TIKTOKEN/' && wait
 			echo '[bye]' >&2; exit 0
@@ -1979,7 +2064,7 @@ function cmd_runf
 			;;
 	esac;
 	((OPTEXIT>1)) && exit;
-	((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART:-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2;
+	{ ((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2 ;}
 	if ((OPTX && REGEN<1 && !xskip)) 
 	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
 		__read_charf >/dev/null;
@@ -2043,7 +2128,7 @@ function edf
 {
 	typeset ed_msg pre rest pos ind sub
 	ed_msg=$'\n\n'",,,,,,(edit below this line),,,,,,"
-	((OPTC)) && rest="${RESTART:-$Q_TYPE}" || rest="${RESTART}"
+	((OPTC)) && rest="${RESTART-$Q_TYPE}" || rest="${RESTART}"
 	rest="$(_unescapef "$rest")"
 	((GOOGLEAI)) && typeset INSTRUCTION=${GINSTRUCTION:-$INSTRUCTION};
 
@@ -2185,6 +2270,115 @@ function fmt_ccf
 		printf '%s\n' ' ] }';
 	fi
 }
+
+#remove implicit refs .. and .
+#ex: a/b/../img.gif -> a/img.gif
+function rmimpf
+{
+	sed -E  -e 's|[^/]+/\.\./|| ;s|^\./|| ;s|/\./|/|' \
+		-e 's|[^/]+/\.\./|| ;s|^\./|| ;s|/\./|/|' \
+		-e 's|[^/]+/\.\./|| ;s|^\./|| ;s|/\./|/|' #3x
+}
+
+# file picker
+function _file_pickf
+{
+	typeset file
+	file=${1:-${PWD:-$HOME}}/
+	
+	__set_fpick;
+
+	case "$file" in
+		\~\/*) 	file="$HOME/${file:2}";
+		;;
+		[!/]*) 	[[ -e $PWD/$file ]] && file="$PWD/$file";
+		;;
+	esac;
+
+	while file=$(__fpick "$file")
+		case $? in
+		2) 	typeset TIPS_DIALOG;
+			continue;
+			;;
+		1) 	__clr_dialoggf;
+			_sysmsgf "No file selected";
+			return 1;
+			;;
+		-1|5|128|130|255) __clr_dialoggf;
+			__warmsgf "An unexpected error has occurred";
+			return 1;
+			;;
+		esac;
+	do 	typeset TIPS_DIALOG;
+		[[ -d ${file:-$PWD} ]] || [[ ! -f $file ]] || break;
+	done;
+	__clr_dialoggf;
+
+	printf '%s' "$file";
+}
+function __set_fpick
+{
+	typeset cmd
+	declare -f "__fpick" >/dev/null 2>&1 && return;
+
+	((NO_DIALOG)) || {
+	  ((${#DISPLAY})) && set -- "$@" kdialog zenity osascript;
+	  ((${#TERMUX_VERSION})) && set -- "$@" termux-dialog  ;}
+	for cmd in "$@" vifm ranger nnn dialog
+	do 	command -v "$cmd" >/dev/null 2>&1 && break;
+	done;
+	case "$cmd" in 	dialog) DIALOG_CLR=1;; esac;
+
+	eval "function __fpick { _${cmd}_pickf \"\$@\" ;}"  #_dialog_pickf
+}
+
+function _dialog_pickf
+{
+	((${#TIPS_DIALOG})) && dialog --timeout 3 --backtitle "File Picker Tips" --begin 3 2 --msgbox "$TIPS_DIALOG" 14 40  >/dev/tty;
+	dialog --help-button --backtitle "File Picker" --title "Please choose a file" --fselect "$1" 24 80  2>&1 >/dev/tty;
+	case $? in
+		2) 	dialog --backtitle "File Picker" --title "File Picker Help" --msgbox "$HELP_DIALOG" 28 58  2>&1 >/dev/tty;
+			return 2;;
+		*) 	return;;
+	esac
+	#-1:error, 1:cancel, 2:help, 3:extra, 5:timeout, 255:ESC
+}
+function test_dialogf
+{
+	((!NO_DIALOG)) || return; ((OK_DIALOG)) && return;
+	command -v dialog >/dev/null 2>&1 && OK_DIALOG=1;
+}
+
+function _termux-dialog_pickf
+{
+	printf '%s/%s' "${1%%/}" "$(
+		termux-dialog sheet -v"$(IFS=$'\t\n'; printf '%q,' .. $(_ls_pickf "$1") ..)." | jq -r .text;
+	)" | rmimpf;
+}
+function _ls_pickf
+{
+	shopt -s nullglob; 
+	cd "$1" || return;
+	printf '%s\n' */;
+	printf '%s\n' * |  __ls_pickf
+	printf '%s\n' .*/;
+	printf '%s\n' .* | __ls_pickf
+}
+function __ls_pickf
+{
+	typeset file
+	while IFS= read -r file; do
+	[[ -d $file ]] || [[ -L $file ]] || printf '%s\n' "$file"; done;
+}
+function _nnn_pickf { nnn -p - "$1" ;}
+function _vifm_pickf { vifm --no-configs -c "set nosave" -c "only" --choose-files - "$1" ;}
+function _ranger_pickf { : >"$FILEFIFO"; ranger -c --choosefile="$FILEFIFO" "$1" >/dev/tty; cat -- "$FILEFIFO" ;}
+function _kdialog_pickf { kdialog --getopenfilename "$1" 2>/dev/null ;}
+function _zenity_pickf { zenity --file-selection --filename="$1" --title="Select a File" 2>/dev/null ;}
+function _osascript_pickf { osascript -l JavaScript -e 'a=Application.currentApplication();a.includeStandardAdditions=true;a.chooseFile({withPrompt:"Please select a file:"}).toString()' ;}
+
+TIPS_DIALOG=$'\n- Navigation: Use TAB, SHIFT-TAB and ARROW KEYS.\n\n-Select: Press SPACE-BAR.\n\n- Mouse: CLICK to select and SPACE to complete.'
+HELP_DIALOG=$'\n- Move: Use TAB, SHIFT+TAB, or ARROW KEYS.\n\n- Scroll: Use UP and DOWN arrow keys in lists.\n\n- Select: Press SPACE to copy to text box.\n\n- Autocomplete: Type SPACE to complete names.\n\n- Confirm: Press ENTER or click "OK".\n\n\nHappy browsing!'
 
 #set media for ollama *generation endpoint*
 function ollama_mediaf
@@ -2454,8 +2648,8 @@ function set_optsf
 	done; PIDS=(${pids[@]});
 }
 
-function restart_compf { ((${#1})) && RESTART=$(escapef "$(unescapef "${*:-$RESTART}")") RESTART_OLD="$RESTART" ;}
-function start_compf { ((${#1})) && START=$(escapef "$(unescapef "${*:-$START}")")   START_OLD="$START" ;}
+function restart_compf { ((${#1}+${#RESTART})) && RESTART=$(escapef "$(unescapef "${1:-$RESTART}")") RESTART_OLD="$RESTART" ;}
+function start_compf { ((${#1}+${#START})) && START=$(escapef "$(unescapef "${1:-$START}")") START_OLD="$START" ;}
 
 function record_confirmf
 {
@@ -3286,7 +3480,7 @@ function session_listf
 #pick session files by globbing cache dir
 function session_globf
 {
-	typeset REPLY file glob sglob ext ok
+	typeset REPLY file glob sglob ext ok options
 	sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}"
 
 	[[ ! -f "$1" ]] || return
@@ -3308,10 +3502,25 @@ function session_globf
 
 	if ((${#} >1)) && [[ "$glob" != *[$IFS]* ]]
 	then 	__clr_ttystf;
-		printf '# Pick file [.%s]:\n' "${ext}" >&2
-		select file in 'current' 'new' 'abort' "${@%%.${sglob}}"
-		do 	break
-		done </dev/tty
+		if test_dialogf
+		then 	options=( $(
+			  set -- 'current' 'new' "${@%%.${sglob}}";
+			  for ((i=0;i<${#};i++))
+			  do 	printf "%q %s " "${@: i+1: 1}" "$( ((i<9)) && echo $((i + 1)) || echo .)";
+			  done
+			) )
+			file=$(
+			  dialog --backtitle "Index Menu" --title "Select a $([[ $ext = *[Tt][Ss][Vv] ]] && echo History File || echo Prompt)" \
+			    --menu "Choose one of the following:" 0 40 0 \
+			    -- "${options[@]}"  2>&1 >/dev/tty;
+			) || { file=abort; typeset NO_DIALOG=1 ;}
+			__clr_dialogf;
+		else
+			printf '# Pick file [.%s]:\n' "${ext}" >&2
+			select file in 'current' 'new' 'abort' "${@%%.${sglob}}"
+			do 	break
+			done </dev/tty
+		fi
 		file="${file:-$REPLY}"
 	else 	file="${1}"
 	fi
@@ -3339,7 +3548,7 @@ function session_globf
 #set tsv filename based on input
 function session_name_choosef
 {
-	typeset fname new print_name sglob ext
+	typeset fname new print_name sglob ext var item
 	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}" 
 	((OPTEXIT>1)) && return
 	case "$fname" in [Nn]ew|*[N]ew.${sglob}) 	set --; fname= ;; esac
@@ -3347,6 +3556,9 @@ function session_name_choosef
 		fname="${fname%%\/}"
 		fname="${fname%%.${sglob}}"
 		fname="${fname/\~\//"$HOME"\/}"
+		case "pr" in ${sglob}) item="prompt";;
+			*) item="session";;
+		esac;
 		
 		if [[ -d "$fname" ]]
 		then 	__warmsgf 'Err:' 'is a directory'
@@ -3358,10 +3570,18 @@ function session_name_choosef
 		fi
 
 		if [[ ${fname} = *([$IFS]) ]]
-		then 	[[ pr = ${sglob} ]] \
-			&& _sysmsgf 'New prompt file name <enter/abort>:' \
-			|| _sysmsgf 'New session name <enter/abort>:'
-			__clr_ttystf; read -r -e -i "$fname" fname </dev/tty;
+		then
+			if test_dialogf
+			then 	fname=$(dialog --backtitle "${item} manager" \
+				--title "new ${item} file" \
+				--inputbox "enter new ${item} name" 8 32  2>&1 >/dev/tty )
+				__clr_dialogf;
+			else
+				_sysmsgf "New ${item} name <enter/abort>:" \
+				__clr_ttystf; read -r -e -i "$fname" fname </dev/tty;
+			fi;
+			case "${fname}" in \~\/*) 	fname="$HOME/${fname:2}";; esac;
+			fname=${fname%%.${sglob}} fname=${fname//[ \<\>\*\;:,?!]/_} fname=${fname//__/_};
 		fi
 
 		if [[ -d "$fname" ]]
@@ -3383,8 +3603,19 @@ function session_name_choosef
 		fi
 		if [[ ! -e $fname ]]
 		then 	case "$fname" in *[N]ew.${sglob}) 	:;; *[Aa]bort.${sglob}|*[Cc]ancel.${sglob}|*[Ee]xit.${sglob}|*[Qq]uit.${sglob}) 	echo abort; echo abort >&2; return 201;; esac
-			_sysmsgf "Confirm${new}? [Y]es/[n]o/[a]bort:" "${print_name} " '' ''
-			case "$(__read_charf)" in [AaQq]|$'\e') 	echo abort; echo abort >&2; return 201;; [NnOo]) 	:;; *) 	false;; esac
+			if test_dialogf
+			then 	dialog --backtitle "${item} manager" \
+				--title "confirm${new} ${item} file?" \
+				--yesno "\\n${print_name}" 8 46  >/dev/tty
+				case $? in
+					-1|1|5|255) var=abort;;  #cancel
+				esac;
+				__clr_dialogf;
+			else
+				_sysmsgf "Confirm${new}? [Y]es/[n]o/[a]bort:" "${print_name} " '' ''
+				var=$(__read_charf)
+			fi
+			case "$var" in [AaQq]|$'\e'|*[Aa]bort|*[Aa]bort.${sglob}) 	echo abort; echo abort >&2; return 201;; [NnOo]) 	:;; *) 	false;; esac
 		else 	false
 		fi
 	do 	unset fname new print_name
@@ -3827,7 +4058,7 @@ do
 	case "$opt" in -)  #long options
 		for opt in api-key  multimodal  markdown  markdown:md  \
 no-markdown  no-markdown:no-md  fold  fold:wrap  no-fold  no-fold:no-wrap \
-localai  localai:local-ai  google google:goo  mistral  keep-alive \
+localai  localai:local-ai  google google:goo  mistral  openai  keep-alive \
 keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
 a:presence-penalty  a:presence  a:pre  A:frequency-penalty  A:frequency \
 A:freq  b:best-of  b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue \
@@ -3946,6 +4177,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  #opt:long
 		localai)
 			[[ -z $OPENAI_API_HOST$OPENAI_API_HOST_STATIC ]] && OPENAI_API_HOST="http://127.0.0.1:8080";
 			LOCALAI=1;;
+		openai) unset GOOGLEAI OLLAMA MISTRALAI;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
@@ -3973,7 +4205,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  #opt:long
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST init buff convert var n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST NO_DIALOG OK_DIALOG DIALOG_CLR init buff convert var n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -4347,6 +4579,7 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	fi
 else
 	CHAT_ENV=1; ((OPTW)) && unset OPTX;
+	((OPTC+OPTCMPL)) && ((!OPTEXIT)) && test_dialogf;
 
 	#custom / awesome prompts
 	[[ $INSTRUCTION = $SPC && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
@@ -4389,6 +4622,8 @@ else
 	    do    set -- "$@" "$(unescapef "$s")"
 	    done ;STOPS=("$@")
 	} ;((${#STOPS[@]})) && unescape_stopsf
+	((OPTC && ${RESTART+1}0 && !${#RESTART})) && __warmsgf 'Restart Sequence:' 'Set but null';
+	((OPTC && ${START+1}0 && !${#START})) && __warmsgf 'Start Sequence:' 'Set but null';
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
@@ -4499,7 +4734,7 @@ else
 		((JUMP)) ||
 		#defaults prompter
 		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ "$*" = $SPC ]]
-		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:-> }}" || Q="${RESTART:-> }"
+		then 	((OPTC)) && Q="${RESTART-${Q_TYPE:-> }}" || Q="${RESTART:-> }"
 			B=$(_unescapef "${Q:0:320}") B=${B##*$'\n'} B=${B//?/\\b}  #backspaces
 
 			while ((SKIP)) ||
@@ -4577,7 +4812,11 @@ else
 					
 					#del trailing slashes, and set preview colour
 					((RETRY==1)) && REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n/])') REPLY_OLD=$REPLY BCYAN=${Color8};
-				elif [[ -n $REPLY ]]
+				elif case "${REPLY: ind}" in *?[/!]pick|*?[/!]p) 	:;; *) 	false;; esac;
+				then
+					cmd_runf /pick "$(trim_trailf "$REPLY" "$SPC[/!]pick")";
+					set --; continue 2;
+				elif ((${#REPLY}))
 				then
 					((RETRY+OPTV)) || [[ $REPLY = $SPC:* ]] \
 					|| new_prompt_confirmf ed whisper
@@ -4718,7 +4957,7 @@ else
 			else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*}"; fi
 			((MAIN_LOOP||TOTAL_OLD)) || TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-$GINSTRUCTION}")
 			if ((OPTC)) || [[ -n "${RESTART}" ]]
-			then 	rest="${RESTART:-$Q_TYPE}"
+			then 	rest="${RESTART-$Q_TYPE}"
 				((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
 			fi
 			((JUMP)) && set -- && unset rest
@@ -4740,7 +4979,7 @@ else
 					fmt_ccf "${HIST_G}$(escapef "${GINSTRUCTION}${GINSTRUCTION:+$NL$NL}${*}")" "$role")";
 			else 	#text cmpls
 				if { 	((OPTC)) || [[ -n "${START}" ]] ;} && ((JUMP<2))
-				then 	set -- "${ESC}${START:-$A_TYPE}"
+				then 	set -- "${ESC}${START-$A_TYPE}"
 				else 	set -- "${ESC}"
 				fi
 			fi; unset rest role;

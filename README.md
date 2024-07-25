@@ -24,12 +24,12 @@ Markdown rendering of chat response (_optional_).
 - Integration with [mudler's LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), and [Mistral AI](#mistral-ai)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-- Command line completion for [enhanced experience](#shell-completion)
-- Colour scheme personalisation, and a configuration file
+- [Command line completion](#shell-completion) and file picker dialogs for a smoother experience 💻
+- Colour scheme personalisation 🎨 and a configuration file
 - _Tiktoken_ for accurate tokenization (optional)
 - Stdin and text file input support
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
-- **Fast** shell code!
+- **Fast** shell code for a responsive experience! ⚡️ 
 
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
 <!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
@@ -66,7 +66,7 @@ Markdown rendering of chat response (_optional_).
 These are required for specific features.
 
 - `Base64` - Image endpoint, vision models
-- `ImageMagick` - Image edits and variations
+- `ImageMagick`/`fbida` - Image edits and variations
 - `Python` - Modules tiktoken, markdown, bs4
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
@@ -75,6 +75,7 @@ These are required for specific features.
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
+- `kdialog`/`zenity`/`osascript`/`termux-dialog`/`dialog` - File picker
 
 
 ### 💾 Installation

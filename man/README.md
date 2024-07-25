@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.67 \| General Commands Manual
+title: CHATGPT.SH(1) v0.67.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -270,9 +270,9 @@ are also the best option for many non-chat use cases.
 
 #### 2.3 Q & A Format
 
-The defaults chat format is “**Q & A**”. The **restart sequence** “*\n
-Q: *” and the **start text** “*\n A:*” are injected for the chat bot to
-work well with text cmpls.
+The defaults chat format is “**Q & A**”. The **restart sequence**
+“*\nQ: *” and the **start text** “*\nA:*” are injected for the chat bot
+to work well with text cmpls.
 
 In native chat completions, setting a prompt with “*:*” as the initial
 character sets the prompt as a **SYSTEM** message. In text completions,
@@ -315,29 +315,32 @@ While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “`!`”,
 or “`/`”.
 
-| Misc   | Commands                        |                                                          |
-|:-------|:--------------------------------|----------------------------------------------------------|
-| `-S`   | `:`, `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.          |
-| `-S.`  | `-.` \[*NAME*\]                 | Load and edit custom prompt.                             |
-| `-S/`  | `-S%` \[*NAME*\]                | Load and edit awesome prompt (zh).                       |
-| `-Z`   | `!last`                         | Print last response JSON.                                |
-| `!`    | `!r`, `!regen`                  | Regenerate last response.                                |
-| `!!`   | `!rr`                           | Regenerate response, edit prompt first.                  |
-| `!i`   | `!info`                         | Information on model and session settings.               |
-| `!j`   | `!jump`                         | Jump to request, append start seq primer (text cmpls).   |
-| `!!j`  | `!!jump`                        | Jump to request, no response priming.                    |
-| `!md`  | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                   |
-| `!!md` | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                        |
-| `!rep` | `!replay`                       | Replay last TTS audio response.                          |
-| `!res` | `!resubmit`                     | Resubmit last TTS recorded input from cache.             |
-| `!cat` | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.            |
-| `!cat` | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text* or *PDF* file, or dump *URL* (*:* to append). |
-| `!img` | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                   |
-| `!pdf` | `!pdf:` \[*FILE*\]              | Convert PDF and dump text (*:* to append prompt).        |
-| `!sh`  | `!shell` \[*CMD*\]              | Run shell, or *command*, and edit output.                |
-| `!sh:` | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.                |
-| `!!sh` | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.         |
-| `!url` | `!url:` \[*URL*\]               | Dump URL text (add *:* to append prompt).                |
+| Misc      | Commands                        |                                                          |
+|:----------|:--------------------------------|----------------------------------------------------------|
+| `-S`      | `:`, `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.          |
+| `-S.`     | `-.` \[*NAME*\]                 | Load and edit custom prompt.                             |
+| `-S/`     | `-S%` \[*NAME*\]                | Load and edit awesome prompt (zh).                       |
+| `-Z`      | `!last`                         | Print last response JSON.                                |
+| `!`       | `!r`, `!regen`                  | Regenerate last response.                                |
+| `!!`      | `!rr`                           | Regenerate response, edit prompt first.                  |
+| `!i`      | `!info`                         | Information on model and session settings.               |
+| `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).   |
+| `!!j`     | `!!jump`                        | Jump to request, no response priming.                    |
+| `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                   |
+| `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                        |
+| `!rep`    | `!replay`                       | Replay last TTS audio response.                          |
+| `!res`    | `!resubmit`                     | Resubmit last TTS recorded input from cache.             |
+| `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.            |
+| `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text* or *PDF* file, or dump *URL* (*:* to append). |
+| !dialog\` | \-                              | Toggle the “dialog” interface.                           |
+| `!img`    | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                   |
+| `!p`      | `!pick`, \[*PROPMT*\]`!p`       | File picker (at start or end of prompt).                 |
+| `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text (*:* to append prompt).        |
+| `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux only). |
+| `!sh`     | `!shell` \[*CMD*\]              | Run shell, or *command*, and edit output.                |
+| `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.                |
+| `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.         |
+| `!url`    | `!url:` \[*URL*\]               | Dump URL text (add *:* to append prompt).                |
 
 | Script  | Settings and UX      |                                                           |
 |:--------|:---------------------|-----------------------------------------------------------|
@@ -680,7 +683,14 @@ selection.
 OpenAI, GoogleAI, and MistralAI API keys.
 
 **OUTDIR**  
-Output directory for received images and audio.
+Output directory for received image and audio.
+
+**RESTART**
+
+**START**  
+Restart and start sequences. May be set to *null*.
+
+Restart=“*\nQ: *” Start="*\nA:*" (chat mode)
 
 **VISUAL**
 
@@ -730,7 +740,7 @@ and may be set with colour-named variables or raw escape sequences
 Optional packages for specific features.
 
 - `Base64` - Image endpoint, vision models
-- `ImageMagick` - Image edits and variations
+- `ImageMagick`/`fbida` - Image edits and variations
 - `Python` - Modules tiktoken, markdown, bs4
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
@@ -740,6 +750,7 @@ Optional packages for specific features.
 - `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` -
   Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
+- `kdialog`/`zenity`/`osascript`/`termux-dialog`/`dialog` - File picker
 
 ### BUGS AND LIMITS
 

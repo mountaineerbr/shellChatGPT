@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.67 | General Commands Manual
+% CHATGPT.SH(1) v0.67.1 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -264,7 +264,7 @@ models are also the best option for many non-chat use cases.
 #### 2.3 Q & A Format
 
 The defaults chat format is "**Q & A**". The **restart sequence**
-"_\\n Q:\ _" and the **start text** "_\\n\ A:_" are injected
+"_\\nQ:\ _" and the **start text** "_\\nA:_" are injected
 for the chat bot to work well with text cmpls.
 
 In native chat completions, setting a prompt with "_:_" as the initial
@@ -329,8 +329,11 @@ may be either "`!`", or "`/`".
     `!res`    `!resubmit`                      Resubmit last TTS recorded input from cache.
     `!cat`     \-                              Cat prompter as one-shot, \<_CTRL-D_> flush.
     `!cat`    `!cat:` \[_TXT_|_URL_|_PDF_]     Cat _text_ or _PDF_ file, or dump _URL_ (_:_ to append).
+ `!dialog`     \-                              Toggle the "dialog" interface.
     `!img`    `!media` \[_FILE_|_URL_]         Append image, media, or URL to prompt.
+      `!p`    `!pick`,   \[_PROPMT_]`!p`       File picker (at start or end of prompt).
     `!pdf`    `!pdf:`      \[_FILE_]           Convert PDF and dump text (_:_ to append prompt).
+  `!photo`    `!!photo`   \[_INDEX_]           Take a photo, optionally set camera index (Termux only).
      `!sh`    `!shell`      \[_CMD_]           Run shell, or _command_, and edit output.
     `!sh:`    `!shell:`     \[_CMD_]           Same as `!sh` but apppend output as user.
     `!!sh`    `!!shell`     \[_CMD_]           Run interactive shell (with _command_) and exit.
@@ -728,7 +731,16 @@ Setting **temperature** has an effect, the higher the more random.
 
 **OUTDIR**
 
-:    Output directory for received images and audio.
+:    Output directory for received image and audio.
+
+
+**RESTART**
+
+**START**
+
+:    Restart and start sequences. May be set to _null_.
+
+     Restart="_\\nQ:\ _" Start=\"_\\nA:_\"  (chat mode)
 
 
 **VISUAL**
@@ -788,7 +800,7 @@ raw escape sequences (these must not change cursor position).
 Optional packages for specific features.
 
 - `Base64` - Image endpoint, vision models
-- `ImageMagick` - Image edits and variations
+- `ImageMagick`/`fbida` - Image edits and variations
 - `Python` - Modules tiktoken, markdown, bs4
 - `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
@@ -797,6 +809,7 @@ Optional packages for specific features.
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
+- `kdialog`/`zenity`/`osascript`/`termux-dialog`/`dialog` - File picker
 
 
 ### BUGS AND LIMITS
