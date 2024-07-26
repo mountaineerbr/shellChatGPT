@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.10  jul/2024  by mountaineerbr  GPL+3
+# v0.67.11  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1599,7 +1599,7 @@ function cmd_runf
 			;;
 		-h*|h*|help*|-\?|\?)
 			set -- "${*##@(-h|h|help)$SPC}";
-			var=$(sed -n -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
+			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
 			if ((${#1}<3)) || ! grep --color=always -i -e "${1}" <<<"${var}" >&2;
 			then 	less -S <<<"${var}";
 			fi; xskip=1
