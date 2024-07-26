@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.67.9 | General Commands Manual
+% CHATGPT.SH(1) v0.67.10 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -11,7 +11,7 @@
 ### SYNOPSIS
 
 |    **chatgpt.sh** \[`-cc`|`-d`|`-qq`] \[`opt`..] \[_PROMPT_|_TEXT_FILE_|_PDF_FILE_]
-|    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #_Dall-E-3_
+|    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #Dall-E-3
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PROMPT_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
@@ -312,93 +312,98 @@ new prompt to set a new parameter. The command operator
 may be either "`!`", or "`/`".
 
 
-  Misc        Commands
-  --------    -----------------------------    ----------------------------------------------------------
-      `-S`    `:`, `::`    \[_PROMPT_]         Append user or system prompt to request buffer.
-     `-S.`    `-.`         \[_NAME_]           Load and edit custom prompt.
-     `-S/`    `-S%`        \[_NAME_]           Load and edit awesome prompt (zh).
-      `-Z`    `!last`                          Print last response JSON.
-       `!`    `!r`, `!regen`                   Regenerate last response.
-      `!!`    `!rr`                            Regenerate response, edit prompt first.
-      `!i`    `!info`                          Information on model and session settings.
-      `!j`    `!jump`                          Jump to request, append start seq primer (text cmpls).
-     `!!j`    `!!jump`                         Jump to request, no response priming.
-     `!md`    `!markdown`  \[_SOFTW_]          Toggle markdown rendering in response.
-    `!!md`    `!!markdown` \[_SOFTW_]          Render last response in markdown.
-    `!rep`    `!replay`                        Replay last TTS audio response.
-    `!res`    `!resubmit`                      Resubmit last TTS recorded input from cache.
-    `!cat`     \-                              Cat prompter as one-shot, \<_CTRL-D_> flush.
-    `!cat`    `!cat:` \[_TXT_|_URL_|_PDF_]     Cat _text_ or _PDF_ file, or dump _URL_ (_:_ to append).
- `!dialog`     \-                              Toggle the "dialog" interface.
-    `!img`    `!media` \[_FILE_|_URL_]         Append image, media, or URL to prompt.
-      `!p`    `!pick`,   \[_PROPMT_]`!p`       File picker (at start or end of prompt).
-    `!pdf`    `!pdf:`      \[_FILE_]           Convert PDF and dump text (_:_ to append prompt).
-  `!photo`    `!!photo`   \[_INDEX_]           Take a photo, optionally set camera index (Termux only).
-     `!sh`    `!shell`      \[_CMD_]           Run shell, or _command_, and edit output.
-    `!sh:`    `!shell:`     \[_CMD_]           Same as `!sh` but apppend output as user.
-    `!!sh`    `!!shell`     \[_CMD_]           Run interactive shell (with _command_) and exit.
-    `!url`    `!url:`       \[_URL_]           Dump URL text (add _:_ to append prompt).
-  --------    -----------------------------    ----------------------------------------------------------
+ Misc              Commands
+ --------------    ------------------------------    ----------------------------------------------------------
+       `-S`        `:`, `::`    \[_PROMPT_]          Append user or system prompt to request buffer.
+      `-S.`        `-.`         \[_NAME_]            Load and edit custom prompt.
+      `-S/`        `-S%`        \[_NAME_]            Load and edit awesome prompt (zh).
+       `-Z`        `!last`                           Print last response JSON.
+       `!#`        `!save`       \[_PROMPT_]         Save current prompt to shell history. _‡_
+        `!`        `!r`, `!regen`                    Regenerate last response.
+       `!!`        `!rr`                             Regenerate response, edit prompt first.
+       `!i`        `!info`                           Information on model and session settings.
+       `!j`        `!jump`                           Jump to request, append start seq primer (text cmpls).
+      `!!j`        `!!jump`                          Jump to request, no response priming.
+      `!md`        `!markdown`  \[_SOFTW_]           Toggle markdown rendering in response.
+     `!!md`        `!!markdown` \[_SOFTW_]           Render last response in markdown.
+     `!rep`        `!replay`                         Replay last TTS audio response.
+     `!res`        `!resubmit`                       Resubmit last TTS recorded input from cache.
+     `!cat`         \-                               Cat prompter as one-shot, \<_CTRL-D_> flush.
+     `!cat`        `!cat:` \[_TXT_|_URL_|_PDF_]      Cat _text_ or _PDF_ file, or dump _URL_.
+  `!dialog`         \-                               Toggle the "dialog" interface.
+     `!img`        `!media` \[_FILE_|_URL_]          Append image, media, or URL to prompt.
+       `!p`        `!pick`,     \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
+     `!pdf`        `!pdf:`      \[_FILE_]            Convert PDF and dump text.
+   `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux only). _‡_
+      `!sh`        `!shell`      \[_CMD_]            Run shell, or _command_, and edit output.
+     `!sh:`        `!shell:`     \[_CMD_]            Same as `!sh` but apppend output as user.
+     `!!sh`        `!!shell`     \[_CMD_]            Run interactive shell (with _command_) and exit.
+     `!url`        `!url:`       \[_URL_]            Dump URL text.
+ --------------    ------------------------------    ----------------------------------------------------------
 
-  Script      Settings and UX
-  --------    -----------------------    ----------------------------------------------------------
-   `!fold`    `!wrap`                    Toggle response wrapping.
-      `-g`    `!stream`                  Toggle response streaming.
-      `-h`    `!help`     \[_REGEX_]     Print help snippet or grep help for regex.
-      `-l`    `!models`    \[_NAME_]     List language models or show model details.
-      `-o`    `!clip`                    Copy responses to clipboard.
-      `-u`    `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
-     `-uu`    `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
-      `-U`    `-UU`                      Toggle cat prompter, or set one-shot. \<_CTRL-D_> flush.
-      `-V`    `!context`                 Print context before request (see `option -P`).
-     `-VV`    `!debug`                   Dump raw request block and confirm.
-      `-v`    `!ver`                     Toggle verbose modes.
-      `-x`    `!ed`                      Toggle text editor interface.
-     `-xx`    `!!ed`                     Single-shot text editor.
-      `-y`    `!tik`                     Toggle python tiktoken use.
-      `!q`    `!quit`                    Exit. Bye.
-  --------    -----------------------    ----------------------------------------------------------
+ Script            Settings and UX
+ --------------    -----------------------    ----------------------------------------------------------
+   `!fold`         `!wrap`                    Toggle response wrapping.
+      `-g`         `!stream`                  Toggle response streaming.
+      `-h`         `!help`     \[_REGEX_]     Print help snippet or grep help for regex.
+      `-l`         `!models`    \[_NAME_]     List language models or show model details.
+      `-o`         `!clip`                    Copy responses to clipboard.
+      `-u`         `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
+     `-uu`         `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
+      `-U`         `-UU`                      Toggle cat prompter, or set one-shot. \<_CTRL-D_> flush.
+      `-V`         `!context`                 Print context before request (see `option -P`).
+     `-VV`         `!debug`                   Dump raw request block and confirm.
+      `-v`         `!ver`                     Toggle verbose modes.
+      `-x`         `!ed`                      Toggle text editor interface.
+     `-xx`         `!!ed`                     Single-shot text editor.
+      `-y`         `!tik`                     Toggle python tiktoken use.
+      `!q`         `!quit`                    Exit. Bye.
+ --------------    -----------------------    ----------------------------------------------------------
 
-  Model       Settings
-  --------    -----------------------    ------------------------------------------------
-   `-Nill`    `!Nill`                    Toggle model max response (chat cmpls).
-      `-M`    `!NUM` `!max` \[_NUM_]     Set maximum response tokens.
-      `-N`    `!modmax`     \[_NUM_]     Set model token capacity.
-      `-a`    `!pre`        \[_VAL_]     Set presence penalty.
-      `-A`    `!freq`       \[_VAL_]     Set frequency penalty.
-      `-b`    `!best`       \[_NUM_]     Set best-of n results.
-      `-K`    `!topk`       \[_NUM_]     Set top_k.
-      `-m`    `!mod`        \[_MOD_]     Set model by name, empty to pick from list.
-      `-n`    `!results`    \[_NUM_]     Set number of results.
-      `-p`    `!topp`       \[_VAL_]     Set top_p.
-      `-r`    `!restart`    \[_SEQ_]     Set restart sequence.
-      `-R`    `!start`      \[_SEQ_]     Set start sequence.
-      `-s`    `!stop`       \[_SEQ_]     Set one stop sequence.
-      `-t`    `!temp`       \[_VAL_]     Set temperature.
-      `-w`    `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
-      `-z`    `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
-     `!ka`    `!keep-alive` \[_NUM_]     Set duration of model load in memory (Ollama).
-    `!blk`    `!block`     \[_ARGS_]     Set and add custom options to JSON request.
-        \-    `!multimodal`               Toggle model as multimodal.
-  --------    -----------------------    ------------------------------------------------
+ Model             Settings
+ --------------    -----------------------    ------------------------------------------------
+   `-Nill`         `!Nill`                    Toggle model max response (chat cmpls).
+      `-M`         `!NUM` `!max` \[_NUM_]     Set maximum response tokens.
+      `-N`         `!modmax`     \[_NUM_]     Set model token capacity.
+      `-a`         `!pre`        \[_VAL_]     Set presence penalty.
+      `-A`         `!freq`       \[_VAL_]     Set frequency penalty.
+      `-b`         `!best`       \[_NUM_]     Set best-of n results.
+      `-K`         `!topk`       \[_NUM_]     Set top_k.
+      `-m`         `!mod`        \[_MOD_]     Set model by name, empty to pick from list.
+      `-n`         `!results`    \[_NUM_]     Set number of results.
+      `-p`         `!topp`       \[_VAL_]     Set top_p.
+      `-r`         `!restart`    \[_SEQ_]     Set restart sequence.
+      `-R`         `!start`      \[_SEQ_]     Set start sequence.
+      `-s`         `!stop`       \[_SEQ_]     Set one stop sequence.
+      `-t`         `!temp`       \[_VAL_]     Set temperature.
+      `-w`         `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
+      `-z`         `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
+     `!ka`         `!keep-alive` \[_NUM_]     Set duration of model load in memory (Ollama).
+    `!blk`         `!block`     \[_ARGS_]     Set and add custom options to JSON request.
+        \-         `!multimodal`              Toggle model as multimodal.
+ --------------    -----------------------    ------------------------------------------------
 
-  Session     Management
-  --------    -------------------------------------    -----------------------------------------------------------
-      `-H`    `!hist`                                  Edit history in editor.
-      `-P`    `-HH`, `!print`                          Print session history (see `option -V`).
-      `-L`    `!log`       \[_FILEPATH_]               Save to log file.
-     `!br`    `!break`, `!new`                         Start new session (session break).
-     `!ls`    `!list`      \[_GLOB_]                   List History files with _name_ _glob_,
-                                                         Prompts "_pr_", Awesome "_awe_", or all files "_._".
-   `!grep`    `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
-      `!c`    `!copy` \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
-      `!f`    `!fork`      \[_DEST_HIST_]              Fork current session to destination.
-      `!k`    `!kill`      \[_NUM_]                    Comment out _n_ last entries in history file.
-     `!!k`    `!!kill`     \[\[_0_]_NUM_]              Dry-run of command `!kill`.
-      `!s`    `!session`   \[_HIST_FILE_]              Change to, search for, or create history file.
-     `!!s`    `!!session`  \[_HIST_FILE_]              Same as `!session`, break session.
-  --------    -------------------------------------    -----------------------------------------------------------
+ Session           Management
+ --------------    -------------------------------------    ------------------------------------------------------------
+      `-H`         `!hist`                                  Edit history in editor.
+      `-P`         `-HH`, `!print`                          Print session history (see `option -V`).
+      `-L`         `!log`       \[_FILEPATH_]               Save to log file.
+     `!br`         `!break`, `!new`                         Start new session (session break).
+     `!ls`         `!list`      \[_GLOB_]                   List History files with _name_ _glob_.
+                                                              List prompts "_pr_", awesome "_awe_", or all files "_._".
+   `!grep`         `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
+      `!c`         `!copy` \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
+      `!f`         `!fork`      \[_DEST_HIST_]              Fork current session to destination.
+      `!k`         `!kill`      \[_NUM_]                    Comment out _n_ last entries in history file.
+     `!!k`         `!!kill`     \[\[_0_]_NUM_]              Dry-run of command `!kill`.
+      `!s`         `!session`   \[_HIST_FILE_]              Change to, search for, or create history file.
+     `!!s`         `!!session`  \[_HIST_FILE_]              Same as `!session`, break session.
+ --------------    -------------------------------------    ------------------------------------------------------------
 
+
+| _:_ Commands followed by a colon will append command output to prompt.
+
+| _‡_ Commands with double dagger may be invoked at the end of the input prompt.
 
 | E.g.: "`/temp` _0.7_", "`!mod`_gpt-4_", "`-p` _0.2_", and "`/s` _hist_name_".
 

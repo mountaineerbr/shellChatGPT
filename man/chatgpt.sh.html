@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.67.9 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.67.10 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.67.9 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.67.10 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -187,7 +187,7 @@ Whisper / TTS</div>
 [<em>PROMPT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>X</em>|<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
-#<em>Dall-E-3</em><br />
+#Dall-E-3<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>S</em>|<em>M</em>|<em>L</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
@@ -491,110 +491,114 @@ prompt to set a new parameter. The command operator may be either
 <td>Print last response JSON.</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>!#</code></td>
+<td style="text-align: left;"><code>!save</code> [<em>PROMPT</em>]</td>
+<td>Save current prompt to shell history. <em>‡</em></td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>!</code></td>
 <td style="text-align: left;"><code>!r</code>, <code>!regen</code></td>
 <td>Regenerate last response.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!</code></td>
 <td style="text-align: left;"><code>!rr</code></td>
 <td>Regenerate response, edit prompt first.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!i</code></td>
 <td style="text-align: left;"><code>!info</code></td>
 <td>Information on model and session settings.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!j</code></td>
 <td style="text-align: left;"><code>!jump</code></td>
 <td>Jump to request, append start seq primer (text cmpls).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!j</code></td>
 <td style="text-align: left;"><code>!!jump</code></td>
 <td>Jump to request, no response priming.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!md</code></td>
 <td style="text-align: left;"><code>!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Toggle markdown rendering in response.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!md</code></td>
 <td style="text-align: left;"><code>!!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Render last response in markdown.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!rep</code></td>
 <td style="text-align: left;"><code>!replay</code></td>
 <td>Replay last TTS audio response.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!res</code></td>
 <td style="text-align: left;"><code>!resubmit</code></td>
 <td>Resubmit last TTS recorded input from cache.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;">-</td>
 <td>Cat prompter as one-shot, &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;"><code>!cat:</code>
 [<em>TXT</em>|<em>URL</em>|<em>PDF</em>]</td>
-<td>Cat <em>text</em> or <em>PDF</em> file, or dump <em>URL</em>
-(<em>:</em> to append).</td>
+<td>Cat <em>text</em> or <em>PDF</em> file, or dump <em>URL</em>.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;">!dialog`</td>
+<tr class="odd">
+<td style="text-align: left;"><code>!dialog</code></td>
 <td style="text-align: left;">-</td>
 <td>Toggle the “dialog” interface.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!img</code></td>
 <td style="text-align: left;"><code>!media</code>
 [<em>FILE</em>|<em>URL</em>]</td>
 <td>Append image, media, or URL to prompt.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><code>!p</code></td>
-<td style="text-align: left;"><code>!pick</code>,
-[<em>PROPMT</em>]<code>!p</code></td>
-<td>File picker (at start or end of prompt).</td>
-</tr>
 <tr class="odd">
+<td style="text-align: left;"><code>!p</code></td>
+<td style="text-align: left;"><code>!pick</code>, [<em>PROPMT</em>]</td>
+<td>File picker, appends filepath to user prompt. <em>‡</em></td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>!pdf</code></td>
 <td style="text-align: left;"><code>!pdf:</code> [<em>FILE</em>]</td>
-<td>Convert PDF and dump text (<em>:</em> to append prompt).</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!photo</code></td>
-<td style="text-align: left;"><code>!!photo</code> [<em>INDEX</em>]</td>
-<td>Take a photo, optionally set camera index (Termux only).</td>
+<td>Convert PDF and dump text.</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>!photo</code></td>
+<td style="text-align: left;"><code>!!photo</code> [<em>INDEX</em>]</td>
+<td>Take a photo, optionally set camera index (Termux only).
+<em>‡</em></td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
 <td>Run shell, or <em>command</em>, and edit output.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!sh:</code></td>
 <td style="text-align: left;"><code>!shell:</code> [<em>CMD</em>]</td>
 <td>Same as <code>!sh</code> but apppend output as user.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!sh</code></td>
 <td style="text-align: left;"><code>!!shell</code> [<em>CMD</em>]</td>
 <td>Run interactive shell (with <em>command</em>) and exit.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!url</code></td>
 <td style="text-align: left;"><code>!url:</code> [<em>URL</em>]</td>
-<td>Dump URL text (add <em>:</em> to append prompt).</td>
+<td>Dump URL text.</td>
 </tr>
 </tbody>
 </table>
@@ -826,12 +830,12 @@ flush.</td>
 <tr class="odd">
 <td style="text-align: left;"><code>!ls</code></td>
 <td style="text-align: left;"><code>!list</code> [<em>GLOB</em>]</td>
-<td>List History files with <em>name</em> <em>glob</em>,</td>
+<td>List History files with <em>name</em> <em>glob</em>.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
 <td style="text-align: left;"></td>
-<td>Prompts “<em>pr</em>”, Awesome “<em>awe</em>”, or all files
+<td>List prompts “<em>pr</em>”, awesome “<em>awe</em>”, or all files
 “<em>.</em>”.</td>
 </tr>
 <tr class="odd">
@@ -876,6 +880,10 @@ flush.</td>
 </tr>
 </tbody>
 </table>
+<div class="line-block"><em>:</em> Commands followed by a colon will
+append command output to prompt.</div>
+<div class="line-block"><em>‡</em> Commands with double dagger may be
+invoked at the end of the input prompt.</div>
 <div class="line-block">E.g.: “<code>/temp</code> <em>0.7</em>”,
 “<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”, and
 “<code>/s</code> <em>hist_name</em>”.</div>

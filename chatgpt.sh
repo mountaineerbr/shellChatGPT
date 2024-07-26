@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.9  jul/2024  by mountaineerbr  GPL+3
+# v0.67.10  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -313,88 +313,93 @@ Chat Commands
 	operators. These commands allow users to modify their interaction
 	parameters within the chat.
 
-    ------    ----------    ---------------------------------------
-    --- Misc Commands ---------------------------------------------
-       -S      :, ::   [PROMPT]  Append user/system prompt to request.
-       -S.     -.       [NAME]   Load and edit custom prompt.
-       -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
-       -Z      !last             Print last response JSON.
-        !      !r, !regen        Regenerate last response.
-       !!      !rr               Regenerate response, edit prompt first.
-       !i      !info             Info on model and session settings.
-       !j      !jump             Jump to request, append response primer.
-      !!j     !!jump             Jump to request, no response priming.
-      !md      !markdown [SOFTW] Toggle markdown support in response.
-     !!md     !!markdown [SOFTW] Render last response in markdown.
-      !rep     !replay           Replay last TTS audio response.
-      !res     !resubmit         Resubmit last TTS recorded input.
-      !cat     -                 Cat prompter (one-shot, ctrd-d).
-      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL (:append).
-      !dialog  -                 Toggle the \`dialog' interface.
-      !img     !media [FILE|URL] Append image, media, or URL to prompt.
-      !p       !pick, [PROMPT]!p File picker (at start or end of prompt).
-      !pdf     !pdf:    [FILE]   Dump PDF text (:append as prompt).
-      !photo  !!photo   [INDEX]  Take a photo, camera index (Termux only).
-      !sh      !shell    [CMD]   Run shell, or command, and edit output.
-      !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
-     !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
-      !url     !url:     [URL]   Dump URL text (add : to append prompt).
-    --- Script Settings and UX ------------------------------------
-     !fold     !wrap             Toggle response wrapping.
-       -g      !stream           Toggle response streaming.
-       -h      !help   [REGEX]   Print help snippet or grep it for regex.
-       -l      !models  [NAME]   List language models or model details.
-       -o      !clip             Copy responses to clipboard.
-       -u      !multi            Toggle multiline, ctrl-d flush.
-       -uu    !!multi            Multiline, one-shot, ctrl-d flush.
-       -U      -UU               Toggle cat prompter, or set one-shot.
-       -V      !context          Print context before request (see -P).
-       -VV     !debug            Dump raw request block and confirm.
-       -v      !ver              Toggle verbose modes.
-       -x      !ed               Toggle text editor interface.
-       -xx    !!ed               Single-shot text editor.
-       -y      !tik              Toggle python tiktoken use.
-       !q      !quit             Exit. Bye.
-    --- Model Settings --------------------------------------------
-      -Nill    !Nill             Toggle model max response (chat cmpls).
-       -M      !NUM !max [NUM]   Set max response tokens.
-       -N      !modmax   [NUM]   Set model token capacity.
-       -a      !pre      [VAL]   Set presence penalty.
-       -A      !freq     [VAL]   Set frequency penalty.
-       -b      !best     [NUM]   Set best-of n results.
-       -K      !topk     [NUM]   Set top_k.
-       -m      !mod      [MOD]   Set model by name, or pick from list.
-       -n      !results  [NUM]   Set number of results.
-       -p      !topp     [VAL]   Set top_p.
-       -r      !restart  [SEQ]   Set restart sequence.
-       -R      !start    [SEQ]   Set start sequence.
-       -s      !stop     [SEQ]   Set one stop sequence.
-       -t      !temp     [VAL]   Set temperature.
-       -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
-       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
-      !ka      !keep-alive [NUM] Set duration of model load in memory
-      !blk     !block   [ARGS]   Set and add options to JSON request.
-        -      !multimodal       Toggle model as multimodal.
-    --- Session Management ----------------------------------------
-       -H      !hist             Edit raw history file in editor.
-       -P      -HH, !print       Print session history (see -V).
-       -L      !log  [FILEPATH]  Save to log file (pretty-print).
-      !br      !break, !new      Start new session (session break).
-      !ls      !list    [GLOB]   List History files with name glob,
-                                 Prompts \`pr', Awesome \`awe', or all \`.'.
-      !grep    !sub    [REGEX]   Search sessions and copy to tail.
-       !c      !copy [SRC_HIST] [DEST_HIST]
-                                 Copy session from source to destination.
-       !f      !fork [DEST_HIST] Fork current session to destination.
-       !k      !kill     [NUM]   Comment out n last entries in hist file.
-      !!k     !!kill  [[0]NUM]   Dry-run of command !kill.
-       !s      !session [HIST_FILE]
-                                 Change to, search for, or create hist file.
-      !!s     !!session [HIST_FILE]
+   -------    ----------    -----------------------------------------
+   --- Misc Commands ------------------------------------------------
+      -S      :, ::   [PROMPT]  Append user/system prompt to request.
+      -S.     -.       [NAME]   Load and edit custom prompt.
+      -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
+      -Z      !last             Print last response JSON.
+     !\#      !save   [PROMPT]  Save current prompt to shell history. ‡
+       !      !r, !regen        Regenerate last response.
+      !!      !rr               Regenerate response, edit prompt first.
+      !i      !info             Info on model and session settings.
+      !j      !jump             Jump to request, append response primer.
+     !!j     !!jump             Jump to request, no response priming.
+     !md      !markdown [SOFTW] Toggle markdown support in response.
+    !!md     !!markdown [SOFTW] Render last response in markdown.
+     !rep     !replay           Replay last TTS audio response.
+     !res     !resubmit         Resubmit last TTS recorded input.
+     !cat     -                 Cat prompter (one-shot, ctrd-d).
+     !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL.
+     !dialog  -                 Toggle the \`dialog' interface.
+     !img     !media [FILE|URL] Append image, media, or URL to prompt.
+     !p       !pick,  [PROMPT]  File picker, appends filepath to prompt. ‡
+     !pdf     !pdf:    [FILE]   Dump PDF text.
+    !photo   !!photo   [INDEX]  Take a photo, camera index (Termux only). ‡
+     !sh      !shell    [CMD]   Run shell, or command, and edit output.
+     !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
+    !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
+     !url     !url:     [URL]   Dump URL text.
+   --- Script Settings and UX ---------------------------------------
+    !fold     !wrap             Toggle response wrapping.
+      -g      !stream           Toggle response streaming.
+      -h      !help   [REGEX]   Print help snippet or grep it for regex.
+      -l      !models  [NAME]   List language models or model details.
+      -o      !clip             Copy responses to clipboard.
+      -u      !multi            Toggle multiline, ctrl-d flush.
+      -uu    !!multi            Multiline, one-shot, ctrl-d flush.
+      -U      -UU               Toggle cat prompter, or set one-shot.
+      -V      !context          Print context before request (see -P).
+      -VV     !debug            Dump raw request block and confirm.
+      -v      !ver              Toggle verbose modes.
+      -x      !ed               Toggle text editor interface.
+      -xx    !!ed               Single-shot text editor.
+      -y      !tik              Toggle python tiktoken use.
+      !q      !quit             Exit. Bye.
+   --- Model Settings -----------------------------------------------
+     -Nill    !Nill             Toggle model max response (chat cmpls).
+      -M      !NUM !max [NUM]   Set max response tokens.
+      -N      !modmax   [NUM]   Set model token capacity.
+      -a      !pre      [VAL]   Set presence penalty.
+      -A      !freq     [VAL]   Set frequency penalty.
+      -b      !best     [NUM]   Set best-of n results.
+      -K      !topk     [NUM]   Set top_k.
+      -m      !mod      [MOD]   Set model by name, or pick from list.
+      -n      !results  [NUM]   Set number of results.
+      -p      !topp     [VAL]   Set top_p.
+      -r      !restart  [SEQ]   Set restart sequence.
+      -R      !start    [SEQ]   Set start sequence.
+      -s      !stop     [SEQ]   Set one stop sequence.
+      -t      !temp     [VAL]   Set temperature.
+      -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
+      -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
+     !ka      !keep-alive [NUM] Set duration of model load in memory
+     !blk     !block   [ARGS]   Set and add options to JSON request.
+       -       !multimodal       Toggle model as multimodal.
+   --- Session Management -------------------------------------------
+      -H      !hist             Edit raw history file in editor.
+      -P      -HH, !print       Print session history (see -V).
+      -L      !log  [FILEPATH]  Save to log file (pretty-print).
+     !br      !break, !new      Start new session (session break).
+     !ls      !list    [GLOB]   List History files with name glob. List
+                                prompts \`pr', awesome \`awe', or all \`.'.
+     !grep    !sub    [REGEX]   Search sessions and copy to tail.
+      !c      !copy [SRC_HIST] [DEST_HIST]
+                                Copy session from source to destination.
+      !f      !fork [DEST_HIST] Fork current session to destination.
+      !k      !kill     [NUM]   Comment out n last entries in hist file.
+     !!k     !!kill  [[0]NUM]   Dry-run of command !kill.
+      !s      !session [HIST_FILE]
+                                Change to, search for, or create hist file.
+     !!s     !!session [HIST_FILE]
                                  Same as !session, break session.
-    ------    ----------    ---------------------------------------
-	
-	E.g.: \`/temp 0.7', \`!modgpt-4', \`-p 0.2', and \`/s hist_name'.
+   -------    ----------    -----------------------------------------
+
+      : Commands followed by a colon to append command output to prompt.
+
+      ‡ Commands with double dagger may be invoked at the end of prompt.
+
+      E.g. \`/temp 0.7', \`!modgpt-4', \`-p 0.2', and \`/s hist_name'.
 
 	Change chat context at run time with the \`!hist' command to edit
 	the raw history file (delete or comment out entries).
@@ -1593,10 +1598,10 @@ function cmd_runf
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
 		-h*|h*|help*|-\?|\?)
-			set -- "${*##@(-h|h|help)$SPC}"
-			var=$(sed -n -e 's/^\t*//' -e '/^[[:space:]]*------ /,/^[[:space:]]*------ /p' <<<"$HELP")
-			if ((${#1}<3)) || ! grep --color=always -i -e "${1}" <<<${var} >&2;
-			then 	less -S <<<$var;
+			set -- "${*##@(-h|h|help)$SPC}";
+			var=$(sed -n -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
+			if ((${#1}<3)) || ! grep --color=always -i -e "${1}" <<<"${var}" >&2;
+			then 	less -S <<<"${var}";
 			fi; xskip=1
 			;;
 		-H|H|history|hist)
@@ -1949,6 +1954,11 @@ function cmd_runf
 					cmd_runf /sh "$var";;
 				*) 	__warmsgf 'Err:' 'No input or PDF-to-text software available';;
 			esac; return;
+			;;
+		save*|\#*)
+			shell_histf "${*##@(save|\#)*([$IFS])}";
+			((${#1})) && __cmdmsgf 'Shell:' 'Prompt added to history!';
+			unset REPLY EDIT SKIP_SH_HIST;
 			;;
 		[/!]sh*)
 			set -- "${*##[/!]@(shell|sh)*([:$IFS])}"
@@ -4853,9 +4863,10 @@ else
 				elif case "${REPLY: ind}" in
 					*?[/!]photo) var=photo;;
 					*?[/!]pick|*?[/!]p) var=pick;;
+					*?[/!]save|*?[/!]\#) var=save;;
 					*) 	false;; esac;
 				then
-					cmd_runf /${var:-pick} "$(trim_trailf "$REPLY" "$SPC[/!]@(photo|pick|p)")";
+					cmd_runf /${var:-pick} "$(trim_trailf "$REPLY" "$SPC[/!]@(photo|pick|p|save|\#)")";
 					set --; continue 2;
 				elif ((${#REPLY}))
 				then

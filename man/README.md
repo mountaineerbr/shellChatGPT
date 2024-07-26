@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.67.9 \| General Commands Manual
+title: CHATGPT.SH(1) v0.67.10 \| General Commands Manual
 ---
 
 ### NAME
@@ -14,7 +14,7 @@ title: CHATGPT.SH(1) v0.67.9 \| General Commands Manual
    **chatgpt.sh** \[`-cc`\|`-d`\|`-qq`\] \[`opt`..\]
 \[*PROMPT*\|*TEXT_FILE*\|*PDF_FILE*\]  
    **chatgpt.sh** `-i` \[`opt`..\] \[*X*\|*L*\|*P*\]\[*hd*\]
-\[*PROMPT*\] \#*Dall-E-3*  
+\[*PROMPT*\] \#Dall-E-3  
    **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PROMPT*\]  
    **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PNG_FILE*\]  
    **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PNG_FILE*\]
@@ -315,32 +315,33 @@ While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “`!`”,
 or “`/`”.
 
-| Misc      | Commands                        |                                                          |
-|:----------|:--------------------------------|----------------------------------------------------------|
-| `-S`      | `:`, `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.          |
-| `-S.`     | `-.` \[*NAME*\]                 | Load and edit custom prompt.                             |
-| `-S/`     | `-S%` \[*NAME*\]                | Load and edit awesome prompt (zh).                       |
-| `-Z`      | `!last`                         | Print last response JSON.                                |
-| `!`       | `!r`, `!regen`                  | Regenerate last response.                                |
-| `!!`      | `!rr`                           | Regenerate response, edit prompt first.                  |
-| `!i`      | `!info`                         | Information on model and session settings.               |
-| `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).   |
-| `!!j`     | `!!jump`                        | Jump to request, no response priming.                    |
-| `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                   |
-| `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                        |
-| `!rep`    | `!replay`                       | Replay last TTS audio response.                          |
-| `!res`    | `!resubmit`                     | Resubmit last TTS recorded input from cache.             |
-| `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.            |
-| `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text* or *PDF* file, or dump *URL* (*:* to append). |
-| !dialog\` | \-                              | Toggle the “dialog” interface.                           |
-| `!img`    | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                   |
-| `!p`      | `!pick`, \[*PROPMT*\]`!p`       | File picker (at start or end of prompt).                 |
-| `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text (*:* to append prompt).        |
-| `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux only). |
-| `!sh`     | `!shell` \[*CMD*\]              | Run shell, or *command*, and edit output.                |
-| `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.                |
-| `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.         |
-| `!url`    | `!url:` \[*URL*\]               | Dump URL text (add *:* to append prompt).                |
+| Misc      | Commands                        |                                                              |
+|:----------|:--------------------------------|--------------------------------------------------------------|
+| `-S`      | `:`, `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.              |
+| `-S.`     | `-.` \[*NAME*\]                 | Load and edit custom prompt.                                 |
+| `-S/`     | `-S%` \[*NAME*\]                | Load and edit awesome prompt (zh).                           |
+| `-Z`      | `!last`                         | Print last response JSON.                                    |
+| `!#`      | `!save` \[*PROMPT*\]            | Save current prompt to shell history. *‡*                    |
+| `!`       | `!r`, `!regen`                  | Regenerate last response.                                    |
+| `!!`      | `!rr`                           | Regenerate response, edit prompt first.                      |
+| `!i`      | `!info`                         | Information on model and session settings.                   |
+| `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).       |
+| `!!j`     | `!!jump`                        | Jump to request, no response priming.                        |
+| `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                       |
+| `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                            |
+| `!rep`    | `!replay`                       | Replay last TTS audio response.                              |
+| `!res`    | `!resubmit`                     | Resubmit last TTS recorded input from cache.                 |
+| `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.                |
+| `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text* or *PDF* file, or dump *URL*.                     |
+| `!dialog` | \-                              | Toggle the “dialog” interface.                               |
+| `!img`    | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                       |
+| `!p`      | `!pick`, \[*PROPMT*\]           | File picker, appends filepath to user prompt. *‡*            |
+| `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text.                                   |
+| `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux only). *‡* |
+| `!sh`     | `!shell` \[*CMD*\]              | Run shell, or *command*, and edit output.                    |
+| `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.                    |
+| `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.             |
+| `!url`    | `!url:` \[*URL*\]               | Dump URL text.                                               |
 
 | Script  | Settings and UX      |                                                           |
 |:--------|:---------------------|-----------------------------------------------------------|
@@ -388,8 +389,8 @@ or “`/`”.
 | `-P`    | `-HH`, `!print`                        | Print session history (see `option -V`).                   |
 | `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                          |
 | `!br`   | `!break`, `!new`                       | Start new session (session break).                         |
-| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*,                     |
-|         |                                        | Prompts “*pr*”, Awesome “*awe*”, or all files “*.*”.       |
+| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*.                     |
+|         |                                        | List prompts “*pr*”, awesome “*awe*”, or all files “*.*”.  |
 | `!grep` | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail. |
 | `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                   |
 | `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.                       |
@@ -397,6 +398,11 @@ or “`/`”.
 | `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                                |
 | `!s`    | `!session` \[*HIST_FILE*\]             | Change to, search for, or create history file.             |
 | `!!s`   | `!!session` \[*HIST_FILE*\]            | Same as `!session`, break session.                         |
+
+*:* Commands followed by a colon will append command output to prompt.
+
+*‡* Commands with double dagger may be invoked at the end of the input
+prompt.
 
 E.g.: “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”, and “`/s`
 *hist_name*”.
