@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.67.8 | General Commands Manual
+% CHATGPT.SH(1) v0.67.9 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -344,6 +344,7 @@ may be either "`!`", or "`/`".
   --------    -----------------------    ----------------------------------------------------------
    `!fold`    `!wrap`                    Toggle response wrapping.
       `-g`    `!stream`                  Toggle response streaming.
+      `-h`    `!help`     \[_REGEX_]     Print help snippet or grep help for regex.
       `-l`    `!models`    \[_NAME_]     List language models or show model details.
       `-o`    `!clip`                    Copy responses to clipboard.
       `-u`    `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
@@ -356,7 +357,6 @@ may be either "`!`", or "`/`".
      `-xx`    `!!ed`                     Single-shot text editor.
       `-y`    `!tik`                     Toggle python tiktoken use.
       `!q`    `!quit`                    Exit. Bye.
-      `!?`    `!help`                    Print a help snippet.
   --------    -----------------------    ----------------------------------------------------------
 
   Model       Settings

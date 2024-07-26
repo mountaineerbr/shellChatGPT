@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.67.8 \| General Commands Manual
+title: CHATGPT.SH(1) v0.67.9 \| General Commands Manual
 ---
 
 ### NAME
@@ -346,6 +346,7 @@ or “`/`”.
 |:--------|:---------------------|-----------------------------------------------------------|
 | `!fold` | `!wrap`              | Toggle response wrapping.                                 |
 | `-g`    | `!stream`            | Toggle response streaming.                                |
+| `-h`    | `!help` \[*REGEX*\]  | Print help snippet or grep help for regex.                |
 | `-l`    | `!models` \[*NAME*\] | List language models or show model details.               |
 | `-o`    | `!clip`              | Copy responses to clipboard.                              |
 | `-u`    | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
@@ -358,7 +359,6 @@ or “`/`”.
 | `-xx`   | `!!ed`               | Single-shot text editor.                                  |
 | `-y`    | `!tik`               | Toggle python tiktoken use.                               |
 | `!q`    | `!quit`              | Exit. Bye.                                                |
-| `!?`    | `!help`              | Print a help snippet.                                     |
 
 | Model   | Settings                |                                                |
 |:--------|:------------------------|------------------------------------------------|

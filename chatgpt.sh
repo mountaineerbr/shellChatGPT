@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.8  jul/2024  by mountaineerbr  GPL+3
+# v0.67.9  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -342,6 +342,7 @@ Chat Commands
     --- Script Settings and UX ------------------------------------
      !fold     !wrap             Toggle response wrapping.
        -g      !stream           Toggle response streaming.
+       -h      !help   [REGEX]   Print help snippet or grep it for regex.
        -l      !models  [NAME]   List language models or model details.
        -o      !clip             Copy responses to clipboard.
        -u      !multi            Toggle multiline, ctrl-d flush.
@@ -354,7 +355,6 @@ Chat Commands
        -xx    !!ed               Single-shot text editor.
        -y      !tik              Toggle python tiktoken use.
        !q      !quit             Exit. Bye.
-       !?      !help             Print this help snippet.
     --- Model Settings --------------------------------------------
       -Nill    !Nill             Toggle model max response (chat cmpls).
        -M      !NUM !max [NUM]   Set max response tokens.
@@ -1592,9 +1592,12 @@ function cmd_runf
 			((++STREAM)) ;((STREAM%=2))
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
-		-h|h|help|-\?|\?)
-			sed -n -e 's/^\t*//' -e '/^[[:space:]]*------ /,/^[[:space:]]*------ /p' <<<"$HELP" | less -S
-			xskip=1
+		-h*|h*|help*|-\?|\?)
+			set -- "${*##@(-h|h|help)$SPC}"
+			var=$(sed -n -e 's/^\t*//' -e '/^[[:space:]]*------ /,/^[[:space:]]*------ /p' <<<"$HELP")
+			if ((${#1}<3)) || ! grep --color=always -i -e "${1}" <<<${var} >&2;
+			then 	less -S <<<$var;
+			fi; xskip=1
 			;;
 		-H|H|history|hist)
 			__edf "$FILECHAT"
@@ -4847,9 +4850,12 @@ else
 					
 					#del trailing slashes, and set preview colour
 					((RETRY==1)) && REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n/])') REPLY_OLD=$REPLY BCYAN=${Color8};
-				elif case "${REPLY: ind}" in *?[/!]pick|*?[/!]p) 	:;; *) 	false;; esac;
+				elif case "${REPLY: ind}" in
+					*?[/!]photo) var=photo;;
+					*?[/!]pick|*?[/!]p) var=pick;;
+					*) 	false;; esac;
 				then
-					cmd_runf /pick "$(trim_trailf "$REPLY" "$SPC[/!]@(pick|p)")";
+					cmd_runf /${var:-pick} "$(trim_trailf "$REPLY" "$SPC[/!]@(photo|pick|p)")";
 					set --; continue 2;
 				elif ((${#REPLY}))
 				then
