@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.68  jul/2024  by mountaineerbr  GPL+3
+# v0.68.1  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3651,7 +3651,7 @@ function session_name_choosef
 			if test_dialogf
 			then 	fname=$(dialog --backtitle "${item} manager" \
 				--title "new ${item} file" \
-				--inputbox "enter new ${item} name" 10 32  2>&1 >/dev/tty )
+				--inputbox "enter new ${item} name" 8 32  2>&1 >/dev/tty )
 				__clr_dialogf;
 			else
 				_sysmsgf "New ${item} name <enter/abort>:" \
@@ -3683,7 +3683,7 @@ function session_name_choosef
 			if test_dialogf
 			then 	dialog --colors --backtitle "${item} manager" \
 				--title "confirm${new} ${item} file?" \
-				--yesno "\\n\\n \\Zb${new:+\\Z1}${print_name}\\Zn" 10 $((${#print_name}+6))  >/dev/tty
+				--yesno " \\Zb${new:+\\Z1}${print_name}\\Zn" 8 $((${#print_name}+6))  >/dev/tty
 				case $? in
 					-1|1|5|255) var=abort;;
 				esac;
