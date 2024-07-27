@@ -298,11 +298,11 @@ Environment
 			endpoint auto-selection.
 
 	[PROVIDER]_API_HOST
-			API host URL for the providers _LOCALAI_, _OLLAMA_,
-			_MISTRAL_, _GOOGLE_, and _GROQ_.
+			API host URL for the providers LOCALAI, OLLAMA,
+			MISTRAL, GOOGLE, and GROQ.
 
 	OPENAI_API_KEY
-	\[PROVIDER]_API_KEY
+	[PROVIDER]_API_KEY
 			Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
 
 	OUTDIR 		Output directory for received image and audio.
@@ -3062,7 +3062,7 @@ function ttsf
 	then 	typeset API_HOST OPENAI_API_KEY ENDPOINTS EPN MOD;
 		ENDPOINTS=(); MOD=$MOD_SPEECH;
 		EPN=10 ENDPOINTS[10]="/v1/audio/speech";
-		API_HOST=$OPENAI_API_HOST_DEF
+		API_HOST=$OPENAI_API_HOST_DEF;
 		OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
 	fi
 	_ttsf "$@";
@@ -4246,7 +4246,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  
 		o) 	OPTCLIP=1;;
 		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ;;
 		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ;;
-		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI=;;
+		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ;;
 		localai) LOCALAI=1;;
 		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ;;
 		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ;;

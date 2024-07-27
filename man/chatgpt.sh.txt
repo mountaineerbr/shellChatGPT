@@ -628,16 +628,16 @@ OPENAI_API_HOST_STATIC
     Custom host URL. The STATIC parameter disables endpoint auto
     selection.
 
-**[PROVIDER]_API_HOST**
+PROVIDER_API_HOST
 
     API host URL for the providers LOCALAI, OLLAMA, MISTRAL, GOOGLE, and
     GROQ.
 
 OPENAI_API_KEY
 
-**[PROVIDER]_API_KEY**
+PROVIDER_API_KEY
 
-: Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
+    Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
 
 OUTDIR
 

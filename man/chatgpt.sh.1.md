@@ -726,7 +726,7 @@ Setting **temperature** has an effect, the higher the more random.
 :    Custom host URL. The _STATIC_ parameter disables endpoint auto selection.
 
 
-**\[PROVIDER]_API_HOST**
+**PROVIDER_API_HOST**
 
 :    API host URL for the providers
      _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, and _GROQ_.
@@ -734,8 +734,7 @@ Setting **temperature** has an effect, the higher the more random.
 
 **OPENAI_API_KEY**
 
-**\[PROVIDER]_API_KEY**
-
+**PROVIDER_API_KEY**
 
 :    Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
 

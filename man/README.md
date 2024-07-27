@@ -683,15 +683,14 @@ Set default model for each endpoint / integration.
 Custom host URL. The *STATIC* parameter disables endpoint auto
 selection.
 
-\*\*\[PROVIDER\]\_API_HOST\*\*  
+**PROVIDER_API_HOST**  
 API host URL for the providers *LOCALAI*, *OLLAMA*, *MISTRAL*, *GOOGLE*,
 and *GROQ*.
 
 **OPENAI_API_KEY**
 
-\*\*\[PROVIDER\]\_API_KEY\*\*
-
-: Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
+**PROVIDER_API_KEY**  
+Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
 
 **OUTDIR**  
 Output directory for received image and audio.
