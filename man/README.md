@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.67.10 \| General Commands Manual
+title: CHATGPT.SH(1) v0.68 \| General Commands Manual
 ---
 
 ### NAME
@@ -194,6 +194,9 @@ the script with `option --mistral` or set **\$OPENAI_API_HOST** to
 `option --mistral` for complete integration.
 <!-- also see: \$MISTRAL_API_HOST -->
 
+And for Groq, set the environmental variable `$GROQ_API_KEY`. Run the
+script with `option --groq`. Whisper endpoint available.
+
 List models with `option -l`, or run `/models` in chat mode.
 
 <!--
@@ -315,33 +318,33 @@ While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either “`!`”,
 or “`/`”.
 
-| Misc      | Commands                        |                                                              |
-|:----------|:--------------------------------|--------------------------------------------------------------|
-| `-S`      | `:`, `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.              |
-| `-S.`     | `-.` \[*NAME*\]                 | Load and edit custom prompt.                                 |
-| `-S/`     | `-S%` \[*NAME*\]                | Load and edit awesome prompt (zh).                           |
-| `-Z`      | `!last`                         | Print last response JSON.                                    |
-| `!#`      | `!save` \[*PROMPT*\]            | Save current prompt to shell history. *‡*                    |
-| `!`       | `!r`, `!regen`                  | Regenerate last response.                                    |
-| `!!`      | `!rr`                           | Regenerate response, edit prompt first.                      |
-| `!i`      | `!info`                         | Information on model and session settings.                   |
-| `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).       |
-| `!!j`     | `!!jump`                        | Jump to request, no response priming.                        |
-| `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                       |
-| `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                            |
-| `!rep`    | `!replay`                       | Replay last TTS audio response.                              |
-| `!res`    | `!resubmit`                     | Resubmit last TTS recorded input from cache.                 |
-| `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.                |
-| `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text* or *PDF* file, or dump *URL*.                     |
-| `!dialog` | \-                              | Toggle the “dialog” interface.                               |
-| `!img`    | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                       |
-| `!p`      | `!pick`, \[*PROPMT*\]           | File picker, appends filepath to user prompt. *‡*            |
-| `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text.                                   |
-| `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux only). *‡* |
-| `!sh`     | `!shell` \[*CMD*\]              | Run shell, or *command*, and edit output.                    |
-| `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.                    |
-| `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.             |
-| `!url`    | `!url:` \[*URL*\]               | Dump URL text.                                               |
+| Misc      | Commands                        |                                                         |
+|:----------|:--------------------------------|---------------------------------------------------------|
+| `-S`      | `:`, `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.         |
+| `-S.`     | `-.` \[*NAME*\]                 | Load and edit custom prompt.                            |
+| `-S/`     | `-S%` \[*NAME*\]                | Load and edit awesome prompt (zh).                      |
+| `-Z`      | `!last`                         | Print last response JSON.                               |
+| `!#`      | `!save` \[*PROMPT*\]            | Save current prompt to shell history. *‡*               |
+| `!`       | `!r`, `!regen`                  | Regenerate last response.                               |
+| `!!`      | `!rr`                           | Regenerate response, edit prompt first.                 |
+| `!i`      | `!info`                         | Information on model and session settings.              |
+| `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).  |
+| `!!j`     | `!!jump`                        | Jump to request, no response priming.                   |
+| `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                  |
+| `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                       |
+| `!rep`    | `!replay`                       | Replay last TTS audio response.                         |
+| `!res`    | `!resubmit`                     | Resubmit last TTS recorded input from cache.            |
+| `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.           |
+| `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text* or *PDF* file, or dump *URL*.                |
+| `!dialog` | \-                              | Toggle the “dialog” interface.                          |
+| `!img`    | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                  |
+| `!p`      | `!pick`, \[*PROPMT*\]           | File picker, appends filepath to user prompt. *‡*       |
+| `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text.                              |
+| `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux). *‡* |
+| `!sh`     | `!shell` \[*CMD*\]              | Run shell, or *command*, and edit output.               |
+| `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.               |
+| `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.        |
+| `!url`    | `!url:` \[*URL*\]               | Dump URL text.                                          |
 
 | Script  | Settings and UX      |                                                           |
 |:--------|:---------------------|-----------------------------------------------------------|
@@ -667,26 +670,28 @@ Initial initial instruction, or system message for chat mode.
 
 **MOD_MISTRAL**
 
-**MOD_GOOGLE**  
-Set defaults model for each endpoint / integration.
+**MOD_GOOGLE**
 
-**OLLAMA_API_HOST**  
-Ollama host URL (used with `option -O`).
+**MOD_GROQ**
+
+**MOD_AUDIO_GROQ**  
+Set default model for each endpoint / integration.
 
 **OPENAI_API_HOST**
 
-**OPENAI_API_HOST_FIXED**  
+**OPENAI_API_HOST_STATIC**  
 Custom host URL. The *STATIC* parameter disables endpoint auto
 selection.
 
-**OPENAI_KEY**
+\*\*\[PROVIDER\]\_API_HOST\*\*  
+API host URL for the providers *LOCALAI*, *OLLAMA*, *MISTRAL*, *GOOGLE*,
+and *GROQ*.
 
 **OPENAI_API_KEY**
 
-**GOOGLE_API_KEY**
+\*\*\[PROVIDER\]\_API_KEY\*\*
 
-**MISTRAL_API_KEY**  
-OpenAI, GoogleAI, and MistralAI API keys.
+: Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
 
 **OUTDIR**  
 Output directory for received image and audio.
@@ -979,6 +984,9 @@ Set or unset response folding (wrap at white spaces).
 
 **--google**  
 Set Google Gemini integration (cmpls/chat).
+
+**--groq**  
+Set Groq integration (chat).
 
 **-h**, **--help**  
 Print the help page.

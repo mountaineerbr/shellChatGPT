@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.67.10 | General Commands Manual
+CHATGPT.SH(1) v0.68 | General Commands Manual
 mountaineerbr
 July 2024
 
@@ -178,6 +178,9 @@ script with option --mistral or set $OPENAI_API_HOST to
 “https://api.mistral.ai/”. Prefer setting command line option --mistral
 for complete integration.
 
+And for Groq, set the environmental variable $GROQ_API_KEY. Run the
+script with option --groq. Whisper endpoint available.
+
 List models with option -l, or run /models in chat mode.
 
 For Ollama, set option -O (--ollama), and set $OLLAMA_API_HOST if the
@@ -281,7 +284,7 @@ prompt to set a new parameter. The command operator may be either “!”,
 or “/”.
 
   Misc      Commands              
-  --------- --------------------- ------------------------------------------------------------
+  --------- --------------------- --------------------------------------------------------
   -S        :, :: [PROMPT]        Append user or system prompt to request buffer.
   -S.       -. [NAME]             Load and edit custom prompt.
   -S/       -S% [NAME]            Load and edit awesome prompt (zh).
@@ -302,7 +305,7 @@ or “/”.
   !img      !media [FILE|URL]     Append image, media, or URL to prompt.
   !p        !pick, [PROPMT]       File picker, appends filepath to user prompt. ‡
   !pdf      !pdf: [FILE]          Convert PDF and dump text.
-  !photo    !!photo [INDEX]       Take a photo, optionally set camera index (Termux only). ‡
+  !photo    !!photo [INDEX]       Take a photo, optionally set camera index (Termux). ‡
   !sh       !shell [CMD]          Run shell, or command, and edit output.
   !sh:      !shell: [CMD]         Same as !sh but apppend output as user.
   !!sh      !!shell [CMD]         Run interactive shell (with command) and exit.
@@ -612,28 +615,29 @@ MOD_MISTRAL
 
 MOD_GOOGLE
 
-    Set defaults model for each endpoint / integration.
+MOD_GROQ
 
-OLLAMA_API_HOST
+MOD_AUDIO_GROQ
 
-    Ollama host URL (used with option -O).
+    Set default model for each endpoint / integration.
 
 OPENAI_API_HOST
 
-OPENAI_API_HOST_FIXED
+OPENAI_API_HOST_STATIC
 
     Custom host URL. The STATIC parameter disables endpoint auto
     selection.
 
-OPENAI_KEY
+**[PROVIDER]_API_HOST**
+
+    API host URL for the providers LOCALAI, OLLAMA, MISTRAL, GOOGLE, and
+    GROQ.
 
 OPENAI_API_KEY
 
-GOOGLE_API_KEY
+**[PROVIDER]_API_KEY**
 
-MISTRAL_API_KEY
-
-    OpenAI, GoogleAI, and MistralAI API keys.
+: Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
 
 OUTDIR
 
@@ -949,6 +953,10 @@ Script Settings
 --google
 
     Set Google Gemini integration (cmpls/chat).
+
+--groq
+
+    Set Groq integration (chat).
 
 -h, --help
 

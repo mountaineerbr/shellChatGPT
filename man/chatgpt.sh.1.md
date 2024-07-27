@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.67.10 | General Commands Manual
+% CHATGPT.SH(1) v0.68 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -181,6 +181,10 @@ to "https://api.mistral.ai/".
 Prefer setting command line `option --mistral` for complete integration.
 <!-- also see: \$MISTRAL_API_HOST -->
 
+And for Groq, set the environmental variable `$GROQ_API_KEY`.
+Run the script with `option --groq`.
+Whisper endpoint available.
+
 List models with `option -l`, or run `/models` in chat mode.
 
 <!--
@@ -334,7 +338,7 @@ may be either "`!`", or "`/`".
      `!img`        `!media` \[_FILE_|_URL_]          Append image, media, or URL to prompt.
        `!p`        `!pick`,     \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
      `!pdf`        `!pdf:`      \[_FILE_]            Convert PDF and dump text.
-   `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux only). _‡_
+   `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux). _‡_
       `!sh`        `!shell`      \[_CMD_]            Run shell, or _command_, and edit output.
      `!sh:`        `!shell:`     \[_CMD_]            Same as `!sh` but apppend output as user.
      `!!sh`        `!!shell`     \[_CMD_]            Run interactive shell (with _command_) and exit.
@@ -708,30 +712,32 @@ Setting **temperature** has an effect, the higher the more random.
 
 **MOD_GOOGLE**
 
-:    Set defaults model for each endpoint / integration.
+**MOD_GROQ**
 
+**MOD_AUDIO_GROQ**
 
-**OLLAMA_API_HOST**
-
-:    Ollama host URL (used with `option -O`).
+:    Set default model for each endpoint / integration.
 
 
 **OPENAI_API_HOST**
 
-**OPENAI_API_HOST_FIXED**
+**OPENAI_API_HOST_STATIC**
 
 :    Custom host URL. The _STATIC_ parameter disables endpoint auto selection.
 
 
-**OPENAI_KEY**
+**\[PROVIDER]_API_HOST**
+
+:    API host URL for the providers
+     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, and _GROQ_.
+
 
 **OPENAI_API_KEY**
 
-**GOOGLE_API_KEY**
+**\[PROVIDER]_API_KEY**
 
-**MISTRAL_API_KEY**
 
-:    OpenAI, GoogleAI, and MistralAI API keys.
+:    Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
 
 
 **OUTDIR**
@@ -1127,6 +1133,11 @@ API version 1 but not all endpoints, or options will be covered.
 **\--google**
 
 : Set Google Gemini integration (cmpls/chat).
+
+
+**\--groq**
+
+: Set Groq integration (chat).
 
 
 **-h**, **\--help**

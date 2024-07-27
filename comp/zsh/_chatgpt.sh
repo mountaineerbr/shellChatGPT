@@ -163,10 +163,11 @@ _chatgpt.sh()
     {-k,--no-colour}'[Disable color output]' \
     {-l,--list-models}'[List models]:model name (optional)' \
     {-L,--log}'[Log file]:log filepath:_files' \
-    '(--localai --mistral --google)'{-O,--ollama}'[Ollama integration]' \
-    '(-O --ollama --mistral --google)--localai[LocalAI integration]' \
-    '(-O --ollama --localai --google)--mistral[Mistral AI integration]' \
-    '(-O --ollama --mistral --localai)--google[GoogleAI integration]' \
+    '(--localai --mistral --google --groq)'{-O,--ollama}'[Ollama integration]' \
+    '(-O --ollama --mistral --google --groq)--localai[LocalAI integration]' \
+    '(-O --ollama --localai --google --groq)--mistral[Mistral AI integration]' \
+    '(-O --ollama --mistral --localai --groq)--google[GoogleAI integration]' \
+    '(-O --ollama --localai --google --mistral)--groq[Groq integration]' \
     {--md,--markdown}'[Enable markdown rendering]' \
     {--md=-,--markdown=-}'[Set markdown software (=cmd)]:markdown command:(bat pygmentize glow mdcat mdless)' \
     {--no-md,--no-markdown}'[Disable markdown rendering]' \

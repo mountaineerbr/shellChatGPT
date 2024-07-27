@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, Gemini and Mistral integration.
+Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, Gemini, Mistral, and Groq integration.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
@@ -21,7 +21,8 @@ Markdown rendering of chat response (_optional_).
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
    easily create and set the initial system prompt
 - **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
-- Integration with [mudler's LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), and [Mistral AI](#mistral-ai)
+- Integration with [mudler's LocalAI](#localai), [Ollama](#ollama),
+   [Google AI](#google-ai), [Mistral AI](#mistral-ai), and [Groq](#groq)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 - [Command line completion](#shell-completion) and file picker dialogs for a smoother experience 💻
@@ -852,6 +853,14 @@ and run the script with `option --mistral` for complete integration.
 <!-- $MISTRAL_API_HOST -->
 
 
+## Groq
+
+Sign in to [Groq](https://console.groq.com/playground).
+Create a new API key or use an existing one to set
+the environmental variable `$GROQ_API_KEY`.
+Run the script with `option --groq`.
+
+
 <!--
 ## 🌎 Environment
 
@@ -1050,8 +1059,9 @@ They were studied during development of this script and used as referencial code
 5. [mudler's LocalAI](https://github.com/mudler/LocalAI)
 6. [Ollama](https://github.com/ollama/ollama/)
 7. [Google Gemini](https://gemini.google.com/)
-8. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-9. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+8. [Groq](https://console.groq.com/docs/api-reference)
+9. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+10. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 <!-- https://huggingface.co/ -->
 
 

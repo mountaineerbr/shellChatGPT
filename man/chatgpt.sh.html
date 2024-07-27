@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.67.10 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.68 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.67.10 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.68 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -358,6 +358,9 @@ APIs.</p>
 to “https://api.mistral.ai/”. Prefer setting command line
 <code>option --mistral</code> for complete integration.
 <!-- also see: \$MISTRAL_API_HOST --></p>
+<p>And for Groq, set the environmental variable
+<code>$GROQ_API_KEY</code>. Run the script with
+<code>option --groq</code>. Whisper endpoint available.</p>
 <p>List models with <code>option -l</code>, or run <code>/models</code>
 in chat mode.</p>
 <!--
@@ -577,8 +580,7 @@ prompt to set a new parameter. The command operator may be either
 <tr class="odd">
 <td style="text-align: left;"><code>!photo</code></td>
 <td style="text-align: left;"><code>!!photo</code> [<em>INDEX</em>]</td>
-<td>Take a photo, optionally set camera index (Termux only).
-<em>‡</em></td>
+<td>Take a photo, optionally set camera index (Termux). <em>‡</em></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!sh</code></td>
@@ -1129,32 +1131,31 @@ more random.</p>
 <p><strong>MOD_LOCALAI</strong></p>
 <p><strong>MOD_OLLAMA</strong></p>
 <p><strong>MOD_MISTRAL</strong></p>
+<p><strong>MOD_GOOGLE</strong></p>
+<p><strong>MOD_GROQ</strong></p>
 <dl>
-<dt><strong>MOD_GOOGLE</strong></dt>
+<dt><strong>MOD_AUDIO_GROQ</strong></dt>
 <dd>
-<p>Set defaults model for each endpoint / integration.</p>
-</dd>
-<dt><strong>OLLAMA_API_HOST</strong></dt>
-<dd>
-<p>Ollama host URL (used with <code>option -O</code>).</p>
+<p>Set default model for each endpoint / integration.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_API_HOST</strong></p>
 <dl>
-<dt><strong>OPENAI_API_HOST_FIXED</strong></dt>
+<dt><strong>OPENAI_API_HOST_STATIC</strong></dt>
 <dd>
 <p>Custom host URL. The <em>STATIC</em> parameter disables endpoint auto
 selection.</p>
 </dd>
-</dl>
-<p><strong>OPENAI_KEY</strong></p>
-<p><strong>OPENAI_API_KEY</strong></p>
-<p><strong>GOOGLE_API_KEY</strong></p>
-<dl>
-<dt><strong>MISTRAL_API_KEY</strong></dt>
+<dt>**[PROVIDER]_API_HOST**</dt>
 <dd>
-<p>OpenAI, GoogleAI, and MistralAI API keys.</p>
+<p>API host URL for the providers <em>LOCALAI</em>, <em>OLLAMA</em>,
+<em>MISTRAL</em>, <em>GOOGLE</em>, and <em>GROQ</em>.</p>
 </dd>
+</dl>
+<p><strong>OPENAI_API_KEY</strong></p>
+<p>**[PROVIDER]_API_KEY**</p>
+<p>: Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.</p>
+<dl>
 <dt><strong>OUTDIR</strong></dt>
 <dd>
 <p>Output directory for received image and audio.</p>
@@ -1507,6 +1508,10 @@ translated to the target LANG.</p>
 <dt><strong>--google</strong></dt>
 <dd>
 <p>Set Google Gemini integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--groq</strong></dt>
+<dd>
+<p>Set Groq integration (chat).</p>
 </dd>
 <dt><strong>-h</strong>, <strong>--help</strong></dt>
 <dd>

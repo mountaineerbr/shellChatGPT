@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.67.11  jul/2024  by mountaineerbr  GPL+3
+# v0.68  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -8,6 +8,7 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 #OPENAI_API_KEY=
 #GOOGLE_API_KEY=
 #MISTRAL_API_KEY=
+#GROQ_API_KEY=
 
 # DEFAULTS
 # Text cmpls model
@@ -18,6 +19,7 @@ MOD_CHAT="${MOD_CHAT:-gpt-4o}"
 MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
 # Whisper model (STT)
 MOD_AUDIO="${MOD_AUDIO:-whisper-1}"
+MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
 # Speech model (TTS)
 MOD_SPEECH="${MOD_SPEECH:-tts-1}"
 # LocalAI model
@@ -28,6 +30,8 @@ MOD_OLLAMA="${MOD_OLLAMA:-llama3}"
 MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.5-flash-latest}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
+# Groq model
+MOD_GROQ="${MOD_GROQ:-llama-3.1-8b-instant}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -100,7 +104,6 @@ if [[ -n $TERMUX_VERSION ]] && [[ -d $HOME/storage/downloads ]]
 then 	OUTDIR=${OUTDIR:-$HOME/storage/downloads}
 else 	OUTDIR="${OUTDIR:-${XDG_DOWNLOAD_DIR:-$HOME/Downloads}}"
 fi
-HISTSIZE=256
 
 # Colour palette
 # Normal Colours   # Bold              # Background
@@ -114,6 +117,7 @@ Cyan='\e[0;36m'    BCyan='\e[1;36m'    On_Cyan='\e[46m'   \
 White='\e[0;37m'   BWhite='\e[1;37m'   On_White='\e[47m'  \
 Inv='\e[0;7m'      Nc='\e[m'           Alert=$BWhite$On_Red \
 Bold='\033[0;1m'
+HISTSIZE=256;
 
 # Load user defaults
 ((${#CHATGPTRC})) || CHATGPTRC="$HOME/.chatgpt.conf"
@@ -138,7 +142,14 @@ HISTCONTROL=erasedups:ignoredups
 SAVEHIST=$HISTSIZE HISTTIMEFORMAT='%F %T '
 
 # API URL / endpoint
-API_HOST="https://api.openai.com";
+OPENAI_API_HOST_DEF="https://api.openai.com";
+OLLAMA_API_HOST_DEF="http://localhost:11434";
+LOCALAI_API_HOST_DEF="http://127.0.0.1:8080";
+MISTRAL_API_HOST_DEF="https://api.mistral.ai";
+GOOGLE_API_HOST_DEF="https://generativelanguage.googleapis.com/v1beta";
+GROQ_API_HOST_DEF="https://api.groq.com/openai";
+OPENAI_API_KEY_DEF=$OPENAI_API_KEY
+API_HOST=$OPENAI_API_HOST_DEF;
 
 # Def hist, txt chat types
 Q_TYPE="\\nQ: "
@@ -277,20 +288,22 @@ Environment
 	MOD_LOCALAI
 	MOD_OLLAMA
 	MOD_MISTRAL
-	MOD_GOOGLE 	Set defaults model for each endpoint / integration.
+	MOD_GOOGLE
+	MOD_GROQ
+	MOD_AUDIO_GROQ 	Set default model for each endpoint / integration.
 	
-	OLLAMA_API_HOST Ollama host URL (with option -O).
-
 	OPENAI_API_HOST
 	OPENAI_API_HOST_STATIC
 			Custom host URL. The STATIC parameter disables
 			endpoint auto-selection.
 
-	OPENAI_KEY
+	[PROVIDER]_API_HOST
+			API host URL for the providers _LOCALAI_, _OLLAMA_,
+			_MISTRAL_, _GOOGLE_, and _GROQ_.
+
 	OPENAI_API_KEY
-	GOOGLE_API_KEY
-	MISTRAL_API_KEY OpenAI, GoogleAI, and MistralAI API keys.
-	
+	\[PROVIDER]_API_KEY
+			Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
 
 	OUTDIR 		Output directory for received image and audio.
 
@@ -335,7 +348,7 @@ Chat Commands
      !img     !media [FILE|URL] Append image, media, or URL to prompt.
      !p       !pick,  [PROMPT]  File picker, appends filepath to prompt. ‡
      !pdf     !pdf:    [FILE]   Dump PDF text.
-    !photo   !!photo   [INDEX]  Take a photo, camera index (Termux only). ‡
+    !photo   !!photo   [INDEX]  Take a photo, camera index (Termux). ‡
      !sh      !shell    [CMD]   Run shell, or command, and edit output.
      !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
     !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
@@ -523,6 +536,7 @@ Options
 		Set or unset response folding (wrap at white spaces).
 	--google
 		Set Google Gemini integration (cmpls/chat).
+	--groq  Set Groq integration (chat).
 	-h, --help
 		Print this help page.
 	-H, --hist  [/HIST_FILE]
@@ -636,7 +650,7 @@ function set_model_epnf
 						then 	OPTCMPL= OPTC= EPN=1;
 						elif ((OPTCMPL))
 						then 	OPTC= EPN=0;
-						elif ((OPTC>1))
+						elif ((OPTC>1 || GROQAI))
 						then 	OPTCMPL= EPN=6;
 						elif ((OPTC))
 						then 	OPTCMPL= EPN=0;
@@ -651,28 +665,31 @@ function set_model_epnf
 function model_capf
 {
 	case "${1##ft:}" in  #set model max tokens, ft: fine-tune models
+		llama-[3-9].[1-9]*|llama[4-9]-*|llama[4-9]*) 	MODMAX=131072;;
 		text*moderation*) 	MODMAX=150000;;
-		text-davinci-002-render-sha) 	MODMAX=8191;;
 		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
 		davinci-002|babbage-002) 	MODMAX=16384;;
 		davinci|curie|babbage|ada) 	MODMAX=2049;;
 		code-davinci-00[2-9]) MODMAX=8001;;
-		gpt-4[a-z]*|gpt-[5-9]*|gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]) MODMAX=128000;;
+		gpt-4[a-z]*|gpt-[5-9]*|gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*|\
+		gpt-4-turbo|gpt-4-turbo-202[4-9]-*) MODMAX=128000;;
 		gpt-3.5-turbo-1106) MODMAX=16385;;
 		gpt-4*32k*|*32k) 	MODMAX=32768;; 
 		gpt-3.5*16K*|*turbo*16k*|*16k) 	MODMAX=16384;;
-		gpt-4*|*-bison*|*-unicorn) 	MODMAX=8192;;
+		gpt-4*|*-bison*|*-unicorn|text-davinci-002-render-sha|\
+		llama3*|gemma-*) 	MODMAX=8192;;
 		*turbo*|*davinci*) 	MODMAX=4096;;
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=128000;;
 		gemini*-vision*) 	MODMAX=16384;;
 		gemini*-pro*) 	MODMAX=32760;;
-		*mi[sx]tral*) 	MODMAX=32000;;
+		*mi[sx]tral*) 	MODMAX=32000; ((!GROQAI)) || MODMAX=32768;;
 		*embedding-gecko*) 	MODMAX=3072;;
 		*embed*|*search*) MODMAX=2046;;
 		aqa) 	MODMAX=7168;;
 		*) 	MODMAX=4000;;
 	esac
 }
+#groq: 3.1 models to max_tokens of 8k and 405b to 16k input tokens.
 
 #make cmpls request
 function __promptf
@@ -1035,7 +1052,7 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! __warmsgf 'Err';
 	else 	{   jq -r '.data[].id' "$FILE" | sort &&
-		    {    ((MISTRALAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;}
+		    {    ((MISTRALAI+GROQAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;}
 		} | tee -- "$FILEMODEL" || ! __warmsgf 'Err';
 	fi || ! __warmsgf 'Err:' 'Model list'
 }
@@ -1871,8 +1888,8 @@ function cmd_runf
 			;;
 		i|info)
 			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
-			$( ((LOCALAI)) && echo host-url "${API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
-			$( ((OLLAMA)) && echo ollama-url "${OLLAMA_API_HOST//[$IFS]/_}${ENDPOINTS[EPN]}") \
+			$( ((OLLAMA)) && echo ollama-url "${OLLAMA_API_HOST}${ENDPOINTS[EPN]}") \
+			host-url     "${API_HOST}${ENDPOINTS[EPN]}" \
 			model-name   "${MOD:-?}$(is_visionf "$MOD" && printf ' / %s' 'multimodal')" \
 			model-cap    "${MODMAX:-?}" \
 			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
@@ -2832,7 +2849,7 @@ function whisperf
 
 	[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}";
 
-	#response_format (timestamps) - testing
+	#response_format (timestamps)
 	if ((OPTW>1 || OPTWW>1)) && ((!CHAT_ENV))
 	then
 		OPTW_FMT=verbose_json   #json, text, srt, verbose_json, or vtt.
@@ -2841,8 +2858,8 @@ function whisperf
 		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "${JQCOLNULL} ${JQCOL} ${JQDATE}
 			\"Task: \(.task)\" +
-			\"\\t\" + \"Lang: \(.language)\" +
-			\"\\t\" + \"Dur: \(.duration|seconds_to_time_string)\" +
+			\"    \" + \"Lang: \(.language)\" +
+			\"    \" + \"Dur: \(.duration|seconds_to_time_string)\" +
 			\"\\n\", (.segments[]| \"[\" + yellow + \"\(.start|seconds_to_time_string)\" + reset + \"]\" +
 			bpurple + .text + reset)" "$FILE" | foldf \
 		|| jq -r 'if .segments then (.segments[] | (.start|tostring) + (.text//empty)) else (.text//empty) end' "$FILE" || ! __warmsgf 'Err' ;}
@@ -2903,7 +2920,7 @@ function prompt_ttsf
 #disable curl progress-bar because of `chunk transfer encoding'
 
 #speech synthesis (tts)
-function ttsf
+function _ttsf
 {
 	typeset FOUT VOICEZ SPEEDZ fname input max ret pid var secs ok n m i
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
@@ -3038,6 +3055,17 @@ function ttsf
 	}
 	done;
 	return $ret
+}
+function ttsf
+{
+	if ((CHAT_ENV))
+	then 	typeset API_HOST OPENAI_API_KEY ENDPOINTS EPN MOD;
+		ENDPOINTS=(); MOD=$MOD_SPEECH;
+		EPN=10 ENDPOINTS[10]="/v1/audio/speech";
+		API_HOST=$OPENAI_API_HOST_DEF
+		OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
+	fi
+	_ttsf "$@";
 }
 function __set_ttsf { 	__set_outfmtf "$1" || __set_voicef "$1" || __set_speedf "$1" ;}
 function __set_voicef
@@ -3935,7 +3963,7 @@ function set_ollamaf
 		fi
 	}
 	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
-	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST="http://localhost:11434";
+	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST=$OLLAMA_API_HOST_DEF;
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER  #set placeholder as this field is required
 	
 	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf "$MOD";
@@ -3946,10 +3974,10 @@ function set_ollamaf
 function set_localaif
 {
 	[[ $OPENAI_API_HOST_STATIC != *([$IFS]) ]] && OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
-	if [[ $OPENAI_API_HOST != *([$IFS]) ]] && LOCALAI=1 || ((OLLAMA))
+	if [[ $OPENAI_API_HOST != *([$IFS]) ]] || ((OLLAMA))
 	then
 		API_HOST=${OPENAI_API_HOST%%*([/$IFS])};
-		((OLLAMA+MISTRALAI)) ||
+		((LOCALAI)) &&
 		function list_modelsf  #LocalAI only
 		{
 			if [[ $* = [Ii]nstall* ]]  #install a model
@@ -3986,8 +4014,8 @@ function set_localaif
 			fi
 		}  #https://localai.io/models/
 		set_model_epnf "$MOD";
-		#disable endpoint auto select?
-		[[ $OPENAI_API_HOST_STATIC = *([$IFS]) ]] || unset ENDPOINTS;
+		((${#OPENAI_API_HOST})) && LOCALAI=1;
+		((${#OPENAI_API_HOST_STATIC})) && unset ENDPOINTS;  #endpoint auto select
 		((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
 		((!LOCALAI)) || _sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
 	else 	false;
@@ -3998,7 +4026,7 @@ function set_localaif
 function set_googleaif
 {
 	FILE_PRE="${FILE%%.json}.pre.json";
-	GOOGLE_API_HOST="${GOOGLE_API_HOST:-https://generativelanguage.googleapis.com/v1beta}";
+	GOOGLE_API_HOST="${GOOGLE_API_HOST:-$GOOGLE_API_HOST_DEF}";
 	: ${GOOGLE_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
 
@@ -4107,7 +4135,7 @@ do
 	case "$opt" in -)  #long options
 		for opt in api-key  multimodal  markdown  markdown:md  \
 no-markdown  no-markdown:no-md  fold  fold:wrap  no-fold  no-fold:no-wrap \
-localai  localai:local-ai  google google:goo  mistral  openai  keep-alive \
+localai  localai:local-ai  google google:goo  mistral  openai  groq:grok  groq  keep-alive \
 keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
 a:presence-penalty  a:presence  a:pre  A:frequency-penalty  A:frequency \
 A:freq  b:best-of  b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue \
@@ -4172,7 +4200,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
@@ -4216,15 +4244,12 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		o) 	OPTCLIP=1;;
-		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= ;;
-		google) GOOGLEAI=1 OLLAMA= MISTRALAI= ;;
-		mistral)
-			[[ -z $MISTRAL_API_HOST ]] && MISTRAL_API_HOST="https://api.mistral.ai/";
-			MISTRALAI=1 OLLAMA= GOOGLEAI= ;;
-		localai)
-			[[ -z $OPENAI_API_HOST$OPENAI_API_HOST_STATIC ]] && OPENAI_API_HOST="http://127.0.0.1:8080";
-			LOCALAI=1;;
-		openai) unset GOOGLEAI OLLAMA MISTRALAI;;
+		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ;;
+		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ;;
+		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI=;;
+		localai) LOCALAI=1;;
+		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ;;
+		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
@@ -4320,13 +4345,16 @@ else
 	then 	MOD=$MOD_GOOGLE
 	elif ((MISTRALAI)) || [[ $OPENAI_API_HOST = *mistral* ]]
 	then 	MOD=$MOD_MISTRAL
+	elif ((GROQAI))
+	then 	MOD=$MOD_GROQ MOD_AUDIO=$MOD_AUDIO_GROQ
 	elif ((LOCALAI))
 	then 	MOD=$MOD_LOCALAI
 	elif ((!OPTCMPL))
 	then 	if ((OPTC>1))  #chat
 		then 	MOD=$MOD_CHAT
 		elif ((OPTW)) && ((!MTURN))  #whisper endpoint
-		then 	MOD=$MOD_AUDIO
+		then 	((GROQAI)) && MOD_AUDIO=$MOD_AUDIO_GROQ
+			MOD=$MOD_AUDIO
 		elif ((OPTZ)) && ((!MTURN))  #speech endpoint
 		then 	MOD=$MOD_SPEECH
 		elif ((OPTI))
@@ -4350,20 +4378,31 @@ fi
 #google integration
 if ((GOOGLEAI))
 then 	set_googleaif;
-	unset OPTTIK OLLAMA MISTRALAI;
+	unset OPTTIK OLLAMA MISTRALAI GROQAI;
 else 	unset GOOGLEAI;
 fi
+
+#groq integration
+if ((GROQAI))
+then 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
+	((OPTC==1 || OPTCMPL)) && OPTC=2;
+	ENDPOINTS[0]=${ENDPOINTS[6]};
+	API_HOST=${GROQ_API_HOST:-$GROQ_API_HOST_DEF};
+	unset OLLAMA GOOGLEAI MISTRALAI;
+else 	unset GROQAI;
+fi  #https://console.groq.com/docs/api-reference
 
 #ollama integration
 if ((OLLAMA))
 then 	set_ollamaf;
-	unset GOOGLEAI MISTRALAI;
+	unset GOOGLEAI MISTRALAI GROQAI;
 else  	unset OLLAMA OLLAMA_API_HOST;
 fi
 
 #custom host / localai
-if [[ ${OPENAI_API_HOST_STATIC}${OPENAI_API_HOST} != *([$IFS]) ]]
-then 	set_localaif;
+if [[ ${OPENAI_API_HOST_STATIC}${OPENAI_API_HOST} != *([$IFS]) ]] || ((LOCALAI))
+then 	((${#OPENAI_API_HOST})) || OPENAI_API_HOST=$LOCALAI_API_HOST_DEF;
+	set_localaif;
 else 	unset OPENAI_API_HOST OPENAI_API_HOST_STATIC;
 fi
 
@@ -4371,6 +4410,7 @@ fi
 if [[ $OPENAI_API_HOST = *mistral* ]] || ((MISTRALAI))
 then 	: ${MISTRAL_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
+	((${#MISTRAL_API_HOST})) || MISTRAL_API_HOST=$MISTRAL_API_HOST_DEF;
 	unset LOCALAI OLLAMA GOOGLEAI; MISTRALAI=1;
 	unset OPTA OPTAA OPTB;
 else 	unset MISTRAL_API_KEY MISTRAL_API_HOST;
@@ -4584,14 +4624,13 @@ then
 	whisperf "$@" &&
 	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
-	then 	_sysmsgf $'\nText-To-Speech'; set -- ;
-		MOD=$MOD_SPEECH; set_model_epnf "$MOD_SPEECH";
+	then 	_sysmsgf $'\nText-To-Speech'; CHAT_ENV=1; set -- ;
 		[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
 		ttsf "$@" "$(escapef "$WHISPER_OUT")";
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
 then 	[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
-	ttsf "$@"
+	_ttsf "$@"
 elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
 	then 	__sysmsgf 'Image Edits'
@@ -4798,6 +4837,7 @@ else
 					case $? in
 						0) 	if ((RESUBW)) || recordf "$FILEINW"
 							then 	REPLY=$(
+								((GROQAI))&& MOD_AUDIO=$MOD_AUDIO_GROQ;
 								set --; MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2= ;
 								[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
 								whisperf "$FILEINW" "$@";
@@ -5101,7 +5141,7 @@ $BLOCK $OPTSUFFIX_OPT
 $( ((OPTMAX_NILL && EPN==6)) || echo "\"max_tokens\": $OPTMAX," )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTBB_OPT $OPTSTOP
-$( ((MISTRALAI)) || echo "\"n\": $OPTN," ) \
+$( ((MISTRALAI+GROQAI)) || echo "\"n\": $OPTN," ) \
 $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
 \"model\": \"$MOD\", \"temperature\": $OPTT${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
@@ -5135,18 +5175,18 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 		((RET_PRF>120)) && INT_RES='#'; ((RET_PRF)) || REPLY_OLD="${REPLY:-$*}";
 
 		#record to hist file
-		if 	if ((STREAM))  #no token information in response
+		if 	if ((STREAM))
 			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}
 				ans=$(escapef "$ans")
 
-				((OLLAMA+LOCALAI+GOOGLEAI)) ||  #OpenAI and MistralAI
-				tkn=( $(jq -s '.[-1]' "$FILE" | response_tknf) )
+				((OLLAMA+LOCALAI+GOOGLEAI)) ||  #OpenAI, MistralAI, and Groq
+				tkn=( $(jq -s '.[-1] | if .x_groq then .x_groq else . end' "$FILE" | response_tknf) )
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6)) && unset A_TYPE; __tiktokenf "${A_TYPE}${ans}");
 				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD tkn;
 				}
 			else
-				((OLLAMA)) || tkn=($(response_tknf "$FILE") )
+				((OLLAMA)) || tkn=($(jq 'if .x_groq then .x_groq else . end' "$FILE" | response_tknf) )
 				unset ans buff n
 				for ((n=0;n<OPTN;n++))  #multiple responses
 				do 	buff=$(INDEX=$n prompt_pf "$FILE")
@@ -5160,7 +5200,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			fi
 
 			#check for OpenAI response length-type error
-			if [[ -z "$ans" ]] && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI) ))
+			if ((!${#ans})) && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI) ))
 			then 	jq -e '(.error?)//(.[]?|.error?)//.' "$FILE" >&2 || ! __warmsgf 'Err' || ((!GOOGLEAI)) || jq . "$FILE_PRE" >&2 2>/dev/null;
 				__warmsgf "(response empty)"
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
@@ -5246,7 +5286,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			fi
 
 			trap '' INT; 
-			MOD=$MOD_SPEECH EPN=10 ttsf "${ZARGS[@]}" "${ans_tts:-$ans}";
+			ttsf "${ZARGS[@]}" "${ans_tts:-$ans}";
 			trap 'exit' INT;
 		fi
 		if ((OPTW))
