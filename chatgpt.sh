@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.68.3  jul/2024  by mountaineerbr  GPL+3
+# v0.68.4  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1978,8 +1978,10 @@ function cmd_runf
 			set -- "${*##@(shell|sh)*([:$IFS])}";
 			[[ -n $* ]] || set --; xskip=1;
 			while :
-			do 	REPLY=$(bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR);
-				RET=$?; ((RET)) && __warmsgf "Bash:" "exit code $RET"; echo >&2;
+			do 	trap 'trap "-" INT' INT;  #disable trap for one <CRTL-C>#
+				REPLY=$(trap "-" INT; bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR);
+				RET=$?; trap "-" INT;
+				((RET)) && __warmsgf "Shell:" "$RET"; echo >&2;
 				#abort on empty
 				[[ $REPLY = *([$IFS]) ]] && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
@@ -4993,9 +4995,14 @@ else
 		#basic text and pdf file, and text url dumps
 		if var=$(is_txturl "$1")
 		then
-			((${#REPLY_CMD_DUMP})) && var=$REPLY_CMD_DUMP ||
-			var=$(cmd_runf /cat"$var"; printf '%s\n' "$REPLY"; exit $RET); ret=$?;
-			((${#var})) && {
+			if ((${#REPLY_CMD_DUMP}))
+			then 	var=$REPLY_CMD_DUMP;
+			else 	trap 'trap "-" INT' INT;
+				var=$(cmd_runf /cat"$var"; printf '%s\n' "$REPLY"; exit $RET);
+				ret=${?}; trap "-" INT;
+			fi
+			if ((${#var})) && ((!ret))
+			then
 			  REPLY_CMD="${REPLY:-$REPLY_CMD}" REPLY_CMD_DUMP="$var";
 			  REPLY="${REPLY}${NL}${NL}${var}";
 			  ((PREVIEW)) && REPLY_OLD="$REPLY";
@@ -5007,7 +5014,10 @@ else
 			  esac
 			  set -- "${*}${NL}${NL}${var}";
 			  REC_OUT="${Q_TYPE##$SPC1}${*}";
-			};
+			else
+			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;
+			  set --; continue 1;  #edit orig input
+			fi;
 		#vision
 		elif is_visionf "$MOD"
 		then
