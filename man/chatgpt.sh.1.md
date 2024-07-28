@@ -95,7 +95,7 @@ and "`-M` _NUM-NUM_".
 
 _Model capacity_ (maximum model tokens) can be set more intuitively with
 `option` "`-N` _NUM_", otherwise model capacity is set automatically
-for known models, or to _2048_ tokens as fallback.
+for known models or to _2048_ tokens as fallback.
 
 `Option -S` sets an INSTRUCTION prompt (the initial prompt) for text cmpls,
 and chat cmpls. A text file path may be supplied as the single argument.
@@ -113,7 +113,7 @@ in the command line: "_256x256_" (_S_), "_512x512_" (_M_),
 "_1024x1024_" (_L_), "_1792x1024_" (_X_), and "_1024x1792_" (_P_).
 
 The parameter "_hd_" may also be set for image quality (_Dall-E-3_),
-such as "_Xhd_", or "_1792x1024hd_". Defaults=_1024x1024_.
+such as "_Xhd_" or "_1792x1024hd_". Defaults=_1024x1024_.
 
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 
@@ -154,7 +154,7 @@ to _text-moderation-latest_.
 
 Stdin text is appended to PROMPT, to set a single PROMPT.
 
-While _cURL_ is in the middle of transmitting a request, or receiving
+While _cURL_ is in the middle of transmitting a request or receiving
 a response, \<_CTRL-C_> may be pressed once to interrupt the call.
 
 Press \<_CTRL-X_ _CTRL-E_> to edit command line in text editor (readline).
@@ -185,7 +185,7 @@ And for Groq, set the environmental variable `$GROQ_API_KEY`.
 Run the script with `option --groq`.
 Whisper endpoint available.
 
-List models with `option -l`, or run `/models` in chat mode.
+List models with `option -l` or run `/models` in chat mode.
 
 <!--
 Install models with `option -l` or chat command `/models`
@@ -245,7 +245,7 @@ or press \<_CTRL-V_ _CTRL-J_>.
 Bash bracketed paste is enabled, meaning multiline input may be
 pasted or typed, even without setting `options -uU` (_v25.2+_).
 
-Language model **SKILLS** can activated, with specific prompts,
+Language model **SKILLS** can be activated with specific prompts,
 see <https://platform.openai.com/examples>.
 
 
@@ -261,7 +261,7 @@ with a variety of models. Set `option -E` to exit on response.
 
 #### 2.2 Native Chat Completions
 
-Set the double `option -cc` to start chat completions mode. Turbo
+Set the double `option -cc` to start chat completions mode. More recent
 models are also the best option for many non-chat use cases.
 
 
@@ -282,8 +282,8 @@ causes the text following it to be appended immediately to the last
 
 The `options -ccwz` may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes.
-When setting `flag -w`, or `flag -z`, the first positional parameters are read as
-Whisper, or TTS  arguments. When setting both `flags -wz`,
+When setting `flag -w` or `flag -z`, the first positional parameters are read as
+Whisper or TTS  arguments. When setting both `flags -wz`,
 add a double hyphen to set first Whisper, and then TTS arguments.
 
 Set chat mode, plus Whisper language and prompt, and the TTS voice option argument:
@@ -293,7 +293,7 @@ Set chat mode, plus Whisper language and prompt, and the TTS voice option argume
 
 #### 2.5 GPT-4-Vision
 
-To send an _image_, or _url_ to **vision models**, either set the image
+To send an _image_ or _url_ to **vision models**, either set the image
 with the `!img` chat command with one or more _filepaths_ / _urls_
 separated by the operator pipe _|_.
 
@@ -313,7 +313,7 @@ text prompt interactively:
 
 While in chat mode, the following commands can be typed in the
 new prompt to set a new parameter. The command operator
-may be either "`!`", or "`/`".
+may be either "`!`" or "`/`".
 
 
  Misc              Commands
@@ -333,13 +333,13 @@ may be either "`!`", or "`/`".
      `!rep`        `!replay`                         Replay last TTS audio response.
      `!res`        `!resubmit`                       Resubmit last TTS recorded input from cache.
      `!cat`         \-                               Cat prompter as one-shot, \<_CTRL-D_> flush.
-     `!cat`        `!cat:` \[_TXT_|_URL_|_PDF_]      Cat _text_ or _PDF_ file, or dump _URL_.
+     `!cat`        `!cat:` \[_TXT_|_URL_|_PDF_]      Cat _text_, _PDF_ file, or dump _URL_.
   `!dialog`         \-                               Toggle the "dialog" interface.
      `!img`        `!media` \[_FILE_|_URL_]          Append image, media, or URL to prompt.
        `!p`        `!pick`,     \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
      `!pdf`        `!pdf:`      \[_FILE_]            Convert PDF and dump text.
    `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux). _‡_
-      `!sh`        `!shell`      \[_CMD_]            Run shell, or _command_, and edit output.
+      `!sh`        `!shell`      \[_CMD_]            Run shell or _command_, and edit output.
      `!sh:`        `!shell:`     \[_CMD_]            Same as `!sh` but apppend output as user.
      `!!sh`        `!!shell`     \[_CMD_]            Run interactive shell (with _command_) and exit.
      `!url`        `!url:`       \[_URL_]            Dump URL text.
@@ -354,7 +354,7 @@ may be either "`!`", or "`/`".
       `-o`         `!clip`                    Copy responses to clipboard.
       `-u`         `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
      `-uu`         `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
-      `-U`         `-UU`                      Toggle cat prompter, or set one-shot. \<_CTRL-D_> flush.
+      `-U`         `-UU`                      Toggle cat prompter or set one-shot. \<_CTRL-D_> flush.
       `-V`         `!debug`                   Dump raw request block and confirm.
       `-v`         `!ver`                     Toggle verbose modes.
       `-x`         `!ed`                      Toggle text editor interface.
@@ -414,7 +414,7 @@ may be either "`!`", or "`/`".
 #### 2.7 Session Management
 
 The script uses a _TSV file_ to record entries, which is kept at the script
-cache directory. A new history file can be created, or an existing one
+cache directory. A new history file can be created or an existing one
 changed to with command "`/session` \[_HIST_FILE_]", in which _HIST_FILE_
 is the file name of (with or without the _.tsv_ extension),
 or path to, a history file.
@@ -426,7 +426,7 @@ the command `/session` is assumed.
 A history file can contain many sessions. The last one (the tail session)
 is always loaded if the resume `option -C` is set.
 
-To copy a previous session, run `/sub`, or `/grep [regex]` to copy that
+To copy a previous session, run `/sub` or `/grep [regex]` to copy that
 session to tail and resume from it.
 
 If "`/copy` _current_" is run, a selector is shown to choose and copy
@@ -687,12 +687,12 @@ Setting **temperature** has an effect, the higher the more random.
 
 **INSTRUCTION**
 
-:    Initial initial instruction, or system message.
+:    Initial initial instruction or system message.
 
 
 **INSTRUCTION_CHAT**
 
-:    Initial initial instruction, or system message for chat mode.
+:    Initial initial instruction or system message for chat mode.
 
 
 **MOD_CHAT**
@@ -868,7 +868,7 @@ with history, so avoid it.
 ### LIMITS
 
 The script objective is to implement most features of OpenAI
-API version 1 but not all endpoints, or options will be covered.
+API version 1 but not all endpoints or options will be covered.
 
 
 ### OPTIONS
@@ -1001,7 +1001,7 @@ API version 1 but not all endpoints, or options will be covered.
 
 **-e**, **\--edit**
 
-: Edit first input from stdin, or file read (cmpls/chat).
+: Edit first input from stdin or file (cmpls/chat).
 
 
 **-E**, **-EE**, **\--exit**

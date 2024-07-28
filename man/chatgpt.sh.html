@@ -275,7 +275,7 @@ capacity</em> will also be set. The option syntax takes the form of
 <em>NUM-NUM</em>”.</p>
 <p><em>Model capacity</em> (maximum model tokens) can be set more
 intuitively with <code>option</code> “<code>-N</code> <em>NUM</em>”,
-otherwise model capacity is set automatically for known models, or to
+otherwise model capacity is set automatically for known models or to
 <em>2048</em> tokens as fallback.</p>
 <p><code>Option -S</code> sets an INSTRUCTION prompt (the initial
 prompt) for text cmpls, and chat cmpls. A text file path may be supplied
@@ -295,7 +295,7 @@ positional parameter in the command line: “<em>256x256</em>”
 (<em>L</em>), “<em>1792x1024</em>” (<em>X</em>), and
 “<em>1024x1792</em>” (<em>P</em>).</p>
 <p>The parameter “<em>hd</em>” may also be set for image quality
-(<em>Dall-E-3</em>), such as “<em>Xhd</em>”, or “<em>1792x1024hd</em>”.
+(<em>Dall-E-3</em>), such as “<em>Xhd</em>” or “<em>1792x1024hd</em>”.
 Defaults=<em>1024x1024</em>.</p>
 <p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
@@ -335,7 +335,7 @@ original model used to generate responses.</p>
 <p>The moderation endpoint can be accessed by setting the model name to
 <em>text-moderation-latest</em>.</p>
 <p>Stdin text is appended to PROMPT, to set a single PROMPT.</p>
-<p>While <em>cURL</em> is in the middle of transmitting a request, or
+<p>While <em>cURL</em> is in the middle of transmitting a request or
 receiving a response, &lt;<em>CTRL-C</em>&gt; may be pressed once to
 interrupt the call.</p>
 <p>Press &lt;<em>CTRL-X</em> <em>CTRL-E</em>&gt; to edit command line in
@@ -363,7 +363,7 @@ to “https://api.mistral.ai/”. Prefer setting command line
 <p>And for Groq, set the environmental variable
 <code>$GROQ_API_KEY</code>. Run the script with
 <code>option --groq</code>. Whisper endpoint available.</p>
-<p>List models with <code>option -l</code>, or run <code>/models</code>
+<p>List models with <code>option -l</code> or run <code>/models</code>
 in chat mode.</p>
 <!--
 Install models with `option -l` or chat command `/models`
@@ -415,7 +415,7 @@ or press \<_CTRL-V_ _CTRL-J_>.
 <p>Bash bracketed paste is enabled, meaning multiline input may be
 pasted or typed, even without setting <code>options -uU</code>
 (<em>v25.2+</em>).</p>
-<p>Language model <strong>SKILLS</strong> can activated, with specific
+<p>Language model <strong>SKILLS</strong> can be activated with specific
 prompts, see <a href="https://platform.openai.com/examples"
 class="uri">https://platform.openai.com/examples</a>.</p>
 <h3 id="chat-mode">2. Chat Mode</h3>
@@ -426,7 +426,7 @@ with a variety of models. Set <code>option -E</code> to exit on
 response.</p>
 <h4 id="native-chat-completions">2.2 Native Chat Completions</h4>
 <p>Set the double <code>option -cc</code> to start chat completions
-mode. Turbo models are also the best option for many non-chat use
+mode. More recent models are also the best option for many non-chat use
 cases.</p>
 <h4 id="q-a-format">2.3 Q &amp; A Format</h4>
 <p>The defaults chat format is “<strong>Q &amp; A</strong>”. The
@@ -442,15 +442,15 @@ the last (response) prompt text.</p>
 (Whisper), and voice output (TTS)</h4>
 <p>The <code>options -ccwz</code> may be combined to have voice
 recording input and synthesised voice output, specially nice with chat
-modes. When setting <code>flag -w</code>, or <code>flag -z</code>, the
-first positional parameters are read as Whisper, or TTS arguments. When
+modes. When setting <code>flag -w</code> or <code>flag -z</code>, the
+first positional parameters are read as Whisper or TTS arguments. When
 setting both <code>flags -wz</code>, add a double hyphen to set first
 Whisper, and then TTS arguments.</p>
 <p>Set chat mode, plus Whisper language and prompt, and the TTS voice
 option argument:</p>
 <pre><code>chatgpt.sh -ccwz  en &#39;whisper prompt&#39;  --  nova</code></pre>
 <h4 id="gpt-4-vision">2.5 GPT-4-Vision</h4>
-<p>To send an <em>image</em>, or <em>url</em> to <strong>vision
+<p>To send an <em>image</em> or <em>url</em> to <strong>vision
 models</strong>, either set the image with the <code>!img</code> chat
 command with one or more <em>filepaths</em> / <em>urls</em> separated by
 the operator pipe <em>|</em>.</p>
@@ -464,7 +464,7 @@ Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jp
 <h4 id="chat-commands">2.6 Chat Commands</h4>
 <p>While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter. The command operator may be either
-“<code>!</code>”, or “<code>/</code>”.</p>
+“<code>!</code>” or “<code>/</code>”.</p>
 <table>
 <thead>
 <tr class="header">
@@ -556,7 +556,7 @@ prompt to set a new parameter. The command operator may be either
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;"><code>!cat:</code>
 [<em>TXT</em>|<em>URL</em>|<em>PDF</em>]</td>
-<td>Cat <em>text</em> or <em>PDF</em> file, or dump <em>URL</em>.</td>
+<td>Cat <em>text</em>, <em>PDF</em> file, or dump <em>URL</em>.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!dialog</code></td>
@@ -587,7 +587,7 @@ prompt to set a new parameter. The command operator may be either
 <tr class="even">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
-<td>Run shell, or <em>command</em>, and edit output.</td>
+<td>Run shell or <em>command</em>, and edit output.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!sh:</code></td>
@@ -653,7 +653,7 @@ prompt to set a new parameter. The command operator may be either
 <tr class="even">
 <td style="text-align: left;"><code>-U</code></td>
 <td style="text-align: left;"><code>-UU</code></td>
-<td>Toggle cat prompter, or set one-shot. &lt;<em>CTRL-D</em>&gt;
+<td>Toggle cat prompter or set one-shot. &lt;<em>CTRL-D</em>&gt;
 flush.</td>
 </tr>
 <tr class="odd">
@@ -888,7 +888,7 @@ invoked at the end of the input prompt.</div>
 “<code>/s</code> <em>hist_name</em>”.</div>
 <h4 id="session-management">2.7 Session Management</h4>
 <p>The script uses a <em>TSV file</em> to record entries, which is kept
-at the script cache directory. A new history file can be created, or an
+at the script cache directory. A new history file can be created or an
 existing one changed to with command “<code>/session</code>
 [<em>HIST_FILE</em>]”, in which <em>HIST_FILE</em> is the file name of
 (with or without the <em>.tsv</em> extension), or path to, a history
@@ -899,7 +899,7 @@ operator forward slash followed by a history file name, the command
 <p>A history file can contain many sessions. The last one (the tail
 session) is always loaded if the resume <code>option -C</code> is
 set.</p>
-<p>To copy a previous session, run <code>/sub</code>, or
+<p>To copy a previous session, run <code>/sub</code> or
 <code>/grep [regex]</code> to copy that session to tail and resume from
 it.</p>
 <p>If “<code>/copy</code> <em>current</em>” is run, a selector is shown
@@ -1114,11 +1114,11 @@ more random.</p>
 </dd>
 <dt><strong>INSTRUCTION</strong></dt>
 <dd>
-<p>Initial initial instruction, or system message.</p>
+<p>Initial initial instruction or system message.</p>
 </dd>
 <dt><strong>INSTRUCTION_CHAT</strong></dt>
 <dd>
-<p>Initial initial instruction, or system message for chat mode.</p>
+<p>Initial initial instruction or system message for chat mode.</p>
 </dd>
 </dl>
 <p><strong>MOD_CHAT</strong></p>
@@ -1270,7 +1270,7 @@ with history, so avoid it.
 -->
 <h3 id="limits">LIMITS</h3>
 <p>The script objective is to implement most features of OpenAI API
-version 1 but not all endpoints, or options will be covered.</p>
+version 1 but not all endpoints or options will be covered.</p>
 <h3 id="options">OPTIONS</h3>
 <h4 id="model-settings">Model Settings</h4>
 <dl>
@@ -1390,7 +1390,7 @@ Def=<em>gpt-3.5-turbo-instruct</em>, <em>gpt-4o</em>.</p>
 </dd>
 <dt><strong>-e</strong>, <strong>--edit</strong></dt>
 <dd>
-<p>Edit first input from stdin, or file read (cmpls/chat).</p>
+<p>Edit first input from stdin or file (cmpls/chat).</p>
 </dd>
 <dt><strong>-E</strong>, <strong>-EE</strong>,
 <strong>--exit</strong></dt>

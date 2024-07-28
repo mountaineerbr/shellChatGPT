@@ -161,7 +161,7 @@ The option syntax takes the form of
 \f[I]Model capacity\f[R] (maximum model tokens) can be set more
 intuitively with \f[CR]option\f[R] \[lq]\f[CR]-N\f[R]
 \f[I]NUM\f[R]\[rq], otherwise model capacity is set automatically for
-known models, or to \f[I]2048\f[R] tokens as fallback.
+known models or to \f[I]2048\f[R] tokens as fallback.
 .PP
 \f[CR]Option -S\f[R] sets an INSTRUCTION prompt (the initial prompt) for
 text cmpls, and chat cmpls.
@@ -187,7 +187,7 @@ parameter in the command line: \[lq]\f[I]256x256\f[R]\[rq]
 \[lq]\f[I]1024x1792\f[R]\[rq] (\f[I]P\f[R]).
 .PP
 The parameter \[lq]\f[I]hd\f[R]\[rq] may also be set for image quality
-(\f[I]Dall-E-3\f[R]), such as \[lq]\f[I]Xhd\f[R]\[rq], or
+(\f[I]Dall-E-3\f[R]), such as \[lq]\f[I]Xhd\f[R]\[rq] or
 \[lq]\f[I]1792x1024hd\f[R]\[rq].
 Defaults=\f[I]1024x1024\f[R].
 .PP
@@ -246,7 +246,7 @@ The moderation endpoint can be accessed by setting the model name to
 .PP
 Stdin text is appended to PROMPT, to set a single PROMPT.
 .PP
-While \f[I]cURL\f[R] is in the middle of transmitting a request, or
+While \f[I]cURL\f[R] is in the middle of transmitting a request or
 receiving a response, <\f[I]CTRL-C\f[R]> may be pressed once to
 interrupt the call.
 .PP
@@ -283,7 +283,7 @@ And for Groq, set the environmental variable \f[CR]$GROQ_API_KEY\f[R].
 Run the script with \f[CR]option --groq\f[R].
 Whisper endpoint available.
 .PP
-List models with \f[CR]option -l\f[R], or run \f[CR]/models\f[R] in chat
+List models with \f[CR]option -l\f[R] or run \f[CR]/models\f[R] in chat
 mode.
 .PP
 For Ollama, set \f[CR]option -O\f[R] (\f[CR]--ollama\f[R]), and set
@@ -325,7 +325,7 @@ Bash bracketed paste is enabled, meaning multiline input may be pasted
 or typed, even without setting \f[CR]options -uU\f[R]
 (\f[I]v25.2+\f[R]).
 .PP
-Language model \f[B]SKILLS\f[R] can activated, with specific prompts,
+Language model \f[B]SKILLS\f[R] can be activated with specific prompts,
 see <https://platform.openai.com/examples>.
 .SS 2. Chat Mode
 .SS 2.1 Text Completions Chat
@@ -335,7 +335,7 @@ This works with a variety of models.
 Set \f[CR]option -E\f[R] to exit on response.
 .SS 2.2 Native Chat Completions
 Set the double \f[CR]option -cc\f[R] to start chat completions mode.
-Turbo models are also the best option for many non-chat use cases.
+More recent models are also the best option for many non-chat use cases.
 .SS 2.3 Q & A Format
 The defaults chat format is \[lq]\f[B]Q & A\f[R]\[rq].
 The \f[B]restart sequence\f[R] \[lq]\f[I]\[rs]nQ:\ \f[R]\[rq] and the
@@ -350,8 +350,8 @@ immediately to the last (response) prompt text.
 .SS 2.4 Voice input (Whisper), and voice output (TTS)
 The \f[CR]options -ccwz\f[R] may be combined to have voice recording
 input and synthesised voice output, specially nice with chat modes.
-When setting \f[CR]flag -w\f[R], or \f[CR]flag -z\f[R], the first
-positional parameters are read as Whisper, or TTS arguments.
+When setting \f[CR]flag -w\f[R] or \f[CR]flag -z\f[R], the first
+positional parameters are read as Whisper or TTS arguments.
 When setting both \f[CR]flags -wz\f[R], add a double hyphen to set first
 Whisper, and then TTS arguments.
 .PP
@@ -362,7 +362,7 @@ option argument:
 chatgpt.sh -ccwz  en \[aq]whisper prompt\[aq]  --  nova
 .EE
 .SS 2.5 GPT-4-Vision
-To send an \f[I]image\f[R], or \f[I]url\f[R] to \f[B]vision models\f[R],
+To send an \f[I]image\f[R] or \f[I]url\f[R] to \f[B]vision models\f[R],
 either set the image with the \f[CR]!img\f[R] chat command with one or
 more \f[I]filepaths\f[R] / \f[I]urls\f[R] separated by the operator pipe
 \f[I]|\f[R].
@@ -383,7 +383,7 @@ Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jp
 .SS 2.6 Chat Commands
 While in chat mode, the following commands can be typed in the new
 prompt to set a new parameter.
-The command operator may be either \[lq]\f[CR]!\f[R]\[rq], or
+The command operator may be either \[lq]\f[CR]!\f[R]\[rq] or
 \[lq]\f[CR]/\f[R]\[rq].
 .PP
 .TS
@@ -507,7 +507,7 @@ T{
 T}@T{
 \f[CR]!cat:\f[R] [\f[I]TXT\f[R]|\f[I]URL\f[R]|\f[I]PDF\f[R]]
 T}@T{
-Cat \f[I]text\f[R] or \f[I]PDF\f[R] file, or dump \f[I]URL\f[R].
+Cat \f[I]text\f[R], \f[I]PDF\f[R] file, or dump \f[I]URL\f[R].
 T}
 T{
 \f[CR]!dialog\f[R]
@@ -551,7 +551,7 @@ T{
 T}@T{
 \f[CR]!shell\f[R] [\f[I]CMD\f[R]]
 T}@T{
-Run shell, or \f[I]command\f[R], and edit output.
+Run shell or \f[I]command\f[R], and edit output.
 T}
 T{
 \f[CR]!sh:\f[R]
@@ -642,7 +642,7 @@ T{
 T}@T{
 \f[CR]-UU\f[R]
 T}@T{
-Toggle cat prompter, or set one-shot.
+Toggle cat prompter or set one-shot.
 <\f[I]CTRL-D\f[R]> flush.
 T}
 T{
@@ -950,7 +950,7 @@ E.g.: \[lq]\f[CR]/temp\f[R] \f[I]0.7\f[R]\[rq],
 .SS 2.7 Session Management
 The script uses a \f[I]TSV file\f[R] to record entries, which is kept at
 the script cache directory.
-A new history file can be created, or an existing one changed to with
+A new history file can be created or an existing one changed to with
 command \[lq]\f[CR]/session\f[R] [\f[I]HIST_FILE\f[R]]\[rq], in which
 \f[I]HIST_FILE\f[R] is the file name of (with or without the
 \f[I].tsv\f[R] extension), or path to, a history file.
@@ -963,7 +963,7 @@ A history file can contain many sessions.
 The last one (the tail session) is always loaded if the resume
 \f[CR]option -C\f[R] is set.
 .PP
-To copy a previous session, run \f[CR]/sub\f[R], or
+To copy a previous session, run \f[CR]/sub\f[R] or
 \f[CR]/grep [regex]\f[R] to copy that session to tail and resume from
 it.
 .PP
@@ -1167,10 +1167,10 @@ Defaults=\[dq]\f[I]\[ti]/.chatgpt.conf\f[R]\[dq]
 Path to a history / session TSV file (script-formatted).
 .TP
 \f[B]INSTRUCTION\f[R]
-Initial initial instruction, or system message.
+Initial initial instruction or system message.
 .TP
 \f[B]INSTRUCTION_CHAT\f[R]
-Initial initial instruction, or system message for chat mode.
+Initial initial instruction or system message for chat mode.
 .PP
 \f[B]MOD_CHAT\f[R]
 .PP
@@ -1315,7 +1315,7 @@ Garbage in, garbage out.
 An idiot savant.
 .SS LIMITS
 The script objective is to implement most features of OpenAI API version
-1 but not all endpoints, or options will be covered.
+1 but not all endpoints or options will be covered.
 .SS OPTIONS
 .SS Model Settings
 .TP
@@ -1415,7 +1415,7 @@ Continue from (resume) last session (cmpls/chat).
 Start new multi-turn session in plain text completions.
 .TP
 \f[B]-e\f[R], \f[B]--edit\f[R]
-Edit first input from stdin, or file read (cmpls/chat).
+Edit first input from stdin or file (cmpls/chat).
 .TP
 \f[B]-E\f[R], \f[B]-EE\f[R], \f[B]--exit\f[R]
 Exit on first run (even with options -cc).

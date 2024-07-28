@@ -103,7 +103,7 @@ also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
 
 *Model capacity* (maximum model tokens) can be set more intuitively with
 `option` “`-N` *NUM*”, otherwise model capacity is set automatically for
-known models, or to *2048* tokens as fallback.
+known models or to *2048* tokens as fallback.
 
 `Option -S` sets an INSTRUCTION prompt (the initial prompt) for text
 cmpls, and chat cmpls. A text file path may be supplied as the single
@@ -121,7 +121,7 @@ parameter in the command line: “*256x256*” (*S*), “*512x512*” (*M*),
 “*1024x1024*” (*L*), “*1792x1024*” (*X*), and “*1024x1792*” (*P*).
 
 The parameter “*hd*” may also be set for image quality (*Dall-E-3*),
-such as “*Xhd*”, or “*1792x1024hd*”. Defaults=*1024x1024*.
+such as “*Xhd*” or “*1792x1024hd*”. Defaults=*1024x1024*.
 
 See **IMAGES section** below for more information on **inpaint** and
 **outpaint**.
@@ -165,7 +165,7 @@ The moderation endpoint can be accessed by setting the model name to
 
 Stdin text is appended to PROMPT, to set a single PROMPT.
 
-While *cURL* is in the middle of transmitting a request, or receiving a
+While *cURL* is in the middle of transmitting a request or receiving a
 response, \<*CTRL-C*\> may be pressed once to interrupt the call.
 
 Press \<*CTRL-X* *CTRL-E*\> to edit command line in text editor
@@ -197,7 +197,7 @@ the script with `option --mistral` or set **\$OPENAI_API_HOST** to
 And for Groq, set the environmental variable `$GROQ_API_KEY`. Run the
 script with `option --groq`. Whisper endpoint available.
 
-List models with `option -l`, or run `/models` in chat mode.
+List models with `option -l` or run `/models` in chat mode.
 
 <!--
 Install models with `option -l` or chat command `/models`
@@ -255,7 +255,7 @@ or press \<_CTRL-V_ _CTRL-J_>.
 Bash bracketed paste is enabled, meaning multiline input may be pasted
 or typed, even without setting `options -uU` (*v25.2+*).
 
-Language model **SKILLS** can activated, with specific prompts, see
+Language model **SKILLS** can be activated with specific prompts, see
 <https://platform.openai.com/examples>.
 
 ### 2. Chat Mode
@@ -268,8 +268,8 @@ variety of models. Set `option -E` to exit on response.
 
 #### 2.2 Native Chat Completions
 
-Set the double `option -cc` to start chat completions mode. Turbo models
-are also the best option for many non-chat use cases.
+Set the double `option -cc` to start chat completions mode. More recent
+models are also the best option for many non-chat use cases.
 
 #### 2.3 Q & A Format
 
@@ -287,8 +287,8 @@ text.
 
 The `options -ccwz` may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes. When setting
-`flag -w`, or `flag -z`, the first positional parameters are read as
-Whisper, or TTS arguments. When setting both `flags -wz`, add a double
+`flag -w` or `flag -z`, the first positional parameters are read as
+Whisper or TTS arguments. When setting both `flags -wz`, add a double
 hyphen to set first Whisper, and then TTS arguments.
 
 Set chat mode, plus Whisper language and prompt, and the TTS voice
@@ -298,7 +298,7 @@ option argument:
 
 #### 2.5 GPT-4-Vision
 
-To send an *image*, or *url* to **vision models**, either set the image
+To send an *image* or *url* to **vision models**, either set the image
 with the `!img` chat command with one or more *filepaths* / *urls*
 separated by the operator pipe *\|*.
 
@@ -315,7 +315,7 @@ prompt interactively:
 #### 2.6 Chat Commands
 
 While in chat mode, the following commands can be typed in the new
-prompt to set a new parameter. The command operator may be either “`!`”,
+prompt to set a new parameter. The command operator may be either “`!`”
 or “`/`”.
 
 | Misc      | Commands                        |                                                         |
@@ -335,33 +335,33 @@ or “`/`”.
 | `!rep`    | `!replay`                       | Replay last TTS audio response.                         |
 | `!res`    | `!resubmit`                     | Resubmit last TTS recorded input from cache.            |
 | `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.           |
-| `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text* or *PDF* file, or dump *URL*.                |
+| `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text*, *PDF* file, or dump *URL*.                  |
 | `!dialog` | \-                              | Toggle the “dialog” interface.                          |
 | `!img`    | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                  |
 | `!p`      | `!pick`, \[*PROPMT*\]           | File picker, appends filepath to user prompt. *‡*       |
 | `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text.                              |
 | `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux). *‡* |
-| `!sh`     | `!shell` \[*CMD*\]              | Run shell, or *command*, and edit output.               |
+| `!sh`     | `!shell` \[*CMD*\]              | Run shell or *command*, and edit output.                |
 | `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.               |
 | `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.        |
 | `!url`    | `!url:` \[*URL*\]               | Dump URL text.                                          |
 
-| Script  | Settings and UX      |                                                           |
-|:--------|:---------------------|-----------------------------------------------------------|
-| `!fold` | `!wrap`              | Toggle response wrapping.                                 |
-| `-g`    | `!stream`            | Toggle response streaming.                                |
-| `-h`    | `!help` \[*REGEX*\]  | Print help snippet or grep help for regex.                |
-| `-l`    | `!models` \[*NAME*\] | List language models or show model details.               |
-| `-o`    | `!clip`              | Copy responses to clipboard.                              |
-| `-u`    | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
-| `-uu`   | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
-| `-U`    | `-UU`                | Toggle cat prompter, or set one-shot. \<*CTRL-D*\> flush. |
-| `-V`    | `!debug`             | Dump raw request block and confirm.                       |
-| `-v`    | `!ver`               | Toggle verbose modes.                                     |
-| `-x`    | `!ed`                | Toggle text editor interface.                             |
-| `-xx`   | `!!ed`               | Single-shot text editor.                                  |
-| `-y`    | `!tik`               | Toggle python tiktoken use.                               |
-| `!q`    | `!quit`              | Exit. Bye.                                                |
+| Script  | Settings and UX      |                                                          |
+|:--------|:---------------------|----------------------------------------------------------|
+| `!fold` | `!wrap`              | Toggle response wrapping.                                |
+| `-g`    | `!stream`            | Toggle response streaming.                               |
+| `-h`    | `!help` \[*REGEX*\]  | Print help snippet or grep help for regex.               |
+| `-l`    | `!models` \[*NAME*\] | List language models or show model details.              |
+| `-o`    | `!clip`              | Copy responses to clipboard.                             |
+| `-u`    | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.           |
+| `-uu`   | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                 |
+| `-U`    | `-UU`                | Toggle cat prompter or set one-shot. \<*CTRL-D*\> flush. |
+| `-V`    | `!debug`             | Dump raw request block and confirm.                      |
+| `-v`    | `!ver`               | Toggle verbose modes.                                    |
+| `-x`    | `!ed`                | Toggle text editor interface.                            |
+| `-xx`   | `!!ed`               | Single-shot text editor.                                 |
+| `-y`    | `!tik`               | Toggle python tiktoken use.                              |
+| `!q`    | `!quit`              | Exit. Bye.                                               |
 
 | Model   | Settings                |                                                |
 |:--------|:------------------------|------------------------------------------------|
@@ -412,10 +412,10 @@ E.g.: “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”, and “`/s`
 #### 2.7 Session Management
 
 The script uses a *TSV file* to record entries, which is kept at the
-script cache directory. A new history file can be created, or an
-existing one changed to with command “`/session` \[*HIST_FILE*\]”, in
-which *HIST_FILE* is the file name of (with or without the *.tsv*
-extension), or path to, a history file.
+script cache directory. A new history file can be created or an existing
+one changed to with command “`/session` \[*HIST_FILE*\]”, in which
+*HIST_FILE* is the file name of (with or without the *.tsv* extension),
+or path to, a history file.
 
 When the first positional argument to the script is the command operator
 forward slash followed by a history file name, the command `/session` is
@@ -424,7 +424,7 @@ assumed.
 A history file can contain many sessions. The last one (the tail
 session) is always loaded if the resume `option -C` is set.
 
-To copy a previous session, run `/sub`, or `/grep [regex]` to copy that
+To copy a previous session, run `/sub` or `/grep [regex]` to copy that
 session to tail and resume from it.
 
 If “`/copy` *current*” is run, a selector is shown to choose and copy a
@@ -650,10 +650,10 @@ Defaults="*~/.chatgpt.conf*"
 Path to a history / session TSV file (script-formatted).
 
 **INSTRUCTION**  
-Initial initial instruction, or system message.
+Initial initial instruction or system message.
 
 **INSTRUCTION_CHAT**  
-Initial initial instruction, or system message for chat mode.
+Initial initial instruction or system message for chat mode.
 
 **MOD_CHAT**
 
@@ -801,7 +801,7 @@ with history, so avoid it.
 ### LIMITS
 
 The script objective is to implement most features of OpenAI API version
-1 but not all endpoints, or options will be covered.
+1 but not all endpoints or options will be covered.
 
 ### OPTIONS
 
@@ -888,7 +888,7 @@ Continue from (resume) last session (cmpls/chat).
 Start new multi-turn session in plain text completions.
 
 **-e**, **--edit**  
-Edit first input from stdin, or file read (cmpls/chat).
+Edit first input from stdin or file (cmpls/chat).
 
 **-E**, **-EE**, **--exit**  
 Exit on first run (even with options -cc).

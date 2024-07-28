@@ -204,7 +204,7 @@ Description
 	INTRUCTION with option -S.
 
 	If a plain text or PDF file path is set as the first positional
-	argument, or as an argument to \`option -S\`, the file is loaded
+	argument or as an argument to \`option -S\`, the file is loaded
 	as text PROMPT.
 
 	In multi-turn interactions, prompts starting with a colon \`:' are
@@ -278,10 +278,10 @@ Environment
 
 	FILECHAT 	Path to a history / session TSV file.
 
-	INSTRUCTION 	Initial instruction, or system message.
+	INSTRUCTION 	Initial instruction or system message.
 
 	INSTRUCTION_CHAT
-			Initial instruction, or system message (chat mode).
+			Initial instruction or system message (chat mode).
 
 	MOD_CHAT
 	MOD_IMAGE
@@ -351,7 +351,7 @@ Chat Commands
      !p       !pick,  [PROMPT]  File picker, appends filepath to prompt. ‡
      !pdf     !pdf:    [FILE]   Dump PDF text.
     !photo   !!photo   [INDEX]  Take a photo, camera index (Termux). ‡
-     !sh      !shell    [CMD]   Run shell, or command, and edit output.
+     !sh      !shell    [CMD]   Run shell or command, and edit output.
      !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
     !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
      !url     !url:     [URL]   Dump URL text.
@@ -363,7 +363,7 @@ Chat Commands
       -o      !clip             Copy responses to clipboard.
       -u      !multi            Toggle multiline, ctrl-d flush.
       -uu    !!multi            Multiline, one-shot, ctrl-d flush.
-      -U      -UU               Toggle cat prompter, or set one-shot.
+      -U      -UU               Toggle cat prompter or set one-shot.
       -V      !debug            Dump raw request block and confirm.
       -v      !ver              Toggle verbose modes.
       -x      !ed               Toggle text editor interface.
@@ -378,7 +378,7 @@ Chat Commands
       -A      !freq     [VAL]   Set frequency penalty.
       -b      !best     [NUM]   Set best-of n results.
       -K      !topk     [NUM]   Set top_k.
-      -m      !mod      [MOD]   Set model by name, or pick from list.
+      -m      !mod      [MOD]   Set model by name or pick from list.
       -n      !results  [NUM]   Set number of results.
       -p      !topp     [VAL]   Set top_p.
       -r      !restart  [SEQ]   Set restart sequence.
@@ -457,7 +457,7 @@ Options
 	--keep-alive, --ka [NUM]
 		Set how long the model will stay loaded into memory (ollama).
 	-m, --model     [MOD]
-		Set language MODEL name, or set it as \`.' to pick
+		Set language MODEL name or set it as \`.' to pick
 		from the list. Def=$MOD, $MOD_CHAT.
 	--multimodal
  		Set model as multimodal.
@@ -486,7 +486,7 @@ Options
 	-d, --text
 		Start new multi-turn session in plain text completions.
 	-e, --edit
-		Edit first input from stdin, or file read (cmpls/chat).
+		Edit first input from stdin or file (cmpls/chat).
 	-E, -EE, --exit
 		Exit on first run (even with -cc).
 	-g, --stream  (defaults)
@@ -1072,7 +1072,7 @@ function pick_modelf
 				  done
 				) )
 				REPLY=$(
-				  dialog --backtitle "Language Model Picker" --title "Select a Model" \
+				  dialog --backtitle "Model Picker" --title "Select a Model" \
 				    --menu "Choose one of the following:" 0 40 0 \
 				    -- "${options[@]}"  2>&1 >/dev/tty;
 				) || typeset NO_DIALOG=1;
@@ -4673,7 +4673,7 @@ else
 			then 	unset OPTAWE
 			elif ((!${#}))
 			then 	unset REPLY
-				printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request, or append user prompt: ' >&2
+				printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request or append user prompt: ' >&2
 				var=$(__read_charf)
 				case "$var" in 	?) SKIP=1 EDIT=1 OPTAWE= REPLY=$var;; 	*) JUMP=1;; esac; unset var;
 			fi;;

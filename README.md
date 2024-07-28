@@ -213,7 +213,7 @@ there are some options.
 
 Change to it with command `!session [name]`.
 
-To copy a previous session, run `/sub`, or `/grep [regex]` to load that
+To copy a previous session, run `/sub` or `/grep [regex]` to load that
 session and resume from it.
 
 <!--
@@ -442,7 +442,7 @@ the prompt as an argument:
     chatgpt.sh -cc -S..software_programmer
 
 
-This will load the custom prompt, or create it if it does not yet exist.
+This will load the custom prompt or create it if it does not yet exist.
 In the second example, single-shot editing will be skipped after
 loading prompt _software_programmer_.
 
@@ -554,7 +554,7 @@ or `//` to have last prompt edited before new request.
   but it will not be updated.
 -->
 <!--
-- Generally, my evaluation on models prefers using `davinci`, or
+- Generally, my evaluation on models prefers using `davinci` or
 `text-davinci-003` for less instruction intensive tasks, such as
 brainstorming. The newer models, `gpt-3.5-turbo-instruct`, may be
 better at following instructions, is cheap and much faster, but seems
@@ -681,7 +681,7 @@ a Japanese speaker can translate its voice and generate audio in the target lang
 
 
 To retry with the last microphone recording saved in the cache, set
-_audio_file_ as `last`, or `retry`.
+_audio_file_ as `last` or `retry`.
 
 **NOTE:** Generate **phrasal-level timestamps** double setting `option -ww` or `option -WW`.
 For **word-level timestamps**, set option `-www` or `-WWW.
@@ -693,7 +693,7 @@ For **word-level timestamps**, set option `-www` or `-WWW.
 <!-- 
 ### Code Completions (Codex, _discontinued_)
 
-Codex models are discontinued. Use models davinci, or gpt-3.5+.
+Codex models are discontinued. Use models davinci or gpt-3.5+.
 
 Start with a commented out code or instruction for the model,
 or ask it in comments to optimise the following code, for example.
@@ -890,7 +890,7 @@ Defaults location = `~/.chatgpt.conf`.
 <!--
 ## 🐚 Shell Interpreters
 
-The script can be run with either Bash, or Zsh.
+The script can be run with either Bash or Zsh.
 
 There should be equivalency of features under Bash, and Zsh.
 
