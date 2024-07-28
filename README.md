@@ -680,6 +680,9 @@ a Japanese speaker can translate its voice and generate audio in the target lang
     chatgpt.sh -W
 
 
+To retry with the last microphone recording saved in the cache, set
+_audio_file_ as `last`, or `retry`.
+
 **NOTE:** Generate **phrasal-level timestamps** double setting `option -ww` or `option -WW`.
 For **word-level timestamps**, set option `-www` or `-WWW.
 
