@@ -99,8 +99,8 @@ _chatgptsh()
         -i --image
         -q -qq --insert
         -T --tiktoken -TT -TTT
-        -w --transcribe
-        -W --translate
+        -w --transcribe -ww -www
+        -W --translate -WW -WWW
         --api-key
         -f --no-conf
         -F -FF

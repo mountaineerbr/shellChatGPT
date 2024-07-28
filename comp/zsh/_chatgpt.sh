@@ -150,9 +150,9 @@ _chatgpt.sh()
     '-TT[Print input tokens]' \
     '-TTT[List available encodings]' \
     {-w,--transcribe}'[Transcribe audio]' \
-    '-ww[Transcribe audio (timestamps)]' \
+    {-ww,-www}'[Transcribe audio (phrase and word-level timestamps)]' \
     {-W,--translate}'[Translate audio to English]' \
-    '-WW[Translate audio to English (timestamps)]' \
+    {-WW,-WWW}'[Translate audio to English (phrase and word-level timestamps)]' \
     '--api-key[API key]:key' \
     {-f,--no-conf}'[Ignore configuration file]' \
     {-F,-FF}'[Edit configuration or dump template]' \

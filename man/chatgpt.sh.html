@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.68 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.68.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.68 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.68.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -232,7 +232,8 @@ last history session.</p>
 “<em>[insert]</em>” must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.
-Insert mode works with model <code>gpt-3.5-turbo-instruct</code>.</p>
+Insert mode works with <code>instruct</code> and Mistral
+<code>code</code> models.</p>
 <p>Positional arguments are read as a single <strong>PROMPT</strong>.
 Model <strong>INSTRUCTION</strong> is usually optional and can be set
 with <code>option -S</code>.</p>
@@ -300,18 +301,19 @@ Defaults=<em>1024x1024</em>.</p>
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
 <p><code>Option -w</code> <strong>transcribes audio</strong> from
 <em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
-<em>wav</em>, and <em>webm</em> files. First positional argument must be
-an <em>AUDIO</em> file. Optionally, set a <em>TWO-LETTER</em> input
-language (<em>ISO-639-1</em>) as the second argument. A PROMPT may also
-be set to guide the model’s style, or continue a previous audio segment.
-The text prompt should match the audio language.</p>
+<em>wav</em>, <em>webm</em>, <em>flac</em> and <em>ogg</em> files. First
+positional argument must be an <em>AUDIO</em> file. Optionally, set a
+<em>TWO-LETTER</em> input language (<em>ISO-639-1</em>) as the second
+argument. A PROMPT may also be set to guide the model’s style, or
+continue a previous audio segment. The text prompt should match the
+audio language.</p>
 <p>Note that <code>option -w</code> can also be set to <strong>translate
 audio</strong> input to any text language to the target language.</p>
 <p><code>Option -W</code> <strong>translates audio</strong> stream to
 <strong>English text</strong>. A PROMPT in English may be set to guide
 the model as the second positional argument.</p>
-<p>Set these options twice, e.g. <code>-ww</code>, and <code>-WW</code>,
-to have phrase-level timestamps.</p>
+<p>Set these options twice to have phrasal-level timestamps, options -ww
+and -WW. Set thrice for word-level timestamps.</p>
 <p>Combine <code>options -wW</code> <strong>with</strong>
 <code>options -cc</code> to start <strong>chat with voice input</strong>
 (Whisper) support. Additionally, set <code>option -z</code> to enable
@@ -656,35 +658,30 @@ flush.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-V</code></td>
-<td style="text-align: left;"><code>!context</code></td>
-<td>Print context before request (see <code>option -P</code>).</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>-VV</code></td>
 <td style="text-align: left;"><code>!debug</code></td>
 <td>Dump raw request block and confirm.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-v</code></td>
 <td style="text-align: left;"><code>!ver</code></td>
 <td>Toggle verbose modes.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-x</code></td>
 <td style="text-align: left;"><code>!ed</code></td>
 <td>Toggle text editor interface.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-xx</code></td>
 <td style="text-align: left;"><code>!!ed</code></td>
 <td>Single-shot text editor.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-y</code></td>
 <td style="text-align: left;"><code>!tik</code></td>
 <td>Toggle python tiktoken use.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!q</code></td>
 <td style="text-align: left;"><code>!quit</code></td>
 <td>Exit. Bye.</td>
@@ -816,7 +813,7 @@ flush.</td>
 <tr class="even">
 <td style="text-align: left;"><code>-P</code></td>
 <td style="text-align: left;"><code>-HH</code>, <code>!print</code></td>
-<td>Print session history (see <code>option -V</code>).</td>
+<td>Print session history.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-L</code></td>
@@ -1423,13 +1420,13 @@ response.</p>
 <dd>
 <p>Edit image with mask and prompt (required).</p>
 </dd>
-<dt><strong>-qq</strong>, <strong>--insert</strong>
-<!-- (_deprecated_) --></dt>
+<dt><strong>-qq</strong>, <strong>--insert</strong></dt>
 <dd>
 <p>Insert text rather than completing only. May be set twice for
 multi-turn.</p>
 <p>Use “<em>[insert]</em>” to indicate where the language model should
-insert text (<code>gpt-3.5-turbo-instruct+</code>).</p>
+insert text (<code>instruct</code> and Mistral <code>code</code>
+models).</p>
 </dd>
 </dl>
 <p><strong>-S</strong> <strong>.</strong>[<em>PROMPT_NAME</em>],
@@ -1474,13 +1471,13 @@ cache.</p>
 <p>Transcribe audio file into text. LANG is optional. A prompt that
 matches the audio language is optional. Audio will be transcribed or
 translated to the target LANG.</p>
-<p>Set twice to get phrase-level timestamps.</p>
+<p>Set twice to phrase or thrice for word-level timestamps (-www).</p>
 </dd>
 <dt><strong>-W</strong>, <strong>--translate</strong> [<em>AUD</em>]
 [<em>PROMPT-EN</em>]</dt>
 <dd>
 <p>Translate audio file into English text.</p>
-<p>Set twice to get phrase-level timestamps.</p>
+<p>Set twice to phrase or thrice for word-level timestamps (-WWW).</p>
 </dd>
 </dl>
 <h3 id="script-settings">Script Settings</h3>
@@ -1592,10 +1589,9 @@ respectively.</p>
 <dd>
 <p>May be set multiple times.</p>
 </dd>
-<dt><strong>-V</strong>, <strong>-VV</strong></dt>
+<dt><strong>-V</strong></dt>
 <dd>
-<p>Pretty-print all context before request.</p>
-<p>Set twice to dump raw request block (debug).</p>
+<p>Dump raw JSON request block (debug).</p>
 </dd>
 <dt><strong>-x</strong>, <strong>--editor</strong></dt>
 <dd>

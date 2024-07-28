@@ -10,6 +10,16 @@ Chat completions with streaming by defaults.
 
 Markdown rendering of chat response (_optional_).
 
+![Plain Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_cpls.gif)
+
+In pure text completions, start by typing some text that is going to be completed, such as news, stories, or poems.
+
+![Insert Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_insert.gif)
+
+Add the insert tag `[insert]` where it is going to be completed.
+Mistral `code models` work well with the insert / fill-in-the-middel (FIM) mode!
+If no suffix is provided, it works as plain text completions.
+
 
 ## 🚀 Features
 
@@ -34,7 +44,7 @@ Markdown rendering of chat response (_optional_).
 
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
 <!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
-<!-- - Insert mode of text completions --> <!-- _(deprecated ?)_ -->
+<!-- - Insert mode of text completions -->
 <!-- - Choose amongst all available models from a pick list (`option -m.`) -->
 <!-- - *Lots of* command line options -->
 <!-- - Converts response base64 JSON data to PNG image locally -->
@@ -331,9 +341,9 @@ Set an instruction prompt for better results:
     chatgpt.sh -d -S'You are an AI assistant.'  "The list below contain the 10 biggest cities in the w"
 
 
-#### Insert Mode of Text Completions  <!-- _(deprecated)_ -->
+#### Insert Mode of Text Completions
 
-Set `option -q` to enable insert mode and add the
+Set `option -q` (or `-qq` for multiturn) to enable insert mode and add the
 string `[insert]` where the model should insert text:
 
     chatgpt.sh -q 'It was raining when [insert] tomorrow.'
@@ -343,9 +353,11 @@ string `[insert]` where the model should insert text:
 An instruction prompt in this mode may interfere with insert completions.
 
 **NOTE:** [Insert mode](https://openai.com/blog/gpt-3-edit-insert)
-works with model `gpt-3.5-turbo-instruct`. This endpoint _may deprecate_.
+works with model `instruct models`.
 <!-- `davinci`, `text-davinci-002`, `text-davinci-003`, and the newer -->
 
+Mistral AI has a nice FIM (fill-in-the-middle) endpoint that works
+with `code` models and is really good!
 
 <!--
 ### Text Edits  _(discontinued)_

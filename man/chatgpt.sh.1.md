@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.68 | General Commands Manual
+% CHATGPT.SH(1) v0.68.2 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -48,7 +48,7 @@ Set `option -q` for **insert mode**. The flag "_[insert]_" must be present
 in the middle of the input prompt. Insert mode works completing
 between the end of the text preceding the flag, and ends completion
 with the succeeding text after the flag.
-Insert mode works with model `gpt-3.5-turbo-instruct`.
+Insert mode works with `instruct` and Mistral `code` models.
 
 Positional arguments are read as a single **PROMPT**. Model **INSTRUCTION**
 is usually optional and can be set with `option -S`.
@@ -117,8 +117,8 @@ such as "_Xhd_", or "_1792x1024hd_". Defaults=_1024x1024_.
 
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 
-`Option -w` **transcribes audio** from _mp3_, _mp4_, _mpeg_, _mpga_,
-_m4a_, _wav_, and _webm_ files. First positional argument must be
+`Option -w` **transcribes audio** from _mp3_, _mp4_, _mpeg_, _mpga_, _m4a_,
+_wav_, _webm_, _flac_ and _ogg_ files. First positional argument must be
 an _AUDIO_ file. Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
 as the second argument. A PROMPT may also be set to guide the model's style,
 or continue a previous audio segment. The text prompt should match the audio language.
@@ -130,8 +130,8 @@ text language to the target language.
 English may be set to guide the model as the second positional
 argument.
 
-Set these options twice, e.g. `-ww`, and `-WW`, to have phrase-level
-timestamps.
+Set these options twice to have phrasal-level timestamps, options -ww and -WW.
+Set thrice for word-level timestamps.
 
 Combine `options -wW` **with** `options -cc` to start **chat with voice input** (Whisper)
 support. Additionally, set `option -z` to enable **text-to-speech** (TTS) models and voice out.
@@ -355,8 +355,7 @@ may be either "`!`", or "`/`".
       `-u`         `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
      `-uu`         `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
       `-U`         `-UU`                      Toggle cat prompter, or set one-shot. \<_CTRL-D_> flush.
-      `-V`         `!context`                 Print context before request (see `option -P`).
-     `-VV`         `!debug`                   Dump raw request block and confirm.
+      `-V`         `!debug`                   Dump raw request block and confirm.
       `-v`         `!ver`                     Toggle verbose modes.
       `-x`         `!ed`                      Toggle text editor interface.
      `-xx`         `!!ed`                     Single-shot text editor.
@@ -390,7 +389,7 @@ may be either "`!`", or "`/`".
  Session           Management
  --------------    -------------------------------------    ------------------------------------------------------------
       `-H`         `!hist`                                  Edit history in editor.
-      `-P`         `-HH`, `!print`                          Print session history (see `option -V`).
+      `-P`         `-HH`, `!print`                          Print session history.
       `-L`         `!log`       \[_FILEPATH_]               Save to log file.
      `!br`         `!break`, `!new`                         Start new session (session break).
      `!ls`         `!list`      \[_GLOB_]                   List History files with _name_ _glob_.
@@ -1036,13 +1035,13 @@ API version 1 but not all endpoints, or options will be covered.
 : Edit image with mask and prompt (required).
 
 
-**-qq**, **\--insert**   <!-- (_deprecated_) -->
+**-qq**, **\--insert**
 
 :     Insert text rather than completing only. May be set twice
       for multi-turn.
 
       Use "_\[insert]_" to indicate where the language model
-      should insert text (`gpt-3.5-turbo-instruct+`).
+      should insert text (`instruct` and Mistral `code` models).
 
 
 **-S** **.**\[_PROMPT_NAME_], **-..**\[_PROMPT_NAME_]
@@ -1090,14 +1089,14 @@ API version 1 but not all endpoints, or options will be covered.
       A prompt that matches the audio language is optional.
       Audio will be transcribed or translated to the target LANG.
       
-      Set twice to get phrase-level timestamps.
+      Set twice to phrase or thrice for word-level timestamps (-www).
 
 
 **-W**, **\--translate**   \[_AUD_] \[_PROMPT-EN_]
 
 :     Translate audio file into English text.
       
-      Set twice to get phrase-level timestamps.
+      Set twice to phrase or thrice for word-level timestamps (-WWW).
 
 
 ### Script Settings
@@ -1226,11 +1225,9 @@ API version 1 but not all endpoints, or options will be covered.
 :     May be set multiple times.
 
 
-**-V**, **-VV**
+**-V**
 
-:     Pretty-print all context before request.
-      
-      Set twice to dump raw request block (debug).
+:     Dump raw JSON request block (debug).
 
 
 **-x**, **\--editor**
