@@ -680,7 +680,8 @@ a Japanese speaker can translate its voice and generate audio in the target lang
     chatgpt.sh -W
 
 
-**NOTE:** Generate phrasal-level timestamps double setting `option -ww`, or `option -WW`.
+**NOTE:** Generate **phrasal-level timestamps** double setting `option -ww` or `option -WW`.
+For **word-level timestamps**, set option `-www` or `-WWW.
 
 
 ![Transcribe audio with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
