@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.68.2  jul/2024  by mountaineerbr  GPL+3
+# v0.68.3  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1236,13 +1236,13 @@ function grep_usr_lastlinef
 function push_tohistf
 {
 	typeset string token time
-	string=$1; ((${#string})) || ((OPTCMPL)) || return; unset CKSUM_OLD
+	string=$1; ((${#string})) || ((OPTCMPL)) || return; unset CKSUM_OLD;
 	token=$2; ((token>0)) || {
 		start_tiktokenf;    ((OPTTIK)) && __printbf '(tiktoken)';
 		token=$(__tiktokenf "${string}");
 		((token+=TKN_ADJ)); ((OPTTIK)) && __printbf '          '; };
 	time=${3:-$(date -Iseconds 2>/dev/null||date +"%Y-%m-%dT%H:%M:%S%z")}
-	printf '%s%.22s\t%d\t"%s"\n' "$INT_RES" "$time" "$token" "$string" >> "$FILECHAT"
+	printf '%s%.22s\t%d\t"%s"\n' "$INT_RES" "$time" "$token" "${string:-${Q_TYPE##$SPC1}}" >> "$FILECHAT"
 }
 
 #record preview query input and response to hist file
