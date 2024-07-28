@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.68.6  jul/2024  by mountaineerbr  GPL+3
+# v0.68.7  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -182,24 +182,41 @@ Synopsis
 	${0##*/} -ccWwz [opt..] -- [PROMPT] -- [whisper_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
-	${0##*/} -HHPP [/HIST_FILE|.]
-	${0##*/} -HHPw
+	${0##*/} -HPP [/HIST_FILE|.]
+	${0##*/} -HPw
 
 
 Description
+	Text Completion Modes
+
 	With no options set, complete INPUT in single-turn mode of
 	plain text completions.
 
 	Option -d starts a multi-turn session in plain text completions,
 	and does not set further options automatically.
 
-	Set option -c to start multi-turn chat mode via text completions
-	(davinci and lesser models) or -cc for native chat completions
-	(gpt-3.5+ models). In chat mode, some options are automatically
-	set to un-lobotomise the bot. Set -E to exit on response.
-
-	Option -C resumes (continues from) last history session.
 	
+	Chat Completion Modes
+	
+	Set option -c to start multi-turn chat mode via text completions
+	(instruct models) or -cc for native chat completions (gpt-3.5+
+	models).
+
+	In chat mode, some options are automatically set to un-lobotomise
+	the bot.
+
+	Option -C resumes (continues from) last history session. Set option
+	-E to exit on response.
+
+
+	Insert Modes
+
+	Set option -qq for multi turn insert mode, and add tag \`[insert]'
+	to the prompt at the location to be filled in (instruct	models).
+
+
+	Instructions
+
 	Positional arguments are read as a single PROMPT. Optionally set
 	INTRUCTION with option -S.
 
@@ -207,24 +224,30 @@ Description
 	argument or as an argument to \`option -S\`, the file is loaded
 	as text PROMPT.
 
+	To create and reuse a custom prompt, set the prompt name as a command
+	line option, such as \`-S .[prompt_name]' or \`-S ..[prompt_name]'.
+	Alternatively, set the first positional argument with the operator
+	and the name, such as  \`..[prompt]'.
+
+
+	Commands
+
+	If the first positional argument of the script starts with the
+	command operator \`/', the command \`/session [HIST_NAME]' to change
+	to or create a new history file is assumed (with options -ccCdPP).
+
 	In multi-turn interactions, prompts starting with a colon \`:' are
 	appended as user messages to the request block, while double colons
 	\`::' append the prompt as instruction / system without initiating
 	a new API request.
 
-	With vision models, insert an image to the prompt with chat command
+	With vision models, insert an image to the prompt with command
 	\`!img [url|filepath]'. Image urls and files can also be appended
 	by typing the operator pipe and a valid input at the end of the
 	text prompt, such as \`| [url|filepath]'.
 
-	To create and reuse a custom prompt, set the prompt name as a command
-	line option, such as \`-S .[prompt_name]' or \`-S ..[prompt_name]'.
-	Alternatively, set the first positional argument with the operator
-	plus the name, such as  \`..[prompt]'.
 
-	If the first positional argument of the script starts with the
-	command operator \`/', the command \`/session [HIST_NAME]' to change
-	to or create a new history file is assumed (with options -ccCdHH).
+	Image Generations and Edits (Dall-E)
 
 	Option -i generates or edits images. A text prompt is required for
 	generations. An image file is required for variations. Edits need
@@ -236,10 +259,16 @@ Description
 	\`1792x1024' (X), and \`1024x1792' (P). The parameter \`hd' may also
 	be set for quality (Dall-E-3), such as \`Xhd', or \`1792x1024hd'.
 
+
+	Speech-To-Text (Whisper)
+
 	Option -w transcribes audio to any language, and option -W translates
 	audio to English text. Set these options twice to have phrasal-
 	level timestamps, options -ww, and -WW. Set thrice for word-level
 	timestamps.
+
+
+	TTS (Text-To-Voice)
 
 	Option -z synthesises voice from text (TTS models). Set a voice as
 	the first positional parameter (\`alloy', \`echo', \`fable', \`onyx',
@@ -248,9 +277,8 @@ Description
 	such as \`./new_audio.mp3' (\`mp3', \`opus', \`aac', and \`flac'),
 	or \`-' for stdout. Set options -vz to not play received output.
 
-	Option -y sets python tiktoken instead of the default script hack
-	to preview token count. Set this option for accurate history
-	context length (fast).
+
+	Observations
 
 	Input sequences \`\\n' and \`\\t' are only treated specially in
 	restart, start and stop sequences!
@@ -258,8 +286,6 @@ Description
 	A personal OpenAI API is required, set environment or command
 	line option --api-key.
 
-
-See Also
 	Check the man page for extended description of interface and
 	settings. See the online man page and script usage examples at:
 
@@ -323,10 +349,10 @@ Environment
 	REC_CMD 	Audio recorder command, e.g. \`sox -d'.
 
 
-Chat Commands
-	In chat mode, commands are introduced with either \`!' or \`/' as
-	operators. These commands allow users to modify their interaction
-	parameters within the chat.
+Commands
+	In chat mode, commands are invoked with either \`!' or \`/' as
+	operators. These commands allow users to modify settings and
+	manage the session.
 
    -------    ----------    -----------------------------------------
    --- Misc Commands ------------------------------------------------
@@ -358,7 +384,8 @@ Chat Commands
    --- Script Settings and UX ---------------------------------------
     !fold     !wrap             Toggle response wrapping.
       -g      !stream           Toggle response streaming.
-      -h      !help   [REGEX]   Print help snippet or grep it for regex.
+      -h      !help    [QUERY]  Print help, optionally set query or regex.
+      !h  !help-assist [QUERY]  Run the help assistant function.
       -l      !models  [NAME]   List language models or model details.
       -o      !clip             Copy responses to clipboard.
       -u      !multi            Toggle multiline, ctrl-d flush.
@@ -415,8 +442,11 @@ Chat Commands
 
       E.g. \`/temp 0.7', \`!modgpt-4', \`-p 0.2', and \`/s hist_name'.
 
-	Change chat context at run time with the \`!hist' command to edit
-	the raw history file (delete or comment out entries).
+
+	To continue from an old session, either \`/copy . .\` or \`/fork.\`
+	it as the current session. The shorthand for this feature is \`/.\`.
+	It is also possible to \`/grep [regex]\` for a session, which resumes
+	the forked session.
 
 	To preview a prompt completion, append a forward slash \`/' to it.
 	Regenerate it again or flush / accept the prompt and response.
@@ -425,6 +455,9 @@ Chat Commands
 	it with command \`!regen' or type in a single exclamation mark or
 	forward slash in the new empty prompt (twice for editing the
        	prompt before request).
+
+	Change chat context at run time with the \`!hist' command to edit
+	the raw history file (delete or comment out entries).
 
 	Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
 	Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
@@ -1065,15 +1098,10 @@ function pick_modelf
 		while ! ((REPLY && REPLY <= ${#MOD_LIST[@]}))
 		do
 			if test_dialogf
-			then 	options=( $(
-				  set -- ${MOD_LIST[@]:-err};
-				  for ((i=0;i<${#};i++))
-				  do  printf "%q %s " "${@: i+1: 1}" "$( ((i<9)) && echo $((i + 1)) || echo .)";
-				  done
-				) )
+			then 	options=( $(_dialog_optf ${MOD_LIST[@]:-err}) )
 				REPLY=$(
-				  dialog --backtitle "Model Picker" --title "Select a Model" \
-				    --menu "Choose one of the following:" 0 40 0 \
+				  dialog --backtitle "Model Picker" --title "Selection Menu" \
+				    --menu "Choose a model:" 0 40 0 \
 				    -- "${options[@]}"  2>&1 >/dev/tty;
 				) || typeset NO_DIALOG=1;
 				__clr_dialogf;
@@ -1477,7 +1505,7 @@ function set_mdcmdf
 
 	case "$1" in
 		bat) 	MD_CMD_UNBUFF=1  #line-buffer support
-			function mdf { 	[[ -t 1 ]] && set -- --color always "$@" 
+			function mdf { 	[[ -t 1 || OPTMD -gt 1 ]] && set -- --color always "$@" 
 			bat --paging never --language md --style plain "$@" | foldf ;}
 			;;
 		bat*) 	eval "function mdf { 	$* \"\$@\" ;}"
@@ -1524,6 +1552,40 @@ function _set_browsercmdf
 		*) 	printf '%s' "curl -L -f --progress-bar";;
 	esac;
 }
+
+#script help assistant
+function help_assistf
+(
+	printf '%s\n' "${ASSIST_MSG//\\Z[[:alnum:]]}" | COLUMNS=42 foldf >&2;
+	printf '\n%s\n* %s *\a\n%s\n' "****${ASSIST_MSG2//?/\*}" "$ASSIST_MSG2" "${ASSIST_MSG2//?/\*}****" >&2;
+	printf '\n%s '  "$ASSIST_MSG3" >&2;
+	case "$(__read_charf)" in
+		[YySs]|[$' \t']) __clr_lineupf "${#ASSIST_MSG3}";;
+		*) exit 200;;
+	esac;
+
+	printf "${BWHITE}%s${NC}\\n\\n" "${ASSIST_MSG4//\\Z[[:alnum:]]}" >&2;
+	read_mainf -i "$1" REPLY </dev/tty;
+	((${#REPLY})) || exit 200;
+
+	printf "\\n${BWHITE}%s${NC}\\n\\n" "Response:" >&2;
+	__printbf wait..; function history { : ;};
+	FILECHAT=$FILEFIFO OPTT=0.2 OPTF=1 OPTEXIT=2 OPTMD=2 OPTV=3 OPTMAX=320 OPTARG= OPTIND= \
+	. "${BASH_SOURCE[0]:-$0}" -S "You are a Unix shell expert on the \`chatgpt.sh\` script. A user has just accessed the help page for this script and is asking for your assistance. They may be looking for a specific feature, struggling with a command, or simply wanting a general overview. Here is the user's question:" \
+	"${NL}${NL}\`\`\`${REPLY}\`\`\`${NL}${NL}"   \
+	"${NL}${NL}Below is the script's help page:${NL}${NL}" \
+	"${NL}${NL}\`\`\`${NL}${HELP}${NL}\`\`\`${NL}${NL}" \
+	"${NL}${NL}Please provide a concise and helpful response to the user's question, referencing the help page if necessary. If the question concerns command line invocation or chat options, guide the user with the correct commands and syntax. Remember to be helpful, clear, and a little sassy when appropriate! And please provide your best succint answer. Make sure to recheck the response before answering." \
+	2>/dev/null;
+)
+ASSIST_MSG4='\ZbQuestion\ZB or \Zbsearch term\ZB:'
+ASSIST_MSG3="Proceed?  [N/y]" 
+ASSIST_MSG2='Warning: the request will consume about 5000 input tokens'
+ASSIST_MSG='\ZuWelsome to Help Assistant!\ZU
+
+Find the right options for \Zbchatgpt.sh script\ZB and write the precise invocation in the command line and chat options and commands.
+
+This is a single-shot turn.'
 
 #check input and run a chat command
 function cmd_runf
@@ -1610,11 +1672,22 @@ function cmd_runf
 			((++STREAM)) ;((STREAM%=2))
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
-		-h*|h*|help*|-\?|\?)
-			set -- "${*##@(-h|h|help)$SPC}";
+		help-assist*|h*)
+			set -- "${*##@(help-assist|h)$SPC}";
+			trap 'trap "-" INT' INT;
+			printf '\n%s\n' '============= HELP ASSISTANT =============' >&2;
+			help_assistf "$@" || SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
+			printf '\n%s\n' '==========================================' >&2;
+			trap 'exit' INT;
+			;;
+		-h|help|-\?|\?)
+			less -S <<<"${var}"; xskip=1;
+			;;
+		-h*|help*)
+			set -- "${*##@(help|-h)$SPC}";
 			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
-			if ((${#1}<3)) || ! grep --color=always -i -e "${1}" <<<"${var}" >&2;
-			then 	less -S <<<"${var}";
+			if ((${#1}>3)) && ! grep --color=always -i -e "${1%%${NL}*}" <<<"${var}" >&2;
+			then 	cmd_runf /help-assist "$*"; return;
 			fi; xskip=1
 			;;
 		-H|H|history|hist)
@@ -1980,7 +2053,7 @@ function cmd_runf
 			while :
 			do 	trap 'trap "-" INT' INT;  #disable trap for one <CRTL-C>#
 				REPLY=$(trap "-" INT; bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR);
-				RET=$?; trap "-" INT;
+				RET=$?; trap "exit" INT;
 				((RET)) && __warmsgf "Shell:" "$RET"; echo >&2;
 				#abort on empty
 				[[ $REPLY = *([$IFS]) ]] && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
@@ -2362,7 +2435,7 @@ function __set_fpick
 function _dialog_pickf
 {
 	((${#TIPS_DIALOG})) && dialog --colors --timeout 3 --backtitle "File Picker Tips" --begin 3 2 --msgbox "$TIPS_DIALOG" 14 40  >/dev/tty;
-	dialog --help-button --backtitle "File Picker" --title "Please choose a file" --fselect "$1" 24 80  2>&1 >/dev/tty;
+	dialog --help-button --backtitle "File Picker" --title "File Select" --fselect "$1" 24 80  2>&1 >/dev/tty;
 	case $? in
 		2) 	dialog --colors --backtitle "File Picker" --title "File Picker Help" --msgbox "$HELP_DIALOG" 24 56  2>&1 >/dev/tty;
 			return 2;;
@@ -2432,11 +2505,20 @@ function _osascript_pickf { osascript -l JavaScript -e 'a=Application.currentApp
 TIPS_DIALOG='\n- \ZbNavigation:\ZB Use \ZbTAB\ZB, \ZbSHIFT-TAB\ZB and \ZbARROW KEYS\ZB.\n\n- \ZbSelect:\ZB Press \ZbSPACE-BAR\ZB.\n\n- \ZbMouse:\ZB \ZbCLICK\ZB to select and \ZbSPACE\ZB to complete.'
 HELP_DIALOG='\n- \ZbMove:\ZB Use \ZbTAB\ZB, \ZbSHIFT+TAB\ZB, or \ZbARROW KEYS\ZB.\n\n- \ZbScroll:\ZB Use \ZbUP and DOWN\ZB arrow keys in lists.\n\n- \ZbSelect:\ZB Press \ZbSPACE\ZB to copy to text box.\n\n- \ZbAutocomplete:\ZB Type \ZbSPACE\ZB to complete names.\n\n- \ZbConfirm:\ZB Press \ZbENTER\ZB or click "\ZbOK\ZB".\n\n\n\ZuHappy browsing!\ZU'
 
+#print entries with 1-9 indexes or '.' for dialog
+function _dialog_optf 
+{
+	typeset i
+	for ((i=0;i<${#};i++))
+	do  printf "%q %s " "${@: i+1: 1}" "$( ((i<9)) && echo $((i + 1)) || echo .)";
+	done
+}
+
 #check for pure text completions conditions, or insert mode with null suffix
 function test_cmplsf
 {
 	((OPTCMPL && !OPTSUFFIX)) || ((OPTSUFFIX && !${#SUFFIX})) ||
-	((!OPTCMPL && !OPTC && !MTURN && !OPTSUFFIX && !OPTRESUME))  #demo
+	((!OPTCMPL && !OPTC && !MTURN && !OPTSUFFIX))  #demo
 }
 
 #set media for ollama *generation endpoint*
@@ -2788,7 +2870,7 @@ function __set_langf
 #whisper
 function whisperf
 {
-	typeset file rec var pid granule;
+	typeset file rec var pid granule scale;
 	typeset -a args;
        	unset WHISPER_OUT;
 	
@@ -3337,7 +3419,7 @@ function moderationf
 # Awesome-chatgpt-prompts
 function awesomef
 {
-	typeset REPLY act_keys act_keys_n act zh a l n
+	typeset REPLY act_keys act_keys_n options glob act zh a l n
 	[[ "$INSTRUCTION" = %* ]] && FILEAWE="${FILEAWE%%.csv}-zh.csv" zh=1
 
 	set -- "$(trimf "${INSTRUCTION##[/%]}" "*( )" )";
@@ -3356,19 +3438,41 @@ function awesomef
 		then 	[[ -f $FILEAWE ]] && rm -- "$FILEAWE"
 			return 1
 		fi
-	fi; set -- "${1:-%#}";
+	fi;
 
 	#map prompts to indexes and get user selection
 	act_keys=$(sed -e '1d; s/,.*//; s/^"//; s/"$//; s/""/\\"/g; s/[][()`*_]//g; s/ /_/g' "$FILEAWE")
+	act_keys_n=$(wc -l <<<"$act_keys")
 	case "$1" in
 		list*|ls*|+([./%*?-]))  #list awesome keys
 			{ 	pr -T -t -n:3 -W $COLUMNS -$(( (COLUMNS/80)+1)) || cat ;} <<<"$act_keys" >&2;
 			return 210;;
 	esac
 
-	act_keys_n=$(wc -l <<<"$act_keys")
+	((${#1}==1)) && glob='^';
+	if test_dialogf
+	then
+		if ((${#1})) && 
+		options=( $(_dialog_optf $(grep -i -e "${glob}${1//[ _-]/[ _-]}" <<<"${act_keys}" | sort) ) )
+			((!${#options[@]}))
+		then  options=( $(_dialog_optf $(printf '%s\n' ${act_keys:-err} | sort) ) )
+		fi
+		REPLY=$(
+		  dialog --backtitle "Awesome Picker" --title "Select an Act" \
+		    --menu "The following acts are available:" 0 40 0 \
+		    -- "${options[@]}"  2>&1 >/dev/tty;
+		) || typeset NO_DIALOG=1;
+		__clr_dialogf;
+
+		for act in ${act_keys}
+		do  ((++n))
+		    case "$REPLY" in "$act")  act=${n:-1}; break;; esac;
+		done
+	else
+	echo >&2;
+	set -- "${1:-%#}";
 	while ! { 	((act && act <= act_keys_n)) ;}
-	do 	if ! act=$(grep -n -i -e "${1//[ _-]/[ _-]}" <<<"${act_keys}")
+	do 	if ! act=$(grep -n -i -e "${glob}${1//[ _-]/[ _-]}" <<<"${act_keys}")
 		then 	__clr_ttystf;
 			select act in ${act_keys}
 			do 	break
@@ -3380,11 +3484,13 @@ function awesomef
 				for a in ${act};
 				do 	((n==a)) && printf '%d) %s\n' "$n" "$l" >&2;
 				done;
-			done <<<"${act_keys}"
-			printf '#? <enter> ' >&2
+			done <<<"${act_keys}";
+			printf '\n#? <enter> ' >&2
 			__clr_ttystf; read -r -e act </dev/tty;
-		fi ;set -- "$act"
+			printf '\n\n' >&2;
+		fi ;set -- "$act"; glob= n= a= l=;
 	done
+	fi
 
 	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
 	((CMD_CHAT)) ||
@@ -3597,14 +3703,9 @@ function session_globf
 	if ((${#} >1)) && [[ "$glob" != *[$IFS]* ]]
 	then 	__clr_ttystf;
 		if test_dialogf
-		then 	options=( $(
-			  set -- 'current' 'new' "${@%%.${sglob}}";
-			  for ((i=0;i<${#};i++))
-			  do 	printf "%q %s " "${@: i+1: 1}" "$( ((i<9)) && echo $((i + 1)) || echo .)";
-			  done
-			) )
+		then 	options=( $(_dialog_optf 'current' 'new' "${@%%.${sglob}}") )
 			file=$(
-			  dialog --backtitle "Index Menu" --title "Select a $([[ $ext = *[Tt][Ss][Vv] ]] && echo History File || echo Prompt)" \
+			  dialog --backtitle "Selection Menu" --title "$([[ $ext = *[Tt][Ss][Vv] ]] && echo History File || echo Prompt) Selection" \
 			    --menu "Choose one of the following:" 0 40 0 \
 			    -- "${options[@]}"  2>&1 >/dev/tty;
 			) || { file=abort; typeset NO_DIALOG=1 ;}
@@ -3727,7 +3828,7 @@ function session_sub_printf
 {
 	typeset REPLY reply file time token string buff buff_end index regex skip sopt copt ok m n
 	[[ -s ${file:=$1} ]] || return; [[ $file = */* ]] || [[ ! -e "./$file" ]] || file="./$file";
-	FILECHAT_OLD="$file" regex="$REGEX"
+	FILECHAT_OLD="$file" regex="${REGEX%%${NL}*}"
  
 	while ((skip)) || IFS= read -r
 	do 	__spinf; skip= ;
@@ -4227,7 +4328,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  
 			USRLOG="${USRLOG/\~\//"$HOME"\/}"
 			_sysmsgf 'Log File' "<${USRLOG/"$HOME"/"~"}>";;
 		m) 	OPTMARG="${OPTARG:-$MOD}" MOD="$OPTMARG";;
-		markdown) 	OPTMD=1;
+		markdown) 	((++OPTMD));
 			if [[ $OPTARG != @(markdown|md) ]]
 			then 	MD_CMD=$OPTARG;
 			elif var=${@: OPTIND:1}
@@ -4428,7 +4529,8 @@ set_optsf
 
 #markdown rendering
 if ((OPTMD+${#MD_CMD}))
-then 	set_mdcmdf "$MD_CMD" && OPTMD=1;
+then 	set_mdcmdf "$MD_CMD";
+	((OPTMD)) || OPTMD=1;
 fi
 
 #stdin and stderr filepaths
@@ -5000,7 +5102,7 @@ else
 			then 	var=$REPLY_CMD_DUMP;
 			else 	trap 'trap "-" INT' INT;
 				var=$(cmd_runf /cat"$var"; printf '%s\n' "$REPLY"; exit $RET);
-				ret=${?}; trap "-" INT;
+				ret=${?}; trap "exit" INT;
 			fi
 			if ((${#var})) && ((!ret))
 			then
@@ -5175,6 +5277,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 		else 	OPTFOLD=$var promptf
 		fi; RET_PRF=$?;
 
+		((OPTEXIT>1)) && exit $RET_PRF;
 		((OLLAMA)) && API_HOST=$api_host;
 		unset buff api_host;
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;

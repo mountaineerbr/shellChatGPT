@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.68.2 | General Commands Manual
+% CHATGPT.SH(1) v0.68.7 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -21,11 +21,13 @@
 |    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[`whisper_arg`..] \-- \[`tts_arg`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_|_PDF_FILE_]
-|    **chatgpt.sh** `-HHPP` \[`/`_HIST_FILE_|_._]
-|    **chatgpt.sh** `-HHPw`
+|    **chatgpt.sh** `-HPP` \[`/`_HIST_FILE_|_._]
+|    **chatgpt.sh** `-HPw`
 
 
 ### DESCRIPTION
+
+#### Text Completion Modes
 
 With no options set, complete INPUT in single-turn mode of
 plain text completions. 
@@ -33,25 +35,40 @@ plain text completions.
 `Option -d` starts a multi-turn session in **plain text completions**.
 This does not set further options automatically.
 
+
+#### Chat Completion Modes
+	
 Set `option -c` to start a multi-turn chat mode via **text completions**
-and record conversation. This option accepts davinci and lesser models,
-defaults to _gpt-3.5-turbo-instruct_ if none set. In chat mode, some options
-are automatically set to un-lobotomise the bot.
-Set `option -E` to exit on the first response.
+and record conversation. This option works with instruct models,
+defaults to _gpt-3.5-turbo-instruct_ if none set.
+
+In chat mode, some options are automatically set to un-lobotomise the bot.
 
 Set `option -cc` to start the chat mode via **native chat completions**
 and defaults to _gpt-4o_.
 
-Set `option -C` to **resume** (continue from) last history session.
+Set `option -C` to **resume** (continue from) last history session, and
+set `option -E` to exit on the first response (even in multi turn mode).
+
+
+#### Insert Modes (Fill-In-the-Middle)
 
 Set `option -q` for **insert mode**. The flag "_[insert]_" must be present
 in the middle of the input prompt. Insert mode works completing
 between the end of the text preceding the flag, and ends completion
 with the succeeding text after the flag.
+
 Insert mode works with `instruct` and Mistral `code` models.
 
+
+#### Instructions
+
 Positional arguments are read as a single **PROMPT**. Model **INSTRUCTION**
-is usually optional and can be set with `option -S`.
+is optional but recommended and can be set with `option -S`.
+
+`Option -S` sets an INSTRUCTION prompt (the initial prompt) for text cmpls,
+and chat cmpls. A text file path may be supplied as the single argument.
+Also see *CUSTOM / AWESOME PROMPTS* section below.
 
 In multi-turn interactions, prompts prefixed with a single colon "_:_"
 are appended to the current request buffer as user messages without
@@ -59,6 +76,23 @@ making a new API call. Conversely, prompts starting with double colons
 "_::_" are appended as instruction / system messages. For text cmpls only,
 triple colons append the text immediately to the previous prompt
 without a restart sequence.
+
+To create and reuse a custom prompt, set the prompt name as a command
+line option, such as "`-S .[_prompt_name_]`" or "`-S ..[_prompt_name_]`".
+Note that loading a custom prompt will also change to its respective
+history file.
+
+Alternatively, set the first positional argument with the operator
+and the prompt name, such as "`..[_prompt_]`", unless instruction was
+set at the command line.
+
+
+#### Commands
+
+If the first positional argument of the script starts with the
+command operator forward slash "`/`" and a history file name, the
+command "`/session` \[_HIST_NAME_]" is assumed. This will
+change to or create a new history file (with `options -ccCdPP`).
 
 If a plain text or PDF file path is set as the first positional argument,
 or as an argument to `option -S` (set instruction prompt), the file
@@ -69,18 +103,8 @@ command "`!img` \[_url_|_filepath_]". Image urls and files can also
 be appended by typing the operator pipe and a valid input at the
 end of the text prompt, such as "`|` \[_url_|_filepath_]".
 
-To create and reuse a custom prompt, set the prompt name as a command
-line option, such as "`-S .[_prompt_name_]`" or "`-S ..[_prompt_name_]`".
-Note that loading a custom prompt will also change to its respective
-history file.
 
-Alternatively, set the first positional argument with the operator
-plus the name, such as "`..[_prompt_]`", unless instruction was set manually.
-
-If the first positional argument of the script starts with the
-command operator forward slash "`/`" and a history file name, the
-command "`/session` \[_HIST_NAME_]" is assumed. This will
-change to or create a new history file (with `options -ccCdHH`).
+#### Model and Capacity
 
 Set model with "`-m` \[_MODEL_]", with _MODEL_ as its name,
 or set it as "_._" to pick from the model list.
@@ -97,9 +121,29 @@ _Model capacity_ (maximum model tokens) can be set more intuitively with
 `option` "`-N` _NUM_", otherwise model capacity is set automatically
 for known models or to _2048_ tokens as fallback.
 
-`Option -S` sets an INSTRUCTION prompt (the initial prompt) for text cmpls,
-and chat cmpls. A text file path may be supplied as the single argument.
-Also see *CUSTOM / AWESOME PROMPTS* section below.
+List models with `option -l` or run `/models` in chat mode.
+
+<!--
+Install models with `option -l` or command `/models`
+and the `install` keyword.
+
+Also supply a _model configuration file URL_ or,
+if LocalAI server is configured with Galleries,
+set "_\<GALLERY>_@_\<MODEL_NAME>_".
+Gallery defaults to HuggingFace.
+
+* NOTE: *  I recommend using LocalAI own binary to install the models!
+-->
+<!-- LocalAI only tested with text and chat completion models (vision) -->
+
+`Option -y` sets python tiktoken instead of the default script hack
+to preview token count. This option makes token count preview
+accurate fast (we fork tiktoken as a coprocess for fast token queries).
+Useful for rebuilding history context independently from the original
+model used to generate responses.
+
+
+#### Image Generations and Edits (Dall-E)
 
 `Option -i` **generates images** according to text PROMPT. If the first
 positional argument is an _IMAGE_ file, then **generate variations** of
@@ -117,6 +161,9 @@ such as "_Xhd_" or "_1792x1024hd_". Defaults=_1024x1024_.
 
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 
+
+#### Speech-To-Text (Whisper)
+
 `Option -w` **transcribes audio** from _mp3_, _mp4_, _mpeg_, _mpga_, _m4a_,
 _wav_, _webm_, _flac_ and _ogg_ files. First positional argument must be
 an _AUDIO_ file. Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
@@ -133,8 +180,12 @@ argument.
 Set these options twice to have phrasal-level timestamps, options -ww and -WW.
 Set thrice for word-level timestamps.
 
-Combine `options -wW` **with** `options -cc` to start **chat with voice input** (Whisper)
-support. Additionally, set `option -z` to enable **text-to-speech** (TTS) models and voice out.
+Combine `options -wW` **with** `options -cc` to start **chat with voice input**
+(Whisper) support.
+Additionally, set `option -z` to enable **text-to-speech** (TTS) models and voice out.
+
+
+#### TTS (Text-To-Voice)
 
 `Option -z` synthesises voice from text (TTS models). Set a _voice_ as
 the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
@@ -143,11 +194,36 @@ _voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or
 the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_",
 and "_flac_"), or "_-_" for stdout. Set `options -vz` to _not_ play received output.
 
-`Option -y` sets python tiktoken instead of the default script hack
-to preview token count. This option makes token count preview
-accurate fast (we fork tiktoken as a coprocess for fast token queries).
-Useful for rebuilding history context independently from the original
-model used to generate responses.
+
+### API Integrations
+
+For LocalAI integration, run the script with `option --localai`,
+or set environment **$OPENAI_API_HOST** with the server URL.
+
+For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
+and run the script with `option --mistral` or set **$OPENAI_API_HOST**
+to "https://api.mistral.ai/".
+Prefer setting command line `option --mistral` for complete integration.
+<!-- also see: \$MISTRAL_API_HOST -->
+
+For Ollama, set `option -O` (`--ollama`), and set **$OLLAMA_API_HOST**
+if the server URL is different from the defaults.
+
+Note that model management (downloading and setting up) must
+follow the Ollama project guidelines and own methods.
+
+For Google Gemini, set environment variable **$GOOGLE_API_KEY**, and
+run the script with the command line `option --google`.
+
+And for Groq, set the environmental variable `$GROQ_API_KEY`.
+Run the script with `option --groq`.
+Whisper endpoint available.
+
+
+#### Observations
+
+User configuration is kept at "_~/.chatgpt.conf_".
+Script cache is kept at "_~/.cache/chatgptsh/_".
 
 The moderation endpoint can be accessed by setting the model name
 to _text-moderation-latest_.
@@ -164,54 +240,10 @@ Press \<_CTRL-J_> or \<_CTRL-V_ _CTRL-J_> for newline (readline).
 Press \<_CTRL-\\_> to exit from the script, even if recording,
 requesting, or playing TTS.
 
-User configuration is kept at "_~/.chatgpt.conf_".
-Script cache is kept at "_~/.cache/chatgptsh/_".
-
 A personal OpenAI API is required, set it with `option --api-key`.
 See also **ENVIRONMENT section**.
 
 This script also supports warping LocalAI, Ollama, Gemini and Mistral APIs.
-
-For LocalAI integration, run the script with `option --localai`,
-or set environment **$OPENAI_API_HOST** with the server URL.
-
-For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
-and run the script with `option --mistral` or set **$OPENAI_API_HOST**
-to "https://api.mistral.ai/".
-Prefer setting command line `option --mistral` for complete integration.
-<!-- also see: \$MISTRAL_API_HOST -->
-
-And for Groq, set the environmental variable `$GROQ_API_KEY`.
-Run the script with `option --groq`.
-Whisper endpoint available.
-
-List models with `option -l` or run `/models` in chat mode.
-
-<!--
-Install models with `option -l` or chat command `/models`
-and the `install` keyword.
-
-Also supply a _model configuration file URL_ or,
-if LocalAI server is configured with Galleries,
-set "_\<GALLERY>_@_\<MODEL_NAME>_".
-Gallery defaults to HuggingFace.
-
-* NOTE: *  I recommend using LocalAI own binary to install the models!
--->
-<!-- LocalAI only tested with text and chat completion models (vision) -->
-
-For Ollama, set `option -O` (`--ollama`), and set **$OLLAMA_API_HOST**
-if the server URL is different from the defaults.
-
-Note that model management (downloading and setting up) must
-follow the Ollama project guidelines and own methods.
-
-For Google Gemini, set environment variable **$GOOGLE_API_KEY**, and
-run the script with the command line `option --google`.
-
-Command "`!block` \[_args_]" may be run to set raw model options
-in JSON syntax according to each API.
-Alternatively, set envar **$BLOCK_USR**.
 
 For complete model and settings information, refer to OpenAI
 API docs at <https://platform.openai.com/docs/>.
@@ -222,7 +254,7 @@ See the online man page and `chatgpt.sh` usage examples at:
 
 ### TEXT / CHAT COMPLETIONS
 
-### 1. Text completions
+### 1. Text Completion Modes
 
 Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language
@@ -249,7 +281,7 @@ Language model **SKILLS** can be activated with specific prompts,
 see <https://platform.openai.com/examples>.
 
 
-### 2. Chat Mode
+### 2. Chat Modes
 
 
 #### 2.1 Text Completions Chat
@@ -294,7 +326,7 @@ Set chat mode, plus Whisper language and prompt, and the TTS voice option argume
 #### 2.5 GPT-4-Vision
 
 To send an _image_ or _url_ to **vision models**, either set the image
-with the `!img` chat command with one or more _filepaths_ / _urls_
+with the `!img` command with one or more _filepaths_ / _urls_
 separated by the operator pipe _|_.
 
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
@@ -309,10 +341,10 @@ text prompt interactively:
     Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
 
 
-#### 2.6 Chat Commands
+#### 2.6 Commands
 
-While in chat mode, the following commands can be typed in the
-new prompt to set a new parameter. The command operator
+While in chat mode, the following commands can be invoked in the
+new prompt to execute a task or set parameters. The command operator
 may be either "`!`" or "`/`".
 
 
@@ -349,7 +381,8 @@ may be either "`!`" or "`/`".
  --------------    -----------------------    ----------------------------------------------------------
    `!fold`         `!wrap`                    Toggle response wrapping.
       `-g`         `!stream`                  Toggle response streaming.
-      `-h`         `!help`     \[_REGEX_]     Print help snippet or grep help for regex.
+      `-h`         `!help`     \[_QUERY_]     Print help, grep help for regex, or start help assistant.
+      `!h`         `!help-assist` \[_QUERY_]  Run the help assistant function.
       `-l`         `!models`    \[_NAME_]     List language models or show model details.
       `-o`         `!clip`                    Copy responses to clipboard.
       `-u`         `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
@@ -411,6 +444,10 @@ may be either "`!`" or "`/`".
 | E.g.: "`/temp` _0.7_", "`!mod`_gpt-4_", "`-p` _0.2_", and "`/s` _hist_name_".
 
 
+Command "`!block` \[_args_]" may be run to set raw model options
+in JSON syntax according to each API. Alternatively, set envar **$BLOCK_USR**.
+
+
 #### 2.7 Session Management
 
 The script uses a _TSV file_ to record entries, which is kept at the script
@@ -426,8 +463,14 @@ the command `/session` is assumed.
 A history file can contain many sessions. The last one (the tail session)
 is always loaded if the resume `option -C` is set.
 
-To copy a previous session, run `/sub` or `/grep [regex]` to copy that
-session to tail and resume from it.
+
+#####  Copying and resuming older sessions
+
+To continue from an old session, either **/sub** or **/fork.**
+it as the current session. The shorthand for this feature is **/.**.
+
+It is also possible to `/grep [regex]` for a session. This will fork
+the selected session to tail and resume from it.
 
 If "`/copy` _current_" is run, a selector is shown to choose and copy
 a session to the tail of the current history file, and resume it.
@@ -438,6 +481,8 @@ when a second argument is given to the command with the history file name,
 such as "`/copy` \[_SRC_HIST_FILE_] \[_DEST_HIST_FILE_]".
 
 
+##### Changing session
+
 To load an older session from a history file that is different from the
 defaults, there are some options.
 
@@ -445,11 +490,13 @@ Change to it with command `!session [name]`, and then `!fork` the older
 session to the active session.
 
 Or, `!copy [orign] [dest]` the session from a history file to the current
-oneor any other history file.
+or other history file.
 
 In these cases, a pickup interface should open to let the user choose
 the correct session from the history file.
 
+
+##### History file editing
 
 To change the chat context at run time, the history file may be
 edited with the "`/hist`" command (also for context injection).
