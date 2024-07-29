@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.68.7  jul/2024  by mountaineerbr  GPL+3
+# v0.68.8  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3500,10 +3500,10 @@ function awesomef
 	else 	read_mainf -i "$INSTRUCTION" INSTRUCTION
 		((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
 	fi </dev/tty
-	if [[ -z $INSTRUCTION ]]
-	then 	__warmsgf 'Err:' 'awesome-chatgpt-prompts fail'
-		unset OPTAWE ;return 1
-	fi
+	case "$INSTRUCTION" in ''|prompt|act)
+		__warmsgf 'Err:' 'awesome-chatgpt-prompts fail'
+		unset OPTAWE INSTRUCTION;return 1
+	esac;
 }
 
 # Custom prompts
@@ -4770,7 +4770,7 @@ else
 	[[ $INSTRUCTION = $SPC && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
 	case "$INSTRUCTION" in
 		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
-			awesomef || case $? in 	210) exit 0;; 	*) unset INSTRUCTION;; esac
+			awesomef || case $? in 	210|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
 			_sysmsgf $'\nHist   File:' "${FILECHAT}"
 			if ((OPTRESUME==1))
 			then 	unset OPTAWE
@@ -4783,7 +4783,7 @@ else
 		[.,]*) custom_prf "$@"
 			case $? in
 				200) 	set -- ;;  #create, read and clear pos args
-				1|201|[1-9]*|[!0]*) 	unset INSTRUCTION;;  #err
+				1|201|[1-9]*) 	exit 1; unset INSTRUCTION;;  #err
 			esac;;
 	esac
 
