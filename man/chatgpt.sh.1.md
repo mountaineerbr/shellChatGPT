@@ -470,7 +470,7 @@ To continue from an old session, either **/sub** or **/fork.**
 it as the current session. The shorthand for this feature is **/.**.
 
 It is also possible to `/grep [regex]` for a session. This will fork
-the selected session to tail and resume from it.
+the selected session and resume it.
 
 If "`/copy` _current_" is run, a selector is shown to choose and copy
 a session to the tail of the current history file, and resume it.
@@ -478,7 +478,8 @@ This is equivalent to running "`/fork`".
 
 It is also possible to copy sessions of a history file to another file
 when a second argument is given to the command with the history file name,
-such as "`/copy` \[_SRC_HIST_FILE_] \[_DEST_HIST_FILE_]".
+such as "`/copy` \[_SRC_HIST_FILE_] \[_DEST_HIST_FILE_]", and a dot
+as file name means the current history file.
 
 
 ##### Changing session

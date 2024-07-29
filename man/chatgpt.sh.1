@@ -978,7 +978,7 @@ To continue from an old session, either \f[B]/sub\f[R] or
 The shorthand for this feature is \f[B]/.\f[R].
 .PP
 It is also possible to \f[CR]/grep [regex]\f[R] for a session.
-This will fork the selected session to tail and resume from it.
+This will fork the selected session and resume it.
 .PP
 If \[lq]\f[CR]/copy\f[R] \f[I]current\f[R]\[rq] is run, a selector is
 shown to choose and copy a session to the tail of the current history
@@ -988,7 +988,8 @@ This is equivalent to running \[lq]\f[CR]/fork\f[R]\[rq].
 It is also possible to copy sessions of a history file to another file
 when a second argument is given to the command with the history file
 name, such as \[lq]\f[CR]/copy\f[R] [\f[I]SRC_HIST_FILE\f[R]]
-[\f[I]DEST_HIST_FILE\f[R]]\[rq].
+[\f[I]DEST_HIST_FILE\f[R]]\[rq], and a dot as file name means the
+current history file.
 .SS Changing session
 To load an older session from a history file that is different from the
 defaults, there are some options.

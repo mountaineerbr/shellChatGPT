@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.68.8  jul/2024  by mountaineerbr  GPL+3
+# v0.68.9  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -444,9 +444,9 @@ Commands
 
 
 	To continue from an old session, either \`/copy . .\` or \`/fork.\`
-	it as the current session. The shorthand for this feature is \`/.\`.
-	It is also possible to \`/grep [regex]\` for a session, which resumes
-	the forked session.
+	it as the current session. The dot means the current session. The
+	shorthand for this feature is \`/.\`. It is also possible to execute
+	\`/grep [regex]\` for a session and resume it.
 
 	To preview a prompt completion, append a forward slash \`/' to it.
 	Regenerate it again or flush / accept the prompt and response.

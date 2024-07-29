@@ -925,14 +925,15 @@ sessions</h5>
 <strong>/fork.</strong> it as the current session. The shorthand for
 this feature is <strong>/.</strong>.</p>
 <p>It is also possible to <code>/grep [regex]</code> for a session. This
-will fork the selected session to tail and resume from it.</p>
+will fork the selected session and resume it.</p>
 <p>If “<code>/copy</code> <em>current</em>” is run, a selector is shown
 to choose and copy a session to the tail of the current history file,
 and resume it. This is equivalent to running “<code>/fork</code>”.</p>
 <p>It is also possible to copy sessions of a history file to another
 file when a second argument is given to the command with the history
 file name, such as “<code>/copy</code> [<em>SRC_HIST_FILE</em>]
-[<em>DEST_HIST_FILE</em>]”.</p>
+[<em>DEST_HIST_FILE</em>]”, and a dot as file name means the current
+history file.</p>
 <h5 id="changing-session">Changing session</h5>
 <p>To load an older session from a history file that is different from
 the defaults, there are some options.</p>
