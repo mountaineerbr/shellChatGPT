@@ -896,6 +896,15 @@ Run the script with `option --anthropic` or `--ant`.
 
 Check their **claude-3** models!
 
+The script does work on **text completions** with models `claude-2.1`,
+although it the API documentation flags it as deprecated.
+
+Try:
+
+```
+    chatgpt.sh --ant -cc -m claude-2.1
+```
+
 
 <!--
 ## 🌎 Environment

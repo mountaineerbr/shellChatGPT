@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69  jul/2024  by mountaineerbr  GPL+3
+# v0.69.1  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4329,7 +4329,7 @@ function set_anthropicf
 	}
 	function list_modelsf
 	{
-		{ curl -\# "https://docs.anthropic.com/en/docs/about-claude/models" |
+		{ curl -\# --fail -L "https://docs.anthropic.com/en/docs/about-claude/models" |
 		    sed -ne '/<thead><tr><th>Model<\/th>/ s/>/>\n/gp' |
 		    grep -oe '^[a-z0-9][a-z0-9]*-[a-z0-9-]*';
 		  _list_modelsf ;} | sort | uniq;
