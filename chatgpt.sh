@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.68.9  jul/2024  by mountaineerbr  GPL+3
+# v0.69  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -9,6 +9,7 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 #GOOGLE_API_KEY=
 #MISTRAL_API_KEY=
 #GROQ_API_KEY=
+#ANTHROPIC_API_KEY=
 
 # DEFAULTS
 # Text cmpls model
@@ -32,6 +33,8 @@ MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.5-flash-latest}"
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Groq model
 MOD_GROQ="${MOD_GROQ:-llama-3.1-8b-instant}"
+# Anthropic model
+MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-20240620}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -58,10 +61,14 @@ OPTMAX=1024
 OPTN=1
 # Keep Alive (seconds, Ollama)
 #OPT_KEEPALIVE=
+# Seed (integer)
+#OPTSEED=
 # Set python tiktoken
 #OPTTIK=
 # Image size
-#OPTS=1024x1024
+#OPTS=1024x1024  #hd
+#Image style
+#OPTI_STYLE=natural  #vivid
 # Image out format
 OPTI_FMT=b64_json  #url
 # TTS voice
@@ -148,7 +155,8 @@ LOCALAI_API_HOST_DEF="http://127.0.0.1:8080";
 MISTRAL_API_HOST_DEF="https://api.mistral.ai";
 GOOGLE_API_HOST_DEF="https://generativelanguage.googleapis.com/v1beta";
 GROQ_API_HOST_DEF="https://api.groq.com/openai";
-OPENAI_API_KEY_DEF=$OPENAI_API_KEY
+ANTHROPIC_API_HOST_DEF="https://api.anthropic.com";
+OPENAI_API_KEY_DEF=$OPENAI_API_KEY;
 API_HOST=$OPENAI_API_HOST_DEF;
 
 # Def hist, txt chat types
@@ -258,6 +266,9 @@ Description
 	options are: \`256x256' (S), \`512x512' (M), \`1024x1024' (L),
 	\`1792x1024' (X), and \`1024x1792' (P). The parameter \`hd' may also
 	be set for quality (Dall-E-3), such as \`Xhd', or \`1792x1024hd'.
+	
+	For Dalle-3, optionally set the generation style as either \"natural\"
+	or \"vivid\" as a positional parameter.
 
 
 	Speech-To-Text (Whisper)
@@ -318,7 +329,8 @@ Environment
 	MOD_MISTRAL
 	MOD_GOOGLE
 	MOD_GROQ
-	MOD_AUDIO_GROQ 	Set default model for each endpoint / integration.
+	MOD_AUDIO_GROQ
+	MOD_ANTHROPIC 	Set default model for each endpoint / integration.
 	
 	OPENAI_API_HOST
 	OPENAI_API_HOST_STATIC
@@ -327,11 +339,12 @@ Environment
 
 	[PROVIDER]_API_HOST
 			API host URL for the providers LOCALAI, OLLAMA,
-			MISTRAL, GOOGLE, and GROQ.
+			MISTRAL, GOOGLE, GROQ, and ANTHROPIC.
 
 	OPENAI_API_KEY
 	[PROVIDER]_API_KEY
-			Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
+			Keys for OpenAI, GoogleAI, MistralAI, Groq, and
+			Anthropic APIs.
 
 	OUTDIR 		Output directory for received image and audio.
 
@@ -404,6 +417,7 @@ Commands
       -a      !pre      [VAL]   Set presence penalty.
       -A      !freq     [VAL]   Set frequency penalty.
       -b      !best     [NUM]   Set best-of n results.
+      -j      !seed     [NUM]   Set a seed number (integer).
       -K      !topk     [NUM]   Set top_k.
       -m      !mod      [MOD]   Set model by name or pick from list.
       -n      !results  [NUM]   Set number of results.
@@ -485,6 +499,8 @@ Options
 		Set best of, must be greater than opt -n (cmpls). Def=1.
 	-B, --logprobs  [NUM]
 		Request log probabilities, see -Z (cmpls, 0 - 5),
+	-j, --seed  [NUM]
+		Set a seed for deterministic sampling (integer).
 	-K, --top-k     [NUM]
 		Set Top_k value (local-ai, ollama, google).
 	--keep-alive, --ka [NUM]
@@ -562,6 +578,8 @@ Options
 	Script Settings
 	--api-key  [KEY]
 		Set OpenAI API key.
+	--anthropic
+		Set Anthropic integration (cmpls/chat).
 	-f, --no-conf
 		Ignore user configuration file.
 	-F 	Edit configuration file, if it exists.
@@ -639,7 +657,8 @@ ENDPOINTS=(
 function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
-	((LOCALAI+OLLAMA+GOOGLEAI)) && is_visionf "$1" && set -- vision;
+	((LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI)) &&
+	  is_visionf "$1" && set -- "vision";
 	case "$1" in
 		*dalle-e*|*stable*diffusion*)
 				# 3 generations  4 variations  9 edits  
@@ -699,21 +718,26 @@ function set_model_epnf
 function model_capf
 {
 	case "${1##ft:}" in  #set model max tokens, ft: fine-tune models
+		open-codestral-mamba*|codestral-mamba*) MODMAX=256000;;
+		open-mixtral-8x22b) MODMAX=64000;;
+		claude-[3-9]*|claude-2.1*) MODMAX=200000;;
+		claude-2.0*|claude-instant*) MODMAX=100000;;
 		llama-[3-9].[1-9]*|llama[4-9]-*|llama[4-9]*) MODMAX=131072;;
 		text*moderation*) 	MODMAX=150000;;
 		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
 		davinci-002|babbage-002) 	MODMAX=16384;;
 		davinci|curie|babbage|ada) 	MODMAX=2049;;
-		code-davinci-00[2-9]) 	MODMAX=8001;;
+		code-davinci-00[2-9]*|mistral-embed*) 	MODMAX=8001;;
 		gpt-4[a-z]*|gpt-[5-9]*|gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*|\
-		gpt-4-turbo|gpt-4-turbo-202[4-9]-*) MODMAX=128000;;
+		gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
+		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|\
+		mistral-large*|open-mistral-nemo*) 	MODMAX=128000;;
 		gpt-3.5-turbo-1106) 	MODMAX=16385;;
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*) MODMAX=32768;;
 		gpt-3.5*16K*|*turbo*16k*|*16k) 	MODMAX=16384;;
 		gpt-4*|*-bison*|*-unicorn|text-davinci-002-render-sha|\
 		llama3*|gemma-*) 	MODMAX=8192;;
 		*turbo*|*davinci*) 	MODMAX=4096;;
-		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=128000;;
 		gemini*-vision*) 	MODMAX=16384;;
 		gemini*-pro*) 	MODMAX=32760;;
 		*embedding-gecko*) 	MODMAX=3072;;
@@ -733,14 +757,12 @@ function __promptf
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
 		-d "$BLOCK"
-	then
-		[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
-	else
-		typeset ret=$?;
-		[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE";
-		return $ret;
+	then 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
+	else 	return $?;  #E#
 	fi
 }
+##with --fail-with-body:
+##{ [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"; }
 
 function _promptf
 {
@@ -752,7 +774,10 @@ function _promptf
 		  [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
 		__promptf "$@" | while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
-			chunk=${chunk##*([$' \t'])[Dd][Aa][Tt][Aa]:*([$' \t'])}
+			#anthropic sends lots more than only '[DATA]:' fields.
+			#google hack does not pass '[DATA]:'.
+			((ANTHROPICAI)) && { [[ $chunk = *(\ )[Dd][Aa][Tt][Aa]:* ]] || continue ;}
+			chunk=${chunk##*([$' \t'])[Dd][Aa][Tt][Aa]:*(\ )}
 			[[ $chunk = *([$IFS]) ]] && continue
 			[[ $chunk = *([$IFS])\[+([A-Z])\] ]] && continue
 			if ((!n))  #first pass, del leading spaces
@@ -819,8 +844,8 @@ function promptf
 #print tokens from response
 function response_tknf
 {
-	jq -r '.usage.prompt_tokens//(.usageMetadata.promptTokenCount)//"0",
-		.usage.completion_tokens//(.usageMetadata.candidatesTokenCount)//"0",
+	jq -r '(.usage.prompt_tokens)//(.usageMetadata.promptTokenCount)//"0",
+		(.usage.completion_tokens)//(.usageMetadata.candidatesTokenCount)//"0",
 		(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$@";
 }
 #https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
@@ -986,11 +1011,12 @@ function prompt_prettyf
 	jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
 	  byellow
 	  + (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
-	  ( ((.delta.content)//.text//.response//(.message.content)//(.candidates[]?.content.parts[]?.text)//\"\" ) |
+	  ( ((.delta.content)//(.delta.text)//.text//.response//.completion//(.content[]?|.text?)//(.message.content${ANTHROPICAI:+skip})//(.candidates[]?|.content.parts[]?|.text?)//\"\" ) |
 	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
-	  + if .finish_reason? != \"stop\" then (if (.finish_reason? + \"\") != \"\" then red+\"(\"+.finish_reason+\")\"+byellow else null end) else null end,
+	  + if any( (.finish_reason//.stop_reason//\"\")?; . != \"stop\" and . != \"stop_sequence\" and . != \"end_turn\" and . != \"\") then
+	      red+\"(\"+(.finish_reason//.stop_reason)+\")\"+byellow else null end,
 	  if \$sep then \"---\" else empty end) + reset" "$@" && _p_suffixf;
-}
+}  #finish_reason: length, max_tokens
 function prompt_pf
 {
 	typeset var
@@ -999,14 +1025,25 @@ function prompt_pf
 	do 	[[ -f $var ]] || { 	opt+=("$var"); shift ;}
 	done
 	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |
-		(.delta.content)//.text//.response//(.message.content)//(.candidates[]?.content.parts[]?.text)//(.data?))//empty" "$@"
+		(.delta.content)//(.delta.text)//.text//.response//.completion//(.content[]?|.text?)//(.message.content${ANTHROPICAI:+skip})//(.candidates[]?|.content.parts[]?|.text?)//(.data?))//empty" "$@"
 	((${#opt[@]})) && set -- "${opt[@]}" "$@"
 	{ jq "$@" && _p_suffixf ;} || ! __warmsgf 'Err';
 }
 #https://stackoverflow.com/questions/57298373/print-colored-raw-output-with-jq-on-terminal
-#https://stackoverflow.com/questions/40321035/  #gsub(\"^[\\n\\t]\"; \"\")
+#https://stackoverflow.com/questions/40321035/
 
-function _p_suffixf { 	((!${#SUFFIX} )) || printf '%s' "$(unescapef "$SUFFIX")" ;}
+#print suffix string
+function _p_suffixf { 	((!${#SUFFIX} )) || printf '%s' "${SUFFIX}" ;}
+
+#print last line of input that is within $columns range
+#usage: _p_linerf [string]
+function _p_linerf
+{
+	typeset var
+	var=$(sed -n '$p' <<<$1);
+	var=$((${#var} % COLUMNS));
+	((var)) && printf '\n%s' "${1: ${#1}-${var}}" >&2;
+}
 
 #open image with sys defaults
 function __openf
@@ -1081,7 +1118,7 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! __warmsgf 'Err';
 	else 	{   jq -r '.data[].id' "$FILE" | sort &&
-		    {    ((MISTRALAI+GROQAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;}
+		    {    ((MISTRALAI+GROQAI+ANTHROPICAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;}
 		} | tee -- "$FILEMODEL" || ! __warmsgf 'Err';
 	fi || ! __warmsgf 'Err:' 'Model list'
 }
@@ -1707,6 +1744,10 @@ function cmd_runf
 			((OPTCLIP)) && ${CLIP_CMD:-false} <<<"$var" && echo 'Clipboard set!' >&2
 			;;
 		-P|P) 	cmd_runf -HH; return;; -PP*|PP*) 	cmd_runf -HHH; return;;
+		-j|seed)
+			OPTSEED="${*##@(-j|seed)*([$IFS])}"
+			__cmdmsgf 'Seed:' "$OPTSEED"
+			;;
 		j|jump)
 			__cmdmsgf 'Jump:' 'append response primer'
 			JUMP=1 REPLY=
@@ -1957,6 +1998,7 @@ function cmd_runf
 			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
 			context-prev "${MAX_PREV:-?}" \
 			token-rate   "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
+			seed         "${OPTSEED:-unset}" \
 			tiktoken     "${OPTTIK:-0}" \
 			keep-alive   "${OPT_KEEPALIVE:-unset}" \
 			temperature  "${OPTT:-0}" \
@@ -2121,11 +2163,7 @@ function cmd_runf
 			SKIP=1 EDIT=1
 			case "$*" in
 				rr|[/!]*) REGEN=2;;  #edit prompt
-				*) 	if test_cmplsf
-					then 	var=$(sed -n '$p' <<<$REPLY_OLD);
-						var=$((${#var} % COLUMNS));
-						((var)) && printf '%s' "${REPLY_OLD: ${#REPLY_OLD}-var}" >&2;
-					fi;
+				*) test_cmplsf && _p_linerf "$REPLY_OLD";
 					REGEN=1 REPLY= ;;
 			esac
 			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
@@ -2164,7 +2202,7 @@ function cmd_runf
 			;;
 	esac;
 	((OPTEXIT>1)) && exit;
-	{ ((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2 ;}
+	{ ((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2 ;}  #newline
 	if ((OPTX && REGEN<1 && !xskip)) 
 	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
 		__read_charf >/dev/null;
@@ -2320,6 +2358,13 @@ function break_sessionf
 	BREAK_SET=1; _sysmsgf 'SESSION BREAK';
 }
 
+#fix: remove session break
+function fix_breakf
+{
+	[[ $(tail -n 1 "$1") = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] &&
+	  sed -i -e '$d' "$1" && _sysmsgf 'Session Break Removed';
+}
+
 #fix variable value, add zero before/after dot.
 function fix_dotf
 {
@@ -2349,6 +2394,7 @@ function fmt_ccf
 	
 	if ! ((${#MEDIA[@]}+${#MEDIA_CMD[@]}))
 	then
+		((ANTHROPICAI)) && [[ $2 = system ]] && return 1;
 		printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
 	elif ((OLLAMA))
 	then
@@ -2362,9 +2408,21 @@ function fmt_ccf
 			if [[ $var = *([$IFS]) ]]
 			then 	continue;
 			elif [[ -f $var ]]
-			then 	ext=${var##*.}; ((${#ext}<7)) && ext=${ext/[Jj][Pp][Gg]/jpeg} || ext=;
-				printf ',\n{ "type": "image_url", "image_url": { "url": "data:image/%s;base64,%s" } }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
-			else 	printf ',\n{ "type": "image_url", "image_url": { "url": "%s" } }' "$var";
+			then 	ext=${var##*.}; ext=${ext,,};  #!#bash ,, expansion
+				ext=${ext/[Jj][Pp][Gg]/jpeg}; ((${#ext}<7)) || ext=;
+				case "$ext" in jpeg|png|gif|webp) :;;  #20MB per image
+					*)  __warmsgf 'Warning' "filetype may be unsupported -- ${ext}" ;;
+				esac
+				if ((ANTHROPICAI))
+				then
+				  printf ',\n{ "type": "image", "source": { "type": "base64", "media_type": "image/%s", "data": "%s" } }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
+				else
+				  printf ',\n{ "type": "image_url", "image_url": { "url": "data:image/%s;base64,%s" } }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
+				  #groq: detail  string  Optional  #groq: image URL or base64
+				fi
+			else  #img url
+				((ANTHROPICAI)) ||  #mistral groq
+				printf ',\n{ "type": "image_url", "image_url": { "url": "%s" } }' "$var";
 			fi
 		done;
 		printf '%s\n' ' ] }';
@@ -2517,7 +2575,7 @@ function _dialog_optf
 #check for pure text completions conditions, or insert mode with null suffix
 function test_cmplsf
 {
-	((OPTCMPL && !OPTSUFFIX)) || ((OPTSUFFIX && !${#SUFFIX})) ||
+	((OPTCMPL && !OPTSUFFIX)) || ((OPTSUFFIX)) ||
 	((!OPTCMPL && !OPTC && !MTURN && !OPTSUFFIX))  #demo
 }
 
@@ -2679,7 +2737,8 @@ function is_visionf
 	case "$1" in 
 	*vision*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
-	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*) 	:;;
+	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*|\
+	claude-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
 	*) 	((MULTIMODAL));;
 	esac;
 }
@@ -2743,7 +2802,7 @@ function check_optrangef
 #check and set settings
 function set_optsf
 {
-	typeset s n p
+	typeset s n p stop
 	typeset -a pids
 	((OPTI+OPTEMBED)) || {
 	  ((OPTW+OPTZ && !CHAT_ENV)) || {
@@ -2756,9 +2815,13 @@ function set_optsf
 	    ((!OPTMAX && OPTBB)) ||
 	    check_optrangef "$OPTMAX"  1 "$MODMAX" 'Response Max Tokens'
 	  }
-	  check_optrangef "$OPTT"  0.0 2.0 'Temperature'  #whisper max=1
+	  check_optrangef "$OPTT"  0.0 $( ((MISTRALAI+ANTHROPICAI)) && echo 1.0 || echo 2.0) 'Temperature'  #whisper 0.0 - 1.0
+	  #change temp or top_p but not both
 	}
 	((OPTI)) && check_optrangef "$OPTN"  1 10 'Number of Results'
+	case "$OPTSEED" in *[!0-9]*)
+	  printf "${RED}Warning: Bad %s${NC}${BRED} -- %s  ${NC}${YELLOW}(integer)${NC}\\n" "seed" "$OPTSEED" >&2;;
+	esac
 
 	[[ -n $OPTA ]] && OPTA_OPT="\"presence_penalty\": $OPTA," || unset OPTA_OPT
 	[[ -n $OPTAA ]] && OPTAA_OPT="\"frequency_penalty\": $OPTAA," || unset OPTAA_OPT
@@ -2767,6 +2830,10 @@ function set_optsf
 	[[ -n $OPTP ]] && OPTP_OPT="\"top_p\": $OPTP," || unset OPTP_OPT
 	[[ -n $OPTKK ]] && OPTKK_OPT="\"top_k\": $OPTKK," || unset OPTKK_OPT
 	if ((OPTSUFFIX+${#SUFFIX})); then 	OPTSUFFIX_OPT="\"suffix\": \"$(escapef "$SUFFIX")\","; else 	unset OPTSUFFIX_OPT; fi;
+	if [[ -n $OPTSEED ]]
+	then #seed  integer or null: openai, groq, ollama.
+	  OPTSEED_OPT="\"${MISTRALAI:+random_}seed\": $OPTSEED," || unset OPTSEED
+	fi
 	if ((STREAM))
 	then 	STREAM_OPT="\"stream\": true,";
 	else 	STREAM_OPT="\"stream\": false,"; unset STREAM;
@@ -2782,10 +2849,11 @@ function set_optsf
 			((++n)) ;((n>4)) && break
 			OPTSTOP="${OPTSTOP}${OPTSTOP:+,}\"$(escapef "$s")\""
 		done
+		((ANTHROPICAI)) && stop="stop_sequences" || stop="stop";
 		if ((n==1))
-		then 	OPTSTOP="\"stop\":${OPTSTOP},"
+		then 	OPTSTOP="\"${stop}\":${OPTSTOP},"
 		elif ((n))
-		then 	OPTSTOP="\"stop\":[${OPTSTOP}],"
+		then 	OPTSTOP="\"${stop}\":[${OPTSTOP}],"
 		fi; STOPS_OLD=("${STOPS[@]}");
 	fi #https://help.openai.com/en/articles/5072263-how-do-i-use-stop-sequences
 	((EPN==6)) || {
@@ -3198,7 +3266,8 @@ function imggenf
 	if ((LOCALAI))
 	then 	block_x="\"model\": \"$MOD_IMAGE\",";
 	elif [[ $MOD_IMAGE = *dall-e*[3-9] ]]
-	then 	block_x="\"model\": \"$MOD_IMAGE\", \"quality\": \"${OPTS_HD:-standard}\",";
+	then 	block_x="\"model\": \"$MOD_IMAGE\",
+\"quality\": \"${OPTS_HD:-standard}\", ${OPTI_STYLE:+\"style\": \"$OPTI_STYLE\",}";
 	fi
 	
 	BLOCK="{
@@ -4118,13 +4187,14 @@ function set_localaif
 	fi
 }
 
-#ollama fun
+#google ai
 function set_googleaif
 {
 	FILE_PRE="${FILE%%.json}.pre.json";
 	GOOGLE_API_HOST="${GOOGLE_API_HOST:-$GOOGLE_API_HOST_DEF}";
 	: ${GOOGLE_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
+	((OPTC)) || OPTC=2;
 
 	function list_modelsf
 	{
@@ -4139,15 +4209,14 @@ function set_googleaif
 	}
 	function __promptf
 	{
-		typeset epn ret;
+		typeset epn;
 		epn='generateContent';
 		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
 		if curl "$@" --fail -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$BLOCK" | tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
 		then 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
-		else 	ret=$?; [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE";
-			return $ret;
+		else 	return $?;  #E#
 		fi
 	}
 	function embedf
@@ -4218,20 +4287,73 @@ function set_googleaif
 		printf '%s\n'  ' ] }';
 	}
 }
+#https://ai.google.dev/gemini-api/docs/models/gemini
+#Top-P, Top-K, Temperature, Stop sequence, Max output length, Number of response candidates
 
+#anthropic api
+function set_anthropicf
+{
+	: ${ANTHROPIC_API_KEY:?Required}
+	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER;
+	ENDPOINTS[0]="/v1/complete" ENDPOINTS[6]="/v1/messages" OPTA= OPTAA= ;
+	if ((ANTHROPICAI)) && ((EPN==0))
+	then 	[[ -n ${RESTART+1} ]] || RESTART='\n\nHuman: ';
+		[[ -n ${START+1} ]] || START='\n\nAssistant:';
+	fi;
 
-#@#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #sourced file
+	function __promptf
+	{
+		[[ $MOD =  claude-3-5-sonnet-20240620 ]] &&  #8192 output tokens is in beta 
+		  set -- "$@" --header "anthropic-beta: max-tokens-3-5-sonnet-2024-07-15";
+
+		if curl "$@" --fail -L "${ANTHROPIC_API_HOST:-$ANTHROPIC_API_HOST_DEF}${ENDPOINTS[EPN]}" \
+			--header "x-api-key: $ANTHROPIC_API_KEY" \
+			--header "anthropic-version: 2023-06-01" \
+			--header "content-type: application/json" \
+			--data "$BLOCK";
+		then 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
+		else 	return $?;  #E#
+		fi
+	}
+	function response_tknf
+	{
+		jq -r '(.usage.output_tokens)//empty,
+			(.usage.input_tokens)//(.message.usage.input_tokens)//empty' "$@";
+	}
+	function _list_modelsf
+	{
+		printf '%s\n' claude-3-5-sonnet claude-3-5-sonnet-20240620 \
+		claude-3-opus claude-3-opus-20240229 claude-3-sonnet \
+		claude-3-sonnet-20240229 claude-3-haiku claude-3-haiku-20240307 \
+		claude-2.1 claude-2.0 claude-instant-1.2
+	}
+	function list_modelsf
+	{
+		{ curl -\# "https://docs.anthropic.com/en/docs/about-claude/models" |
+		    sed -ne '/<thead><tr><th>Model<\/th>/ s/>/>\n/gp' |
+		    grep -oe '^[a-z0-9][a-z0-9]*-[a-z0-9-]*';
+		  _list_modelsf ;} | sort | uniq;
+	}
+}
+#missing: model listing feature
+#https://docs.anthropic.com/en/docs/models-overview
+#https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/resources/messages.py
+#rely on the `usage` property in the response for exact token counts
+#https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/_client.py
+
+#@#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #!#important for the test script
 
 
 unset OPTMM STOPS MAIN_LOOP
-#parse opts
-optstring="a:A:b:B:cCdeEfFgGhHikK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"  #jDIJQTX
+#parse opts  #DIJQX
+optstring="a:A:b:B:cCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
 do
 	case "$opt" in -)  #long options
 		for opt in api-key  multimodal  markdown  markdown:md  \
 no-markdown  no-markdown:no-md  fold  fold:wrap  no-fold  no-fold:no-wrap \
-localai  localai:local-ai  google google:goo  mistral  openai  groq:grok  groq  keep-alive \
+localai  localai:local-ai  localai:local  google  google:goo  mistral \
+openai  groq:grok  groq  anthropic:ant  anthropic  keep-alive  j:seed \
 keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
 a:presence-penalty  a:presence  a:pre  A:frequency-penalty  A:frequency \
 A:freq  b:best-of  b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue \
@@ -4296,16 +4418,17 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG;  #OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG;
+			#OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
-			OPTF=1 OPTIND=1 OPTARG= ;. "$0" "$@" ;exit;;
+			OPTF=1 OPTIND=1 OPTARG= ;. "${BASH_SOURCE[0]:-$0}" "$@" ;exit;;
 		F) 	((++OPTFF));;
 		fold) 	OPTFOLD=1;;
 		no-fold) 	unset OPTFOLD;;
 		g) 	STREAM=1;;
 		G) 	unset STREAM;;
-		h) 	while read; do 	[[ $REPLY = \#\ v* ]] && break; done <"$0";
+		h) 	while read; do 	[[ $REPLY = \#\ v* ]] && break; done <"${BASH_SOURCE[0]:-$0}";
 			printf '%s\n' "$REPLY" "$HELP"
 			exit;;
 		H) 	((++OPTHH));;
@@ -4340,16 +4463,18 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		o) 	OPTCLIP=1;;
-		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ;;
-		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ;;
-		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ;;
+		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= ;;
+		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= ;;
+		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= ;;
 		localai) LOCALAI=1;;
-		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ;;
-		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ;;
+		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= ;;
+		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= ;;
+		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
 		R) 	START="$OPTARG";;
+		j) 	OPTSEED=$OPTARG;;
 		s) 	STOPS=("$OPTARG" "${STOPS[@]}");;
 		S|.|,) 	if [[ -f "$OPTARG" ]]
 			then 	INSTRUCTION="${opt##S}$(<"$OPTARG")"
@@ -4362,7 +4487,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  
 		U) 	CATPR=1;;
 		v) 	((++OPTV));;
 		V) 	((++OPTVV));;  #debug
-		version) while read; do 	[[ $REPLY = \#\ v* ]] || continue; printf '%s\n' "$REPLY"; exit; done <"$0";;
+		version) while read; do 	[[ $REPLY = \#\ v* ]] || continue; printf '%s\n' "$REPLY"; exit; done <"${BASH_SOURCE[0]:-$0}";;
 		x) 	OPTX=1;;
 		w) 	((++OPTW)); WSKIP=1;;
 		W) 	((++OPTW)); ((++OPTWW)); WSKIP=1;;
@@ -4417,7 +4542,7 @@ def reset:   null;"
 ((!OPTC)) && ((OPTRESUME>1)) && OPTCMPL=${OPTCMPL:-$OPTRESUME}  #1# txt cmpls cont
 ((OPTCMPL)) && ((!OPTRESUME)) && OPTCMPL=2  #2# txt cmpls new
 ((OPTC+OPTCMPL || OPTRESUME>1)) && MTURN=1  #multi-turn, interactive
-((OPTSUFFIX)) && ((OPTC)) && { ((OPTC>1)) || { ((${RESTART+1}0)) || RESTART=; ((${START+1}0)) || START= ;}; OPTC=1; };  #-qqc and -qqcc  #weyrd#
+((OPTSUFFIX)) && ((OPTC)) && { ((OPTC>1)) || { [[ -n ${RESTART+1} ]] || RESTART=; [[ -n ${START+1} ]] || START= ;}; OPTC=1; };  #-qqc and -qqcc  #weyrd combo#
 ((OPTSUFFIX>1)) && MTURN=1 OPTSUFFIX=1      #multi-turn -q insert mode
 ((OPTCTRD)) || unset OPTCTRD  #(un)set <ctrl-d> prompter flush [bash]
 [[ ${INSTRUCTION} != *([$IFS]) ]] || unset INSTRUCTION
@@ -4438,6 +4563,8 @@ else
 	then 	MOD=$MOD_MISTRAL
 	elif ((GROQAI))
 	then 	MOD=$MOD_GROQ MOD_AUDIO=$MOD_AUDIO_GROQ
+	elif ((ANTHROPICAI))
+	then 	MOD=$MOD_ANTHROPIC
 	elif ((LOCALAI))
 	then 	MOD=$MOD_LOCALAI
 	elif ((!OPTCMPL))
@@ -4461,6 +4588,9 @@ then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url;
 	do 	[[ -f $arg ]] && OPTII=1 n=$((n+1));  #img vars or edits
 	done;
 	((${#OPT_AT} || n>1)) && OPTII=1 OPTII_EDITS=1;  #img edits
+	case "$3" in vivid|natural) OPTI_STYLE=$3;; hd|HD|standard) OPTS_HD=$3; set -- "${@:1:2}" "${@:4}";; esac;
+	case "$2" in vivid|natural) OPTI_STYLE=$2;; hd|HD|standard) OPTS_HD=$2; set -- "${@:1:1}" "${@:3}";; esac;
+	case "$1" in vivid|natural) OPTI_STYLE=$1;; hd|HD|standard) OPTS_HD=$1; shift;; esac;
 	[[ -n $OPTS ]] && set_imgsizef "$OPTS";
 	set_imgsizef "$1" && shift;
 	unset STREAM arg n;
@@ -4469,7 +4599,7 @@ fi
 #google integration
 if ((GOOGLEAI))
 then 	set_googleaif;
-	unset OPTTIK OLLAMA MISTRALAI GROQAI;
+	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI;
 else 	unset GOOGLEAI;
 fi
 
@@ -4479,14 +4609,21 @@ then 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
 	((OPTC==1 || OPTCMPL)) && OPTC=2;
 	ENDPOINTS[0]=${ENDPOINTS[6]};
 	API_HOST=${GROQ_API_HOST:-$GROQ_API_HOST_DEF};
-	unset OLLAMA GOOGLEAI MISTRALAI;
+	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI;
 else 	unset GROQAI;
 fi  #https://console.groq.com/docs/api-reference
+
+#anthropic integration
+if ((ANTHROPICAI))
+then 	set_anthropicf;
+	unset OLLAMA GOOGLEAI MISTRALAI GROQAI;
+else 	unset ANTHROPICAI;
+fi
 
 #ollama integration
 if ((OLLAMA))
 then 	set_ollamaf;
-	unset GOOGLEAI MISTRALAI GROQAI;
+	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI;
 else  	unset OLLAMA OLLAMA_API_HOST;
 fi
 
@@ -4508,7 +4645,7 @@ then 	: ${MISTRAL_API_KEY:?Required}
 	elif [[ $MOD != *embed* ]]
 	then 	OPTSUFFIX= OPTCMPL= OPTC=2;
 	fi; MISTRALAI=1;
-	unset LOCALAI OLLAMA GOOGLEAI  OPTA OPTAA OPTB;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI OPTA OPTAA OPTB;
 else 	unset MISTRAL_API_KEY MISTRAL_API_HOST;
 fi
 
@@ -4673,6 +4810,7 @@ then 	OPTRESUME=1
 	then 	set -- /session"$@"
 	fi
 	session_mainf "${@}"
+	fix_breakf "$FILECHAT";
 
 	if ((OPTHH>1))
 	then
@@ -4733,7 +4871,7 @@ then 	if ((${#}>1))
 	then 	__sysmsgf 'Image Edits'
 	else 	__sysmsgf 'Image Variations' ;fi
 	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
-	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}"
+	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}${OPTI_STYLE:+ / $OPTI_STYLE}"
 	else 	__sysmsgf 'Image Size:' "${OPTS:-err}"
 	fi
 	imgvarf "$@"
@@ -4741,7 +4879,7 @@ elif ((OPTI))      #image generations
 then 	__sysmsgf 'Image Generations'
 	__sysmsgf 'Image Model:' "$MOD_IMAGE"
 	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
-	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}"
+	then 	__sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}${OPTI_STYLE:+ / $OPTI_STYLE}"
 	else 	__sysmsgf 'Image Size:' "${OPTS:-err}"
 	fi
 	imggenf "$@"
@@ -4792,10 +4930,14 @@ else
 	then 	__sysmsgf 'Chat Completions'
 		#chatbot must sound like a human, shouldnt be lobotomised
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
-		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 :Marv is a chatbot that reluctantly answers questions with sarcastic responses:
-		OPTA="${OPTA:-0.6}" OPTT="${OPTT:-0.8}"  #!#
-		STOPS+=("$Q_TYPE" "$A_TYPE")
-		((MISTRALAI)) && unset OPTA
+		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
+		OPTT="${OPTT:-0.8}";  #!#
+		((ANTHROPICAI)) || OPTA="${OPTA:-0.6}";
+		((MISTRALAI)) && unset OPTA;
+
+		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
+		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
+		  STOPS+=("${RESTART-$Q_TYPE}" "${START-$A_TYPE}")
 	else 	((EPN==6)) || __sysmsgf 'Text Completions'
 	fi
 	__sysmsgf 'Language Model:' "$MOD$(is_visionf "$MOD" && echo ' / multimodal')"
@@ -4809,8 +4951,8 @@ else
 	} ;((${#STOPS[@]})) && unescape_stopsf
 
 	((OPTCMPL+OPTSUFFIX)) || {
-	  ((OPTC && ${RESTART+1}0 && !${#RESTART})) && __warmsgf 'Restart Sequence:' 'Set but null';
-	  ((OPTC && ${START+1}0 && !${#START})) && __warmsgf 'Start Sequence:' 'Set but null' ;}
+	  ((OPTC && !${#RESTART})) && [[ -n ${RESTART+1} ]] && __warmsgf 'Restart Sequence:' 'Set but null';
+	  ((OPTC && !${#START})) && [[ -n ${START+1} ]] && __warmsgf 'Start Sequence:' 'Set but null' ;}
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
@@ -4861,6 +5003,8 @@ else
 		then 	OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
 		fi
 	fi
+	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;
+	((OPTRESUME)) && fix_breakf "$FILECHAT";
 
 	if ((${#})) && [[ ! -e $1 ]]
 	then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
@@ -5002,7 +5146,7 @@ else
 					*?[/!]save|*?[/!]\#) var=save;;
 					*) 	false;; esac;
 				then
-					cmd_runf /${var:-pick} "$(trim_trailf "$REPLY" "$SPC[/!]@(photo|pick|p|save|\#)")";
+					cmd_runf /${var:-pick} "$(trim_trailf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#)")";
 					set --; continue 2;
 				elif ((${#REPLY}))
 				then
@@ -5095,8 +5239,16 @@ else
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
 
+		#insert mode
+		if ((OPTSUFFIX)) && [[ "$*" = *${I_TYPE}* ]]
+		then 	if ((EPN!=6))
+			then 	SUFFIX="${*##*${I_TYPE}}";  #slow in bash + big strings
+				PREFIX="${*%%${I_TYPE}*}"; set -- "${PREFIX}";
+			else 	__warmsgf "Err: Insert mode:" "wrong endpoint (chat cmpls)"
+			fi;
+			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE_STR}}"
 		#basic text and pdf file, and text url dumps
-		if var=$(is_txturl "$1")
+		elif var=$(is_txturl "$1")
 		then
 			if ((${#REPLY_CMD_DUMP}))
 			then 	var=$REPLY_CMD_DUMP;
@@ -5131,15 +5283,7 @@ else
 			do 	REC_OUT="$REC_OUT| $var" REPLY="$REPLY| $var";
 				set -- "$*| $var";
 			done; unset var;
-		#insert mode
-		elif ((OPTSUFFIX)) && [[ "$*" = *${I_TYPE}* ]]
-		then 	if ((EPN!=6))
-			then 	SUFFIX="${*##*${I_TYPE}}";  #slow in bash + big strings
-				set -- "${*%%${I_TYPE}*}";
-			else 	__warmsgf "Err: Insert mode:" "wrong endpoint (chat cmpls)"
-			fi;
-			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE_STR}}"
-		else 	unset SUFFIX
+		else 	unset SUFFIX PREFIX
 		fi
 
 		if ((PREVIEW<2))
@@ -5147,7 +5291,7 @@ else
 			if ((EPN==6));
 			then 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${*}";
 			else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*}"; fi
-			((MAIN_LOOP||TOTAL_OLD)) || TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-$GINSTRUCTION}")
+			((MAIN_LOOP||TOTAL_OLD)) || TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-${GINSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}}")
 			if ((OPTC)) || [[ -n "${RESTART}" ]]
 			then 	rest="${RESTART-$Q_TYPE}"
 				((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
@@ -5230,7 +5374,7 @@ $BLOCK
 \"model\": \"$MOD\", $STREAM_OPT $OPT_KEEPALIVE_OPT
 \"options\": {
   $( ((OPTMAX_NILL)) && "\"num_predict\": -2" || echo "\"num_predict\": $OPTMAX" ),
-  \"temperature\": $OPTT,
+  \"temperature\": $OPTT, $OPTSEED_OPT
   $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
   $OPTB_OPT $OPTBB_OPT $OPTSTOP
   \"num_ctx\": $MODMAX${BLOCK_USR:+,$NL}$BLOCK_USR
@@ -5238,12 +5382,14 @@ $BLOCK
 }"
 		else
 			BLOCK="{
+$( ((ANTHROPICAI)) && ((EPN==6)) && ((${#INSTRUCTION_OLD})) && echo "\"system\": \"$(escapef "$INSTRUCTION_OLD")\"," )
 $BLOCK $OPTSUFFIX_OPT
-$( ((OPTMAX_NILL && EPN==6)) || echo "\"max_tokens\": $OPTMAX," )
+$( ((ANTHROPICAI)) && ((EPN!=6)) && max="max_tokens_to_sample" || max="max_tokens"
+((OPTMAX_NILL && EPN==6)) || echo "\"${max:-max_tokens}\": $OPTMAX," )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
-$OPTB_OPT $OPTBB_OPT $OPTSTOP
-$( ((MISTRALAI+GROQAI)) || echo "\"n\": $OPTN," ) \
-$( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
+$OPTB_OPT $OPTBB_OPT $OPTSTOP $OPTSEED_OPT
+$( ((MISTRALAI+GROQAI+ANTHROPICAI)) || echo "\"n\": $OPTN," ) \
+$( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
 \"model\": \"$MOD\", \"temperature\": $OPTT${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
 		fi
@@ -5261,12 +5407,19 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 
 		#move cursor to the end of user input in previous line
 		if test_cmplsf && ((!JUMP))
-		then 	buff=$(sed -n '$p' <<<$REPLY)
-			printf "\\e[A\\e[$((${#buff} % COLUMNS))C" >&2;
-			if ((OPTC))
-			then 	printf '%b' "${START-$A_TYPE}" >&2;
-			else 	printf '%b' "$START" >&2;
-			fi; var=0;
+		then 	if ((OPTSUFFIX && ${#SUFFIX}))
+			then  #insert mode, print last line of reply
+			  _p_linerf "$PREFIX"; var=0;
+			elif ! ((ANTHROPICAI && EPN==0))
+			then
+			  buff=$(sed -n '$p' <<<$REPLY)
+			  printf "\\e[A\\e[$((${#buff} % COLUMNS))C" >&2;
+			  if ((OPTC))
+			  then 	printf '%b' "${START-$A_TYPE}" >&2;
+			  else 	printf '%b' "$START" >&2;
+			  fi; var=0;
+			else  var=$OPTFOLD;
+			fi;
 		else 	var=$OPTFOLD;
 		fi
 
@@ -5291,14 +5444,15 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 		if 	if ((STREAM))
 			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}
 				ans=$(escapef "$ans")
-
+				((ANTHROPICAI)) && ind="" || ind="-1";
 				((OLLAMA+LOCALAI+GOOGLEAI)) ||  #OpenAI, MistralAI, and Groq
-				tkn=( $(jq -s '.[-1] | if .x_groq then .x_groq else . end' "$FILE" | response_tknf) )
+				tkn=( $(jq -s ".[${ind}] | if .x_groq then .x_groq else . end" "$FILE" | response_tknf) )
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6)) && unset A_TYPE; __tiktokenf "${A_TYPE}${ans}");
 				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD tkn;
-				}
+				}; unset ind;
 			else
+				{ ((ANTHROPICAI && EPN==0)) && tkn=(0 0) ;} ||
 				((OLLAMA)) || tkn=($(jq 'if .x_groq then .x_groq else . end' "$FILE" | response_tknf) )
 				unset ans buff n
 				for ((n=0;n<OPTN;n++))  #multiple responses
@@ -5313,7 +5467,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			fi
 
 			#check for OpenAI response length-type error
-			if ((!${#ans})) && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI) ))
+			if ((!${#ans})) && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI) ))
 			then 	jq -e '(.error?)//(.[]?|.error?)//empty' "$FILE" >&2 || ((OPTCMPL)) || ! __warmsgf 'Err'
 				__warmsgf "(response empty)"
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
@@ -5352,7 +5506,13 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			ans="${A_TYPE##$SPC1}${ans}"
 			((${#SUFFIX})) && ans=${ans}${SUFFIX}
 			((BREAK_SET)) && _break_sessionf;
-			((${#INSTRUCTION}+${#GINSTRUCTION})) && push_tohistf "$(escapef ":${INSTRUCTION:-$GINSTRUCTION}")" $( ((MAIN_LOOP)) || echo $TOTAL_OLD )
+			if ((ANTHROPICAI && EPN==6 && BREAK_SET && ${#INSTRUCTION_OLD}))
+			then
+			    push_tohistf "$(escapef ":$INSTRUCTION_OLD")" $( ((MAIN_LOOP)) || echo $TOTAL_OLD )
+			elif ((${#INSTRUCTION}+${#GINSTRUCTION}))
+			then
+			    push_tohistf "$(escapef ":${INSTRUCTION:-$GINSTRUCTION}")" $( ((MAIN_LOOP)) || echo $TOTAL_OLD )
+			fi
 			((OPTAWE)) ||
 			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : 0 ))" "${tkn[2]}"
 			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || unset OPTC OPTRESUME OPTCMPL MTURN
@@ -5364,7 +5524,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 			((PREVIEW)) && BCYAN="${Color9}";
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
 			BAD_RES=1 SKIP=1 EDIT=1;
-			unset CKSUM_OLD PSKIP JUMP REGEN PREVIEW REPLY_CMD REPLY_CMD_DUMP RET INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND;
+			unset CKSUM_OLD PSKIP JUMP REGEN PREVIEW REPLY_CMD REPLY_CMD_DUMP RET INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX;
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi;
@@ -5413,7 +5573,7 @@ $( ((MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_
 		fi
 
 		((++MAIN_LOOP)) ;set --
-		unset INSTRUCTION GINSTRUCTION HIST_G REGEN OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY REPLY_CMD REPLY_CMD_DUMP RET STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX OPTAWE PREVIEW BAD_RES INT_RES ESC RET_PRF Q
+		unset INSTRUCTION GINSTRUCTION HIST_G REGEN OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY REPLY_CMD REPLY_CMD_DUMP RET STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE PREVIEW BAD_RES INT_RES ESC RET_PRF Q
 		unset role rest tkn tkn_ans ans_tts ans buff glob out var pid s n
 		((MTURN && !OPTEXIT)) || break
 	done
@@ -5426,6 +5586,29 @@ fi
 #   %%   %%  % %%  %   %%  %% "% %%      %%        %% %%  %    /a\  /i\  
 #   %%=% %%  % %%  %   %%  %%==% %%      %%  %% %==%% %%  %  ,<___><___>.
 
+#guidelines for new integration points:
+#- set an "if statement" or "function" to run the integration code
+#- set parameters and declare new functions that will take over the old definitions
+#- unset other integrations but localai, clear environment
+#- add $mod_integration to script head and config
+#- set $integrationAI vars to automatically set the model for the integration on start when not set by the user
+#- add getopts long option
+#- add support for chat cmpls and optionally chat text cmpls, text cmpls and insert mode of text cmpls, whisper, tts
+#- add support code to upload for image / url json objects
+#- add new known models to the model token capacity case function
+#- add new models to the list of known vision (multimodal) models
+#- add new zsh bash completion options
+#- add $mod_integration variables to help, man, and configuration file
+#- add integration long option description in help and man
+#- add integration description in read.me and man pages
+#- add new integration point url link in readme.md
+#- update descriptions in repo gitlablab, github, and pkgbuild
+#- write the commit message.
+#- ideally, test token usage record in history file
+#  - chat cmpls stream, chat cmpls no-stream
+#  - text cmpls stream, text cmpls no-stream
+
+#Probably $BREAK_SET may be tested instead of $MAIN_LOOP, and some $OPTRESUME.
 ## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.68.7 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.69 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.68.7 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.69 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -326,6 +326,9 @@ positional parameter in the command line: “<em>256x256</em>”
 <p>The parameter “<em>hd</em>” may also be set for image quality
 (<em>Dall-E-3</em>), such as “<em>Xhd</em>” or “<em>1792x1024hd</em>”.
 Defaults=<em>1024x1024</em>.</p>
+<p>For Dalle-3, optionally set the generation style as either
+“<em>natural</em>” or “<em>vivid</em>” as a positional parameter in the
+command line invocation.</p>
 <p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
 <h4 id="speech-to-text-whisper">Speech-To-Text (Whisper)</h4>
@@ -379,6 +382,8 @@ line <code>option --google</code>.</p>
 <p>And for Groq, set the environmental variable
 <code>$GROQ_API_KEY</code>. Run the script with
 <code>option --groq</code>. Whisper endpoint available.</p>
+<p>And for Anthropic, set envar <code>$ANTHROPIC_API_KEY</code>. Command
+line options are <code>--anthropic</code> or <code>--ant</code>.</p>
 <h4 id="observations">Observations</h4>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
@@ -746,67 +751,72 @@ flush.</td>
 <td>Set best-of n results.</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>-j</code></td>
+<td style="text-align: left;"><code>!seed</code> [<em>NUM</em>]</td>
+<td>Set a seed number (integer).</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>-K</code></td>
 <td style="text-align: left;"><code>!topk</code> [<em>NUM</em>]</td>
 <td>Set top_k.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-m</code></td>
 <td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
 <td>Set model by name, empty to pick from list.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-n</code></td>
 <td style="text-align: left;"><code>!results</code> [<em>NUM</em>]</td>
 <td>Set number of results.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-p</code></td>
 <td style="text-align: left;"><code>!topp</code> [<em>VAL</em>]</td>
 <td>Set top_p.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-r</code></td>
 <td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]</td>
 <td>Set restart sequence.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-R</code></td>
 <td style="text-align: left;"><code>!start</code> [<em>SEQ</em>]</td>
 <td>Set start sequence.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-s</code></td>
 <td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>]</td>
 <td>Set one stop sequence.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-t</code></td>
 <td style="text-align: left;"><code>!temp</code> [<em>VAL</em>]</td>
 <td>Set temperature.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-w</code></td>
 <td style="text-align: left;"><code>!rec</code> [<em>ARGS</em>]</td>
 <td>Toggle Whisper. Optionally, set arguments.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-z</code></td>
 <td style="text-align: left;"><code>!tts</code> [<em>ARGS</em>]</td>
 <td>Toggle TTS chat mode (speech out).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!ka</code></td>
 <td style="text-align: left;"><code>!keep-alive</code>
 [<em>NUM</em>]</td>
 <td>Set duration of model load in memory (Ollama).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!blk</code></td>
 <td style="text-align: left;"><code>!block</code> [<em>ARGS</em>]</td>
 <td>Set and add custom options to JSON request.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">-</td>
 <td style="text-align: left;"><code>!multimodal</code></td>
 <td>Toggle model as multimodal.</td>
@@ -1344,6 +1354,10 @@ Def=<em>1</em>.</p>
 <dt><strong>-B</strong>, <strong>--logprobs</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
+</dd>
+<dt><strong>-j</strong>, <strong>–seed</strong> [<em>NUM</em>]</dt>
+<dd>
+<p>Set a seed for deterministic sampling (integer).</p>
 </dd>
 <dt><strong>-K</strong>, <strong>–top-k</strong> [<em>NUM</em>]</dt>
 <dd>

@@ -876,6 +876,26 @@ Create a new API key or use an existing one to set
 the environmental variable `$GROQ_API_KEY`.
 Run the script with `option --groq`.
 
+Currently, **llamma3.1** models are available at lightening speeds!
+
+
+<!--
+## Grok
+
+Visit [Grok](https://x.ai/) and
+check the [eligible countries and regions](https://x.ai/regions).
+-->
+
+
+## Anthropic
+
+Sign in to [Antropic AI](https://docs.anthropic.com/).
+Create a new API key or use an existing one to set
+the environmental variable `$ANTHROPIC_API_KEY`.
+Run the script with `option --anthropic` or `--ant`.
+
+Check their **claude-3** models!
+
 
 <!--
 ## 🌎 Environment
@@ -1076,8 +1096,9 @@ They were studied during development of this script and used as referencial code
 6. [Ollama](https://github.com/ollama/ollama/)
 7. [Google Gemini](https://gemini.google.com/)
 8. [Groq](https://console.groq.com/docs/api-reference)
-9. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-10. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+9. [Antropic AI](https://docs.anthropic.com/)
+10. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+11. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 <!-- https://huggingface.co/ -->
 
 

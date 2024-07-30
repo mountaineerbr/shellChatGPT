@@ -122,6 +122,7 @@ _chatgpt.sh()
     {-A,--frequency-penalty}'[Frequency penalty]:frequency-penalty -- [float]' \
     {-b,--best-of}'[Best-of]:best-of -- [integer]' \
     {-B,--logprobs}'[Log probabilities]:log-probs -- [integer]' \
+    {-j,seed}'[Seed number]:seed -- [integer]'
     {-K,--top-k}'[Top_k value]:top_k -- [integer]' \
     {--ka,--keep-alive}'[Keep-alive seconds]:keep-alive -- [integer]' \
     {-m+,--model}'[Set language model]:model name:__mod_listf' \
@@ -163,11 +164,12 @@ _chatgpt.sh()
     {-k,--no-colour}'[Disable color output]' \
     {-l,--list-models}'[List models]:model name (optional)' \
     {-L,--log}'[Log file]:log filepath:_files' \
-    '(--localai --mistral --google --groq)'{-O,--ollama}'[Ollama integration]' \
-    '(-O --ollama --mistral --google --groq)--localai[LocalAI integration]' \
-    '(-O --ollama --localai --google --groq)--mistral[Mistral AI integration]' \
-    '(-O --ollama --mistral --localai --groq)--google[GoogleAI integration]' \
-    '(-O --ollama --localai --google --mistral)--groq[Groq integration]' \
+    '(--localai --mistral --google --groq --anthropic)'{-O,--ollama}'[Ollama integration]' \
+    '(-O --ollama --mistral --google --groq --anthropic)--localai[LocalAI integration]' \
+    '(-O --ollama --localai --google --groq --anthropic)--mistral[Mistral AI integration]' \
+    '(-O --ollama --mistral --localai --groq --anthropic)--google[GoogleAI integration]' \
+    '(-O --ollama --localai --google --mistral --anthropic)--groq[Groq integration]' \
+    '(-O --ollama --localai --google --mistral --groq)--anthropic[Anthropic integration]' \
     {--md,--markdown}'[Enable markdown rendering]' \
     {--md=-,--markdown=-}'[Set markdown software (=cmd)]:markdown command:(bat pygmentize glow mdcat mdless)' \
     {--no-md,--no-markdown}'[Disable markdown rendering]' \

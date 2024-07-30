@@ -77,6 +77,7 @@ _chatgptsh()
         -A --frequency-penalty
         -b --best-of
         -B --logprobs
+	-j --seed
         -K --top-k
         --keep-alive --ka
         -m --model
@@ -105,7 +106,7 @@ _chatgptsh()
         -f --no-conf
         -F -FF
         --fold --no-fold
-        --google  --groq
+        --google  --groq --anthropic
         -h --help
         -H --hist -HH -P -PP --print
         -k --no-colour

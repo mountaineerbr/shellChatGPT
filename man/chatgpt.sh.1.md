@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.68.7 | General Commands Manual
+% CHATGPT.SH(1) v0.69 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -159,6 +159,9 @@ in the command line: "_256x256_" (_S_), "_512x512_" (_M_),
 The parameter "_hd_" may also be set for image quality (_Dall-E-3_),
 such as "_Xhd_" or "_1792x1024hd_". Defaults=_1024x1024_.
 
+For Dalle-3, optionally set the generation style as either "_natural_"
+or "_vivid_" as a positional parameter in the command line invocation.
+
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 
 
@@ -218,6 +221,9 @@ run the script with the command line `option --google`.
 And for Groq, set the environmental variable `$GROQ_API_KEY`.
 Run the script with `option --groq`.
 Whisper endpoint available.
+
+And for Anthropic, set envar `$ANTHROPIC_API_KEY`.
+Command line options are `--anthropic` or `--ant`.
 
 
 #### Observations
@@ -404,6 +410,7 @@ may be either "`!`" or "`/`".
       `-a`         `!pre`        \[_VAL_]     Set presence penalty.
       `-A`         `!freq`       \[_VAL_]     Set frequency penalty.
       `-b`         `!best`       \[_NUM_]     Set best-of n results.
+      `-j`         `!seed`       \[_NUM_]     Set a seed number (integer).
       `-K`         `!topk`       \[_NUM_]     Set top_k.
       `-m`         `!mod`        \[_MOD_]     Set model by name, empty to pick from list.
       `-n`         `!results`    \[_NUM_]     Set number of results.
@@ -967,6 +974,11 @@ API version 1 but not all endpoints or options will be covered.
 **-B**, **\--logprobs**   \[_NUM_]
 
 : Request log probabilities, also see -Z (cmpls, 0 - 5),
+
+
+**-j**, **--seed**  \[_NUM_]
+
+:     Set a seed for deterministic sampling (integer).
 
 
 **-K**, **--top-k**     \[_NUM_]

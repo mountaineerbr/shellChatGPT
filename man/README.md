@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.68.7 \| General Commands Manual
+title: CHATGPT.SH(1) v0.69 \| General Commands Manual
 ---
 
 ### NAME
@@ -161,6 +161,9 @@ parameter in the command line: “*256x256*” (*S*), “*512x512*” (*M*),
 The parameter “*hd*” may also be set for image quality (*Dall-E-3*),
 such as “*Xhd*” or “*1792x1024hd*”. Defaults=*1024x1024*.
 
+For Dalle-3, optionally set the generation style as either “*natural*”
+or “*vivid*” as a positional parameter in the command line invocation.
+
 See **IMAGES section** below for more information on **inpaint** and
 **outpaint**.
 
@@ -218,6 +221,9 @@ run the script with the command line `option --google`.
 
 And for Groq, set the environmental variable `$GROQ_API_KEY`. Run the
 script with `option --groq`. Whisper endpoint available.
+
+And for Anthropic, set envar `$ANTHROPIC_API_KEY`. Command line options
+are `--anthropic` or `--ant`.
 
 #### Observations
 
@@ -395,6 +401,7 @@ either “`!`” or “`/`”.
 | `-a`    | `!pre` \[*VAL*\]        | Set presence penalty.                          |
 | `-A`    | `!freq` \[*VAL*\]       | Set frequency penalty.                         |
 | `-b`    | `!best` \[*NUM*\]       | Set best-of n results.                         |
+| `-j`    | `!seed` \[*NUM*\]       | Set a seed number (integer).                   |
 | `-K`    | `!topk` \[*NUM*\]       | Set top_k.                                     |
 | `-m`    | `!mod` \[*MOD*\]        | Set model by name, empty to pick from list.    |
 | `-n`    | `!results` \[*NUM*\]    | Set number of results.                         |
@@ -874,6 +881,9 @@ Set best of, must be greater than `option -n` (cmpls). Def=*1*.
 
 **-B**, **--logprobs** \[*NUM*\]  
 Request log probabilities, also see -Z (cmpls, 0 - 5),
+
+**-j**, **–seed** \[*NUM*\]  
+Set a seed for deterministic sampling (integer).
 
 **-K**, **–top-k** \[*NUM*\]  
 Set Top_k value (local-ai, ollama, google).
