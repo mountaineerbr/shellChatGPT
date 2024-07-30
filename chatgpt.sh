@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.1  jul/2024  by mountaineerbr  GPL+3
+# v0.69.2  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4322,22 +4322,22 @@ function set_anthropicf
 	}
 	function _list_modelsf
 	{
-		printf '%s\n' claude-3-5-sonnet claude-3-5-sonnet-20240620 \
-		claude-3-opus claude-3-opus-20240229 claude-3-sonnet \
-		claude-3-sonnet-20240229 claude-3-haiku claude-3-haiku-20240307 \
+		printf '%s\n' claude-3-5-sonnet-20240620 claude-3-opus-20240229 \
+		claude-3-sonnet-20240229 claude-3-haiku-20240307 \
 		claude-2.1 claude-2.0 claude-instant-1.2
 	}
 	function list_modelsf
 	{
-		{ curl -\# --fail -L "https://docs.anthropic.com/en/docs/about-claude/models" |
-		    sed -ne '/<thead><tr><th>Model<\/th>/ s/>/>\n/gp' |
-		    grep -oe '^[a-z0-9][a-z0-9]*-[a-z0-9-]*';
-		  _list_modelsf ;} | sort | uniq;
+		set -- "https://raw.githubusercontent.com/anthropics/anthropic-sdk-python/main/src/anthropic/types";
+		{
+		  { curl -\# --fail -L "${1}/model.py" ||
+		    curl -\# --fail -L "${1}/model_param.py" ;} |
+		      grep -oe '"[a-z0-9:.-]*"' | tr -d '"';
+		  _list_modelsf;
+		} | sort | uniq;
 	}
 }
-#missing: model listing feature
-#https://docs.anthropic.com/en/docs/models-overview
-#https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/resources/messages.py
+#there is no model listing endpoint
 #rely on the `usage` property in the response for exact token counts
 #https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/_client.py
 
