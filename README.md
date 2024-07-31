@@ -894,10 +894,15 @@ Create a new API key or use an existing one to set
 the environmental variable `$ANTHROPIC_API_KEY`.
 Run the script with `option --anthropic` or `--ant`.
 
-Check their **claude-3** models!
+Check the **Claude-3** models! Run the script as:
 
-The script does work on **text completions** with models `claude-2.1`,
-although it the API documentation flags it as deprecated.
+```
+    chatgpt.sh --anthropic -cc -m claude-3-5-sonnet-20240620`
+```
+
+
+The script also works on **text completions** with models such as
+`claude-2.1`, although the API documentation flags it as deprecated.
 
 Try:
 
