@@ -32,7 +32,7 @@ If no suffix is provided, it works as plain text completions.
    easily create and set the initial system prompt
 - **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
 - Integration with [mudler's LocalAI](#localai), [Ollama](#ollama),
-   [Google AI](#google-ai), [Mistral AI](#mistral-ai), and [Groq](#groq)
+   [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), and [Anthropic](#anthropic)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 - [Command line completion](#shell-completion) and file picker dialogs for a smoother experience 💻
