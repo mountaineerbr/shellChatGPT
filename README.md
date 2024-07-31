@@ -897,7 +897,7 @@ Run the script with `option --anthropic` or `--ant`.
 Check the **Claude-3** models! Run the script as:
 
 ```
-    chatgpt.sh --anthropic -cc -m claude-3-5-sonnet-20240620`
+    chatgpt.sh --anthropic -cc -m claude-3-5-sonnet-20240620
 ```
 
 
