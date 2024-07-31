@@ -907,7 +907,7 @@ The script also works on **text completions** with models such as
 Try:
 
 ```
-    chatgpt.sh --ant -cc -m claude-2.1
+    chatgpt.sh --ant -c -m claude-2.1
 ```
 
 
