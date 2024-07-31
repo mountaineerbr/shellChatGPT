@@ -140,7 +140,7 @@ _chatgptsh()
     -[aApt]|-[!-]*[aApt]|--presence*|--frequency*|--top-p|--temperature)
       ((${#cur})) || COMPREPLY=( '[float]' )
       ;;
-    -[NbBKn]|-[!-]*[NbBKn]|--modmax|--best-of|--logprobs|--top-k|--keep-alive|--ka|--results)
+    -[NbBKn]|-[!-]*[NbBKn]|--modmax|--best-of|--logprobs|--top-k|--keep-alive|--ka|--results|--seed)
       ((${#cur})) || COMPREPLY=( '[integer]' )
       ;;
     -M|-[!-]*M|--max)

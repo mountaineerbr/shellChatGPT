@@ -79,7 +79,7 @@ __mod_listf()
   __has_scriptf || script="false"
 
   options=( $("${script}" -EE -lll 2>/dev/null) )
-  ((${#options[@]})) || options=( 'davinci-002'  'gpt-3.5-turbo'  'gpt-3.5-turbo-instruct' 
+  ((${#options[@]})) || options=( 'davinci-002'  'gpt-3.5-turbo'  'gpt-3.5-turbo-instruct'
     'gpt-4o'  'gpt-4-turbo'  'text-moderation-latest'
     'mistral-large-latest'  'codestral-latest'  'open-mixtral-8x22b'
     'llama3'  'gemini-1.5-flash-latest'  'gemini-1.5-pro-latest' )
@@ -122,7 +122,7 @@ _chatgpt.sh()
     {-A,--frequency-penalty}'[Frequency penalty]:frequency-penalty -- [float]' \
     {-b,--best-of}'[Best-of]:best-of -- [integer]' \
     {-B,--logprobs}'[Log probabilities]:log-probs -- [integer]' \
-    {-j,seed}'[Seed number]:seed -- [integer]'
+    {-j,--seed}'[Seed number]:seed -- [integer]' \
     {-K,--top-k}'[Top_k value]:top_k -- [integer]' \
     {--ka,--keep-alive}'[Keep-alive seconds]:keep-alive -- [integer]' \
     {-m+,--model}'[Set language model]:model name:__mod_listf' \
@@ -186,7 +186,7 @@ _chatgpt.sh()
     {-Z,--last}'[Dump last response JSON]' \
     --version'[Print script version]' \
     '1:session/file:__session_or_pr_listf' '*:file:_files'
-    #-{0..9}'[Maximum response tokens]:max response -- integer [0-9]' \
+    #-{0..9}'[Maximum response tokens]:max response -- integer [0-9]'
 }
 
 _chatgpt.sh "$@"
