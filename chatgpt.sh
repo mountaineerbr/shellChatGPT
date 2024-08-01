@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.11  jul/2024  by mountaineerbr  GPL+3
+# v0.69.12  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1262,7 +1262,7 @@ function set_histf
 			((com)) && stringc=$(sed 's/\\n/\\n# /g' <<<"${rest}${stringc}") rest= com=
 			
 			HIST="${rest}${stringc}${nl}${HIST}"
-			stringd=$(fmt_ccf "${stringc}" "${role}")${HIST_C:+,${NL}}
+			stringd=$(fmt_ccf "${stringc}" "${role}") && ((${#HIST_C}&&${#stringc})) && stringd=${stringd},${NL};
 			if ((GOOGLEAI)) && [[ $role = @(system|user) && $role_last = @(system|user) ]] \
 			    #&& [[ $stringd != *\"inline_data\":* ]]
 			then 	# must fail with inline image objects?!
