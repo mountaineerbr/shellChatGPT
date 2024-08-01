@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.4  jul/2024  by mountaineerbr  GPL+3
+# v0.69.5  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1770,7 +1770,13 @@ function cmd_runf
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP TOTAL_OLD; xskip=1;
 			;;
-		cost*|costs*)
+#		costs[_-]rate*|cost[_-]rate*)  #costrate
+#			set -- "${*##@(cost[_-]rates|cost[_-]rate)$SPC}"
+#			set -- "${*//[!0-9.,]}"
+#			COST_RATE=${*:-$COST_RATE}
+#			__cmdmsgf 'Cost foreign rate (vs dollar):' "${*:-$COST_RATE} \*"
+#			;;
+		costs*|cost*)
 			set -- "${*##@(costs|cost)$SPC}"
 			set -- "${*//[!0-9.,]}"
 			COST_CUSTOM=( ${*//,/.} )
@@ -1792,6 +1798,7 @@ function cmd_runf
 			;;
 		help-assist*|h*)
 			set -- "${*##@(help-assist|h)$SPC}";
+			grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2 && return;  #F#
 			trap 'trap "-" INT' INT;
 			printf '\n%s\n' '============= HELP ASSISTANT =============' >&2;
 			help_assistf "$@" || SKIP=1 EDIT=1 RET=$? REPLY="!${args[*]}";
@@ -1810,7 +1817,8 @@ function cmd_runf
 			;;
 		-h*|help*)
 			set -- "${*##@(help|-h)$SPC}";
-			if ((${#1}<2)) || ! grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2;
+			if ((${#1}<2)) ||
+				! grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2;  #F#
 			then 	cmd_runf -h; return;
 			fi; xskip=1
 			;;
@@ -5708,28 +5716,28 @@ fi
 #   %%   %%  % %%  %   %%  %% "% %%      %%        %% %%  %    /a\  /i\  
 #   %%=% %%  % %%  %   %%  %%==% %%      %%  %% %==%% %%  %  ,<___><___>.
 
-#guidelines for new integration points:
-#- set an "if statement" or "function" to run the integration code
-#- set parameters and declare new functions that will take over the old definitions
-#- unset other integrations but localai, clear environment
-#- add $mod_integration to script head and config
-#- set $integrationAI vars to automatically set the model for the integration on start when not set by the user
-#- update the set_model_epnf() and the _model_costf() functions.
-#- add getopts long option
-#- add support for chat cmpls and optionally chat text cmpls, text cmpls and insert mode of text cmpls, whisper, tts
-#- add support code to upload for image / url json objects
-#- add new known models to the model token capacity case function
-#- add new models to the list of known vision (multimodal) models
-#- add new zsh bash completion options
-#- add $mod_integration variables to help, man, and configuration file
-#- add integration long option description in help and man
-#- add integration description in read.me and man pages
-#- add new integration point url link in readme.md
-#- update descriptions in repo gitlablab, github, and pkgbuild
-#- write the commit message.
-#- ideally, test token usage record in history file
-#  - chat cmpls stream, chat cmpls no-stream
-#  - text cmpls stream, text cmpls no-stream
+# Guidelines for new providers:
+#  - set an "if statement" or "function" to run the integration code
+#  - set parameters and declare new functions that will take over the old definitions
+#  - unset other integrations but localai, clear environment
+#  - add $mod_integration to script head and config
+#  - set $integrationAI vars to automatically set the model for the integration on start-up when not set by the user
+#  - update the set_model_epnf() and the _model_costf() functions.
+#  - add getopts long option
+#  - add support for chat cmpls and optionally chat text cmpls, text cmpls and insert mode of text cmpls, whisper, tts
+#  - add support code to upload for image / url json objects
+#  - add new known models to the model token capacity case function
+#  - add new models to the list of known vision (multimodal) models
+#  - add new zsh bash completion options
+#  - add $mod_integration variables to help, man, and configuration file
+#  - add integration long option description in help and man
+#  - add integration description in read.me and man pages
+#  - add new integration point url link in readme.md
+#  - update descriptions in repo gitlablab, github, and pkgbuild
+#  - write the commit message.
+#  - ideally, test token usage record in history file
+#    - chat cmpls stream, chat cmpls no-stream
+#    - text cmpls stream, text cmpls no-stream
 
 #Probably $BREAK_SET may be tested instead of $MAIN_LOOP, and some $OPTRESUME.
 ## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
