@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.3  jul/2024  by mountaineerbr  GPL+3
+# v0.69.4  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1652,9 +1652,9 @@ function help_assistf
 ASSIST_MSG4='\ZbQuestion\ZB or \Zbsearch term\ZB:'
 ASSIST_MSG3="Proceed?  [N/y]" 
 ASSIST_MSG2='Warning: the request will consume about 5000 input tokens'
-ASSIST_MSG='\ZuWelsome to Help Assistant!\ZU
+ASSIST_MSG='\ZuWelcome to Help Assistant!\ZU
 
-Find the right options for \Zbchatgpt.sh script\ZB and write the precise invocation in the command line and chat options and commands.
+Find the right options for the \Zbchatgpt.sh programme\ZB, the precise command line invocation, and the proper chat command.
 
 This is a single-shot turn.'
 
@@ -1699,7 +1699,7 @@ function _model_costf
 	esac;
 }
 
-#check input and run a chat command  #tags: cmdrunf, runcmdf
+#check input and run a chat command  #tags: cmdrunf, runcmdf, run_cmdf
 function cmd_runf
 {
 	typeset opt_append filein var wc xskip pid n
@@ -1801,7 +1801,7 @@ function cmd_runf
 			then 	printf '\n%s\n' 'Simple Help Search:' >&2;
 				cmd_runf -h "$*"; return;
 			elif ((RET>0))
-			then 	__warmsgf 'Err:' 'Unknown';
+			then 	! __warmsgf 'Err:' 'Unknown';
 			fi
 			;;
 		-h|help|-\?|\?)
