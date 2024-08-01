@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.8  jul/2024  by mountaineerbr  GPL+3
+# v0.69.9  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1639,7 +1639,7 @@ function help_assistf
 
 	printf "\\n${BWHITE}%s${NC}\\n\\n" "Response:" >&2;
 	__printbf wait..; function history { : ;};
-	FILECHAT=$FILEFIFO OPTT=0.2 OPTF=1 OPTC=2 OPTEXIT=2 OPTMD=2 OPTV=3 OPTMAX=$tkn_max OPTARG= OPTIND= OPTSUFFIX= OPTCMPL= \
+	FILECHAT=$FILEFIFO OPTT=0.2 OPTF=1 OPTC=2 EPN=6 OPTEXIT=2 OPTMD=2 OPTV=3 OPTMAX=$tkn_max OPTARG= OPTIND= OPTSUFFIX= OPTCMPL= OPTRESUME= \
 	 . "${BASH_SOURCE[0]:-$0}" -S "You are a command line shell expert and a project developer of the bash shell \`chatgpt.sh\` script. A user is currently in the chat mode (REPL mode) of the script and is asking for your assistance. They may be looking for a specific feature, struggling with a command, or simply wanting a general overview. Here is the user's question:" \
 	   "${NL}${NL}\`\`\`${REPLY:-$1}\`\`\`${NL}${NL}"   \
 	   "${NL}${NL}Below is the script's help page:${NL}${NL}" \
@@ -1807,7 +1807,7 @@ function cmd_runf
 			if ((RET==200))
 			then 	printf '\n%s\n' 'Simple Help Search:' >&2;
 				cmd_runf -h "$*"; return;
-			#elif ((RET>0)); then 	! __warmsgf 'Err:' 'Unknown';
+			#elif ((RET>0)); then 	__warmsgf 'Err:' 'Unknown';
 			fi
 			;;
 		-h|help|-\?|\?)
