@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.2  jul/2024  by mountaineerbr  GPL+3
+# v0.69.3  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -95,6 +95,12 @@ OPTFOLD=1
 #START=""
 # Chat mode of text cmpls sets "\nQ: " and "\nA:"
 # Restart/Start seqs have priority
+# Cost custom rates
+# input and output rates (dollars per million tokens)
+#COST_CUSTOM="0 0"
+# Cost rate against USD
+# e.g. BRL is 5.66 USD, JPY is 0.006665 USD
+#COST_RATE="1"
 
 # INSTRUCTION
 # Chat completions, chat mode only
@@ -657,8 +663,7 @@ ENDPOINTS=(
 function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
-	((LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI)) &&
-	  is_visionf "$1" && set -- "vision";
+	((LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI)) && is_visionf "$1" && set -- "vision";
 	case "$1" in
 		*dalle-e*|*stable*diffusion*)
 				# 3 generations  4 variations  9 edits  
@@ -701,9 +706,9 @@ function set_model_epnf
 							((OPTII_EDITS)) && EPN=9;
 						elif ((OPTEMBED))
 						then 	OPTCMPL= OPTC= EPN=1;
-						elif ((OPTCMPL))
+						elif ((OPTCMPL || OPTSUFFIX))
 						then 	OPTC= EPN=0;
-						elif ((OPTC>1 || GROQAI))
+						elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI))
 						then 	OPTCMPL= EPN=6;
 						elif ((OPTC))
 						then 	OPTCMPL= EPN=0;
@@ -1008,11 +1013,13 @@ function prompt_printf
 }
 function prompt_prettyf
 {
+	typeset stream; ((STREAM)) && stream=$STREAM;
+
 	jq -r ${stream:+-j --unbuffered} "${JQCOLNULL} ${JQCOL} ${JQCOL2}
 	  byellow
 	  + (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
 	  ( ((.delta.content)//(.delta.text)//.text//.response//.completion//(.content[]?|.text?)//(.message.content${ANTHROPICAI:+skip})//(.candidates[]?|.content.parts[]?|.text?)//\"\" ) |
-	  if (${OPTC:-0}>0) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
+	  if ( (${OPTC:-0}>0) and (${stream:-0}==0) ) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if any( (.finish_reason//.stop_reason//\"\")?; . != \"stop\" and . != \"stop_sequence\" and . != \"end_turn\" and . != \"\") then
 	      red+\"(\"+(.finish_reason//.stop_reason)+\")\"+byellow else null end,
 	  if \$sep then \"---\" else empty end) + reset" "$@" && _p_suffixf;
@@ -1593,7 +1600,29 @@ function _set_browsercmdf
 #script help assistant
 function help_assistf
 (
+	typeset REPLY tkn_in tkn_max
+	tkn_in=5060 tkn_max=320;
+
+	if ((GOOGLEAI))
+	then 	MOD_GOOGLE="gemini-1.5-flash-latest"
+		MOD=$MOD_GOOGLE
+	elif ((MISTRALAI))
+	then 	MOD_MISTRAL="open-mixtral-8x7b";
+		MOD=$MOD_MISTRAL
+	elif ((GROQAI))
+	then 	#MOD_GROQ="gemma-7b-it"
+		MOD_GROQ="mixtral-8x7b-32768"
+		MOD=$MOD_GROQ
+	elif ((ANTHROPICAI))
+	then 	MOD_ANTHROPIC="claude-3-haiku-20240307";
+		MOD=$MOD_ANTHROPIC
+	elif ! ((OLLAMA+LOCALAI))
+	then 	MOD_CHAT="gpt-4o-mini";
+		MOD=$MOD_CHAT
+	fi;
+
 	printf '%s\n' "${ASSIST_MSG//\\Z[[:alnum:]]}" | COLUMNS=42 foldf >&2;
+	printf '\nModel: %s   Cost: ~$%.*f\n' "$MOD" 4 "$(costf $tkn_in $tkn_max $(_model_costf "$MOD") )";
 	printf '\n%s\n* %s *\a\n%s\n' "****${ASSIST_MSG2//?/\*}" "$ASSIST_MSG2" "${ASSIST_MSG2//?/\*}****" >&2;
 	printf '\n%s '  "$ASSIST_MSG3" >&2;
 	case "$(__read_charf)" in
@@ -1602,18 +1631,23 @@ function help_assistf
 	esac;
 
 	printf "${BWHITE}%s${NC}\\n\\n" "${ASSIST_MSG4//\\Z[[:alnum:]]}" >&2;
-	read_mainf -i "$1" REPLY </dev/tty;
-	((${#REPLY})) || exit 200;
+	if ((!${#1}))
+	then 	read_mainf -i "$1" REPLY </dev/tty;
+		((${#REPLY})) || exit 200; 
+	else 	printf '>>> %s\n' "$1" >&2;
+	fi
 
 	printf "\\n${BWHITE}%s${NC}\\n\\n" "Response:" >&2;
 	__printbf wait..; function history { : ;};
-	FILECHAT=$FILEFIFO OPTT=0.2 OPTF=1 OPTEXIT=2 OPTMD=2 OPTV=3 OPTMAX=320 OPTARG= OPTIND= \
-	. "${BASH_SOURCE[0]:-$0}" -S "You are a Unix shell expert on the \`chatgpt.sh\` script. A user has just accessed the help page for this script and is asking for your assistance. They may be looking for a specific feature, struggling with a command, or simply wanting a general overview. Here is the user's question:" \
-	"${NL}${NL}\`\`\`${REPLY}\`\`\`${NL}${NL}"   \
-	"${NL}${NL}Below is the script's help page:${NL}${NL}" \
-	"${NL}${NL}\`\`\`${NL}${HELP}${NL}\`\`\`${NL}${NL}" \
-	"${NL}${NL}Please provide a concise and helpful response to the user's question, referencing the help page if necessary. If the question concerns command line invocation or chat options, guide the user with the correct commands and syntax. Remember to be helpful, clear, and a little sassy when appropriate! And please provide your best succint answer. Make sure to recheck the response before answering." \
-	2>/dev/null;
+	FILECHAT=$FILEFIFO OPTT=0.2 OPTF=1 OPTC=2 OPTEXIT=2 OPTMD=2 OPTV=3 OPTMAX=$tkn_max OPTARG= OPTIND= OPTSUFFIX= OPTCMPL= \
+	 . "${BASH_SOURCE[0]:-$0}" -S "You are a command line shell expert and a project developer of the bash shell \`chatgpt.sh\` script. A user is currently in the chat mode (REPL mode) of the script and is asking for your assistance. They may be looking for a specific feature, struggling with a command, or simply wanting a general overview. Here is the user's question:" \
+	   "${NL}${NL}\`\`\`${REPLY:-$1}\`\`\`${NL}${NL}"   \
+	   "${NL}${NL}Below is the script's help page:${NL}${NL}" \
+	   "${NL}${NL}\`\`\`${NL}${HELP}${NL}\`\`\`${NL}${NL}" \
+	   "${NL}${NL}Lastly, this is the user current chat environment:${NL}${NL}" \
+	   "${NL}${NL}\`\`\`${NL}$(BWHITE= NC= cmd_runf /i 2>&1)${NL}\`\`\`${NL}${NL}" \
+	   "${NL}${NL}Please provide a concise and helpful response to the user's question, with excerpts of the help page if necessary. Guide the user and present the correct command syntax to be used in the chat mode or the precise command line invocation. Remember the user is in chat mode right now. Try to be helpful, clear, and a little sassy when appropriate! Provide your best succint answer and make sure to recheck the response before answering as you only have a single turn to answer the user correctly. Thanks! =]" \
+	   2>/dev/null;
 )
 ASSIST_MSG4='\ZbQuestion\ZB or \Zbsearch term\ZB:'
 ASSIST_MSG3="Proceed?  [N/y]" 
@@ -1624,7 +1658,48 @@ Find the right options for \Zbchatgpt.sh script\ZB and write the precise invocat
 
 This is a single-shot turn.'
 
-#check input and run a chat command
+#calculate cost of query
+#usage: costf [input_tokens] [output_tokens] [input_cost] [output_cost] [scale]
+function costf
+{
+	bc <<<"scale=${5:-8};
+( ( (${1:-0} / 1000000) * ${3:-0}) + ( (${2:-0} / 1000000) * ${4:-0}) ) * ${COST_RATE:-1}"
+}
+function _model_costf
+{
+	[[ -n  ${COST_CUSTOM[*]} ]] && { echo  ${COST_CUSTOM[@]}; return ;}
+	case "$1" in
+		claude-3-opus*) 	echo 15 75;;
+		claude-3-sonnet*|claude-3-5-sonnet*) echo 3 15;;
+		claude-3-haiku*) 	echo 0.25 1.25;;
+		claude-2.1*|claude-2*) 	echo 8 24;;
+		claude-instant-1.2*) 	echo 0.8 2.4;;
+		open-mistral-nemo*) 	echo 0.3 0.3;;
+		mistral-large*) 	echo 3 9;;
+		codestral*|mistral-small*) echo 1 3;;
+		open-mistral-7b*) 	echo 0.25 0.25;;
+		open-mixtral-8x7b*) 	echo 0.7 0.7;;
+		open-mixtral-8x22b*) 	echo 2 6;;
+		mistral-medium*) 	echo 2.75 8.1;;
+		gpt-4o-mini*) 	echo 0.15 0.6;;
+		gpt-4o*) 	echo 5 15;;
+		text-embedding-3-small) 	echo 0.02 0;;
+		text-embedding-3-large) 	echo 0.13 0;;
+		text-embedding-ada-002|mistral-embed*) 	echo 0.1 0;;
+		gpt-4) 	echo 30 60;;
+		gpt-4-32k) 	echo 60 120;;
+		gpt-4-turbo*|gpt-4-*preview) 	echo 10 30;;
+		gpt-3.5-turbo-0125) 	echo 0.5 1.5;;
+		gpt-3.5-turbo-0613|gpt-3.5-turbo-0301|gpt-3.5-turbo-instruct) echo 1.5 2;;
+		gpt-3.5-turbo-1106) 	echo 1 2;;
+		gpt-3.5-turbo-16k-0613) echo 3 4;;
+		davinci-002) 	echo 2 2;;
+		babbage-002) 	echo 0.4 0.4;;
+		*) 	echo 0 0; false;;
+	esac;
+}
+
+#check input and run a chat command  #tags: cmdrunf, runcmdf
 function cmd_runf
 {
 	typeset opt_append filein var wc xskip pid n
@@ -1695,6 +1770,12 @@ function cmd_runf
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP TOTAL_OLD; xskip=1;
 			;;
+		cost*|costs*)
+			set -- "${*##@(costs|cost)$SPC}"
+			set -- "${*//[!0-9.,]}"
+			COST_CUSTOM=( ${*//,/.} )
+			__cmdmsgf 'Costs / 1M tkns:' "input: \$ ${COST_CUSTOM[0]}  output: \$ ${COST_CUSTOM[1]}"
+			;;
 		block*|blk*)
 			set -- "${*##@(block|blk)$SPC}"
 			__printbf '>';
@@ -1713,18 +1794,24 @@ function cmd_runf
 			set -- "${*##@(help-assist|h)$SPC}";
 			trap 'trap "-" INT' INT;
 			printf '\n%s\n' '============= HELP ASSISTANT =============' >&2;
-			help_assistf "$@" || SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
+			help_assistf "$@" || SKIP=1 EDIT=1 RET=$? REPLY="!${args[*]}";
 			printf '\n%s\n' '==========================================' >&2;
 			trap 'exit' INT;
+			if ((RET==200))
+			then 	printf '\n%s\n' 'Simple Help Search:' >&2;
+				cmd_runf -h "$*"; return;
+			elif ((RET>0))
+			then 	__warmsgf 'Err:' 'Unknown';
+			fi
 			;;
 		-h|help|-\?|\?)
+			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
 			less -S <<<"${var}"; xskip=1;
 			;;
 		-h*|help*)
 			set -- "${*##@(help|-h)$SPC}";
-			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
-			if ((${#1}>3)) && ! grep --color=always -i -e "${1%%${NL}*}" <<<"${var}" >&2;
-			then 	cmd_runf /help-assist "$*"; return;
+			if ((${#1}<2)) || ! grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2;
+			then 	cmd_runf -h; return;
 			fi; xskip=1
 			;;
 		-H|H|history|hist)
@@ -1973,7 +2060,8 @@ function cmd_runf
 			typeset IFS dry; IFS=$'\n'; ((PREVIEW)) && BCYAN="${Color9}" PREVIEW= ;
 			[[ ${n:=${*//[!0-9]}} = 0* || $* = [/!]* ]] \
 			&& n=${n##*([/!0])} dry=4; ((n>0)) || n=1
-			if var=($(grep -n -e '^[[:space:]]*[^#]' "$FILECHAT" \
+			if var=($(
+				grep -n -e '^[[:space:]]*[^#]' "$FILECHAT" \
 				| tail -n $n | cut -c 1-160 | sed -e 's/[[:space:]]/ /g'))
 			then
 				((n<${#var[@]})) || n=${#var[@]}
@@ -1990,36 +2078,40 @@ function cmd_runf
 			fi
 			;;
 		i|info)
-			printf "${NC}${BWHITE}%-12s:${NC} %-5s\\n" \
+			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
 			$( ((OLLAMA)) && echo ollama-url "${OLLAMA_API_HOST}${ENDPOINTS[EPN]}") \
-			host-url     "${API_HOST}${ENDPOINTS[EPN]}" \
-			model-name   "${MOD:-?}$(is_visionf "$MOD" && printf ' / %s' 'multimodal')" \
-			model-cap    "${MODMAX:-?}" \
-			response-max "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
-			context-prev "${MAX_PREV:-?}" \
-			token-rate   "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
-			seed         "${OPTSEED:-unset}" \
-			tiktoken     "${OPTTIK:-0}" \
-			keep-alive   "${OPT_KEEPALIVE:-unset}" \
-			temperature  "${OPTT:-0}" \
-			pres-penalty "${OPTA:-unset}" \
-			freq-penalty "${OPTAA:-unset}" \
-			top-k        "${OPTKK:-unset}" \
-			top-p        "${OPTP:-unset}" \
-			results      "${OPTN:-1}" \
-			best-of      "${OPTB:-unset}" \
-			logprobs     "${OPTBB:-unset}" \
-			insert-mode  "${OPTSUFFIX:-unset}" \
-			streaming    "${STREAM:-unset}" \
-			clipboard    "${OPTCLIP:-unset}" \
-			ctrld-prpter "${OPTCTRD:-unset}" \
-			cat-prompter "${CATPR:-unset}" \
-			restart-seq  "\"$( ((EPN==6)) && echo unavailable && exit;
+			host-url      "${API_HOST}${ENDPOINTS[EPN]}" \
+			model-name    "${MOD:-?}$(is_visionf "$MOD" && printf ' / %s' 'multimodal')" \
+			model-cap     "${MODMAX:-?}" \
+			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
+			context-prev  "${MAX_PREV:-?}" \
+			token-rate    "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
+			session-cost  "${SESSION_COST:-0} \$" \
+			turn-cost-max "$(costf ${MAX_PREV:-0} ${OPTMAX:-0} $(_model_costf "$MOD") 6 ) \$" \
+			seed          "${OPTSEED:-unset}" \
+			tiktoken      "${OPTTIK:-0}" \
+			keep-alive    "${OPT_KEEPALIVE:-unset}" \
+			temperature   "${OPTT:-0}" \
+			pres-penalty  "${OPTA:-unset}" \
+			freq-penalty  "${OPTAA:-unset}" \
+			top-k         "${OPTKK:-unset}" \
+			top-p         "${OPTP:-unset}" \
+			results       "${OPTN:-1}" \
+			best-of       "${OPTB:-unset}" \
+			logprobs      "${OPTBB:-unset}" \
+			insert-mode   "${OPTSUFFIX:-unset}" \
+			streaming     "${STREAM:-unset}" \
+			clipboard     "${OPTCLIP:-unset}" \
+			ctrld-prpter  "${OPTCTRD:-unset}" \
+			cat-prompter  "${CATPR:-unset}" \
+			restart-seq   "\"$(
+				((EPN==6)) && echo unavailable && exit;
 				((OPTC)) && printf '%s' "${RESTART-$Q_TYPE}" || printf '%s' "${RESTART-unset}")\"" \
-			start-seq    "\"$( ((EPN==6)) && echo unavailable && exit;
+			start-seq     "\"$(
+				((EPN==6)) && echo unavailable && exit;
 				((OPTC)) && printf '%s' "${START-$A_TYPE}"   || printf '%s' "${START-unset}")\"" \
-			stop-seqs    "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
-			history-file "${FILECHAT/"$HOME"/"~"}"  >&2  #2>/dev/null
+			stop-seqs     "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
+			history-file  "${FILECHAT/"$HOME"/"~"}"  >&2  #2>/dev/null
 			;;
 		-u|multi|multiline|-uu*(u)|[/!]multi|[/!]multiline)
 			case "$*" in
@@ -2086,7 +2178,7 @@ function cmd_runf
 			if [[ -n $1 ]]
 			then 	bash -i -c "${1%%;}; exit"
 			else 	bash -i
-			fi </dev/tty;
+			fi  </dev/tty  >&2;  #>/dev/tty
 			;;
 		shell*|sh*)
 			[[ $* = @(shell|sh):* ]] && opt_append=1;  #append as user
@@ -3154,8 +3246,9 @@ function _ttsf
 		trap "trap 'exit' INT; kill -- $pid 2>/dev/null; return;" INT;
 		while __spinf; ok=
 			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
-		do 	var=$( ((OPTV>1)) && printf '%s\n' 'p' >&2 \
-				|| NO_CLR=1 __read_charf -t 0.3) &&
+		do 	var=$(
+			((OPTV>1)) && printf '%s\n' 'p' >&2 \
+			  || NO_CLR=1 __read_charf -t 0.3) &&
 			case "$var" in
 				[Pp]|' '|''|$'\t')  ok=1;
 					((SECONDS>secs+2)) ||  #buffer
@@ -3613,10 +3706,12 @@ function custom_prf
 	if [[ -f $name ]]
 	then 	file="$name"
 	elif [[ $name = */* ]] ||
-		! file=$(SESSION_LIST=$list SGLOB='[Pp][Rr]' EXT='pr' \
+		! file=$(
+			SESSION_LIST=$list SGLOB='[Pp][Rr]' EXT='pr' \
 			session_globf "$name")
 	then 	template=1
-		file=$(SGLOB='[Pp][Rr]' EXT='pr' \
+		file=$(
+			SGLOB='[Pp][Rr]' EXT='pr' \
 			session_name_choosef "$name")
 		[[ -f $file ]] && msg=${msg:-LOAD} || msg=CREATE
 	fi
@@ -3836,7 +3931,8 @@ function session_name_choosef
 		if [[ ${fname} = *([$IFS]) ]]
 		then
 			if test_dialogf
-			then 	fname=$(dialog --backtitle "${item} manager" \
+			then 	fname=$(
+				dialog --backtitle "${item} manager" \
 				--title "new ${item} file" \
 				--inputbox "enter new ${item} name" 8 32  2>&1 >/dev/tty )
 				__clr_dialogf;
@@ -4344,16 +4440,16 @@ function set_anthropicf
 #@#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #!#important for the test script
 
 
-unset OPTMM STOPS MAIN_LOOP
+unset OPTMM OPTMARG STOPS MAIN_LOOP
 #parse opts  #DIJQX
 optstring="a:A:b:B:cCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
 do
-	case "$opt" in -)  #long options
+	case "$opt" in -)  #order matters: anthropic anthropic:ant
 		for opt in api-key  multimodal  markdown  markdown:md  \
 no-markdown  no-markdown:no-md  fold  fold:wrap  no-fold  no-fold:no-wrap \
 localai  localai:local-ai  localai:local  google  google:goo  mistral \
-openai  groq:grok  groq  anthropic:ant  anthropic  keep-alive  j:seed \
+openai  groq  groq:grok  anthropic  anthropic:ant  j:seed  keep-alive \
 keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
 a:presence-penalty  a:presence  a:pre  A:frequency-penalty  A:frequency \
 A:freq  b:best-of  b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue \
@@ -4364,7 +4460,7 @@ m:mod  n:results  o:clipboard  o:clip  O:ollama  p:top-p  p:topp  q:insert \
 r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
 u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
-w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version  #opt:long_name
+w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -4663,6 +4759,9 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 
 #model options
 set_optsf
+
+#promote var to array (model costs)
+COST_CUSTOM=( $COST_CUSTOM )
 
 #markdown rendering
 if ((OPTMD+${#MD_CMD}))
@@ -5140,13 +5239,32 @@ else
 					
 					#del trailing slashes, and set preview colour
 					((PREVIEW==1)) && REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n/])') REPLY_OLD=$REPLY BCYAN=${Color8};
-				elif case "${REPLY: ind}" in
+				elif case "${REPLY: ind}" in  #cmd: //shell, //sh
+					*?[/!][/!]shell|*?[/!][/!]sh) var=/shell;;
+					*?[/!]shell|*?[/!]sh) var=shell;;
+					*) 	false;; esac;
+				then
+					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(/shell|shell|/sh|sh)")";
+					REPLY_CMD_DUMP=$(
+						unset REPLY
+						cmd_runf /${var:-shell};
+						trim_trailf "$REPLY" "[/!]@(/shell|shell|/sh|sh)"
+					)
+					if [[ $REPLY_CMD_DUMP != $SPC ]]
+					then 	REPLY="${*} ${REPLY_CMD_DUMP}";
+						((SKIP_SH_HIST)) || shell_histf "$REPLY";
+					fi
+			    		SKIP=1 EDIT=1 REPLY_CMD=;
+					set -- ; continue 2;
+				elif case "${REPLY: ind}" in  #cmd: /photo, /pick, /save
 					*?[/!]photo) var=photo;;
 					*?[/!]pick|*?[/!]p) var=pick;;
 					*?[/!]save|*?[/!]\#) var=save;;
 					*) 	false;; esac;
 				then
-					cmd_runf /${var:-pick} "$(trim_trailf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#)")";
+					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#)")";
+					cmd_runf /${var:-pick} "$*";
+					((SKIP_SH_HIST)) || shell_histf "$REPLY";
 					set --; continue 2;
 				elif ((${#REPLY}))
 				then
@@ -5500,7 +5618,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			fi
 			if ((OPTB>1))  #best_of disables streaming response
 			then 	start_tiktokenf
-				tkn[1]=$( ((EPN==6)) && unset A_TYPE;
+				tkn[1]=$(
+					((EPN==6)) && unset A_TYPE;
 					__tiktokenf "${A_TYPE}${ans}");
 			fi
 			ans="${A_TYPE##$SPC1}${ans}"
@@ -5541,6 +5660,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			TKN_RATE=( "${tkn[1]:-$tkn_ans}" $((SECONDS-SECONDS_REQ))
 			"$(bc <<<"scale=2; ${tkn[1]:-${tkn_ans:-0}} / ($SECONDS-$SECONDS_REQ)")" )
 		fi
+		SESSION_COST=$(
+			bc <<<"scale=8; ${SESSION_COST:-0} + $(costf "$( ((tkn[0])) && echo ${tkn[0]} || __tiktokenf "$REPLY" )" "$( ((tkn[1])) && echo ${tkn[1]} || __tiktokenf "$(unescapef "$ans")" )"  $(_model_costf "$MOD") )" )
 
 		if ((OPTW)) && ((!OPTZ))
 		then
@@ -5553,7 +5674,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			#detect and remove possible markdown from $ans to avoid some tts glitches
 			if [[ OPTMD -gt 0 || \\n$ans = *\\n@(\#\ |[\*-]\ |\>\ )* ]]
 			then 	ans_tts=$(unescapef "$ans");
-				ans_tts=$(unmarkdownf <<<"$ans_tts" || {
+				ans_tts=$(
+					unmarkdownf <<<"$ans_tts" || {
 					command -v pandoc >/dev/null 2>&1 && pandoc --from markdown --to plain <<<"$ans_tts" ;} ) 2>/dev/null;
  				ans_tts=$(escapef "$ans_tts");
 			fi
@@ -5592,6 +5714,7 @@ fi
 #- unset other integrations but localai, clear environment
 #- add $mod_integration to script head and config
 #- set $integrationAI vars to automatically set the model for the integration on start when not set by the user
+#- update the set_model_epnf() and the _model_costf() functions.
 #- add getopts long option
 #- add support for chat cmpls and optionally chat text cmpls, text cmpls and insert mode of text cmpls, whisper, tts
 #- add support code to upload for image / url json objects
@@ -5612,4 +5735,4 @@ fi
 ## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 
-# vim=syntax sync minlines=1200
+# vim=syntax sync minlines=600

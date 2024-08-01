@@ -381,6 +381,16 @@ is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978
 -->
 
 
+## Script Help Assistant
+
+if you ahve got a question about the script itself and how to set it up,
+there is a built-in assistant (much like **M$ Clipper**).
+
+While in chat mode, type the command `/h [question]`, in which the question
+is related to script features and your current chat settings, and how
+you can change them or invoke the script with the right syntax!
+
+
 ## Markdown
 
 To enable markdown rendering of responses, set command line `option --markdown`,
