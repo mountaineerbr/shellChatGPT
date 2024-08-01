@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.7  jul/2024  by mountaineerbr  GPL+3
+# v0.69.8  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1624,7 +1624,7 @@ function help_assistf
 	printf '%s\n' "${ASSIST_MSG//\\Z[[:alnum:]]}" | COLUMNS=42 foldf >&2;
 	printf '\nModel: %s   Cost: ~$%.*f\n' "$MOD" 4 "$(costf $tkn_in $tkn_max $(_model_costf "$MOD") )";
 	printf '\n%s\n* %s *\a\n%s\n' "****${ASSIST_MSG2//?/\*}" "$ASSIST_MSG2" "${ASSIST_MSG2//?/\*}****" >&2;
-	printf '\n%s '  "$ASSIST_MSG3" >&2;
+	printf '\n%s '  "$ASSIST_MSG3" >&2; __clr_ttystf;
 	case "$(__read_charf)" in
 		[YySs]|[$' \t']) __clr_lineupf "${#ASSIST_MSG3}";;
 		*) exit 200;;
@@ -1647,7 +1647,7 @@ function help_assistf
 	   "${NL}${NL}Lastly, this is the user current chat environment:${NL}${NL}" \
 	   "${NL}${NL}\`\`\`${NL}$(BWHITE= NC= cmd_runf /i 2>&1)${NL}\`\`\`${NL}${NL}" \
 	   "${NL}${NL}Please provide a concise and helpful response to the user's question, with excerpts of the help page if necessary. Some options cannot be set while the user is in chat mode (REPL mode), such as changing service providers or unmentioned commands in the \`chat commands section' of the script help page. In such cases, it may be appropriate to suggest re-executing the script with adequate command line options. Guide the user and present the correct command syntax to be used in the chat mode or the precise command line invocation. Remember the user is in chat mode right now. Try to be helpful, clear, and a little sassy when appropriate! Provide your best succint answer and make sure to recheck the response before answering as you only have a single turn to answer the user correctly. Thanks! =]" \
-	   2>/dev/null;
+	   2>/dev/null;  #stop-seq info from the assistant may stop the answer!
 )
 ASSIST_MSG4='\ZbQuestion\ZB or \Zbsearch term\ZB:'
 ASSIST_MSG3="Proceed?  [N/y]" 
@@ -1807,8 +1807,7 @@ function cmd_runf
 			if ((RET==200))
 			then 	printf '\n%s\n' 'Simple Help Search:' >&2;
 				cmd_runf -h "$*"; return;
-			#elif ((RET>0))
-			#then 	! __warmsgf 'Err:' 'Unknown';
+			#elif ((RET>0)); then 	! __warmsgf 'Err:' 'Unknown';
 			fi
 			;;
 		-h|help|-\?|\?)
@@ -4487,7 +4486,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 			[0-9]*)  #max resp tkns option
 				OPTARG="$OPTMM-$OPTARG" opt=M 
 				;;
-			*) 	__warmsgf "Unkown option:" "--$OPTARG"
+			*) 	__warmsgf "Unknown option:" "--$OPTARG"
 				exit 2;;
 		esac; unset name;;
 	esac

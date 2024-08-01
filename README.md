@@ -383,7 +383,7 @@ is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978
 
 ## Script Help Assistant
 
-if you have got a question about the script itself and how to set it up,
+If you have got a question about the script itself and how to set it up,
 there is a built-in assistant (much like **M$ Clipper**).
 
 While in chat mode, type the command `/h [question]`, in which the question
