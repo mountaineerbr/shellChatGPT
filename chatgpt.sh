@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.10  jul/2024  by mountaineerbr  GPL+3
+# v0.69.11  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -396,7 +396,7 @@ Commands
      !p       !pick,  [PROMPT]  File picker, appends filepath to prompt. ‡
      !pdf     !pdf:    [FILE]   Dump PDF text.
     !photo   !!photo   [INDEX]  Take a photo, camera index (Termux). ‡
-     !sh      !shell    [CMD]   Run shell or command, and edit output.
+     !sh      !shell    [CMD]   Run shell or command, and edit output. ‡
      !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
     !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
      !url     !url:     [URL]   Dump URL text.
@@ -458,9 +458,11 @@ Commands
 
       : Commands followed by a colon to append command output to prompt.
 
-      ‡ Commands with double dagger may be invoked at the end of prompt.
+      ‡ Commands with double dagger may be invoked at the very end of
+        the prompt.
 
-      E.g. \`/temp 0.7', \`!modgpt-4', \`-p 0.2', and \`/s hist_name'.
+      E.g. \`/temp 0.7', \`!modgpt-4', \`-p 0.2', \`/session HIST_NAME',
+           \`[PROMPT] /pick', and \`[PROMPT] /sh'.
 
 
 	To continue from an old session, either \`/copy . .\` or \`/fork.\`
@@ -2176,7 +2178,7 @@ function cmd_runf
 			esac; return;
 			;;
 		save*|\#*)
-			shell_histf "${*##@(save|\#)*([$IFS])}";
+			shell_histf "${*##@(save|\#)*([$IFS])}"; history -a;
 			((${#1})) && __cmdmsgf 'Shell:' 'Prompt added to history!';
 			unset REPLY EDIT SKIP_SH_HIST;
 			;;

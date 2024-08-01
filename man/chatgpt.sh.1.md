@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.69 | General Commands Manual
+% CHATGPT.SH(1) v0.69.11 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -377,7 +377,7 @@ may be either "`!`" or "`/`".
        `!p`        `!pick`,     \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
      `!pdf`        `!pdf:`      \[_FILE_]            Convert PDF and dump text.
    `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux). _‡_
-      `!sh`        `!shell`      \[_CMD_]            Run shell or _command_, and edit output.
+      `!sh`        `!shell`      \[_CMD_]            Run shell or _command_, and edit output. _‡_
      `!sh:`        `!shell:`     \[_CMD_]            Same as `!sh` but apppend output as user.
      `!!sh`        `!!shell`     \[_CMD_]            Run interactive shell (with _command_) and exit.
      `!url`        `!url:`       \[_URL_]            Dump URL text.
@@ -446,12 +446,24 @@ may be either "`!`" or "`/`".
 
 | _:_ Commands followed by a colon will append command output to prompt.
 
-| _‡_ Commands with double dagger may be invoked at the end of the input prompt.
+| _‡_ Commands with double dagger may be invoked at the very end of the input prompt.
 
-| E.g.: "`/temp` _0.7_", "`!mod`_gpt-4_", "`-p` _0.2_", and "`/s` _hist_name_".
+| E.g.: "`/temp` _0.7_", "`!mod`_gpt-4_", "`-p` _0.2_", "`/session` _HIST_NAME_", "\[_PROMPT_] `/pick`", and "\[_PROMPT_] `/sh`".
 
 
-Command "`!block` \[_args_]" may be run to set raw model options
+The "`/pick`" command opens a file picker (usually a command-line
+file manager). The selected file's path will be appended to the
+current prompt in editing mode.
+
+The "`/pick`" and "`/sh`" commands may be run when typed at the end of
+the current prompt, such as "\[_PROMPT_] `/sh`", which opens a new
+shell instance to execute commands interactively. The output of these
+commands is appended to the current prompt.
+
+When the "`/pick`" command is run at the end of the prompt, the selected
+file path is appended instead.
+
+Command "`!block` \[_ARGS_]" may be run to set raw model options
 in JSON syntax according to each API. Alternatively, set envar **$BLOCK_USR**.
 
 

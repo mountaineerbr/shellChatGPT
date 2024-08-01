@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.69 | General Commands Manual
+CHATGPT.SH(1) v0.69.11 | General Commands Manual
 mountaineerbr
 July 2024
 
@@ -336,7 +336,7 @@ either “!” or “/”.
   !p        !pick, [PROPMT]       File picker, appends filepath to user prompt. ‡
   !pdf      !pdf: [FILE]          Convert PDF and dump text.
   !photo    !!photo [INDEX]       Take a photo, optionally set camera index (Termux). ‡
-  !sh       !shell [CMD]          Run shell or command, and edit output.
+  !sh       !shell [CMD]          Run shell or command, and edit output. ‡
   !sh:      !shell: [CMD]         Same as !sh but apppend output as user.
   !!sh      !!shell [CMD]         Run interactive shell (with command) and exit.
   !url      !url: [URL]           Dump URL text.
@@ -400,12 +400,25 @@ either “!” or “/”.
 
 : Commands followed by a colon will append command output to prompt.
 
-‡ Commands with double dagger may be invoked at the end of the input
-prompt.
+‡ Commands with double dagger may be invoked at the very end of the
+input prompt.
 
-E.g.: “/temp 0.7”, “!modgpt-4”, “-p 0.2”, and “/s hist_name”.
+E.g.: “/temp 0.7”, “!modgpt-4”, “-p 0.2”, “/session HIST_NAME”,
+“[PROMPT] /pick”, and “[PROMPT] /sh”.
 
-Command “!block [args]” may be run to set raw model options in JSON
+The “/pick” command opens a file picker (usually a command-line file
+manager). The selected file’s path will be appended to the current
+prompt in editing mode.
+
+The “/pick” and “/sh” commands may be run when typed at the end of the
+current prompt, such as “[PROMPT] /sh”, which opens a new shell instance
+to execute commands interactively. The output of these commands is
+appended to the current prompt.
+
+When the “/pick” command is run at the end of the prompt, the selected
+file path is appended instead.
+
+Command “!block [ARGS]” may be run to set raw model options in JSON
 syntax according to each API. Alternatively, set envar $BLOCK_USR.
 
 2.7 Session Management

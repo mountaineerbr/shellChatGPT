@@ -35,7 +35,7 @@ If no suffix is provided, it works as plain text completions.
    [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), and [Anthropic](#anthropic)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-- [Command line completion](#shell-completion) and file picker dialogs for a smoother experience 💻
+- [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
 - Colour scheme personalisation 🎨 and a configuration file
 - _Tiktoken_ for accurate tokenization (optional)
 - Stdin and text file input support
@@ -260,6 +260,22 @@ Alternatively, set the image paths / URLs at the end of the prompt interactively
 **TIP:** Run chat command `!info` to check model configuration!
 
 **DEBUG:** Set `option -VV` to see the raw JSON request body.
+
+
+#### File Picker and Shell Dump
+
+
+The `/pick` command opens a file picker (usually a command-line
+file manager). The selected file's path will be appended to the
+current prompt in editing mode.
+
+The `/pick` and `/sh` commands may be run when typed at the end of
+the current prompt, such as `[PROMPT] /sh`, which opens a new
+shell instance to execute commands interactively. The output of these
+commands is appended to the current prompt.
+
+When the `/pick` command is run at the end of the prompt, the selected
+file path is appended instead.
 
 
 #### Voice In and Out + Chat Completions

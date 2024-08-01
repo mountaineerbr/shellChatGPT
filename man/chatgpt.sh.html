@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.69 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.69.11 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.69 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.69.11 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2024</p>
 </header>
@@ -603,7 +603,7 @@ either “<code>!</code>” or “<code>/</code>”.</p>
 <tr class="even">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
-<td>Run shell or <em>command</em>, and edit output.</td>
+<td>Run shell or <em>command</em>, and edit output. <em>‡</em></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!sh:</code></td>
@@ -909,11 +909,22 @@ flush.</td>
 <div class="line-block"><em>:</em> Commands followed by a colon will
 append command output to prompt.</div>
 <div class="line-block"><em>‡</em> Commands with double dagger may be
-invoked at the end of the input prompt.</div>
+invoked at the very end of the input prompt.</div>
 <div class="line-block">E.g.: “<code>/temp</code> <em>0.7</em>”,
-“<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”, and
-“<code>/s</code> <em>hist_name</em>”.</div>
-<p>Command “<code>!block</code> [<em>args</em>]” may be run to set raw
+“<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”,
+“<code>/session</code> <em>HIST_NAME</em>”, “[<em>PROMPT</em>]
+<code>/pick</code>”, and “[<em>PROMPT</em>] <code>/sh</code>”.</div>
+<p>The “<code>/pick</code>” command opens a file picker (usually a
+command-line file manager). The selected file’s path will be appended to
+the current prompt in editing mode.</p>
+<p>The “<code>/pick</code>” and “<code>/sh</code>” commands may be run
+when typed at the end of the current prompt, such as “[<em>PROMPT</em>]
+<code>/sh</code>”, which opens a new shell instance to execute commands
+interactively. The output of these commands is appended to the current
+prompt.</p>
+<p>When the “<code>/pick</code>” command is run at the end of the
+prompt, the selected file path is appended instead.</p>
+<p>Command “<code>!block</code> [<em>ARGS</em>]” may be run to set raw
 model options in JSON syntax according to each API. Alternatively, set
 envar <strong>$BLOCK_USR</strong>.</p>
 <h4 id="session-management">2.7 Session Management</h4>
