@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.12  jul/2024  by mountaineerbr  GPL+3
+# v0.69.13  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5670,7 +5670,9 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			"$(bc <<<"scale=2; ${tkn[1]:-${tkn_ans:-0}} / ($SECONDS-$SECONDS_REQ)")" )
 		fi
 		SESSION_COST=$(
-			bc <<<"scale=8; ${SESSION_COST:-0} + $(costf "$( ((tkn[0])) && echo ${tkn[0]} || __tiktokenf "$REPLY" )" "$( ((tkn[1])) && echo ${tkn[1]} || __tiktokenf "$(unescapef "$ans")" )"  $(_model_costf "$MOD") )" )
+			cost=$(_model_costf "$MOD") || exit; set -- $cost;
+			bc <<<"scale=8; ${SESSION_COST:-0} + $(costf "$( ((tkn[0])) && echo ${tkn[0]} || __tiktokenf "$REPLY" )" "$( ((tkn[1])) && echo ${tkn[1]} || __tiktokenf "$(unescapef "$ans")" )" $@)"
+			)
 
 		if ((OPTW)) && ((!OPTZ))
 		then
