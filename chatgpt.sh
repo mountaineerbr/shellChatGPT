@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.13  jul/2024  by mountaineerbr  GPL+3
+# v0.69.14  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5571,16 +5571,23 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		if 	if ((STREAM))
 			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}
 				ans=$(escapef "$ans")
-				((ANTHROPICAI)) && ind="" || ind="-1";
-				((OLLAMA+LOCALAI+GOOGLEAI)) ||  #OpenAI, MistralAI, and Groq
-				tkn=( $(jq -s ".[${ind}] | if .x_groq then .x_groq else . end" "$FILE" | response_tknf) )
+				((OLLAMA+LOCALAI)) ||  #OpenAI, MistralAI, and Groq
+				tkn=( $(
+					ind="-1" var="";
+					((GOOGLEAI)) && FILE="$FILE_PRE" var="[]";
+					((GROQAI)) && var="x_groq";
+					((ANTHROPICAI)) && ind="";
+					jq -s ".[${ind}] | .${var}" "$FILE" | response_tknf) )
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6)) && unset A_TYPE; __tiktokenf "${A_TYPE}${ans}");
 				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD tkn;
-				}; unset ind;
+				};
 			else
 				{ ((ANTHROPICAI && EPN==0)) && tkn=(0 0) ;} ||
-				((OLLAMA)) || tkn=($(jq 'if .x_groq then .x_groq else . end' "$FILE" | response_tknf) )
+				((OLLAMA)) || tkn=( $(
+					var=""
+					((GROQAI)) && var="x_groq";
+					jq ".${var}" "$FILE" | response_tknf) )
 				unset ans buff n
 				for ((n=0;n<OPTN;n++))  #multiple responses
 				do 	buff=$(INDEX=$n prompt_pf "$FILE")
