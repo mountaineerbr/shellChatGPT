@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.69.15 | General Commands Manual
+CHATGPT.SH(1) v0.69.17 | General Commands Manual
 mountaineerbr
 July 2024
 
@@ -342,11 +342,11 @@ either “!” or “/”.
   !url      !url: [URL]           Dump URL text.
 
   Script   Settings and UX        
-  -------- ---------------------- -----------------------------------------------------------
+  -------- ---------------------- ------------------------------------------------------
   !fold    !wrap                  Toggle response wrapping.
   -g       !stream                Toggle response streaming.
-  -h       !help [QUERY]          Print help, grep help for regex, or start help assistant.
-  !h       !help-assist [QUERY]   Run the help assistant function.
+  -h       !!h [QUERY]            Print help or grep help for regex.
+  !help    !help-assist [REGEX]   Run the help assistant function.
   -l       !models [NAME]         List language models or show model details.
   -o       !clip                  Copy responses to clipboard.
   -u       !multi                 Toggle multiline prompter. <CTRL-D> flush.

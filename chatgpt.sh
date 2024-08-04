@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.16  jul/2024  by mountaineerbr  GPL+3
+# v0.69.17  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -403,8 +403,8 @@ Commands
    --- Script Settings and UX ---------------------------------------
     !fold     !wrap             Toggle response wrapping.
       -g      !stream           Toggle response streaming.
-      -h      !help    [QUERY]  Print help, optionally set query or regex.
-      !h  !help-assist [QUERY]  Run the help assistant function.
+      -h     !!h      [REGEX]   Print help, optionally set regex.
+    !help     !help-assist [QUERY]  Run the help assistant function.
       -l      !models  [NAME]   List language models or model details.
       -o      !clip             Copy responses to clipboard.
       -u      !multi            Toggle multiline, ctrl-d flush.
@@ -1803,8 +1803,8 @@ function cmd_runf
 			((++STREAM)) ;((STREAM%=2))
 			__cmdmsgf 'Streaming' $(_onoff $STREAM)
 			;;
-		help-assist*|h*)
-			set -- "${*##@(help-assist|h)$SPC}";
+		help-assist*|help*)
+			set -- "${*##@(help-assist|help)$SPC}";
 			grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2 && return;  #F#
 			trap 'trap "-" INT' INT;
 			printf '\n%s\n' '============= HELP ASSISTANT =============' >&2;
@@ -1817,12 +1817,12 @@ function cmd_runf
 			#elif ((RET>0)); then 	__warmsgf 'Err:' 'Unknown';
 			fi
 			;;
-		-h|help|-\?|\?)
+		-h|h|help|-\?|\?)
 			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
 			less -S <<<"${var}"; xskip=1;
 			;;
-		-h*|help*)
-			set -- "${*##@(help|-h)$SPC}";
+		-h*|[/!]h*)  #this will only catch -h and //h
+			set -- "${*##@(-h|[/!]h)$SPC}";
 			if ((${#1}<2)) ||
 				! grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2;  #F#
 			then 	cmd_runf -h; return;

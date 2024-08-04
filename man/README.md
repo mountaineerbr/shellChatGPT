@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.69.15 \| General Commands Manual
+title: CHATGPT.SH(1) v0.69.17 \| General Commands Manual
 ---
 
 ### NAME
@@ -375,23 +375,23 @@ either “`!`” or “`/`”.
 | `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.        |
 | `!url`    | `!url:` \[*URL*\]               | Dump URL text.                                          |
 
-| Script  | Settings and UX            |                                                           |
-|:--------|:---------------------------|-----------------------------------------------------------|
-| `!fold` | `!wrap`                    | Toggle response wrapping.                                 |
-| `-g`    | `!stream`                  | Toggle response streaming.                                |
-| `-h`    | `!help` \[*QUERY*\]        | Print help, grep help for regex, or start help assistant. |
-| `!h`    | `!help-assist` \[*QUERY*\] | Run the help assistant function.                          |
-| `-l`    | `!models` \[*NAME*\]       | List language models or show model details.               |
-| `-o`    | `!clip`                    | Copy responses to clipboard.                              |
-| `-u`    | `!multi`                   | Toggle multiline prompter. \<*CTRL-D*\> flush.            |
-| `-uu`   | `!!multi`                  | Multiline, one-shot. \<*CTRL-D*\> flush.                  |
-| `-U`    | `-UU`                      | Toggle cat prompter or set one-shot. \<*CTRL-D*\> flush.  |
-| `-V`    | `!debug`                   | Dump raw request block and confirm.                       |
-| `-v`    | `!ver`                     | Toggle verbose modes.                                     |
-| `-x`    | `!ed`                      | Toggle text editor interface.                             |
-| `-xx`   | `!!ed`                     | Single-shot text editor.                                  |
-| `-y`    | `!tik`                     | Toggle python tiktoken use.                               |
-| `!q`    | `!quit`                    | Exit. Bye.                                                |
+| Script  | Settings and UX            |                                                          |
+|:--------|:---------------------------|----------------------------------------------------------|
+| `!fold` | `!wrap`                    | Toggle response wrapping.                                |
+| `-g`    | `!stream`                  | Toggle response streaming.                               |
+| `-h`    | `!!h` \[*QUERY*\]          | Print help or grep help for regex.                       |
+| `!help` | `!help-assist` \[*REGEX*\] | Run the help assistant function.                         |
+| `-l`    | `!models` \[*NAME*\]       | List language models or show model details.              |
+| `-o`    | `!clip`                    | Copy responses to clipboard.                             |
+| `-u`    | `!multi`                   | Toggle multiline prompter. \<*CTRL-D*\> flush.           |
+| `-uu`   | `!!multi`                  | Multiline, one-shot. \<*CTRL-D*\> flush.                 |
+| `-U`    | `-UU`                      | Toggle cat prompter or set one-shot. \<*CTRL-D*\> flush. |
+| `-V`    | `!debug`                   | Dump raw request block and confirm.                      |
+| `-v`    | `!ver`                     | Toggle verbose modes.                                    |
+| `-x`    | `!ed`                      | Toggle text editor interface.                            |
+| `-xx`   | `!!ed`                     | Single-shot text editor.                                 |
+| `-y`    | `!tik`                     | Toggle python tiktoken use.                              |
+| `!q`    | `!quit`                    | Exit. Bye.                                               |
 
 | Model   | Settings                |                                                |
 |:--------|:------------------------|------------------------------------------------|

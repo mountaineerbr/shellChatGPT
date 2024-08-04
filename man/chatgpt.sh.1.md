@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.69.15 | General Commands Manual
+% CHATGPT.SH(1) v0.69.17 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -387,8 +387,8 @@ may be either "`!`" or "`/`".
  --------------    -----------------------    ----------------------------------------------------------
    `!fold`         `!wrap`                    Toggle response wrapping.
       `-g`         `!stream`                  Toggle response streaming.
-      `-h`         `!help`     \[_QUERY_]     Print help, grep help for regex, or start help assistant.
-      `!h`         `!help-assist` \[_QUERY_]  Run the help assistant function.
+      `-h`         `!!h`       \[_QUERY_]     Print help or grep help for regex.
+      `!help`      `!help-assist` \[_REGEX_]  Run the help assistant function.
       `-l`         `!models`    \[_NAME_]     List language models or show model details.
       `-o`         `!clip`                    Copy responses to clipboard.
       `-u`         `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
