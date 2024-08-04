@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.69.11 | General Commands Manual
+CHATGPT.SH(1) v0.69.15 | General Commands Manual
 mountaineerbr
 July 2024
 
@@ -1095,6 +1095,10 @@ Script Settings
 
     Dump raw JSON request block (debug).
 
+--version
+
+    Print script version.
+
 -x, --editor
 
     Edit prompt in text editor.
@@ -1112,6 +1116,6 @@ Script Settings
     Synthesise speech from text prompt. Takes a voice name, speed and
     text prompt. Set option -v to not play response.
 
--Z, --last
+-Z, -ZZ, -ZZZ, --last
 
     Print last response JSON data.

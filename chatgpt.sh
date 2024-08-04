@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.14  jul/2024  by mountaineerbr  GPL+3
+# v0.69.15  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -633,6 +633,8 @@ Options
 		Less verbose. Sleep after response in voice chat (-vvccw).
 		May be set multiple times.
 	-V  	Dump raw request block to stderr (debug).
+	--version
+		Print script version.
 	-x, --editor
 		Edit prompt in text editor.
 	-y, --tik
@@ -641,8 +643,8 @@ Options
 		Unset tiktoken use (cmpls/chat).
 	-z, --tts   [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 		Synthesise speech from text prompt, set -v to not play.
-	-Z, --last
-		Print last response JSON data."
+	-Z, -ZZ, -ZZZ, --last
+		Print last response JSON files."
 
 ENDPOINTS=(
 	/v1/completions               #0
@@ -759,7 +761,7 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	if curl "$@" --fail -L "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
+	if curl "$@" ${FAIL} -L "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
@@ -768,8 +770,6 @@ function __promptf
 	else 	return $?;  #E#
 	fi
 }
-##with --fail-with-body:
-##{ [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"; }
 
 function _promptf
 {
@@ -777,7 +777,7 @@ function _promptf
 	json_minif
 	
 	if ((STREAM))
-	then 	set -- -s "$@" -S --no-buffer; [[ -s $FILE ]] &&
+	then 	set -- -s "$@" -S --no-buffer;
 		  [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
 		__promptf "$@" | while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
@@ -887,8 +887,9 @@ function __clr_lineupf
 
 # spin.bash -- provide a `spinning wheel' to show progress
 #  Copyright 1997 Chester Ramey (adapted)
-SPIN_CHARS=(⣟ ⣯ ⣷ ⣾ ⣽ ⣻ ⢿ ⡿)
-SPIN_CHARS=(⠏ ⠇ ⠧ ⠦ ⠴ ⠼ ⠸ ⠹ ⠙ ⠋)
+SPIN_CHARS8=(⣟ ⣯ ⣷ ⣾ ⣽ ⣻ ⢿ ⡿)
+SPIN_CHARS6=(⠏ ⠇ ⠧ ⠦ ⠴ ⠼ ⠸ ⠹ ⠙ ⠋)
+SPIN_CHARS0=(. o O @ \*)
 SPIN_CHARS=(\| \\ - /)
 function __spinf
 {
@@ -1104,7 +1105,7 @@ function prompt_audiof
 {
 	((OPTVV)) && __warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTTW:-${OPTT:-unset}}${*:+,  }${*}" >&2
 
-	curl -\# ${OPTV:+-Ss} --fail -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: multipart/form-data' \
@@ -1121,7 +1122,7 @@ function prompt_audiof
 function list_modelsf
 {
 	((MISTRALAI)) && typeset OPENAI_API_KEY=$MISTRAL_API_KEY API_HOST=$MISTRAL_API_HOST
-	curl -\# --fail -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
+	curl -\# ${FAIL} -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
 	if [[ -n $1 ]]
@@ -1164,11 +1165,15 @@ function pick_modelf
 
 function lastjsonf
 {
-	if [[ -s $FILE ]]
+	if ((OPTZZ>2)) && [[ -s $FILE_PRE ]]  #google response
+	then 	jq . "$FILE_PRE" 2>/dev/null || cat -- "$FILE_PRE";
+		[[ -t 1 ]] && printf "${BWHITE}%s${NC}\\n" "$FILE_PRE" >&2;
+	elif ((OPTZZ>1)) && [[ -s ${FILE%.*}.2.${FILE##*.} ]]  #old response
+	then 	jq . "${FILE%.*}.2.${FILE##*.}" 2>/dev/null || cat -- "${FILE%.*}.2.${FILE##*.}";
+		[[ -t 1 ]] && printf "${BWHITE}%s${NC}\\n" "${FILE%.*}.2.${FILE##*.}" >&2;
+	elif [[ -s $FILE ]]  #last response
 	then 	jq . "$FILE" 2>/dev/null || cat -- "$FILE";
-	elif typeset FILE="${FILE%.*}.2.${FILE##*.}"
-		[[ -s $FILE ]]
-	then 	! lastjsonf;
+		[[ -t 1 ]] && printf "${BWHITE}%s${NC}\\n" "$FILE" >&2;
 	fi;
 }
 
@@ -1595,7 +1600,7 @@ function _set_browsercmdf
 		elinks*) printf '%s' "elinks -force-html -no-references";;
 		links*) printf '%s' "links -force-html";;
 		google-chrome*|chromium*) printf '%s' "${1%% *} --disable-gpu --headless --dump-dom";;
-		*) 	printf '%s' "curl -L -f --progress-bar";;
+		*) 	printf '%s' "curl -L ${FAIL} --progress-bar";;
 	esac;
 }
 
@@ -1669,7 +1674,7 @@ function costf
 }
 function _model_costf
 {
-	[[ -n  ${COST_CUSTOM[*]} ]] && { echo  ${COST_CUSTOM[@]}; return ;}
+	case "${COST_CUSTOM[*]}" in *[1-9]*) 	echo  ${COST_CUSTOM[@]}; return;; esac;
 	case "$1" in
 		claude-3-opus*) 	echo 15 75;;
 		claude-3-sonnet*|claude-3-5-sonnet*) echo 3 15;;
@@ -2771,7 +2776,7 @@ function is_linkf
 {
 	[[ ! -f $1 ]] || return;
 	_is_linkf "$1" || [[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] || {
-	  curl --output /dev/null --max-time 10 --silent --head --fail --location -H "$UAG" -- "$1" 2>/dev/null &&
+	  curl --output /dev/null --max-time 10 --silent --head ${FAIL} --location -H "$UAG" -- "$1" 2>/dev/null &&
 	  LINK_CACHE="$LINK_CACHE $1" ;}
 }
 
@@ -3066,7 +3071,7 @@ function whisperf
 		[[ -t 1 ]] && echo >&2 || var=$(__read_charf)
 		case "$var" in
 			[AaNnQq]|$'\e') 	:;;
-			*) 	((CHAT_ENV)) || __sysmsgf 'Rec Cmd:' "\"${REC_CMD}\"";
+			*) 	((CHAT_ENV)) || __sysmsgf 'Rec Cmd:' "\"${REC_CMD%% *}\"";
 				OPTV=4 record_confirmf || return
 				WSKIP=1 recordf "$FILEINW"
 				set -- "$FILEINW" "$@"; rec=1;;
@@ -3174,7 +3179,7 @@ def seconds_to_time_string:
 #request tts prompt
 function prompt_ttsf
 {
-	curl -N -Ss --fail -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -N -Ss ${FAIL} -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -3187,6 +3192,7 @@ function prompt_ttsf
 function _ttsf
 {
 	typeset FOUT VOICEZ SPEEDZ fname input max ret pid var secs ok n m i
+	typeset -a SPIN_CHARS=("${SPIN_CHARS8[@]}");
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -3384,7 +3390,7 @@ function imggenf
 #image variations
 function prompt_imgvarf
 {
-	curl -\# ${OPTV:+-Ss} --fail -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${API_HOST}${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
 		-F response_format="$OPTI_FMT" \
@@ -3601,10 +3607,10 @@ function awesomef
 	if [[ ! -s $FILEAWE ]] || [[ $1 = [/%]* ]]  #second slash
 	then 	set -- "${1##[/%]}"
 		if 	if ((zh))
-			then 	! { curl -\#Lf "$AWEURLZH" \
+			then 	! { curl -\# -L ${FAIL} "$AWEURLZH" \
 				| jq '"act,prompt",(.[]|join(","))' \
 				| sed 's/,/","/' >"$FILEAWE" ;}  #json to csv
-			else 	! curl -\#Lf "$AWEURL" -o "$FILEAWE"
+			else 	! curl -\# -L ${FAIL} "$AWEURL" -o "$FILEAWE"
 			fi
 		then 	[[ -f $FILEAWE ]] && rm -- "$FILEAWE"
 			return 1
@@ -4001,8 +4007,9 @@ function session_name_choosef
 function session_sub_printf
 {
 	typeset REPLY reply file time token string buff buff_end index regex skip sopt copt ok m n
+	typeset -a SPIN_CHARS=("${SPIN_CHARS0[@]}");
 	[[ -s ${file:=$1} ]] || return; [[ $file = */* ]] || [[ ! -e "./$file" ]] || file="./$file";
-	FILECHAT_OLD="$file" regex="${REGEX%%${NL}*}"
+	FILECHAT_OLD="$file" regex="${REGEX%%${NL}*}";
  
 	while ((skip)) || IFS= read -r
 	do 	__spinf; skip= ;
@@ -4277,7 +4284,7 @@ function set_localaif
 				curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
 				{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! __warmsgf 'Err' ;}
 			else
-				curl -\# -fL "${API_HOST}/models/available" -o "$FILE" &&
+				curl -\# -L ${FAIL} "${API_HOST}/models/available" -o "$FILE" &&
 				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! __warmsgf 'Err' ;} ||
 				! curl -\# -L "${API_HOST}/models/" | jq .
 				#bug# https://github.com/mudler/LocalAI/issues/2045
@@ -4304,8 +4311,8 @@ function set_googleaif
 	function list_modelsf
 	{
 		if [[ $* = $SPC1 ]]
-		then 	curl -\# --fail -L "$GOOGLE_API_HOST/models?key=$GOOGLE_API_KEY" -o "$FILE"
-		else 	curl -\# --fail -L "$GOOGLE_API_HOST/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
+		then 	curl -\# ${FAIL} -L "$GOOGLE_API_HOST/models?key=$GOOGLE_API_KEY" -o "$FILE"
+		else 	curl -\# ${FAIL} -L "$GOOGLE_API_HOST/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
 		fi && {
 		if ((OPTL>1))
 		then 	jq . -- "$FILE";
@@ -4317,7 +4324,7 @@ function set_googleaif
 		typeset epn;
 		epn='generateContent';
 		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
-		if curl "$@" --fail -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		if curl "$@" ${FAIL} -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$BLOCK" | tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
 		then 	[[ \ $*\  = *\ -s\ * ]] || __clr_lineupf;
@@ -4326,7 +4333,7 @@ function set_googleaif
 	}
 	function embedf
 	{
-		curl --fail -L "$GOOGLE_API_HOST/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
+		curl ${FAIL} -L "$GOOGLE_API_HOST/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "{ \"model\": \"models/embedding-001\",
 				\"content\": { \"parts\":[{
@@ -4411,7 +4418,7 @@ function set_anthropicf
 		[[ $MOD =  claude-3-5-sonnet-20240620 ]] &&  #8192 output tokens is in beta 
 		  set -- "$@" --header "anthropic-beta: max-tokens-3-5-sonnet-2024-07-15";
 
-		if curl "$@" --fail -L "${ANTHROPIC_API_HOST:-$ANTHROPIC_API_HOST_DEF}${ENDPOINTS[EPN]}" \
+		if curl "$@" ${FAIL} -L "${ANTHROPIC_API_HOST:-$ANTHROPIC_API_HOST_DEF}${ENDPOINTS[EPN]}" \
 			--header "x-api-key: $ANTHROPIC_API_KEY" \
 			--header "anthropic-version: 2023-06-01" \
 			--header "content-type: application/json" \
@@ -4435,8 +4442,8 @@ function set_anthropicf
 	{
 		set -- "https://raw.githubusercontent.com/anthropics/anthropic-sdk-python/main/src/anthropic/types";
 		{
-		  { curl -\# --fail -L "${1}/model.py" ||
-		    curl -\# --fail -L "${1}/model_param.py" ;} |
+		  { curl -\# ${FAIL} -L "${1}/model.py" ||
+		    curl -\# ${FAIL} -L "${1}/model_param.py" ;} |
 		      grep -oe '"[a-z0-9:.-]*"' | tr -d '"';
 		  _list_modelsf;
 		} | sort | uniq;
@@ -4533,8 +4540,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		no-fold) 	unset OPTFOLD;;
 		g) 	STREAM=1;;
 		G) 	unset STREAM;;
-		h) 	while read; do 	[[ $REPLY = \#\ v* ]] && break; done <"${BASH_SOURCE[0]:-$0}";
-			printf '%s\n' "$REPLY" "$HELP"
+		h) 	printf '%s\n' "$REPLY" "$HELP"
 			exit;;
 		H) 	((++OPTHH));;
 		P) 	((OPTHH)) && ((++OPTHH)) || OPTHH=2;;
@@ -4599,7 +4605,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		y) 	OPTTIK=1;;
 		Y) 	OPTTIK= OPTYY=1;;
 		z) 	OPTZ=1;;
-		Z) 	OPTZZ=1;;
+		Z) 	((++OPTZZ));;
 		\?) 	exit 1;;
 	esac; OPTARG= ;
 done
@@ -4882,6 +4888,7 @@ then 	function jq { 	false ;}
 	Color200=$INV __warmsgf 'Warning:' 'JQ not found. Please, install JQ.'
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
+{ curl --help all || curl --help ;} 2>&1 | grep -F -q -e "--fail-with-body" && FAIL="--fail-with-body" || FAIL="--fail";
 
 trap 'cleanupf; exit;' EXIT
 trap 'exit' HUP QUIT TERM KILL
@@ -4895,7 +4902,7 @@ then 	#(shell completion script)
 elif ((OPTFF))
 then 	if [[ -s "$CHATGPTRC" ]] && ((OPTFF<2))
 	then 	__edf "$CHATGPTRC";
-	else 	curl -f -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
+	else 	curl --fail -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
 		CHATGPTRC="stdout [$CHATGPTRC]";
 	fi; _sysmsgf 'Conf File:' "${CHATGPTRC/"$HOME"/"~"}";
 elif ((OPTHH && OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN) )) && [[ -f $FILEWHISPERLOG ]]

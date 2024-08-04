@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2024
-title: CHATGPT.SH(1) v0.69.11 \| General Commands Manual
+title: CHATGPT.SH(1) v0.69.15 \| General Commands Manual
 ---
 
 ### NAME
@@ -1106,6 +1106,9 @@ May be set multiple times.
 **-V**  
 Dump raw JSON request block (debug).
 
+**--version**  
+Print script version.
+
 **-x**, **--editor**  
 Edit prompt in text editor.
 
@@ -1119,5 +1122,5 @@ Unset tiktoken use (cmpls/chat, python).
 Synthesise speech from text prompt. Takes a voice name, speed and text
 prompt. Set *option -v* to not play response.
 
-**-Z**, **--last**  
+**-Z**, **-ZZ**, **-ZZZ**, **--last**  
 Print last response JSON data.

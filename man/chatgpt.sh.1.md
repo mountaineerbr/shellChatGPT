@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.69.11 | General Commands Manual
+% CHATGPT.SH(1) v0.69.15 | General Commands Manual
 % mountaineerbr
 % July 2024
 
@@ -1302,6 +1302,11 @@ API version 1 but not all endpoints or options will be covered.
 :     Dump raw JSON request block (debug).
 
 
+**\--version**
+
+: Print script version.
+
+
 **-x**, **\--editor**
 
 : Edit prompt in text editor.
@@ -1323,7 +1328,7 @@ API version 1 but not all endpoints or options will be covered.
   Set _option -v_ to not play response.
 
 
-**-Z**, **\--last**
+**-Z**, **-ZZ**, **-ZZZ**, **\--last**
 
 : Print last response JSON data.
 
