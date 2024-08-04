@@ -345,8 +345,8 @@ either “!” or “/”.
   -------- ---------------------- ------------------------------------------------------
   !fold    !wrap                  Toggle response wrapping.
   -g       !stream                Toggle response streaming.
-  -h       !!h [QUERY]            Print help or grep help for regex.
-  !help    !help-assist [REGEX]   Run the help assistant function.
+  -h       !!h [REGEX]            Print help or grep help for regex.
+  !help    !help-assist [QUERY]   Run the help assistant function.
   -l       !models [NAME]         List language models or show model details.
   -o       !clip                  Copy responses to clipboard.
   -u       !multi                 Toggle multiline prompter. <CTRL-D> flush.
