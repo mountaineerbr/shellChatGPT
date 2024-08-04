@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.15  jul/2024  by mountaineerbr  GPL+3
+# v0.69.16  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1870,7 +1870,7 @@ function cmd_runf
 			__cmdmsgf 'Keep_alive' "$OPT_KEEPALIVE"
 			;;
 		-L*|log*)
-			((OPTLOG)) && [[ $* != $SPC ]] && OPTLOG= ;
+			((OPTLOG)) && [[ -n $* ]] && OPTLOG= ;
 			((++OPTLOG)); ((OPTLOG%=2));
 			__cmdmsgf 'Logging' $(_onoff $OPTLOG);
 			((OPTLOG)) && {
@@ -1901,7 +1901,7 @@ function cmd_runf
 		markdown*|md*)
 			((OPTMD)) || (OPTMD=1 cmd_runf //"${args[@]}");
 			set -- "${*##@(markdown|md)$SPC}"
-			((OPTMD)) && [[ $1 != $SPC ]] && OPTMD= ;
+			((OPTMD)) && [[ -n $1 ]] && OPTMD= ;
 			if ((++OPTMD)); ((OPTMD%=2))
 			then 	MD_CMD=${1:-$MD_CMD} xskip=1;
 				set_mdcmdf "$MD_CMD";
@@ -2032,7 +2032,7 @@ function cmd_runf
 			;;
 		-[Ww]*|[Ww]*|rec*|whisper*)
 			set -- "${*##@(-[wW][wW]|-[wW]|[wW][wW]|[wW]|rec|whisper)$SPC}";
-			((OPTW+OPTWW)) && [[ $* != $SPC ]] && OPTW= OPTWW= ;
+			((OPTW+OPTWW)) && [[ -n $* ]] && OPTW= OPTWW= ;
 			case "${args[*]}" in
 				-W*|W*) OPTWW=1; OPTW= ;;
 				*)      OPTW=1; OPTWW= ;;
@@ -2052,17 +2052,17 @@ function cmd_runf
 			  do 	((${#var})) || shift; break;
 			  done
 
-			  [[ $* = $SPC ]] || WARGS=("$@"); xskip=1;
+			  [[ -z $* ]] || WARGS=("$@"); xskip=1;
 			  __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
 			fi; __cmdmsgf 'Whisper Chat' $(_onoff $((OPTW+OPTWW)) );
 			((OPTW)) || unset OPTW WSKIP SKIP;
 			;;
 		-z*|tts*|speech*)
 			set -- "${*##@(-z*([zZ])|tts|speech)$SPC}"
-			((OPTZ)) && [[ $* != $SPC ]] && OPTZ= ;
+			((OPTZ)) && [[ -n $* ]] && OPTZ= ;
 			if ((++OPTZ)); ((OPTZ%=2))
 			then 	set_playcmdf;
-				[[ $* = $SPC ]] || ZARGS=("$@"); xskip=1;
+				[[ -z $* ]] || ZARGS=("$@"); xskip=1;
 				__cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
 			fi; __cmdmsgf 'TTS Chat' $(_onoff $OPTZ);
 			((OPTZ)) || unset OPTZ SKIP;
@@ -2204,7 +2204,7 @@ function cmd_runf
 				RET=$?; trap "exit" INT;
 				((RET)) && __warmsgf "Shell:" "$RET"; echo >&2;
 				#abort on empty
-				[[ $REPLY = *([$IFS]) ]] && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
+				((!${#REPLY})) && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
 				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
 				case "$(__read_charf)" in
@@ -2690,7 +2690,7 @@ function ollama_mediaf
 {
 	typeset var n
 	set -- "${MEDIA[@]}" "${MEDIA_CMD[@]}";
-	[[ $* != $SPC1 ]] || return;
+	[[ -n $* ]] || return;
 	printf '\n"images": ['
 	for var
 	do 	((++n))
@@ -2717,7 +2717,7 @@ function _mediachatf
 
 	((!CMD_CHAT)) && ((${#1}>2048)) && set -- "${1:${#1}-2048}";  #avoid too long an input (too slow)
 
-	while [[ $1 = $SPC1 ]] || [[ $1 = *[a-zA-Z0-9]*$'\n'*[a-zA-Z0-9]* ]] || ((n>99)) && break;
+	while [[ -z $1 ]] || [[ $1 = *[a-zA-Z0-9]*$'\n'*[a-zA-Z0-9]* ]] || ((n>99)) && break;
 		[[ $1 = *[\|\ ]*[[:alnum:]]* ]] || {  #prompt is the raw filename / url:
 		  ftrim=$(trim_leadf "$1" $'*(\\\\[ntr]|[ \n\t\|])');
 		  { [[ -f $ftrim ]] || is_linkf "$ftrim" ;} && break=1;
@@ -3054,7 +3054,7 @@ function whisperf
 	check_optrangef "${OPTTW:-$OPTT}" 0 1.0 Temperature
 	set_model_epnf "$MOD_AUDIO"
 	
-	((${#})) || [[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
+	((${#})) || [[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
 	for var
 	do    [[ $var = *([$IFS]) ]] && shift || break;
 	done; var= ; args=("$@");
@@ -3196,7 +3196,7 @@ function _ttsf
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
-	((${#})) || [[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+	((${#})) || [[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
 	for var
 	do    [[ $var = *([$IFS]) ]] && shift || break;
 	done; var= ;
@@ -4310,7 +4310,7 @@ function set_googleaif
 
 	function list_modelsf
 	{
-		if [[ $* = $SPC1 ]]
+		if [[ -z $* ]]
 		then 	curl -\# ${FAIL} -L "$GOOGLE_API_HOST/models?key=$GOOGLE_API_KEY" -o "$FILE"
 		else 	curl -\# ${FAIL} -L "$GOOGLE_API_HOST/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
 		fi && {
@@ -4870,8 +4870,8 @@ then 	typeset -a argn
 		then 	ZARGS=("$@");
 		fi; set -- ;
 	fi
-	[[ ${WARGS[*]} = $SPC ]] && unset WARGS;
-	[[ ${ZARGS[*]} = $SPC ]] && unset ZARGS;
+	[[ -z ${WARGS[*]} ]] && unset WARGS;
+	[[ -z ${ZARGS[*]} ]] && unset ZARGS;
 	((${#WARGS[@]})) && ((${#ZARGS[@]})) && ((${#})) && {
 	  var=$* p=${var:128} var=${var:0:128}; __cmdmsgf 'Text Prompt' "${var//\\\\[nt]/  }${p:+ [..]}" ;}
 	((${#WARGS[@]})) && __cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-unset}"
@@ -4917,11 +4917,11 @@ then  #whisper log
 	fi; _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
 elif ((OPTHH))  #edit history/pretty print last session
 then 	OPTRESUME=1 
-	[[ $INSTRUCTION = $SPC && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
+	[[ -z $INSTRUCTION && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
 	if [[ $INSTRUCTION = [.,]* ]]
 	then 	##[[ $INSTRUCTION = [.,][.,]* ]] && OPTV=4  #when "..[prompt]"
 		custom_prf
-	elif [[ $* != $SPC ]] && [[ $* != *($SPC)/* ]]
+	elif [[ -n $* ]] && [[ $* != *($SPC)/* ]]
 	then 	set -- /session"$@"
 	fi
 	session_mainf "${@}"
@@ -4964,7 +4964,7 @@ then
 	fi
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then
-	[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
+	[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
 	if [[ $1 = @(.|last|retry) ]] && [[ -s $FILEINW ]]
 	then 	set -- "$FILEINW" "${@:2}";
 	elif ((${#} >1)) && [[ ${@:${#}} = @(.|last|retry) ]] && [[ -s $FILEINW ]]
@@ -4975,11 +4975,11 @@ then
 	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
 	then 	_sysmsgf $'\nText-To-Speech'; CHAT_ENV=1; set -- ;
-		[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+		[[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
 		ttsf "$@" "$(escapef "$WHISPER_OUT")";
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
-then 	[[ ${ZARGS[*]} = $SPC ]] || set -- "${ZARGS[@]}" "$@";
+then 	[[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
 	_ttsf "$@"
 elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
@@ -5020,7 +5020,7 @@ else
 	((OPTC+OPTCMPL)) && ((!OPTEXIT)) && test_dialogf;
 
 	#custom / awesome prompts
-	[[ $INSTRUCTION = $SPC && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
+	[[ -z $INSTRUCTION && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
 	case "$INSTRUCTION" in
 		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
 			awesomef || case $? in 	210|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
@@ -5179,7 +5179,7 @@ else
 
 		((JUMP)) ||
 		#defaults prompter
-		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ "$*" = $SPC ]]
+		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ -z "$*" ]]
 		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
 			B=$(_unescapef "${Q:0:320}") B=${B##*$'\n'} B=${B//?/\\b}  #backspaces
 
@@ -5198,7 +5198,7 @@ else
 							then 	REPLY=$(
 								((GROQAI))&& MOD_AUDIO=$MOD_AUDIO_GROQ;
 								set --; MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2= ;
-								[[ ${WARGS[*]} = $SPC ]] || set -- "${WARGS[@]}" "$@";
+								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
 								whisperf "$FILEINW" "$@";
 							)
 								((WAPPEND)) && REPLY=$REPLY_OLD${REPLY_OLD:+${REPLY:+ }}$REPLY WAPPEND= ;
@@ -5266,7 +5266,7 @@ else
 						cmd_runf /${var:-shell};
 						trim_trailf "$REPLY" "[/!]@(/shell|shell|/sh|sh)"
 					)
-					if [[ $REPLY_CMD_DUMP != $SPC ]]
+					if ((${#REPLY_CMD_DUMP}))
 					then 	REPLY="${*} ${REPLY_CMD_DUMP}";
 						((SKIP_SH_HIST)) || shell_histf "$REPLY";
 					fi
@@ -5284,7 +5284,7 @@ else
 					set --; continue 2;
 				elif ((${#REPLY}))
 				then
-					((PREVIEW+OPTV && EDIT!=2)) || [[ $REPLY = $SPC:* ]] \
+					((PREVIEW+OPTV && EDIT!=2)) || [[ $REPLY = :* ]] \
 					|| is_txturl "${REPLY: ind}" >/dev/null \
 					|| new_prompt_confirmf ed whisper
 					case $? in
@@ -5348,12 +5348,12 @@ else
 			fi
 
 			#system/instruction?
-			if [[ ${*} = $SPC:* ]]
+			if [[ ${*} = :* ]]
 			then
 				var=$(escapef "$( trim_leadf "$*" "$SPC:" )")
 
-				   [[ ${*} = $SPC:::* ]] && var=${var:1}  #[DEPRECATED] 
-				if [[ ${*} = $SPC::* ]]
+				   [[ ${*} = :::* ]] && var=${var:1}  #[DEPRECATED] 
+				if [[ ${*} = ::* ]]
 				then
 					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=added || v=set;
 					_sysmsgf "System prompt $v";
