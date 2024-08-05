@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.18  jul/2024  by mountaineerbr  GPL+3
+# v0.69.19  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -737,9 +737,10 @@ function model_capf
 		davinci-002|babbage-002) 	MODMAX=16384;;
 		davinci|curie|babbage|ada) 	MODMAX=2049;;
 		code-davinci-00[2-9]*|mistral-embed*) 	MODMAX=8001;;
+		gemini*-flash*) 	MODMAX=1048576;;  #standard: 128000
+		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=2097152;;  #standard: 128000
 		gpt-4[a-z]*|gpt-[5-9]*|gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*|\
 		gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
-		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|\
 		mistral-large*|open-mistral-nemo*) 	MODMAX=128000;;
 		gpt-3.5-turbo-1106) 	MODMAX=16385;;
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*) MODMAX=32768;;
@@ -757,6 +758,7 @@ function model_capf
 }
 #codestral-mamba:256k
 #groq: 3.1 models to max_tokens of 8k and 405b to 16k input tokens.
+#https://blog.google/technology/ai/google-gemini-next-generation-model-february-2024/
 
 #make cmpls request
 function __promptf
@@ -5607,10 +5609,13 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 				((STREAM)) && ((MAX_PREV+=tkn[1]));
 			fi
 
-			#check for OpenAI response length-type error
-			if ((!${#ans})) && ((RET_PRF<120)) && ((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI) ))
-			then 	jq -e '(.error?)//(.[]?|.error?)//empty' "$FILE" >&2 || ((OPTCMPL)) || ! __warmsgf 'Err'
-				__warmsgf "(response empty)"
+			#print error msg and check for OpenAI response length-type error
+			if ((!${#ans})) && ((RET_PRF<120))
+			then
+				var=$FILE; ((GOOGLEAI)) && ((STREAM)) && var=$FILE_PRE;
+				jq -e '(.error?)//(.[]?|.error?)//(..|.error?)//empty' "$var" >&2 || ((OPTCMPL)) || ! __warmsgf 'Err';
+				__warmsgf "(response empty)";
+				((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI) )) &&
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
 					&& var=$(jq -e '(.error.message?)//(.[]?|.error?)//empty' "$FILE" 2>/dev/null) \
 					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]] \
@@ -5624,7 +5629,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 					  ((HERR<HERR_DEF*4)) && _sysmsgf '' "* Set \`option -y' to use Tiktoken! * "
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
-				fi  #adjust context err
+				fi  #adjust context err (OpenAI only)
 			fi;
 
 			unset BAD_RES PSKIP ESC_OLD;
@@ -5756,6 +5761,7 @@ fi
 #    - chat cmpls stream, chat cmpls no-stream
 #    - text cmpls stream, text cmpls no-stream
 
+#https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference
 #Probably $BREAK_SET may be tested instead of $MAIN_LOOP, and some $OPTRESUME.
 ## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
