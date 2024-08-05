@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.17  jul/2024  by mountaineerbr  GPL+3
+# v0.69.18  jul/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2204,7 +2204,7 @@ function cmd_runf
 				RET=$?; trap "exit" INT;
 				((RET)) && __warmsgf "Shell:" "$RET"; echo >&2;
 				#abort on empty
-				((!${#REPLY})) && { 	SKIP=1 EDIT=1 REPLY="!${args[*]}" ;return ;}
+				((!${#REPLY})) && { 	SKIP=1 EDIT=1 RET=1 REPLY="!${args[*]}"; __warmsgf "Cmd dump:" "(empty)"; return ;}
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
 				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
 				case "$(__read_charf)" in
@@ -5390,7 +5390,7 @@ else
 				var=$(cmd_runf /cat"$var"; printf '%s\n' "$REPLY"; exit $RET);
 				ret=${?}; trap "exit" INT;
 			fi
-			if ((${#var})) && ((!ret))
+			if ((${#var})) && ((ret!=1))
 			then
 			  REPLY_CMD="${REPLY:-$REPLY_CMD}" REPLY_CMD_DUMP="$var";
 			  REPLY="${REPLY}${NL}${NL}${var}";
