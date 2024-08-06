@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.69.19  jul/2024  by mountaineerbr  GPL+3
+# v0.70  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1704,9 +1704,17 @@ function _model_costf
 		gpt-3.5-turbo-16k-0613) echo 3 4;;
 		davinci-002) 	echo 2 2;;
 		babbage-002) 	echo 0.4 0.4;;
+		gemini-1.0-pro*) 	echo 0.5 1.5;;
+		gemini-1.5-flash*) 	echo 0.075 0.3;;
+		#gemini-1.5-flash*) 	echo 0.15 0.6;;  #128K+
+		gemini-1.5*) 	echo 3.5 10.5;;
+		#gemini-1.5*) 	echo 7 21;;  #128K+
 		*) 	echo 0 0; false;;
 	esac;
 }
+#costs updated on aug/24
+#https://cloud.google.com/vertex-ai/generative-ai/pricing
+#https://ai.google.dev/pricing
 
 #check input and run a chat command  #tags: cmdrunf, runcmdf, run_cmdf
 function cmd_runf
