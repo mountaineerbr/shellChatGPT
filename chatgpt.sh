@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.70.1  aug/2024  by mountaineerbr  GPL+3
+# v0.71  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -853,8 +853,8 @@ function promptf
 #print tokens from response
 function response_tknf
 {
-	jq -r '(.usage.prompt_tokens)//(.usageMetadata.promptTokenCount)//"0",
-		(.usage.completion_tokens)//(.usageMetadata.candidatesTokenCount)//"0",
+	jq -r '(.usage.prompt_tokens)//"0",
+		(.usage.completion_tokens)//"0",
 		(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$@";
 }
 #https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
@@ -1322,8 +1322,13 @@ function push_tohistf
 		start_tiktokenf;    ((OPTTIK)) && __printbf '(tiktoken)';
 		token=$(__tiktokenf "${string}");
 		((token+=TKN_ADJ)); ((OPTTIK)) && __printbf '          '; };
-	time=${3:-$(date -Iseconds 2>/dev/null||date +"%Y-%m-%dT%H:%M:%S%z")}
+	time=${3:-$(datef)}
 	printf '%s%.22s\t%d\t"%s"\n' "$INT_RES" "$time" "$token" "${string:-${Q_TYPE##$SPC1}}" >> "$FILECHAT"
+}
+
+function datef
+{
+	date -Iseconds 2>/dev/null || date +"%Y-%m-%dT%H:%M:%S%z";
 }
 
 #record preview query input and response to hist file
@@ -4378,6 +4383,12 @@ function set_googleaif
 		else 	__tiktokenf "$(<$STDIN)";
 		fi
 	}
+	function response_tknf
+	{
+		typeset var
+		((STREAM)) && var='[-1]';
+		jq -r ".${var} | .usageMetadata | (.promptTokenCount,.candidatesTokenCount)" "$@";
+	}
 	function fmt_ccf
 	{
 		typeset var ext role
@@ -5547,7 +5558,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		fi; ((OPTC)) && echo >&2
 
 		#request and response prompts
-		SECONDS_REQ=$SECONDS;
+		SECONDS_REQ=${EPOCHREALTIME:-$SECONDS};
 		((${#START})) && printf "${YELLOW}%b\\n" "$START" >&2;
 		((OLLAMA)) && api_host=$API_HOST API_HOST=$OLLAMA_API_HOST;
 
@@ -5593,10 +5604,12 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 				((OLLAMA+LOCALAI)) ||  #OpenAI, MistralAI, and Groq
 				tkn=( $(
 					ind="-1" var="";
-					((GOOGLEAI)) && FILE="$FILE_PRE" var="[]";
+					((GOOGLEAI)) && FILE="$FILE_PRE";
 					((GROQAI)) && var="x_groq";
 					((ANTHROPICAI)) && ind="";
-					jq -s ".[${ind}] | .${var}" "$FILE" | response_tknf) )
+					jq -rs ".[${ind}] | .${var}" "$FILE" | response_tknf;
+					((GROQAI)) && datef && jq -rs '.[-1].x_groq.usage | (.completion_time,.completion_tokens/.completion_time)' "$FILE";  #tkn rate
+					) )
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6)) && unset A_TYPE; __tiktokenf "${A_TYPE}${ans}");
 				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD tkn;
@@ -5604,9 +5617,9 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			else
 				{ ((ANTHROPICAI && EPN==0)) && tkn=(0 0) ;} ||
 				((OLLAMA)) || tkn=( $(
-					var=""
-					((GROQAI)) && var="x_groq";
-					jq ".${var}" "$FILE" | response_tknf) )
+					jq "." "$FILE" | response_tknf;
+					((GROQAI)) && jq -r '.usage | (.completion_time, .completion_tokens/.completion_time)' "$FILE";  #tkn rate
+					) )
 				unset ans buff n
 				for ((n=0;n<OPTN;n++))  #multiple responses
 				do 	buff=$(INDEX=$n prompt_pf "$FILE")
@@ -5691,12 +5704,13 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
 		
-		if ((OLLAMA))  #token generation rate  #0 tokens, #1 secs, #2 rate
-		then 	TKN_RATE=( "${tkn[1]}" "$(printf '%.2f' "${tkn[3]}")" "$(printf '%.2f' "${tkn[4]}")" )
+		if ((OLLAMA+GROQAI)) && ((${#tkn[@]}==5))  #token generation rate  #0 tokens, #1 secs, #2 rate
+		then
+			TKN_RATE=( "${tkn[1]}" "$(printf '%.2f' "${tkn[3]}")" "$(printf '%.2f' "${tkn[4]}")" )
 		elif 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]
-		then 	((SECONDS==SECONDS_REQ)) && ((--SECONDS_REQ));
-			TKN_RATE=( "${tkn[1]:-$tkn_ans}" $((SECONDS-SECONDS_REQ))
-			"$(bc <<<"scale=2; ${tkn[1]:-${tkn_ans:-0}} / ($SECONDS-$SECONDS_REQ)")" )
+		then
+			TKN_RATE=( "${tkn[1]:-$tkn_ans}" "$(bc <<<"scale=8; ${EPOCHREALTIME:-$SECONDS} - $SECONDS_REQ")"
+			"$(bc <<<"scale=2; ${tkn[1]:-${tkn_ans:-0}} / (${EPOCHREALTIME:-$SECONDS}-$SECONDS_REQ)")" )
 		fi
 		SESSION_COST=$(
 			cost=$(_model_costf "$MOD") || exit; set -- $cost;
