@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.71.1  aug/2024  by mountaineerbr  GPL+3
+# v0.71.2  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1954,7 +1954,7 @@ function cmd_runf
 			set -- "${*##@(media|img)*([$IFS])}";
 			set -- "$(trim_trailf "$*" $'*([ \t\n])')";
 			CMD_CHAT=1 _mediachatf "$1" && {
-			  [[ -f $1 ]] && set -- "$(du -h -- "$1" 2>/dev/null||du -- "$1")" && set -- "${@//$'\t'/ }";
+			  [[ -f $1 ]] && set -- "$(duf "$1")";
 			  var=$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}))
 			  _sysmsgf "img ?$var" "${1:0: COLUMNS-6-${#var}}$([[ -n ${1: COLUMNS-6-${#var}} ]] && printf '\b\b\b%s' ...)";
 			};
@@ -2250,14 +2250,30 @@ function cmd_runf
 				done
 
 				if termux-camera-photo ${INDEX:+-c ${INDEX:-0}} "$var"
-				then 	# Rotate image if necessary
-					if command -v "exiftran" >/dev/null 2>&1;
-					then 	exiftran -ai "$var" >&2;
-					elif command -v "magick" >/dev/null 2>&1;
-					then 	magick mogrify -auto-orient "$var" >&2;
+				then
+					# Resize and rotate image if necessary
+					if command -v "magick" >/dev/null 2>&1;
+					then
+					  typeset var2 size
+					  var2=${var%.*}s.${var##*.}  #shrink
+					  size=($(magick identify -format "%w %h" "$var"))
+					  
+					  ((size[0]>2048 || size[1]>2048)) && ((size[0]!=size[1])) && 
+					  magick "$var" -auto-orient -resize '2048x2048>' "$var2" >&2;
+					  
+					  [[ -s $var2 ]] && var=$var2 size=($(magick identify -format "%w %h" "$var2"));
+					  
+					  ((size[0]<size[1] ? size[0]>768 : size[1]>768)) &&
+					  magick "$var" -auto-orient -resize '768x768^' "$var2" >&2;
+
+					  [[ -s $var2 ]] && var=$var2 || magick mogrify -auto-orient "$var" >&2;
+					  #https://platform.openai.com/docs/guides/vision/calculating-costs
+					elif command -v "exiftran" >/dev/null 2>&1;
+					then
+					  exiftran -ai "$var" >&2;
 					fi
 					REPLY="${1}${1:+ }${var}";
-					__sysmsgf "$(du -h "$var")" >&2;
+					__sysmsgf "$(duf "$var")" >&2; :;
 				else
 					false;
 				fi || __warmsgf 'Err:' 'photo camera';
@@ -2298,8 +2314,8 @@ function cmd_runf
 			fi
 			;;
 		replay|rep)
-			if ((${#REPLAY_FILES[@]}))
-			then 	for var in "${REPLAY_FILES[@]}"
+			if ((${#REPLAY_FILES[@]})) || [[ -s $FILEOUT_TTS ]]
+			then 	for var in "${REPLAY_FILES[@]:-$FILEOUT_TTS}"
 				do 	[[ -f $var ]] || continue
 					du -h "$var" 2>/dev/null
 					${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
@@ -2866,6 +2882,20 @@ function is_visionf
 	esac;
 }
 
+#alternative to du
+function duf
+{
+	wc -c -- "$@" | while read x y
+	  do  if ((x>1024*1224))
+	      then 	x=$(bc <<<"scale=3; $x/1024/1024") s=2 u=MB;
+	      elif ((x>1024*5))
+	      then 	x=$(bc <<<"scale=2; $x/1024") s=1 u=KB;
+	      else 	s=0 u=B;
+	      fi
+	      printf "%'.*f %s  %s\\n" "$s" "$x" "$u" "$y";
+	  done;
+}
+
 #create user log
 function usr_logf
 {
@@ -3003,6 +3033,7 @@ function record_confirmf
 	fi
 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr_off * ' >&2
 	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
+	#((!OPTV)) || bellf;
 }
 
 #record mic
@@ -3022,7 +3053,44 @@ function recordf
 	trap "trap 'exit' INT; ret=199;" INT;
 	
 	#see record_confirmf()
-	case "$(__read_charf)" in
+	case "$(
+		  # ~ experimental option -vv ~ #
+		  # hands-free experience, detect silence #
+		  min_len=1.0 #seconds (float)
+		  tmout=0.5   #seconds (float)
+		  rms=0.04    #0.001 - 0.01 (rms amplitude, sox)
+		  db=-28      #decibels (ffmpeg)
+
+		  if ((OPTV>1)) && ((!${#TERMUX_VERSION})) &&
+		      command -v ffmpeg >/dev/null 2>&1
+		  then
+		    _cmdmsgf "Silence Detection:" "tolerance: ${db}dB  min_length: ${min_len}s";
+		    __clr_ttystf; sleep ${min_len};
+		    while var=$(
+		        ffmpeg -i "$1" -af silencedetect=n=${db}dB:d=${min_len} -f null - 2>&1 |
+		        sed -n 's/^.*silence_start:[[:space:]]*//p' | sed -n '$ p'
+		      )
+		      (( $(bc <<<"scale=8; ${var:-0} < ${min_len}") ))
+		    do
+		      NO_CLR=1 __read_charf -t ${tmout} && break 1;
+		    done;
+		  elif ((OPTV>1)) && ((!${#TERMUX_VERSION})) &&
+		      command -v sox >/dev/null 2>&1
+		  then
+		    _cmdmsgf "Silence Detection:" "rms_amplitude: ${rms}  min_length: ${min_len}s";
+		    __clr_ttystf; sleep ${min_len};
+		    while var=$(
+			sox "$1" -n trim -${min_len} ${min_len} stat 2>&1 |
+		        sed -n 's/RMS .*amplitude:[[:space:]]*//p'
+		      )
+		      (( $(bc <<<"scale=8; ${var:-100} > ${rms}") ))
+		    do
+		      NO_CLR=1 __read_charf -t ${tmout} && break 1;
+		    done;
+		  else
+		      __read_charf;  #defaults
+		  fi
+		)" in
 		[AaOoQqWw])   ret=196  #whisper off
 			;;
 		[Ee]|$'\e') ret=199  #text edit (single-shot)
@@ -3279,8 +3347,13 @@ function _ttsf
 		while __spinf; ok=
 			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
 		do 	var=$(
-			((OPTV>1)) && printf '%s\n' 'p' >&2 \
-			  || NO_CLR=1 __read_charf -t 0.3) &&
+			  if ((OPTV>0)) && ((!${#TERMUX_VERSION}))
+			  then
+			    printf '%s\n' 'p' >&2;
+			  else
+			    NO_CLR=1 __read_charf -t 0.3;
+			  fi
+			) &&
 			case "$var" in
 				[Pp]|' '|''|$'\t')  ok=1;
 					((SECONDS>secs+2)) ||  #buffer
@@ -3533,11 +3606,7 @@ function img_convf
 		case "$(__read_charf)" in [AaNnQq]|$'\e') 	return 2;; esac
 	fi
 
-	[[ $(magick convert 2>&1)  = *'convert command is deprecated'* \
-	|| $(magick -version 2>&1) = *'Version: ImageMagick '[!2-6]* ]] \
-	|| typeset convert=convert;
-
-	if magick $convert "$1" -background none -gravity center -extent 1:1 "${@:2}"
+	if magick "$1" -background none -gravity center -extent 1:1 "${@:2}"
 	then 	if ((!OPTV))
 		then 	set -- "${@##png32:}" ;__openf "${@:${#}}"
 			__sysmsgf 'Confirm edit?' '[Y/n] ' ''
@@ -3838,7 +3907,7 @@ function set_reccmdf
 	if command -v termux-microphone-record
 	then 	REC_CMD='termux-microphone-record -r 16000 -c 1 -l 0 -f'
 	elif command -v sox
-	then 	REC_CMD='sox -d -r 16000 -c 1'
+	then 	REC_CMD='sox -d -r 16000 -c 1'  #'silence 1 0.50 0.1%'
 	elif command -v arecord  #alsa utils
 	then 	REC_CMD='arecord -f S16_LE -r 16000 -c 1 -i'
 	elif command -v ffmpeg
@@ -3846,9 +3915,23 @@ function set_reccmdf
 		    *[Dd]arwin*)
 			REC_CMD='ffmpeg -f avfoundation -i ":1" -ar 16000 -ac 1 -y';;
 		    *)  REC_CMD='ffmpeg -f alsa -i pulse -ar 16000 -ac 1 -y';;
+		    #'-af silenceremove=start_periods=1:start_silence=0.5:start_threshold=-28dB -y'
 		esac;
 	else 	REC_CMD='false'
 	fi >/dev/null 2>&1
+}
+
+#play audio bell
+function bellf
+{
+	typeset bell
+	bell="/usr/share/sounds/freedesktop/stereo/message.oga";
+	[[ -s $bell ]] || bell="${OUTDIR%/}/bell.oga";
+	if [[ -s $bell ]]
+	then 	set_playcmdf;
+		$PLAY_CMD "$bell";
+	else 	curl -s -L "https://gitlab.com/mountaineerbr/etc/-/raw/main/media/message.oga" -o "$bell";
+	fi >/dev/null 2>&1 & PIDS+=($!);
 }
 
 #append to shell hist list
@@ -4633,7 +4716,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW RET init buff convert var n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW RET init buff var n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -5114,7 +5197,7 @@ else
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	[[ -t 1 ]] && __printbf 'history_bash'; var=$SECONDS;  #only visible when large and slow
 		history -c; history -r; history -w;  #prune & rewrite history file
-		[[ -t 1 ]] && __printbf '            '; ((SECONDS-var>1)) && __warmsgf 'Warning:' "Bash history size -- $(du -h "$HISTFILE" | sed 's/\t/ /')";
+		[[ -t 1 ]] && __printbf '            '; ((SECONDS-var>1)) && __warmsgf 'Warning:' "Bash history size -- $(duf "$HISTFILE")";
 		if ((OPTRESUME)) && [[ -s $FILECHAT ]]
 		then 	REPLY_OLD=$(grep_usr_lastlinef);
 		elif [[ -s $HISTFILE ]]
@@ -5215,7 +5298,15 @@ else
 				((SKIP+OPTW+${#RESTART})) && echo >&2
 				if ((OPTW && !EDIT)) || ((RESUBW))
 				then 	#auto sleep 3-6 words/sec
-					((OPTV)) && ((!WSKIP)) && __read_charf -t $((SLEEP_WORDS/3))  &>/dev/null
+					if ((OPTV)) && ((!WSKIP))
+					then
+						var=$((SLEEP_WORDS/3))
+						for ((n=var;n>0;n--))
+						do 	printf "%0*d${var//?/\\b}" "${#var}" "$n" >&2;
+							__read_charf -t 1 >/dev/null 2>&1 && { __clr_lineupf && break ;}
+						done;
+						__printbf "${var//?/ }";
+					fi
 					
 					((RESUBW)) || record_confirmf
 					case $? in
@@ -5298,7 +5389,7 @@ else
 			    		SKIP=1 EDIT=1 REPLY_CMD=;
 					set -- ; continue 2;
 				elif case "${REPLY: ind}" in  #cmd: /photo, /pick, /save
-					*?[/!]photo) var=photo;;
+					*?[/!]photo|*?[/!]photo[0-9]) var=photo;;
 					*?[/!]pick|*?[/!]p) var=pick;;
 					*?[/!]save|*?[/!]\#) var=save;;
 					*) 	false;; esac;
@@ -5481,7 +5572,7 @@ else
 			
 			for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 			do 	((media_i++));
-				[[ -f $media ]] && media=$(du -h -- "$media" 2>/dev/null||du -- "$media") media=${media//$'\t'/ };
+				[[ -f $media ]] && media=$(duf "$media");
 				_sysmsgf "img #${media_i}" "${media:0: COLUMNS-6-${#media_i}}$([[ -n ${media: COLUMNS-6-${#media_i}} ]] && printf '\b\b\b%s' ...)";
 			done; unset media media_i;
 		fi
@@ -5764,31 +5855,6 @@ fi
 #   %%   %%  % %%  %   %%  %% "% %%      %%        %% %%  %    /a\  /i\  
 #   %%=% %%  % %%  %   %%  %%==% %%      %%  %% %==%% %%  %  ,<___><___>.
 
-# Guidelines for new providers:
-#  - set an "if statement" or "function" to run the integration code
-#  - set parameters and declare new functions that will take over the old definitions
-#  - unset other integrations but localai, clear environment
-#  - add $mod_integration to script head and config
-#  - set $integrationAI vars to automatically set the model for the integration on start-up when not set by the user
-#  - update the set_model_epnf() and the _model_costf() functions.
-#  - add getopts long option
-#  - add support for chat cmpls and optionally chat text cmpls, text cmpls and insert mode of text cmpls, whisper, tts
-#  - add support code to upload for image / url json objects
-#  - add new known models to the model token capacity case function
-#  - add new models to the list of known vision (multimodal) models
-#  - add new zsh bash completion options
-#  - add $mod_integration variables to help, man, and configuration file
-#  - add integration long option description in help and man
-#  - add integration description in read.me and man pages
-#  - add new integration point url link in readme.md
-#  - update descriptions in repo gitlablab, github, and pkgbuild
-#  - write the commit message.
-#  - ideally, test token usage record in history file
-#    - chat cmpls stream, chat cmpls no-stream
-#    - text cmpls stream, text cmpls no-stream
-
-#https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference
-#Probably $BREAK_SET may be tested instead of $MAIN_LOOP, and some $OPTRESUME.
 ## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 

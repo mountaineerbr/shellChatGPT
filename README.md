@@ -291,7 +291,14 @@ Chat in Portuguese with Whisper and set _onyx_ as the TTS voice:
 
 **Chat mode** provides a conversational experience,
 prompting the user to confirm each step.
-For less verbose and automated execution, set `options -vv`.
+
+For a more automated execution, set `option -v`,
+and `-vv` for hands-free experience
+(detect silence, experimental), such as:
+
+    chatgpt.sh -cc -w -z -v
+
+    chatgpt.sh -cc -w -z -vv
 
 
 ### Chat Mode of Text Completions
