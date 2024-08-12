@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.71.2  aug/2024  by mountaineerbr  GPL+3
+# v0.71.3  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2257,6 +2257,7 @@ function cmd_runf
 					  typeset var2 size
 					  var2=${var%.*}s.${var##*.}  #shrink
 					  size=($(magick identify -format "%w %h" "$var"))
+					  _sysmsgf "Camera Raw:" "$(printf '%dx%d' "${size[@]}")  $(duf "$var")";
 					  
 					  ((size[0]>2048 || size[1]>2048)) && ((size[0]!=size[1])) && 
 					  magick "$var" -auto-orient -resize '2048x2048>' "$var2" >&2;
@@ -2885,6 +2886,7 @@ function is_visionf
 #alternative to du
 function duf
 {
+	typeset s x u y
 	wc -c -- "$@" | while read x y
 	  do  if ((x>1024*1224))
 	      then 	x=$(bc <<<"scale=3; $x/1024/1024") s=2 u=MB;
@@ -5305,7 +5307,7 @@ else
 						do 	printf "%0*d${var//?/\\b}" "${#var}" "$n" >&2;
 							__read_charf -t 1 >/dev/null 2>&1 && { __clr_lineupf && break ;}
 						done;
-						__printbf "${var//?/ }";
+						__printbf "${var//?/ }"; SLEEP_WORDS=0;
 					fi
 					
 					((RESUBW)) || record_confirmf
