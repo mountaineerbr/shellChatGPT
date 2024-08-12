@@ -49,7 +49,7 @@ If no suffix is provided, it works as plain text completions.
 <!-- - *Lots of* command line options -->
 <!-- - Converts response base64 JSON data to PNG image locally -->
 
-
+<!--
 ### More Features
 
 - [_Generate images_](#%EF%B8%8F-image-generations)
@@ -61,6 +61,71 @@ If no suffix is provided, it works as plain text completions.
    from various languages (`option -w`)
 - _Translate audio_ into English text (`option -W`)
 - _Text-to-speeech_ functionality (`option -z`)
+
+-->
+
+
+## Index
+
+<details>
+  <summary>Click to expand!</summary>
+
+- 1. [Features](#-features)
+- 2. [Index](#index)
+- 3. [Getting Started](#-getting-started)
+  - 3.1 [Required Packages](#-required-packages)
+  - 3.2 [Optional Packages](#optional-packages)
+  - 3.3 [Installation](#-installation)
+  - 3.4 [Usage Examples](#-usage-examples-)
+  - 3.5 [Native Chat Completions](#-native-chat-completions)
+    - 3.5.1 [Vision Models (GPT-4-Vision)](#vision-models-gpt-4-vision)
+    - 3.5.2 [File Picker and Shell Dump](#file-picker-and-shell-dump)
+    - 3.5.3 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
+  - 3.6 [Chat Mode of Text Completions](#chat-mode-of-text-completions)
+  - 3.7 [Text Completions](#-text-completions)
+    - 3.7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
+- 4. [Script Help Assistant](#script-help-assistant)
+- 5. [Markdown](#markdown)
+- 6. [Prompts](#-prompts)
+  - 6.1 [Custom Prompts](#-custom-prompts)
+  - 6.2 [Awesome Prompts](#-awesome-prompts)
+- 7. [Shell Completion](#shell-completion)
+  - 7.1 [Bash](#bash)
+  - 7.2 [Zsh](#zsh)
+  - 7.3 [Troubleshoot](#troubleshoot)
+- 8. [Notes and Tips](#-notes-and-tips)
+- 9. [More Script Modes](#more-script-modes)
+  - 9.1 [Image Generations](#-image-generations)
+  - 9.2 [Image Variations](#image-variations)
+  - 9.3 [Image Edits](#image-edits)
+    - 9.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
+    - 9.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
+  - 9.4 [Audio Transcriptions / Translations](#-audio-transcriptions--translations)
+- 10. [Service Providers](#service-providers)
+  - 10.1 [LocalAI](#localai)
+    - 10.1.1 [LocalAI Server](#localai-server)
+    - 10.1.2 [Tips](#tips)
+    - 10.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
+    - 10.1.4 [Installing Models](#installing-models)
+    - 10.1.5 [Host API Configuration](#host-api-configuration)
+  - 10.2 [Ollama](#ollama)
+  - 10.3 [Google AI](#google-ai)
+  - 10.4 [Mistral AI](#mistral-ai)
+  - 10.5 [Groq](#groq)
+  - 10.6 [Anthropic](#anthropic)
+- 11. [Arch Linux Users](#arch-linux-users)
+- 12. [Termux Users](#termux-users)
+  - 12.1 [Optional Dependencies](#optional-dependencies)
+  - 12.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
+  - 12.3 [Tiktoken](#tiktoken)
+- 13. [Project Objectives](#-project-objectives)
+- 14. [Limitations](#%EF%B8%8F-limitations)
+- 15. [Bug report](#bug-report)
+- 16. [Help Pages](#-help-pages)
+- 17. [Contributors](#-contributors)
+- 18. [Acknowledgements](#acknowledgements)
+
+</details>
 
 
 ## ✨ Getting Started
@@ -502,11 +567,11 @@ _TIP:_ When using Ksh, press the up arrow key once to edit the _full prompt_
 -->
 
 
-### Shell Completion
+## Shell Completion
 
 This project includes shell completions to enhance the user command-line experience.
 
-#### Bash
+### Bash
 
 **Install** following one of the methods below.
 
@@ -526,7 +591,7 @@ This project includes shell completions to enhance the user command-line experie
 Visit the [bash-completion repository](https://github.com/scop/bash-completion).
 
 
-#### Zsh
+### Zsh
 
 **Install** at the **system location**
 
@@ -564,7 +629,7 @@ You may have to force rebuild `zcompdump`:
 Visit the [zsh-completion repository](https://github.com/zsh-users/zsh-completions).
 
 
-#### Troubleshoot
+### Troubleshoot
 
 Bash and Zsh completions should be active in new terminal sessions.
 If not, ensure your `~/.bashrc` and `~/.zshrc` source
@@ -632,7 +697,7 @@ optionally set instruction for the new session:
 -->
 
 
-## More Examples and Script Modes (Endpoints)
+## More Script Modes
 
 ### 🖼️ Image Generations
 
@@ -717,7 +782,7 @@ To retry with the last microphone recording saved in the cache, set
 _audio_file_ as `last` or `retry`.
 
 **NOTE:** Generate **phrasal-level timestamps** double setting `option -ww` or `option -WW`.
-For **word-level timestamps**, set option `-www` or `-WWW.
+For **word-level timestamps**, set option `-www` or `-WWW`.
 
 
 ![Transcribe audio with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
@@ -733,9 +798,11 @@ or ask it in comments to optimise the following code, for example.
 -->
 
 
-## LocalAI
+## Service Providers
 
-### LocalAI Server
+### LocalAI
+
+#### LocalAI Server
 
 Make sure you have got [mudler's LocalAI](https://github.com/mudler/LocalAI),
 server set up and running.
@@ -757,7 +824,7 @@ for an idea on how to install, download a model and set it up.
      └───────────────────────────────────────────────────┘
 
 
-### Tips
+#### Tips
 
 *1.* Download a binary of `localai` for your system from [Mudler's release GitHub repo](https://github.com/mudler/LocalAI/releases).
 
@@ -780,7 +847,7 @@ for an idea on how to install, download a model and set it up.
     curl -L http://localhost:8080/models/apply -H "Content-Type: application/json" -d '{ "config_url": "https://raw.githubusercontent.com/mudler/LocalAI/master/embedded/models/phi-2-chat.yaml" }'
 
 
-### Running the shell wrapper
+#### Running the shell wrapper
 
 Finally, when running `chatgpt.sh`, set the model name:
 
@@ -800,7 +867,7 @@ endpoint (`option -c`), such as `-s'\n### User: '  -s'\n### Response:'`
 And that's it!
 
 
-### Installing Models
+#### Installing Models
 
 Model names may be printed with `chatgpt.sh -l`. A model may be
 supplied as argument, so that only that model details are shown.
@@ -834,7 +901,7 @@ Gallery defaults to [HuggingFace](https://huggingface.co/).
 -->
 
 
-### API Host Configuration
+#### Host API Configuration
 
 If the host address is different from the defaults, we need editing
 the script configuration file `.chatgpt.conf`.
@@ -858,7 +925,7 @@ _Alternatively_, set `$OPENAI_API_HOST` on invocation:
     OPENAI_API_HOST="http://127.0.0.1:8080" chatgpt.sh -c -m luna-ai-llama2
 
 
-## Ollama
+### Ollama
 
 Visit [Ollama repository](https://github.com/ollama/ollama/),
 and follow the instructions to install, download models, and set up
@@ -878,7 +945,7 @@ edit `chatgpt.sh` configuration file, and set the following variable:
     OLLAMA_API_HOST="http://192.168.0.3:11434"
 
 
-## Google AI
+### Google AI
 
 Get a free [API key for Google](https://gemini.google.com/) to be able to
 use Gemini and vision models. Users have a free bandwidth of 60 requests per minute, and the script offers a basic implementation of the API.
@@ -894,7 +961,7 @@ with `option --google`, such as:
 To list all available models, run `chatgpt.sh --google -l`.
 
 
-## Mistral AI
+### Mistral AI
 
 Set up a [Mistral AI account](https://mistral.ai/),
 declare the enviroment variable `$MISTRAL_API_KEY`,
@@ -902,7 +969,7 @@ and run the script with `option --mistral` for complete integration.
 <!-- $MISTRAL_API_HOST -->
 
 
-## Groq
+### Groq
 
 Sign in to [Groq](https://console.groq.com/playground).
 Create a new API key or use an existing one to set
@@ -913,14 +980,14 @@ Currently, **llamma3.1** models are available at lightening speeds!
 
 
 <!--
-## Grok
+### Grok
 
 Visit [Grok](https://x.ai/) and
 check the [eligible countries and regions](https://x.ai/regions).
 -->
 
 
-## Anthropic
+### Anthropic
 
 Sign in to [Antropic AI](https://docs.anthropic.com/).
 Create a new API key or use an existing one to set
@@ -985,7 +1052,6 @@ in the man page.
 
 
 ## Arch Linux Users
-
 
 This project PKGBUILD is available at the
 [Arch Linux User Repository (*AUR*)](https://aur.archlinux.org/packages/chatgpt.sh)

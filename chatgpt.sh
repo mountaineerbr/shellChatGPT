@@ -5302,12 +5302,12 @@ else
 				then 	#auto sleep 3-6 words/sec
 					if ((OPTV)) && ((!WSKIP))
 					then
-						var=$((SLEEP_WORDS/3))
+						var=$((SLEEP_WORDS/3)) SLEEP_WORDS=0;
 						for ((n=var;n>0;n--))
 						do 	printf "%0*d${var//?/\\b}" "${#var}" "$n" >&2;
 							__read_charf -t 1 >/dev/null 2>&1 && { __clr_lineupf && break ;}
 						done;
-						__printbf "${var//?/ }"; SLEEP_WORDS=0;
+						__printbf "${var//?/ }";
 					fi
 					
 					((RESUBW)) || record_confirmf

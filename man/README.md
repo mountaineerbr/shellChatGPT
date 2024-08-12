@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2024
-title: CHATGPT.SH(1) v0.71 \| General Commands Manual
+title: CHATGPT.SH(1) v0.71.3 \| General Commands Manual
 ---
 
 ### NAME
@@ -859,6 +859,9 @@ with history, so avoid it.
 
 The script objective is to implement most features of OpenAI API version
 1 but not all endpoints or options will be covered.
+
+This project *doesn’t* support “Function Calling” or “Structured
+Outputs”.
 
 ### OPTIONS
 
