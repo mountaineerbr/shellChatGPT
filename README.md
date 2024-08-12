@@ -151,7 +151,10 @@ If no suffix is provided, it works as plain text completions.
 
 ### Optional Packages 
 
-These are required for specific features.
+Packages required for specific features.
+
+<details>
+  <summary>Click to expand!</summary>
 
 - `Base64` - Image endpoint, vision models
 - `ImageMagick`/`fbida` - Image edits and variations
@@ -164,6 +167,8 @@ These are required for specific features.
 - `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
+
+</details>
 
 
 ### 💾 Installation
