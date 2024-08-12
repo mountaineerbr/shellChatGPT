@@ -10,15 +10,23 @@ Chat completions with streaming by defaults.
 
 Markdown rendering of chat response (_optional_).
 
+<details>
+  <summary>Expand Text Completions</summary>
+
 ![Plain Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_cpls.gif)
 
 In pure text completions, start by typing some text that is going to be completed, such as news, stories, or poems.
+</details>
+
+<details>
+  <summary>Expand Insert Mode</summary>
 
 ![Insert Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_insert.gif)
 
 Add the insert tag `[insert]` where it is going to be completed.
 Mistral `code models` work well with the insert / fill-in-the-middel (FIM) mode!
 If no suffix is provided, it works as plain text completions.
+</details>
 
 
 ## 🚀 Features
@@ -73,11 +81,11 @@ If no suffix is provided, it works as plain text completions.
 - 1. [Features](#-features)
 - 2. [Index](#index)
 - 3. [Getting Started](#-getting-started)
-  - 3.1. [Required Packages](#-required-packages)
-  - 3.2. [Optional Packages](#optional-packages)
-  - 3.3. [Installation](#-installation)
-  - 3.4. [Usage Examples](#-usage-examples-)
-  - 3.5. [Native Chat Completions](#-native-chat-completions)
+  - 3.1 [Required Packages](#-required-packages)
+  - 3.2 [Optional Packages](#optional-packages)
+  - 3.3 [Installation](#-installation)
+  - 3.4 [Usage Examples](#-usage-examples-)
+  - 3.5 [Native Chat Completions](#-native-chat-completions)
     - 3.5.1 [Vision Models (GPT-4-Vision)](#vision-models-gpt-4-vision)
     - 3.5.2 [File Picker and Shell Dump](#file-picker-and-shell-dump)
     - 3.5.3 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
