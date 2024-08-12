@@ -33,57 +33,13 @@ If no suffix is provided, it works as plain text completions.
 </details>
 
 
-## 🚀 Features
-
-- Text and chat completions with **gpt-4o** and [**gtp-4-vision** support](#vision-models-gpt-4-vision)
-- **Text editor interface**, _Bash readline_, and _cat_ input modes
-- [**Markdown rendering**](#markdown) support in response
-- **Preview**, and  [**regenerate responses**](#--notes-and-tips)
-- **Manage sessions**, _print out_ previous sessions
-- [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
-   easily create and set the initial system prompt
-- **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
-- Integration with [mudler's LocalAI](#localai), [Ollama](#ollama),
-   [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), and [Anthropic](#anthropic)
-- Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
-   [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-- [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
-- Colour scheme personalisation 🎨 and a configuration file
-- _Tiktoken_ for accurate tokenization (optional)
-- Stdin and text file input support
-- Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
-- **Fast** shell code for a responsive experience! ⚡️ 
-
-<!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
-<!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
-<!-- - Insert mode of text completions -->
-<!-- - Choose amongst all available models from a pick list (`option -m.`) -->
-<!-- - *Lots of* command line options -->
-<!-- - Converts response base64 JSON data to PNG image locally -->
-
-<!--
-### More Features
-
-- [_Generate images_](#%EF%B8%8F-image-generations)
-   from text input (`option -i`)
-- [_Generate variations_](#image-variations) of images
-- [_Edit images_](#image-edits),
-   optionally edit with `ImageMagick` (generate alpha mask)
-- [_Transcribe audio_](#-audio-transcriptions-translations)
-   from various languages (`option -w`)
-- _Translate audio_ into English text (`option -W`)
-- _Text-to-speeech_ functionality (`option -z`)
-
--->
-
-
 ## Index
 
 <details>
   <summary>Click to expand!</summary>
 
-- 1. [Features](#-features)
-- 2. [Index](#index)
+- 1. [Index](#index)
+- 2. [Features](#-features)
 - 3. [Getting Started](#-getting-started)
   - 3.1 [Required Packages](#-required-packages)
   - 3.2 [Optional Packages](#optional-packages)
@@ -138,6 +94,50 @@ If no suffix is provided, it works as plain text completions.
 - 18. [Acknowledgements](#acknowledgements)
 
 </details>
+
+
+## 🚀 Features
+
+- Text and chat completions with **gpt-4o** and [**gtp-4-vision** support](#vision-models-gpt-4-vision)
+- **Text editor interface**, _Bash readline_, and _cat_ input modes
+- [**Markdown rendering**](#markdown) support in response
+- **Preview**, and  [**regenerate responses**](#--notes-and-tips)
+- **Manage sessions**, _print out_ previous sessions
+- [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
+   easily create and set the initial system prompt
+- **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
+- Integration with [mudler's LocalAI](#localai), [Ollama](#ollama),
+   [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), and [Anthropic](#anthropic)
+- Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
+   [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+- [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
+- Colour scheme personalisation 🎨 and a configuration file
+- _Tiktoken_ for accurate tokenization (optional)
+- Stdin and text file input support
+- Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
+- **Fast** shell code for a responsive experience! ⚡️ 
+
+<!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
+<!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
+<!-- - Insert mode of text completions -->
+<!-- - Choose amongst all available models from a pick list (`option -m.`) -->
+<!-- - *Lots of* command line options -->
+<!-- - Converts response base64 JSON data to PNG image locally -->
+
+<!--
+### More Features
+
+- [_Generate images_](#%EF%B8%8F-image-generations)
+   from text input (`option -i`)
+- [_Generate variations_](#image-variations) of images
+- [_Edit images_](#image-edits),
+   optionally edit with `ImageMagick` (generate alpha mask)
+- [_Transcribe audio_](#-audio-transcriptions-translations)
+   from various languages (`option -w`)
+- _Translate audio_ into English text (`option -W`)
+- _Text-to-speeech_ functionality (`option -z`)
+
+-->
 
 
 ## ✨ Getting Started
