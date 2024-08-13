@@ -491,7 +491,7 @@ is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978
 If you have got a question about the script itself and how to set it up,
 there is a built-in assistant (much like **M$ Clipper**).
 
-While in chat mode, type the command `/h [question]`, in which the question
+While in chat mode, type the command `/help [question]`, in which the question
 is related to script features and your current chat settings, and how
 you can change them or invoke the script with the right syntax!
 
