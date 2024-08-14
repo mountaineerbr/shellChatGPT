@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.71.4  aug/2024  by mountaineerbr  GPL+3
+# v0.71.5  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2111,8 +2111,12 @@ function cmd_runf
 			;;
 		i|info)
 			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
-			$( ((OLLAMA)) && echo ollama-url "${OLLAMA_API_HOST}${ENDPOINTS[EPN]}") \
-			host-url      "${API_HOST}${ENDPOINTS[EPN]}" \
+			$(
+			  ((OLLAMA)) && echo ollama-url "${OLLAMA_API_HOST}${ENDPOINTS[EPN]}"
+			  ((GOOGLEAI)) && echo google-url "${GOOGLE_API_HOST}${ENDPOINTS[EPN]}"
+			  ((ANTHROPICAI)) && echo anthropic-url "${ANTHROPIC_API_HOST}${ENDPOINTS[EPN]}"
+			) \
+			host-url      "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
 			model-name    "${MOD:-?}$(is_visionf "$MOD" && printf ' / %s' 'multimodal')" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
@@ -4516,6 +4520,7 @@ function set_anthropicf
 {
 	: ${ANTHROPIC_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER;
+	((${#ANTHROPIC_API_HOST})) || ANTHROPIC_API_HOST=$ANTHROPIC_API_HOST_DEF;
 	ENDPOINTS[0]="/v1/complete" ENDPOINTS[6]="/v1/messages" OPTA= OPTAA= ;
 	if ((ANTHROPICAI)) && ((EPN==0))
 	then 	[[ -n ${RESTART+1} ]] || RESTART='\n\nHuman: ';
@@ -4527,7 +4532,7 @@ function set_anthropicf
 		[[ $MOD =  claude-3-5-sonnet-20240620 ]] &&  #8192 output tokens is in beta 
 		  set -- "$@" --header "anthropic-beta: max-tokens-3-5-sonnet-2024-07-15";
 
-		if curl "$@" ${FAIL} -L "${ANTHROPIC_API_HOST:-$ANTHROPIC_API_HOST_DEF}${ENDPOINTS[EPN]}" \
+		if curl "$@" ${FAIL} -L "${ANTHROPIC_API_HOST}${ENDPOINTS[EPN]}" \
 			--header "x-api-key: $ANTHROPIC_API_KEY" \
 			--header "anthropic-version: 2023-06-01" \
 			--header "content-type: application/json" \
