@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.71.3  aug/2024  by mountaineerbr  GPL+3
+# v0.71.4  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1932,6 +1932,7 @@ function cmd_runf
 			set_mdcmdf "${1:-$MD_CMD}"; xskip=1;
 			((STREAM)) || unset STREAM;
 			printf "${NC}\\n" >&2;
+			((BREAK_SET)) ||
 			prompt_pf -r ${STREAM:+-j --unbuffered} "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
 			printf "${NC}\\n" >&2;
 			;;
