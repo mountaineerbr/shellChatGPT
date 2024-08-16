@@ -489,7 +489,7 @@ is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978
 ## Script Help Assistant
 
 If you have got a question about the script itself and how to set it up,
-there is a built-in assistant (much like **M$ Clipper**).
+there is a built-in assistant (much like **M$ Office Clipper**).
 
 While in chat mode, type the command `/help [question]`, in which the question
 is related to script features and your current chat settings, and how

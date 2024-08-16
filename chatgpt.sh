@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.71.5  aug/2024  by mountaineerbr  GPL+3
+# v0.71.6  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -536,8 +536,8 @@ Options
 
 	Script Modes
 	-c, --chat
-		Chat mode in text completions, session break.
-	-cc 	Chat mode in chat completions, session break.
+		Chat mode in text completions (used with -wzvv).
+	-cc 	Chat mode in chat completions (used with -wzvv).
 	-C, --continue, --resume
 		Continue from (resume) last session (cmpls/chat).
 	-d, --text
@@ -578,7 +578,7 @@ Options
 		Transcribe audio file into text (whisper models).
 		LANG is optional. A prompt that matches the audio language
 		is optional. Set twice to phrase or thrice for word-level
-		timestamps (-www). 
+		timestamps (-www). With -vv, stop voice recorder on silence.
 	-W, --translate   [AUD] [PROMPT-EN]
 		Translate audio file into English text (whisper models).
 		Set twice to phrase or thrice for word-level timestamps (-WWW). 
@@ -630,8 +630,9 @@ Options
 	-U, --cat
 		Set cat prompter, <CTRL-D> flush.
 	-v, --verbose
-		Less verbose. Sleep after response in voice chat (-vvccw).
-		May be set multiple times.
+		Less verbose. With -ccwv, sleep after response. With
+		-ccwzvv, stop recording voice input on silence and play
+		TTS response right away. May be set multiple times.
 	-V  	Dump raw request block to stderr (debug).
 	--version
 		Print script version.
@@ -644,7 +645,7 @@ Options
 	-z, --tts   [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 		Synthesise speech from text prompt, set -v to not play.
 	-Z, -ZZ, -ZZZ, --last
-		Print last response JSON files."
+		Print data from the last JSON responses."
 
 ENDPOINTS=(
 	/v1/completions               #0
@@ -1925,7 +1926,7 @@ function cmd_runf
 				__sysmsgf 'MD Cmd:' "$MD_CMD"
 			fi;
 			__cmdmsgf 'Markdown' $(_onoff $OPTMD);
-			((OPTMD)) || unset OPTMD;
+			((OPTMD)) || unset OPTMD; NO_OPTMD_AUTO=1;
 			;;
 		[/!]markdown*|[/!]md*)
 			set -- "${*##[/!]@(markdown|md)$SPC}"
@@ -1934,7 +1935,7 @@ function cmd_runf
 			printf "${NC}\\n" >&2;
 			((BREAK_SET)) ||
 			prompt_pf -r ${STREAM:+-j --unbuffered} "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
-			printf "${NC}\\n" >&2;
+			printf "${NC}\\n\\n" >&2;
 			;;
 		url*|[/!]url*)
 			xskip=1;
@@ -2423,6 +2424,7 @@ function edf
 	set_filetxtf
 	pre="${INSTRUCTION}${INSTRUCTION:+$'\n\n'}""$(unescapef "$HIST")"
 	((OPTCMPL)) || [[ $pre = *([$IFS]) ]] || pre="${pre}${ed_msg}"
+	((OPTMD)) && pre="# vi: filetype=markdown${NL}${NL}${pre}"
 	printf "%s\\n" "${pre}"$'\n\n'"${rest}${*}" > "$FILETXT"
 
 	__edf "$FILETXT"
@@ -2806,7 +2808,7 @@ function _is_linkf
 	[[ ! -f $1 ]] || return;
 	case "$1" in
 		[Hh][Tt][Tt][Pp][Ss]://* | [Hh][Tt][Tt][Pp]://* | [Ff][Tt][Pp]://* | [Ff][Ii][Ll][Ee]://* | telnet://* | gopher://* | about://* | wais://* ) :;;
-		*?.[Hh][Tt][Mm] | *?.[Hh][Tt][Mm][Ll] | *?.[Ss][Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm][Ll]? | *?.[Xx][Mm][Ll] | *?.com | *?.com/ | *?.com.[a-z][a-z] | *?.com.[a-z][a-z]/ ) :;;
+		*?.[Hh][Tt][Mm] | *?.[Hh][Tt][Mm][Ll] | *?.[A-Za-z][Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm][Ll]? | *?.[Xx][Mm][Ll] | *?.com | *?.com/ | *?.com.[a-z][a-z] | *?.com.[a-z][a-z]/ ) :;;
 		[Ww][Ww][Ww].?* ) :;;
 		*) false;;
 	esac
@@ -2886,6 +2888,11 @@ function is_visionf
 	claude-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
 	*) 	((MULTIMODAL));;
 	esac;
+}
+
+function is_mdf
+{
+	[[ "\\n$1" =~ (\*\*|__|\[[^\]]*\]\([^\)]*\)|\\n\ *\`\`\`|\\n\#\#*\ |\\n\ *[\*-]\ |\\n\ *[0-9][0-9]*\.\ ) ]]
 }
 
 #alternative to du
@@ -3063,7 +3070,7 @@ function recordf
 	case "$(
 		  # ~ experimental option -vv ~ #
 		  # hands-free experience, detect silence #
-		  min_len=1.0 #seconds (float)
+		  min_len=1.2 #seconds (float)
 		  tmout=0.5   #seconds (float)
 		  rms=0.04    #0.001 - 0.01 (rms amplitude, sox)
 		  db=-28      #decibels (ffmpeg)
@@ -3922,11 +3929,12 @@ function set_reccmdf
 		    *[Dd]arwin*)
 			REC_CMD='ffmpeg -f avfoundation -i ":1" -ar 16000 -ac 1 -y';;
 		    *)  REC_CMD='ffmpeg -f alsa -i pulse -ar 16000 -ac 1 -y';;
-		    #'-af silenceremove=start_periods=1:start_silence=0.5:start_threshold=-28dB -y'
+		    #'-af silenceremove=start_periods=1:start_silence=0.2:start_threshold=-28dB'
 		esac;
 	else 	REC_CMD='false'
 	fi >/dev/null 2>&1
 }
+#id.luchkin: https://community.openai.com/t/whisper-api-hallucinating-on-empty-sections/93646/5  
 
 #play audio bell
 function bellf
@@ -4644,7 +4652,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO;
 			#OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -4897,6 +4905,7 @@ if ((OPTMD+${#MD_CMD}))
 then 	set_mdcmdf "$MD_CMD";
 	((OPTMD)) || OPTMD=1;
 fi
+((${#OPTMD}+${#MD_CMD})) && NO_OPTMD_AUTO=1  #disable markdown auto detect
 
 #stdin and stderr filepaths
 if [[ -n $TERMUX_VERSION ]]
@@ -5804,6 +5813,15 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
+
+		#auto detect markdown in response
+		if ((!NO_OPTMD_AUTO)) && ((!OPTMD)) && ((!OPTEXIT)) &&
+			((OPTC)) && ((MTURN)) && is_mdf "${ans}"
+		then
+			echo >&2;
+			_cmdmsgf 'Markdown' "AUTO";
+			cmd_runf /markdown;
+		fi
 		
 		if ((OLLAMA+GROQAI)) && ((${#tkn[@]}==5))  #token generation rate  #0 tokens, #1 secs, #2 rate
 		then

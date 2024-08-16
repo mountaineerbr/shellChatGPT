@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.71.3 | General Commands Manual
+% CHATGPT.SH(1) v0.71.6 | General Commands Manual
 % mountaineerbr
 % August 2024
 
@@ -267,8 +267,9 @@ completions. For example, given a partial input, the language
 model will try completing it until probable "`<|endoftext|>`",
 or other stop sequences (stops may be set with `-s`).
 
-**Restart** and **start sequences** may be optionally set and are
-always preceded by a new line.
+**Restart** and **start sequences** may be optionally set. Restart and start
+sequences are not set automatically if the chat mode of text completions
+is not activated with `option -c`.
 
 To enable **multiline input**, set `option -u`. With this option set,
 press \<_CTRL-D_> to flush input! This is useful to paste from clipboard.
@@ -1056,12 +1057,12 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
 **-c**, **\--chat**
 
-: Chat mode in text completions, session break.
+: Chat mode in text completions (used with `options -wzvv`).
 
 
 **-cc**
 
-: Chat mode in chat completions, session break.
+: Chat mode in chat completions (used with `options -wzvv`).
 
 
 **-C**, **\--continue**, **\--resume**
@@ -1164,6 +1165,8 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
       Audio will be transcribed or translated to the target LANG.
       
       Set twice to phrase or thrice for word-level timestamps (-www).
+
+      With `options -vv`, stop voice recorder on silence auto detection.
 
 
 **-W**, **\--translate**   \[_AUD_] \[_PROMPT-EN_]
@@ -1294,9 +1297,13 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
 :     Less verbose.
 
-:     Sleep after response in voice chat (`-vvccw`).
+      Sleep after response in voice chat (`-vvccw`).
 
-:     May be set multiple times.
+      With `options -ccwv`, sleep after response. With `options -ccwzvv`,
+      stop recording voice input on silence detection and play TTS response
+	  right away.
+
+      May be set multiple times.
 
 
 **-V**
@@ -1326,12 +1333,13 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
 **-z**, **\--tts**   \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
 
-: Synthesise speech from text prompt. Takes a voice name, speed and text prompt.
-  Set _option -v_ to not play response.
+:     Synthesise speech from text prompt. Takes a voice name, speed and text prompt.
+
+      Set _option -v_ to not play response.
 
 
 **-Z**, **-ZZ**, **-ZZZ**, **\--last**
 
-: Print last response JSON data.
+: Print JSON data of the last responses.
 
 

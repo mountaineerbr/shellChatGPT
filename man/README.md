@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2024
-title: CHATGPT.SH(1) v0.71.3 \| General Commands Manual
+title: CHATGPT.SH(1) v0.71.6 \| General Commands Manual
 ---
 
 ### NAME
@@ -267,8 +267,9 @@ For example, given a partial input, the language model will try
 completing it until probable “`<|endoftext|>`”, or other stop sequences
 (stops may be set with `-s`).
 
-**Restart** and **start sequences** may be optionally set and are always
-preceded by a new line.
+**Restart** and **start sequences** may be optionally set. Restart and
+start sequences are not set automatically if the chat mode of text
+completions is not activated with `option -c`.
 
 To enable **multiline input**, set `option -u`. With this option set,
 press \<*CTRL-D*\> to flush input! This is useful to paste from
@@ -939,10 +940,10 @@ Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
 #### Script Modes
 
 **-c**, **--chat**  
-Chat mode in text completions, session break.
+Chat mode in text completions (used with `options -wzvv`).
 
 **-cc**  
-Chat mode in chat completions, session break.
+Chat mode in chat completions (used with `options -wzvv`).
 
 **-C**, **--continue**, **--resume**  
 Continue from (resume) last session (cmpls/chat).
@@ -1018,6 +1019,8 @@ the audio language is optional. Audio will be transcribed or translated
 to the target LANG.
 
 Set twice to phrase or thrice for word-level timestamps (-www).
+
+With `options -vv`, stop voice recorder on silence auto detection.
 
 **-W**, **--translate** \[*AUD*\] \[*PROMPT-EN*\]  
 Translate audio file into English text.
@@ -1104,6 +1107,10 @@ Less verbose.
 
 Sleep after response in voice chat (`-vvccw`).
 
+With `options -ccwv`, sleep after response. With `options -ccwzvv`, stop
+recording voice input on silence detection and play TTS response right
+away.
+
 May be set multiple times.
 
 **-V**  
@@ -1123,7 +1130,9 @@ Unset tiktoken use (cmpls/chat, python).
 
 **-z**, **--tts** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
 Synthesise speech from text prompt. Takes a voice name, speed and text
-prompt. Set *option -v* to not play response.
+prompt.
+
+Set *option -v* to not play response.
 
 **-Z**, **-ZZ**, **-ZZZ**, **--last**  
-Print last response JSON data.
+Print JSON data of the last responses.

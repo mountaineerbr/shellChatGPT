@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.71.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.71.6 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.71.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.71.6 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2024</p>
 </header>
@@ -417,7 +417,9 @@ completions. For example, given a partial input, the language model will
 try completing it until probable “<code>&lt;|endoftext|&gt;</code>”, or
 other stop sequences (stops may be set with <code>-s</code>).</p>
 <p><strong>Restart</strong> and <strong>start sequences</strong> may be
-optionally set and are always preceded by a new line.</p>
+optionally set. Restart and start sequences are not set automatically if
+the chat mode of text completions is not activated with
+<code>option -c</code>.</p>
 <p>To enable <strong>multiline input</strong>, set
 <code>option -u</code>. With this option set, press
 &lt;<em>CTRL-D</em>&gt; to flush input! This is useful to paste from
@@ -1427,11 +1429,13 @@ Def=<em>gpt-3.5-turbo-instruct</em>, <em>gpt-4o</em>.</p>
 <dl>
 <dt><strong>-c</strong>, <strong>--chat</strong></dt>
 <dd>
-<p>Chat mode in text completions, session break.</p>
+<p>Chat mode in text completions (used with
+<code>options -wzvv</code>).</p>
 </dd>
 <dt><strong>-cc</strong></dt>
 <dd>
-<p>Chat mode in chat completions, session break.</p>
+<p>Chat mode in chat completions (used with
+<code>options -wzvv</code>).</p>
 </dd>
 <dt><strong>-C</strong>, <strong>--continue</strong>,
 <strong>--resume</strong></dt>
@@ -1526,6 +1530,8 @@ cache.</p>
 matches the audio language is optional. Audio will be transcribed or
 translated to the target LANG.</p>
 <p>Set twice to phrase or thrice for word-level timestamps (-www).</p>
+<p>With <code>options -vv</code>, stop voice recorder on silence auto
+detection.</p>
 </dd>
 <dt><strong>-W</strong>, <strong>--translate</strong> [<em>AUD</em>]
 [<em>PROMPT-EN</em>]</dt>
@@ -1636,11 +1642,10 @@ respectively.</p>
 <dt><strong>-v</strong>, <strong>--verbose</strong></dt>
 <dd>
 <p>Less verbose.</p>
-</dd>
-<dd>
 <p>Sleep after response in voice chat (<code>-vvccw</code>).</p>
-</dd>
-<dd>
+<p>With <code>options -ccwv</code>, sleep after response. With
+<code>options -ccwzvv</code>, stop recording voice input on silence
+detection and play TTS response right away.</p>
 <p>May be set multiple times.</p>
 </dd>
 <dt><strong>-V</strong></dt>
@@ -1669,12 +1674,13 @@ respectively.</p>
 [<em>SPEED</em>] [<em>PROMPT</em>]</dt>
 <dd>
 <p>Synthesise speech from text prompt. Takes a voice name, speed and
-text prompt. Set <em>option -v</em> to not play response.</p>
+text prompt.</p>
+<p>Set <em>option -v</em> to not play response.</p>
 </dd>
 <dt><strong>-Z</strong>, <strong>-ZZ</strong>, <strong>-ZZZ</strong>,
 <strong>--last</strong></dt>
 <dd>
-<p>Print last response JSON data.</p>
+<p>Print JSON data of the last responses.</p>
 </dd>
 </dl>
 </body>
