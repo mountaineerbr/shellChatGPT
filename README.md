@@ -60,7 +60,7 @@ If no suffix is provided, it works as plain text completions.
 - 7. [Shell Completion](#shell-completion)
   - 7.1 [Bash](#bash)
   - 7.2 [Zsh](#zsh)
-  - 7.3 [Troubleshoot](#troubleshoot)
+  - 7.3 [Troubleshoot](#troubleshoot-shell)
 - 8. [Notes and Tips](#-notes-and-tips)
 - 9. [More Script Modes](#more-script-modes)
   - 9.1 [Image Generations](#-image-generations)
@@ -83,9 +83,10 @@ If no suffix is provided, it works as plain text completions.
   - 10.6 [Anthropic](#anthropic)
 - 11. [Arch Linux Users](#arch-linux-users)
 - 12. [Termux Users](#termux-users)
-  - 12.1 [Optional Dependencies](#optional-dependencies)
+  - 12.1 [Dependencies](#dependencies-termux)
   - 12.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
   - 12.3 [Tiktoken](#tiktoken)
+  - 12.4 [Troubleshoot](#troubleshoot-termux)
 - 13. [Project Objectives](#-project-objectives)
 - 14. [Limitations](#%EF%B8%8F-limitations)
 - 15. [Bug report](#bug-report)
@@ -164,7 +165,7 @@ Packages required for specific features.
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
-- `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
+- `termux-api`/`termux-tools`/`play-audio` - Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
 
@@ -375,7 +376,7 @@ Chat in Portuguese with Whisper and set _onyx_ as the TTS voice:
 prompting the user to confirm each step.
 
 For a more automated execution, set `option -v`,
-and `-vv` for hands-free experience
+and `-vv` for hands-free experience (_live chat_)
 (detect silence, experimental), such as:
 
     chatgpt.sh -cc -w -z -v
@@ -646,7 +647,7 @@ You may have to force rebuild `zcompdump`:
 Visit the [zsh-completion repository](https://github.com/zsh-users/zsh-completions).
 
 
-### Troubleshoot
+### Troubleshoot Shell
 
 Bash and Zsh completions should be active in new terminal sessions.
 If not, ensure your `~/.bashrc` and `~/.zshrc` source
@@ -1101,12 +1102,26 @@ Below is an installation example with just the PKGBUILD.
 
 ## Termux Users
 
-### Optional Dependencies
+### Dependencies Termux
 
-Install the `termux-api` package.
+Install the `Termux` and `Termux:API` apps from the *F-Droid store*.
 
-For recording audio (Whisper, `option -w`), we defaults to `termux-microphone-record`
-and for playing audio (TTS, `option -z`), optionally install `play-audio`.
+Give all permissions to `Termux:API` in your phone app settings.
+
+We reccommend to also install `sox`, `ffmpeg`, `pulseaudio`, `imagemagick`, and `vim` (or `nano`).
+
+Remember to execute `termux-setup-storage` to set up access to the phone storage.
+
+In Termux proper, install the `termux-api` and `termux-tools` packages (`pkg install termux-api termux-tools`).
+
+When recording audio (Whisper, `option -w`),
+if `pulseaudio` is configured correctly,
+the script uses `sox`, `ffmpeg` or other competent software,
+otherwise it defaults to `termux-microphone-record`
+
+Likewise, when playing audio (TTS, `option -z`),
+depending on `pulseaudio` configuration use `sox`, `ffmpeg` or
+fallback to termux wrapper playback (`play-audio` is optional).
 
 To set the clipboard, it is required `termux-clipboard-set` from the `termux-api` package.
 
@@ -1130,6 +1145,45 @@ Under Termux, make sure to have your system updated and installed with
     pkg install python rust rustc-dev
     
     pip install tiktoken
+
+
+### Troubleshoot Termux
+
+In order to set Termux access to recording the microphone and playing audio
+(with `sox` and `ffmpeg`), follow the instructions below.
+
+**A.** Set `pulseaudio` one time only, execute:
+
+    pulseaudio -k
+    pulseaudio -L "module-sles-source" -D
+
+
+**B.** To set a permanent configuration:
+
+1. Kill the process with `pulseaudio -k`.
+2. Add `load-module module-sles-source` to _one of the files_:
+   ```
+   ~/.config/pulse/default.pa
+   /data/data/com.termux/files/usr/etc/pulse/default.pa
+   ```
+3. Restart the server with `pulseaudio -D`.
+
+
+**C.** To create a new user `~/.config/pulse/default.pa`, you may start with the following template:
+
+    #!/usr/bin/pulseaudio -nF
+    .include /data/data/com.termux/files/usr/etc/pulse/default.pa
+    load-module module-sles-source
+
+
+### Acess file
+
+To access your Termux files using Android's file manager, install a decent file manager such as `FX File Explorer` from a Play Store and configure it, or run the following command in your Termux terminal:
+
+    am start -a android.intent.action.VIEW -d "content://com.android.externalstorage.documents/root/primary"
+
+
+Source: <https://www.reddit.com/r/termux/comments/182g7np/where_do_i_find_my_things_that_i_downloaded/>
 
 
 <!--
@@ -1178,6 +1232,8 @@ _see_ [tkn-cnt.py](https://github.com/mountaineerbr/scripts/blob/main/tkn-cnt.py
 Not all features of the API will be covered.
 
 - This project _doesn't_ support "Function Calling" or "Structured Outputs".
+
+- We _aren't_ very much keen on implementing video capabilities.
 
 - Bash shell truncates input on `\000` (null).
 

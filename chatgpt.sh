@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.71.6  aug/2024  by mountaineerbr  GPL+3
+# v0.72  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -33,6 +33,8 @@ MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.5-flash-latest}"
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Groq model
 MOD_GROQ="${MOD_GROQ:-llama-3.1-8b-instant}"
+# Enable Groq Whisper only
+#WHISPER_GROQ=
 # Anthropic model
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-20240620}"
 # Bash readline mode
@@ -95,12 +97,12 @@ OPTFOLD=1
 #START=""
 # Chat mode of text cmpls sets "\nQ: " and "\nA:"
 # Restart/Start seqs have priority
-# Cost custom rates
-# input and output rates (dollars per million tokens)
+# Cost rates
+# Input and output rates (dollars per million tokens)
 #COST_CUSTOM="0 0"
-# Cost rate against USD
+# Currency rate against USD
 # e.g. BRL is 5.66 USD, JPY is 0.006665 USD
-#COST_RATE="1"
+#CURRENCY_RATE="1"
 
 # INSTRUCTION
 # Chat completions, chat mode only
@@ -113,10 +115,7 @@ AWEURLZH="https://raw.githubusercontent.com/PlexPt/awesome-chatgpt-prompts-zh/ma
 
 # CACHE AND OUTPUT DIRECTORIES
 CACHEDIR="${CACHEDIR:-${XDG_CACHE_HOME:-$HOME/.cache}}/chatgptsh"
-if [[ -n $TERMUX_VERSION ]] && [[ -d $HOME/storage/downloads ]]
-then 	OUTDIR=${OUTDIR:-$HOME/storage/downloads}
-else 	OUTDIR="${OUTDIR:-${XDG_DOWNLOAD_DIR:-$HOME/Downloads}}"
-fi
+OUTDIR="${OUTDIR:-${XDG_DOWNLOAD_DIR:-$HOME/Downloads}}"
 
 # Colour palette
 # Normal Colours   # Bold              # Background
@@ -669,7 +668,7 @@ function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
 	((LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI)) && is_visionf "$1" && set -- "vision";
-	case "$1" in
+	case "${1##ft:}" in
 		*dalle-e*|*stable*diffusion*)
 				# 3 generations  4 variations  9 edits  
 				((OPTII)) && EPN=4 || EPN=3;
@@ -777,7 +776,8 @@ function __promptf
 function _promptf
 {
 	typeset chunk_n chunk str n
-	json_minif
+	chunk= chunk_n= n=;
+	json_minif;
 	
 	if ((STREAM))
 	then 	set -- -s "$@" -S --no-buffer;
@@ -788,7 +788,7 @@ function _promptf
 			#google hack does not pass '[DATA]:'.
 			((ANTHROPICAI)) && { [[ $chunk = *(\ )[Dd][Aa][Tt][Aa]:* ]] || continue ;}
 			chunk=${chunk##*([$' \t'])[Dd][Aa][Tt][Aa]:*(\ )}
-			[[ $chunk = *([$IFS]) ]] && continue
+			[[ $chunk = *[!$IFS]* ]] || continue
 			[[ $chunk = *([$IFS])\[+([A-Z])\] ]] && continue
 			if ((!n))  #first pass, del leading spaces
 			then 	((OPTC)) && {
@@ -964,7 +964,7 @@ function new_prompt_confirmf
 		[w]) 		return 196;;  #whisper off
 		[WA]) 		return 195;;  #whisper append
 		[Yy]) 		return 194;;  #whisper retry request
-		[NnOo]) 	unset REC_OUT ;return 1;;  #no
+		[NnOo]) 	REC_OUT=; return 1;;  #no
 	esac  #yes
 }
 
@@ -1033,7 +1033,7 @@ function prompt_prettyf
 function prompt_pf
 {
 	typeset var
-	typeset -a opt
+	typeset -a opt; opt=();
 	for var
 	do 	[[ -f $var ]] || { 	opt+=("$var"); shift ;}
 	done
@@ -1185,7 +1185,7 @@ function set_histf
 {
 	typeset time token string stringc stringd max_prev q_type a_type role role_last rest com sub ind herr nl x r n;
 	typeset -a MEDIA MEDIA_CMD;
-	[[ -s $FILECHAT ]] || return; unset HIST HIST_C;
+	[[ -s $FILECHAT ]] || return; HIST= HIST_C=;
 	((BREAK_SET)) && return;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
 	((herr = HERR_DEF + HERR))  #context limit error
@@ -1318,7 +1318,7 @@ function grep_usr_lastlinef
 function push_tohistf
 {
 	typeset string token time
-	string=$1; ((${#string})) || ((OPTCMPL)) || return; unset CKSUM_OLD;
+	string=$1; ((${#string})) || ((OPTCMPL)) || return; CKSUM_OLD=;
 	token=$2; ((token>0)) || {
 		start_tiktokenf;    ((OPTTIK)) && __printbf '(tiktoken)';
 		token=$(__tiktokenf "${string}");
@@ -1338,7 +1338,7 @@ function prev_tohistf
 {
 	typeset input answer
 	input="$*"
-	((BREAK_SET)) && { _break_sessionf; unset BREAK_SET ;}
+	((BREAK_SET)) && { _break_sessionf; BREAK_SET= ;}
 	if ((STREAM))
 	then 	answer=$(escapef "$(prompt_pf -r -j "$FILE")")
 	else 	answer=$(prompt_pf "$FILE")
@@ -1430,7 +1430,7 @@ function tiktokenf
 try:
     import tiktoken
 except ImportError as e:
-    print(\"Err: python -- \", e)
+    print(\"Err: Python -- \", e)
     exit()
 
 opttiktoken, opttik = ${OPTTIKTOKEN:-0}, ${HOPTTIK:-0}
@@ -1457,7 +1457,7 @@ except:
             enc = tiktoken.get_encoding(\"${MODEL_ENCODING}\")
     except:
         enc = tiktoken.get_encoding(\"r50k_base\")  #davinci
-        print(\"Warning: tiktoken -- unknown model/encoding, fallback \", str(enc), file=sys.stderr)
+        print(\"Warning: Tiktoken -- unknown model/encoding, fallback \", str(enc), file=sys.stderr)
 
 if opttik <= 0:
     encoded_text = enc.encode_ordinary(text)
@@ -1564,14 +1564,16 @@ function set_mdcmdf
 
 	case "$1" in
 		bat) 	MD_CMD_UNBUFF=1  #line-buffer support
-			function mdf { 	[[ -t 1 || OPTMD -gt 1 ]] && set -- --color always "$@" 
-			bat --paging never --language md --style plain "$@" | foldf ;}
+			function mdf {
+			  [[ -t 1 || OPTMD -gt 1 ]] && set -- --color always "$@";
+			  bat --paging never --language md --style plain "$@" | foldf;
+			}
 			;;
 		bat*) 	eval "function mdf { 	$* \"\$@\" ;}"
 			MD_CMD_UNBUFF=1
 			;;
 		pygmentize)
-			function mdf { 	pygmentize -s -l md "$@" | foldf ;}
+			function mdf { 	pygmentize ${STREAM:+-s} -l md "$@" | foldf ;}
 			MD_CMD_UNBUFF=1
 			;;
 		pygmentize*)
@@ -1673,17 +1675,17 @@ Find the right options for the \Zbchatgpt.sh programme\ZB, the precise command l
 
 This is a single-shot turn.'
 
-#calculate cost of query
+#calculate cost of query (dollars per million tokens)
 #usage: costf [input_tokens] [output_tokens] [input_cost] [output_cost] [scale]
 function costf
 {
 	bc <<<"scale=${5:-8};
-( ( (${1:-0} / 1000000) * ${3:-0}) + ( (${2:-0} / 1000000) * ${4:-0}) ) * ${COST_RATE:-1}"
+( ( (${1:-0} / 1000000) * ${3:-0}) + ( (${2:-0} / 1000000) * ${4:-0}) ) * ${CURRENCY_RATE:-1}"
 }
 function _model_costf
 {
 	case "${COST_CUSTOM[*]}" in *[1-9]*) 	echo  ${COST_CUSTOM[@]}; return;; esac;
-	case "$1" in
+	case "${1##ft:}" in
 		claude-3-opus*) 	echo 15 75;;
 		claude-3-sonnet*|claude-3-5-sonnet*) echo 3 15;;
 		claude-3-haiku*) 	echo 0.25 1.25;;
@@ -1712,10 +1714,8 @@ function _model_costf
 		davinci-002) 	echo 2 2;;
 		babbage-002) 	echo 0.4 0.4;;
 		gemini-1.0-pro*) 	echo 0.5 1.5;;
-		gemini-1.5-flash*) 	echo 0.075 0.3;;
-		#gemini-1.5-flash*) 	echo 0.15 0.6;;  #128K+
-		gemini-1.5*) 	echo 3.5 10.5;;
-		#gemini-1.5*) 	echo 7 21;;  #128K+
+		gemini-1.5-flash*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 0.15 0.6 || echo 0.075 0.3;;
+		gemini-1.5*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 7 21 || echo 3.5 10.5;;
 		*) 	echo 0 0; false;;
 	esac;
 }
@@ -1793,14 +1793,14 @@ function cmd_runf
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
-			}; unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP TOTAL_OLD; xskip=1;
+			}; CKSUM_OLD= MAX_PREV= WCHAT_C= MAIN_LOOP= TOTAL_OLD= xskip=1;
 			;;
-#		costs[_-]rate*|cost[_-]rate*)  #costrate
-#			set -- "${*##@(cost[_-]rates|cost[_-]rate)$SPC}"
-#			set -- "${*//[!0-9.,]}"
-#			COST_RATE=${*:-$COST_RATE}
-#			__cmdmsgf 'Cost foreign rate (vs dollar):' "${*:-$COST_RATE} \*"
-#			;;
+		currency[_-]rate*|currency*)  #currency rate
+			set -- "${*##@(currency[_-]rate|currency)$SPC}"
+			set -- "${*//[!0-9.,]}"
+			CURRENCY_RATE=${*:-$CURRENCY_RATE}
+			__cmdmsgf 'Currency Rate:' "${*:-$CURRENCY_RATE} (vs Dollar)"
+			;;
 		costs*|cost*)
 			set -- "${*##@(costs|cost)$SPC}"
 			set -- "${*//[!0-9.,]}"
@@ -1848,9 +1848,9 @@ function cmd_runf
 			;;
 		-H|H|history|hist)
 			__edf "$FILECHAT"
-			unset CKSUM_OLD; xskip=1
+			CKSUM_OLD= xskip=1
 			;;
-		-HH|-HHH*|HH|HHH*|request|req|print)
+		-HH|-HHH*|HH|HHH*|request|print)
 			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
 			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
 			  MOD= OLLAMA= HERR= TKN_PREV= MAX_PREV= set_histf
@@ -2017,8 +2017,9 @@ function cmd_runf
 			__cmdmsgf 'Clipboard' $(_onoff $OPTCLIP)
 			if ((OPTCLIP))  #set clipboard
 			then 	set_clipcmdf;
-				set -- "$(hist_lastlinef "$FILECHAT")"; [[ $* != *([$IFS]) ]] &&
-				unescapef "$*" | ${CLIP_CMD:-false} &&
+				set -- "$(hist_lastlinef "$FILECHAT")";
+				[[ $* = *[!$IFS]* ]] &&
+				  unescapef "$*" | ${CLIP_CMD:-false} &&
 				  printf "${NC}Clipboard Set -- %.*s..${CYAN}\\n" $((COLUMNS-20>20?COLUMNS-20:20)) "$*" >&2;
 			fi
 			;;
@@ -2208,7 +2209,7 @@ function cmd_runf
 		save*|\#*)
 			shell_histf "${*##@(save|\#)*([$IFS])}"; history -a;
 			((${#1})) && __cmdmsgf 'Shell:' 'Prompt added to history!';
-			unset REPLY EDIT SKIP_SH_HIST;
+			REPLY= EDIT= SKIP_SH_HIST=;
 			;;
 		[/!]sh*)
 			set -- "${*##[/!]@(shell|sh)*([:$IFS])}"
@@ -2283,7 +2284,7 @@ function cmd_runf
 					__sysmsgf "$(duf "$var")" >&2; :;
 				else
 					false;
-				fi || __warmsgf 'Err:' 'photo camera';
+				fi || __warmsgf 'Err:' 'Photo camera';
 			else 	cmd_runf /pick "$*"; return;
 			fi;
 			SKIP=1 EDIT=1 xskip=1;
@@ -2300,7 +2301,7 @@ function cmd_runf
 				((${#var})) && REPLY="$var";
 			else 	var=$(trap '-' INT; _file_pickf "$PWD");
 				((${#var})) && REPLY="${1}${1:+ }${var}";
-			fi && unset TIPS_DIALOG || __warmsgf 'Err:' 'filepicker';
+			fi && unset TIPS_DIALOG || __warmsgf 'Err:' 'Filepicker';
 			
 			trap 'exit' INT;
 			SKIP=1 EDIT=1 xskip=1;
@@ -2309,15 +2310,20 @@ function cmd_runf
 			SKIP=1 EDIT=1
 			case "$*" in
 				rr|[/!]*) REGEN=2;;  #edit prompt
-				*) test_cmplsf && _p_linerf "$REPLY_OLD";
-					REGEN=1 REPLY= ;;
+				*)
+				    if test_cmplsf
+				    then  _p_linerf "$REPLY_OLD";
+				    elif ((REGEN==1)) && ((!OPTV))
+				    then  printf '\n%s\n' '--- regenerate ---' >&2;
+				    fi;
+				    REGEN=1 REPLY= ;;
 			esac
 			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]*([$' \t'])$'\n'* ]]
 			then 	# comment out two lines from tail
 				wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
 				&& sed -i -e "$((wc-1)),${wc} s/^/#/" "$FILECHAT";
-				unset CKSUM_OLD
+				CKSUM_OLD=;
 			fi
 			;;
 		replay|rep)
@@ -2423,7 +2429,7 @@ function edf
 
 	set_filetxtf
 	pre="${INSTRUCTION}${INSTRUCTION:+$'\n\n'}""$(unescapef "$HIST")"
-	((OPTCMPL)) || [[ $pre = *([$IFS]) ]] || pre="${pre}${ed_msg}"
+	((OPTCMPL)) || [[ $pre != *[!$IFS]* ]] || pre="${pre}${ed_msg}"
 	((OPTMD)) && pre="# vi: filetype=markdown${NL}${NL}${pre}"
 	printf "%s\\n" "${pre}"$'\n\n'"${rest}${*}" > "$FILETXT"
 
@@ -2537,7 +2543,7 @@ function json_minif
 function fmt_ccf
 {
 	typeset var ext
-	[[ ${1} != *([$IFS]) ]] || return
+	[[ ${1} = *[!$IFS]* ]] || return
 	
 	if ! ((${#MEDIA[@]}+${#MEDIA_CMD[@]}))
 	then
@@ -2552,7 +2558,7 @@ function fmt_ccf
 		printf '{ "role": "%s", "content": [ { "type": "text", "text": "%s" }' "${2:-user}" "$1";
 		for var in "${MEDIA[@]}" "${MEDIA_CMD[@]}"
 		do
-			if [[ $var = *([$IFS]) ]]
+			if [[ $var != *[!$IFS]* ]]
 			then 	continue;
 			elif [[ -f $var ]]
 			then 	ext=${var##*.}; ext=${ext,,};  #!#bash ,, expansion
@@ -2735,7 +2741,7 @@ function ollama_mediaf
 	printf '\n"images": ['
 	for var
 	do 	((++n))
-		if [[ $var = *([$IFS]) ]]
+		if [[ $var != *[!$IFS]* ]]
 		then 	continue;
 		elif [[ -f $var ]] && [[ -s $var ]]
 		then 	printf '"%s"' "$(base64 "$var" | tr -d $'\n')";
@@ -2750,8 +2756,8 @@ function ollama_mediaf
 #will _NOT_ work with whitespace in filename if not pipe-delimited and may not work with mixed pipe- and whitespace-delimited input
 function _mediachatf
 {
-	typeset var spc_sep ftrim break i n; unset TRUNC_IND;
-       	i=${#1}
+	typeset var spc_sep ftrim break i n
+       	i=${#1} TRUNC_IND=;
 
 	#process only the last line of input, fix for escaped white spaces in filename, del trailing spaces and trailing pipe separator
 	set -- "$(sed -n 's/\\n/\n/g; s/\\\\ / /g; s/\\ / /g; s/[[:space:]|]*$//; $p' <<<"$*")";
@@ -2881,7 +2887,7 @@ function is_txturl
 #check for multimodal (vision) model
 function is_visionf
 {
-	case "$1" in 
+	case "${1##ft:}" in 
 	*vision*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*|\
@@ -2922,14 +2928,21 @@ function foldf
 {
 	if ((!OPTFOLD)) || ((COLUMNS<18)) || [[ ! -t 1 ]]
 	then 	cat
-	else 	typeset REPLY r x n;
+	else 	typeset REPLY r x n text result
 
 		while IFS= read -r -d ' ' && REPLY=$REPLY' ' || ((${#REPLY}))
 		do
 			r=$REPLY;
 			r=${r//$'\t'/        };  #fix for tabs
-	    ((OPTK)) || r=${r//$'\e['*([0-9;])m};  #delete ansi codes
-			#LC_CTYPE=C;  #character encoding locale
+			((OPTK)) || {  #delete ansi codes
+			  text="$r" result=""
+			  while [[ "$text" = *$'\e'*[mG]* ]]
+			  do
+			    result="${result}${text%%$'\e'*}"
+			    text="${text#*$'\e'*[mGa-zA-Z]}"
+			  done
+			  r="${result}${text}"
+			}
 			
 			[[ $r = *$'\n'* ]] && x=${r##*$'\n'} r=${r%%$'\n'*};
 
@@ -3010,7 +3023,7 @@ function set_optsf
 	
 	if ((${#STOPS[@]})) && [[ "${STOPS[*]}" != "${STOPS_OLD[*]:-%#}" ]]
 	then  #compile stop sequences  #def: <|endoftext|>
-		unset OPTSTOP
+		OPTSTOP=;
 		for s in "${STOPS[@]}"
 		do 	[[ -n $s ]] || continue
 			((++n)) ;((n>4)) && break
@@ -3067,44 +3080,7 @@ function recordf
 	trap "trap 'exit' INT; ret=199;" INT;
 	
 	#see record_confirmf()
-	case "$(
-		  # ~ experimental option -vv ~ #
-		  # hands-free experience, detect silence #
-		  min_len=1.2 #seconds (float)
-		  tmout=0.5   #seconds (float)
-		  rms=0.04    #0.001 - 0.01 (rms amplitude, sox)
-		  db=-28      #decibels (ffmpeg)
-
-		  if ((OPTV>1)) && ((!${#TERMUX_VERSION})) &&
-		      command -v ffmpeg >/dev/null 2>&1
-		  then
-		    _cmdmsgf "Silence Detection:" "tolerance: ${db}dB  min_length: ${min_len}s";
-		    __clr_ttystf; sleep ${min_len};
-		    while var=$(
-		        ffmpeg -i "$1" -af silencedetect=n=${db}dB:d=${min_len} -f null - 2>&1 |
-		        sed -n 's/^.*silence_start:[[:space:]]*//p' | sed -n '$ p'
-		      )
-		      (( $(bc <<<"scale=8; ${var:-0} < ${min_len}") ))
-		    do
-		      NO_CLR=1 __read_charf -t ${tmout} && break 1;
-		    done;
-		  elif ((OPTV>1)) && ((!${#TERMUX_VERSION})) &&
-		      command -v sox >/dev/null 2>&1
-		  then
-		    _cmdmsgf "Silence Detection:" "rms_amplitude: ${rms}  min_length: ${min_len}s";
-		    __clr_ttystf; sleep ${min_len};
-		    while var=$(
-			sox "$1" -n trim -${min_len} ${min_len} stat 2>&1 |
-		        sed -n 's/RMS .*amplitude:[[:space:]]*//p'
-		      )
-		      (( $(bc <<<"scale=8; ${var:-100} > ${rms}") ))
-		    do
-		      NO_CLR=1 __read_charf -t ${tmout} && break 1;
-		    done;
-		  else
-		      __read_charf;  #defaults
-		  fi
-		)" in
+	case "$(__read_charrecf "$@")" in
 		[AaOoQqWw])   ret=196  #whisper off
 			;;
 		[Ee]|$'\e') ret=199  #text edit (single-shot)
@@ -3119,7 +3095,11 @@ function recordf
 
 	rec_killf $pid $termux;
        	trap 'exit' INT;
-	wait $pid; return ${ret:-0};
+	wait $pid &&
+	if command -v ffmpeg >/dev/null 2>&1
+	then 	trim_silencef "$FILEINW";
+	fi
+	return ${ret:-0};
 }
 #avfoundation for macos: <https://apple.stackexchange.com/questions/326388/>
 function rec_killf
@@ -3128,6 +3108,86 @@ function rec_killf
 	pid=$1 termux=$2
 	((termux)) && termux-microphone-record -q >&2 || kill -INT -- $pid 2>/dev/null >&2;
 }
+
+#whisper silence detection (hands-free, options -Wwvv)
+function __read_charrecf
+{
+	typeset atrim min_len tmout rms threshold init var
+	tmout=0.4    #read timeout
+	atrim=0.26   #audio trim
+	min_len=1.8  #seconds (float)
+	rms=0.0094   #rms amplitude (0.001 to 0.1)
+	threshold="-29dB"  #noise tolerance (-32dbFS to -28dBFS)
+
+	if ((OPTV>1)) &&
+	    { case "$REC_CMD" in termux-microphone-record*)  false;; *)  :;; esac ;} &&
+	    command -v ffmpeg >/dev/null 2>&1
+	then
+	  _cmdmsgf "Silence Detection:" "tolerance: ${threshold}  min_length: ${min_len}s";
+	  __clr_ttystf; sleep ${min_len};
+	  while var=$(
+	      ffmpeg -fflags +nobuffer+discardcorrupt \
+	        -i "$1" -af silencedetect=n=${threshold}:d=${min_len} -f null - 2>&1 |
+	        sed -n 's/^.*silence_start:[[:space:]]*//p' | sed -n '$ p'
+	    )  #!# ignore start silence until speech
+	    (( $(bc <<<"${var:-0} < (${min_len} * 1.6)") ))
+	  do
+	    NO_CLR=1 __read_charf -t ${tmout} && break 1;
+	  done;
+	elif ((OPTV>1)) &&
+	    { case "$REC_CMD" in termux-microphone-record*)  false;; *)  :;; esac ;} &&
+	    command -v sox >/dev/null 2>&1
+	then
+	  _cmdmsgf "Silence Detection:" "rms_amplitude: ${rms}  min_length: ${min_len}s";
+	  __clr_ttystf; sleep ${min_len};
+	  while var=$(
+	      sox "$1" -n trim -${min_len} stat 2>&1 |
+	        sed -n 's/RMS .*amplitude:[[:space:]]*//p'
+	    )
+	    if ((!init))  #!# enable detection after first rms peak
+	    then  (( $(bc <<<"${var:-0} > (${rms} * 2.0)") )) && init=1 || var=100;
+	    fi
+	    (( $(bc <<<"${var:-100} > ${rms}") ))
+	  do
+	    NO_CLR=1 __read_charf -t ${tmout} && break 1;
+	  done;
+	else  #defaults
+	    __read_charf;
+	fi
+}
+#https://www.izotope.com/en/learn/what-is-crest-factor.html
+
+#remove silence from both ends of audio file
+function trim_silencef
+{
+	typeset out atrim start_periods start_silence threshold
+	out=${1%.*}.2.${1##*.}
+	atrim=0.26
+	start_periods=1
+	start_silence=0.2
+	threshold="-38dB"
+
+	ffmpeg -fflags +discardcorrupt -y -i "${1}" -af \
+atrim=start=${atrim},areverse,atrim=start=${atrim},asetpts=PTS-STARTPTS,\
+silenceremove=start_periods=${start_periods}:start_threshold=${threshold}:start_silence=${start_silence}:detection=peak,\
+areverse,asetpts=PTS-STARTPTS,\
+silenceremove=start_periods=${start_periods}:start_threshold=${threshold}:start_silence=${start_silence}:detection=peak \
+	"${out}" >/dev/null 2>&1 &&
+	mv -f "${out}" "${1}";
+}
+#https://ffmpeg.org/ffmpeg-filters.html#toc-Examples-23
+#https://lists.ffmpeg.org/pipermail/ffmpeg-user/2021-August/053415.html
+#https://github.com/openai/openai-cookbook/blob/main/examples/Whisper_processing_guide.ipynb
+#tip: set threshold to "mean_vol", or "max_vol minus -3dB to -6dB"  #ffmpeg mailing
+#voice-gate: lowpass=200,highpass=100  #man ffmpeg-filters
+#lowpass=5000,highpass=200  #fast filtering not perfect
+
+#extract mean and max volume from audio stream
+#ffmpeg -i "${1}" -af "atrim=start=0.2,areverse,atrim=start=0.2,volumedetect" -f null - 2>&1 | sed -n -e 's/[[:space:]]*dB//' -e 's/.*mean_volume:[[:space:]]*//p' -e 's/.*max_volume:[[:space:]]*//p'
+
+#amplitude ratio <-> decibel FS converter
+#bc -l <<<"scale=4; 20 * l( ${rms} ) / l(10)"
+#bc -l <<<"scale=6; e((${dbfs} / 20) * l(10))"
 
 #set whisper language
 function __set_langf
@@ -3143,9 +3203,8 @@ function __set_langf
 #whisper
 function whisperf
 {
-	typeset file rec var pid granule scale;
-	typeset -a args;
-       	unset WHISPER_OUT;
+	typeset file rec var max pid granule scale;
+	typeset -a args; args=(); WHISPER_OUT=;
 	
 	if ((!(CHAT_ENV+MTURN) ))
 	then 	__sysmsgf 'Whisper Model:' "$MOD_AUDIO"; __sysmsgf 'Temperature:' "${OPTTW:-$OPTT}";
@@ -3155,7 +3214,7 @@ function whisperf
 	
 	((${#})) || [[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
 	for var
-	do    [[ $var = *([$IFS]) ]] && shift || break;
+	do    [[ $var != *[!$IFS]* ]] && shift || break;
 	done; var= ; args=("$@");
 
 	#set language ISO-639-1 (two letters)
@@ -3189,14 +3248,13 @@ function whisperf
 		__warmsgf 'Warning:' "Whisper input exceeds API limit of 25 MB";
 	fi
 	
-	#set a prompt
-	if [[ ${*} != *([$IFS]) ]]
-	then 	((CHAT_ENV+MTURN)) || { var=$*;
-		  __sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${var: COLUMNS-17} ]] && echo ...)";
-		}; set -- -F prompt="$*";
-	elif ((CHAT_ENV+MTURN))
-	then 	var="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}";
-		((${#var})) && set -- -F prompt="$var";
+	#set a prompt (224 tokens, GPT2 encoding)
+	max=490  #2-3 chars/tkn code and foreign languages, 4 chars/tkn english
+	if var=$*; [[ $var = *[!$IFS]* ]]
+	then
+		((${#var}>max)) && var=${var: ${#var}-max};
+		set -- -F prompt="$var";
+		((CHAT_ENV+MTURN)) || __sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${var: COLUMNS-17} ]] && echo ...)";
 	fi
 
 	((OPTW>2||OPTWW>2)) && granule=word || granule=segment;
@@ -3297,7 +3355,7 @@ function _ttsf
 	
 	((${#})) || [[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
 	for var
-	do    [[ $var = *([$IFS]) ]] && shift || break;
+	do    [[ $var != *[!$IFS]* ]] && shift || break;
 	done; var= ;
 	
 	if ((!CHAT_ENV)) || ((${#ZARGS[@]}))
@@ -3331,7 +3389,7 @@ function _ttsf
 		__sysmsgf 'Voice:' "$VOICEZ";
 		__sysmsgf 'Speed:' "${SPEEDZ:-1}";
 	fi; ((${#SPEEDZ})) && check_optrangef "$SPEEDZ" 0.25 4 'TTS speed'
-	[[ $1 != *([$IFS]) ]] || ! echo '(empty)' >&2 || return 2
+	[[ $1 = *[!$IFS]* ]] || ! echo '(empty)' >&2 || return 2
 
 	if ((${#1}>max))
 	then 	__warmsgf 'Warning:' "User input ${#1} chars / max ${max} chars"  #max ~5 minutes
@@ -3869,7 +3927,7 @@ function custom_prf
 			[[ -f "$file" && ! -s "$file" ]] && { rm -v -- "$file" || rm -- "$file" ;} >&2
 		fi
 		if [[ -z $INSTRUCTION ]]
-		then 	__warmsgf 'Err:' 'custom prompts fail'
+		then 	__warmsgf 'Err:' 'Custom prompts fail'
 			return 1
 		fi
 	fi
@@ -3895,46 +3953,96 @@ function set_clipcmdf
 # Set the audio play command
 function set_playcmdf
 {
-	((${#PLAY_CMD})) ||
-	if command -v play-audio  #termux
-	then 	PLAY_CMD='play-audio'
-	elif command -v termux-media-player
-	then 	PLAY_CMD='termux-media-player play'
-	elif command -v mpv
+	((${#PLAY_CMD})) && return;
+
+	if [[ -n $TERMUX_VERSION ]]
+	then 	set_termuxpulsef ||
+		if command -v play-audio
+		then 	PLAY_CMD='play-audio';
+			return 0;
+		elif command -v termux-media-player
+		then 	PLAY_CMD='termux-media-player play';
+			return 0;
+		fi >/dev/null 2>&1
+	fi
+
+	if command -v mpv
 	then 	PLAY_CMD='mpv --no-video --vo=null'
+	#--profile=low-latency  --vo=xv  #low latency
 	elif command -v play  #sox
 	then 	PLAY_CMD='play'
+	#--input-buffer=40000
+	#https://sourceforge.net/p/sox/patches/124/
 	elif command -v cvlc
 	then 	PLAY_CMD='cvlc --no-loop --no-repeat'
+	#--network-caching=150 --sout-mux-caching=50 --live-caching=100 --clock-jitter=0 --file-caching=0 --no-audio-time-stretch
 	elif command -v ffplay
 	then 	PLAY_CMD='ffplay -nodisp'
+	#-fflags +nobuffer
+	#streaming: ffplay -nodisp -, cvlc -
 	elif command -v afplay  #macos
 	then 	PLAY_CMD='afplay'
 	else 	PLAY_CMD='false'
 	fi >/dev/null 2>&1
-}  #streaming: ffplay -nodisp -, cvlc -
+}
 
 #set audio recorder command
 function set_reccmdf
 {
-	((${#REC_CMD})) ||
-	if command -v termux-microphone-record
-	then 	REC_CMD='termux-microphone-record -r 16000 -c 1 -l 0 -f'
-	elif command -v sox
-	then 	REC_CMD='sox -d -r 16000 -c 1'  #'silence 1 0.50 0.1%'
+	((${#REC_CMD})) && return;
+
+	if [[ -n $TERMUX_VERSION ]]
+	then 	set_termuxpulsef ||
+		if command -v termux-microphone-record
+		then 	REC_CMD='termux-microphone-record -r 16000 -c 1 -l 0 -f';
+			FILEINW="${FILEINW%.*}.m4a";  #encoder aac
+			return 0;
+		fi >/dev/null 2>&1
+	fi
+
+	if command -v sox
+	then 	REC_CMD='sox -d -r 16000 -c 1'
+	#--input-buffer=40000, silence 1 0.50 0.1%
+	#https://sourceforge.net/p/sox/patches/124/
 	elif command -v arecord  #alsa utils
 	then 	REC_CMD='arecord -f S16_LE -r 16000 -c 1 -i'
+	#-B --buffer-time=#, --buffer-size=#
 	elif command -v ffmpeg
 	then 	case "${OSTYPE:-$(uname -a)}" in
 		    *[Dd]arwin*)
-			REC_CMD='ffmpeg -f avfoundation -i ":1" -ar 16000 -ac 1 -y';;
-		    *)  REC_CMD='ffmpeg -f alsa -i pulse -ar 16000 -ac 1 -y';;
-		    #'-af silenceremove=start_periods=1:start_silence=0.2:start_threshold=-28dB'
+			REC_CMD='ffmpeg -hide_banner -f avfoundation -i ":1" -ar 16000 -ac 1 -y';;
+		    *)  REC_CMD='ffmpeg -hide_banner -f alsa -i pulse -ar 16000 -ac 1 -y';;
 		esac;
 	else 	REC_CMD='false'
 	fi >/dev/null 2>&1
 }
-#id.luchkin: https://community.openai.com/t/whisper-api-hallucinating-on-empty-sections/93646/5  
+
+#check and set termux pulseaudio configuration
+function set_termuxpulsef
+{
+	if command -v pulseaudio >/dev/null 2>&1 &&
+		command -v pactl >/dev/null 2>&1
+	then
+		case "$(pactl list modules 2>&1)" in
+		  *module-sles-source*)  :;;
+		  *module-sles-sink*|*)
+		    __warmsgf 'Pulseadio:' "\`module-sles-source' not active";
+		    __warmsgf 'Pulseadio:' "configure \`pulseaudio' with \`module-sles-source'";
+		    _sysmsgf 'See' "<https://gitlab.com/fenixdragao/shellchatgpt#termux-users>";
+
+		    printf '\n%s  [Y/n] \a' "Enable \`module-sles-source'?" >&2;
+		    case "$(__read_charf -t 4)" in [NnAaQq]|$'\e')  false;;
+		      *)
+		        pulseaudio -k; pulseaudio -L "module-sles-source" -D & :;;
+		    esac;
+		    ;;
+		esac;
+	else
+		  _sysmsgf 'Tip:' "install \`pulseaudio', \`sox', and \`ffmpeg' for enhanced audio";
+		  false;
+	fi
+}
+#https://madskjeldgaard.dk/posts/sox-tutorial-sox-on-android/
 
 #play audio bell
 function bellf
@@ -3952,7 +4060,7 @@ function bellf
 #append to shell hist list
 function shell_histf
 {
-	[[ ${*} != *([$IFS]) ]] || return
+	[[ ${*} = *[!$IFS]* ]] || return
 	history -s -- "$*"
 }
 #history file must start with a timestamp (# plus Unix timestamp) or else
@@ -4050,7 +4158,7 @@ function session_name_choosef
 		esac;
 		
 		if [[ -d "$fname" ]]
-		then 	__warmsgf 'Err:' 'is a directory'
+		then 	__warmsgf 'Err:' 'Is a directory'
 			fname="${fname%%/}"
 		( 	cd "$fname" &&
 			ls -- "${fname}"/*.${sglob} ) >&2 2>/dev/null
@@ -4058,7 +4166,7 @@ function session_name_choosef
 			unset fname
 		fi
 
-		if [[ ${fname} = *([$IFS]) ]]
+		if [[ ${fname} != *[!$IFS]* ]]
 		then
 			if test_dialogf
 			then 	fname=$(
@@ -4116,13 +4224,14 @@ function session_name_choosef
 		&& printf '(new prompt file)\n' >&2 \
 		|| printf '(new hist file)\n' >&2
 	fi
-	[[ ${fname} != *([$IFS]) ]] && printf '%s\n' "$fname"
+	[[ ${fname} = *[!$IFS]* ]] && printf '%s\n' "$fname"
 }
 #pick and print a session from hist file
 function session_sub_printf
 {
 	typeset REPLY reply file time token string buff buff_end index regex skip sopt copt ok m n
 	typeset -a SPIN_CHARS=("${SPIN_CHARS0[@]}");
+	sopt= copt= ok= buff= buff_end=;
 	[[ -s ${file:=$1} ]] || return; [[ $file = */* ]] || [[ ! -e "./$file" ]] || file="./$file";
 	FILECHAT_OLD="$file" regex="${REGEX%%${NL}*}";
  
@@ -4188,7 +4297,7 @@ do 	__spinf 	#grep session with user regex
 			esac
 			}
 done
-			unset REPLY reply time token string buff buff_end index m n
+			REPLY= reply= time= token= string= buff= buff_end= index= m= n=
 			continue
 		fi
 		buff="${REPLY}"${buff:+$'\n'}"${buff}"
@@ -4220,7 +4329,7 @@ function session_copyf
 	&& { FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
 	     FILECHAT="${dest}" _break_sessionf; OLD_DEST="${dest}";
 	     #check if dest is the same as current
-	     [[ "$dest" = "$FILECHAT" ]] && unset BREAK_SET MAIN_LOOP TOTAL_OLD MAX_PREV ;} \
+	     [[ "$dest" = "$FILECHAT" ]] && BREAK_SET= MAIN_LOOP= TOTAL_OLD= MAX_PREV= ;} \
 	&& _sysmsgf 'SESSION FORK' \
 	&& printf '%s\n' "$buff" >> "$dest" \
 	&& printf '%s\n' "$dest"
@@ -4286,7 +4395,7 @@ function session_mainf
 	#del unused positional args
 	args=("$@") ;set --
 	for arg in "${args[@]}"
-	do 	[[ ${arg} != *([$IFS]) ]] && set -- "$@" "$arg"
+	do 	[[ ${arg} = *[!$IFS]* ]] && set -- "$@" "$arg"
 	done
 
 	#print hist option
@@ -4387,8 +4496,8 @@ function set_ollamaf
 #host url / endpoint
 function set_localaif
 {
-	[[ $OPENAI_API_HOST_STATIC != *([$IFS]) ]] && OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
-	if [[ $OPENAI_API_HOST != *([$IFS]) ]] || ((OLLAMA))
+	[[ $OPENAI_API_HOST_STATIC = *[!$IFS]* ]] && OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
+	if [[ $OPENAI_API_HOST = *[!$IFS]* ]] || ((OLLAMA))
 	then
 		API_HOST=${OPENAI_API_HOST%%*([/$IFS])};
 		((LOCALAI)) &&
@@ -4492,7 +4601,8 @@ function set_googleaif
 	function fmt_ccf
 	{
 		typeset var ext role
-		[[ ${1} != *([$IFS]) ]] || return
+		[[ ${1} = *[!$IFS]* ]] || return
+		var= ext= role=;
 		
 		case "$2" in
 			assistant) 	role=model;;
@@ -4501,7 +4611,7 @@ function set_googleaif
 		printf '{"role": "%s", "parts": [ {"text": "%s"}' "${role}" "$1";
 		for var in "${MEDIA[@]}" "${MEDIA_CMD[@]}"
 		do
-			if [[ $var = *([$IFS]) ]]
+			if [[ $var != *[!$IFS]* ]]
 			then 	continue;
 			elif [[ -f $var ]]
 			then 	ext=${var##*.}; ((${#ext}<7)) && ext=${ext/[Jj][Pp][Gg]/jpeg} || ext=;
@@ -4578,8 +4688,8 @@ function set_anthropicf
 #@#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #!#important for the test script
 
 
-unset OPTMM OPTMARG STOPS MAIN_LOOP
 #parse opts  #DIJQX
+unset OPTMM OPTMARG MAIN_LOOP; STOPS=();
 optstring="a:A:b:B:cCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
 do
@@ -4652,8 +4762,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		d) 	OPTCMPL=1;;
 		e) 	OPTE=1;;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO;
-			#OLLAMA_API_HOST OPENAI_API_HOST OPENAI_API_HOST_STATIC CACHEDIR OUTDIR
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "${BASH_SOURCE[0]:-$0}" "$@" ;exit;;
@@ -4700,8 +4809,8 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= ;;
 		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= ;;
 		localai) LOCALAI=1;;
-		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= ;;
-		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= ;;
+		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= WHISPER_GROQ= ;;
+		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 ;;
 		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
@@ -4732,8 +4841,8 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW RET init buff var n s
-typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW RET init buff var tkn n s
+typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS  #in zsh, typeset sets params as "empty" instead of "unset"
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
 set -o ${READLINEOPT:-emacs}; 
@@ -4778,7 +4887,7 @@ def reset:   null;"
 ((OPTSUFFIX)) && ((OPTC)) && { ((OPTC>1)) || { [[ -n ${RESTART+1} ]] || RESTART=; [[ -n ${START+1} ]] || START= ;}; OPTC=1; };  #-qqc and -qqcc  #weyrd combo#
 ((OPTSUFFIX>1)) && MTURN=1 OPTSUFFIX=1      #multi-turn -q insert mode
 ((OPTCTRD)) || unset OPTCTRD  #(un)set <ctrl-d> prompter flush [bash]
-[[ ${INSTRUCTION} != *([$IFS]) ]] || unset INSTRUCTION
+[[ ${INSTRUCTION} = *[!$IFS]* ]] || unset INSTRUCTION
 
 #map models
 if [[ -n $OPTMARG ]]
@@ -4861,7 +4970,7 @@ else  	unset OLLAMA OLLAMA_API_HOST;
 fi
 
 #custom host / localai
-if [[ ${OPENAI_API_HOST_STATIC}${OPENAI_API_HOST} != *([$IFS]) ]] || ((LOCALAI))
+if [[ ${OPENAI_API_HOST_STATIC}${OPENAI_API_HOST} = *[!$IFS]* ]] || ((LOCALAI))
 then 	((${#OPENAI_API_HOST})) || OPENAI_API_HOST=$LOCALAI_API_HOST_DEF;
 	set_localaif;
 else 	unset OPENAI_API_HOST OPENAI_API_HOST_STATIC;
@@ -4967,7 +5076,7 @@ do 	((init++)) || set --
 done; unset arg init;
 
 if ((OPTW+OPTZ))  #handle options of combined modes in chat + whisper + tts
-then 	typeset -a argn
+then 	typeset -a argn; argn=();
 	n=1; for arg
 	do 	case "${arg:0:4}" in --) argn=(${argn[@]} $n);; esac; ((++n));
 	done; #map double hyphens `--'
@@ -5002,8 +5111,9 @@ then 	typeset -a argn
 	unset n p ii var arg argn;
 fi
 
+((${#TERMUX_VERSION})) && [[ ! -d $OUTDIR ]] && __warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
 [[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR" ||
-{ 	_sysmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
+  { _sysmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
 if ! command -v jq >/dev/null 2>&1
 then 	function jq { 	false ;}
 	function escapef { 	_escapef "$@" ;}
@@ -5031,7 +5141,8 @@ then 	if [[ -s "$CHATGPTRC" ]] && ((OPTFF<2))
 elif ((OPTHH && OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN) )) && [[ -f $FILEWHISPERLOG ]]
 then  #whisper log
 	if ((OPTHH>1))
-	then 	while IFS= read -r || [[ -n $REPLY ]]
+	then 	BUFF="";
+		while IFS= read -r || [[ -n $REPLY ]]
 		do 	[[ $REPLY = ==== ]] && [[ -n $BUFF ]] && break;
 			BUFF=${REPLY}$'\n'${BUFF};
 		done < <(tac "$FILEWHISPERLOG");
@@ -5083,7 +5194,7 @@ then
        		else 	__tiktokenf "$*";
 		fi
 	else
-		tiktokenf "$*" || ! __warmsgf "Err:" "Python / tiktoken"
+		tiktokenf "$*" || ! __warmsgf "Err:" "Python / Tiktoken"
 	fi
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then
@@ -5203,17 +5314,17 @@ else
 		else 	break_sessionf;
 		fi
 		INSTRUCTION_OLD="$INSTRUCTION"
-	elif [[ $INSTRUCTION = *([:$IFS]) ]]
+	elif [[ $INSTRUCTION != *[!:$IFS]* ]]
 	then 	unset INSTRUCTION
 	fi
-	if [[ $INSTRUCTION != *([:$IFS]) ]]
+	if [[ $INSTRUCTION = *[!:$IFS]* ]]
 	then 	_sysmsgf 'INSTRUCTION:' "$INSTRUCTION" 2>&1 | foldf >&2;
 		((GOOGLEAI)) && GINSTRUCTION=$INSTRUCTION INSTRUCTION=;
 	fi
 
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	[[ -t 1 ]] && __printbf 'history_bash'; var=$SECONDS;  #only visible when large and slow
-		history -c; history -r; history -w;  #prune & rewrite history file
+		history -c; history -r; history -w &  #prune & rewrite history file
 		[[ -t 1 ]] && __printbf '            '; ((SECONDS-var>1)) && __warmsgf 'Warning:' "Bash history size -- $(duf "$HISTFILE")";
 		if ((OPTRESUME)) && [[ -s $FILECHAT ]]
 		then 	REPLY_OLD=$(grep_usr_lastlinef);
@@ -5280,15 +5391,15 @@ else
 		then 	edf "${@:-$REPLY}"
 			case $? in
 				179|180) :;;        #jumps
-				200) 	set --; unset REPLY; continue;;  #redo
-				201) 	set --; unset OPTX; false;;   #abort
+				200) 	set --; REPLY=; continue;;  #redo
+				201) 	set --; OPTX=; false;;   #abort
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}" | tail -n $((LINES-2))
 					do 	((OPTV)) || new_prompt_confirmf
 						case $? in
-							201) 	set --; unset OPTX; break 1;;  #abort
-							200) 	set --; unset REPLY; continue 2;;  #redo
+							201) 	set --; OPTX=; break 1;;  #abort
+							200) 	set --; REPLY=; continue 2;;  #redo
 							19[6789]) 	edf "${REPLY:-$*}" || break 1;;  #edit
 							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY; ((OPTW)) || cmd_runf -ww;
 								set --; break;;  #whisper append (hidden option)
@@ -5296,10 +5407,10 @@ else
 							*) 	set -- ; break;;  #no
 						esac
 					done;
-					((OPTX>1)) && unset OPTX;
+					((OPTX>1)) && OPTX=;
 			esac
 			((EDIT==2)) && REPLY_CMD_DUMP=$REPLY;
-			case "${REPLY: ${#REPLY}-1}" in /) 	__warmsgf 'Warning:' "text editor mode doesn't support previewing!";; esac;
+			case "${REPLY: ${#REPLY}-1}" in /) 	__warmsgf 'Warning:' "Text editor mode doesn't support previewing!";; esac;
 		fi
 
 		((JUMP)) ||
@@ -5317,38 +5428,41 @@ else
 				then 	#auto sleep 3-6 words/sec
 					if ((OPTV)) && ((!WSKIP))
 					then
-						var=$((SLEEP_WORDS/3)) SLEEP_WORDS=0;
-						for ((n=var;n>0;n--))
-						do 	printf "%0*d${var//?/\\b}" "${#var}" "$n" >&2;
-							__read_charf -t 1 >/dev/null 2>&1 && { __clr_lineupf && break ;}
-						done;
-						__printbf "${var//?/ }";
+						var=$((SLEEP_WORDS/3)) SLEEP_WORDS=;
+						__printbf "${var}s";
+						if __read_charf -t "${var}" >/dev/null 2>&1
+						then 	__clr_lineupf;
+						else 	__printbf "${var//?/ } ";
+						fi
 					fi
 					
 					((RESUBW)) || record_confirmf
 					case $? in
 						0) 	if ((RESUBW)) || recordf "$FILEINW"
 							then 	REPLY=$(
-								((GROQAI))&& MOD_AUDIO=$MOD_AUDIO_GROQ;
-								set --; MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2= ;
+								set --;
+								((GROQAI+WHISPER_GROQ)) && MOD_AUDIO=$MOD_AUDIO_GROQ;
+								((!GROQAI && WHISPER_GROQ)) && API_HOST=${GROQ_API_HOST:-$GROQ_API_HOST_DEF};
+								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2=;
 								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
+								set -- "$@" "${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}";
 								whisperf "$FILEINW" "$@";
 							)
 								((WAPPEND)) && REPLY=$REPLY_OLD${REPLY_OLD:+${REPLY:+ }}$REPLY WAPPEND= ;
 							else 	case $? in
-									196) 	unset WSKIP OPTW REPLY; continue 1;;
+									196) 	WSKIP= OPTW= REPLY=; continue 1;;
 									199) 	EDIT=1; continue 1;;
 								esac;
 								echo record abort >&2;
-							fi; ((OPTW>1)) && unset OPTW;;
-						196|201) 	unset WSKIP OPTW REPLY; continue 1;;  #whisper off
+							fi; ((OPTW>1)) && OPTW=;;
+						196|201) 	WSKIP= OPTW= REPLY=; continue 1;;  #whisper off
 						199) 	EDIT=1; continue 1;;  #text edit
-						*) 	unset REPLY; continue 1;;
+						*) 	REPLY=; continue 1;;
 					esac; unset RESUBW;
 					printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" | foldf >&2;
 				else
 					__clr_ttystf;
-					((EDIT)) || unset REPLY  #!#
+					((EDIT)) || REPLY=""  #!#
 					if ((CATPR)) && ((!EDIT))
 					then 	REPLY=$(cat);
 					else 	read_mainf ${REPLY:+-i "$REPLY"} REPLY;
@@ -5364,11 +5478,12 @@ else
 					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"
 					set -- ;continue  #A#
 				elif cmd_runf "$REPLY"
-				then 	((SKIP_SH_HIST)) || shell_histf "$REPLY"; SKIP_SH_HIST=1;
+				then 	((SKIP_SH_HIST)) || shell_histf "$REPLY"; SKIP_SH_HIST=;
 					if ((REGEN>0))
 					then 	((MAIN_LOOP)) || [[ ! -s $FILECHAT ]] || REPLY_OLD=$(grep_usr_lastlinef);
 						REPLY="${REPLY_OLD:-$REPLY}"
-					else 	((SKIP)) || REPLY=
+						((REGEN!=1)) || ((OPTV)) || test_cmplsf || printf '\n%s\n' '--- regenerate ---' >&2;
+					else 	((SKIP+EDIT)) || REPLY=;
 					fi; set --; continue 2
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0  #!#
 					[[ ${REPLY: ind} = */ ]]  #preview (mind no trailing spaces)
@@ -5395,7 +5510,7 @@ else
 				then
 					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(/shell|shell|/sh|sh)")";
 					REPLY_CMD_DUMP=$(
-						unset REPLY
+						REPLY=;
 						cmd_runf /${var:-shell};
 						trim_trailf "$REPLY" "[/!]@(/shell|shell|/sh|sh)"
 					)
@@ -5438,7 +5553,7 @@ else
 							printf '\n%s\n' '--- whisper append ---' >&2; continue;;  #whisper append
 						194) 	cmd_runf /resubmit; set --; continue 2;;  #whisper retry request
 						0) 	:;;  #yes
-						*) 	unset REPLY; set -- ;break;;  #no
+						*) 	REPLY=; set -- ;break;;  #no
 					esac
 
 					if ((PREVIEW))
@@ -5454,7 +5569,7 @@ else
 				fi ;set -- "$REPLY"
 				((OPTCTRD==1)) || unset OPTCTRD
 				((CATPR==1)) || unset CATPR
-				unset WSKIP SKIP EDIT B Q ind var
+				WSKIP= SKIP= EDIT= B= Q= ind= var=
 				break
 			done
 		fi
@@ -5463,7 +5578,7 @@ else
 		then 	__warmsgf "(empty)"
 			set -- ; continue
 		fi
-		if ((!OPTCMPL)) && ((OPTC)) && [[ "${*}" != *([$IFS]) ]]
+		if ((!OPTCMPL)) && ((OPTC)) && [[ "${*}" = *[!$IFS]* ]]
 		then 	set -- "$(trimf "$*" "$SPC1")"  #!#
 			REPLY="$*"
 		fi
@@ -5476,7 +5591,7 @@ else
 			[[ -n $REPLY ]] || REPLY="${*}" #set buffer for EDIT
 
 			if ((PREVIEW!=1))
-			then 	((SKIP_SH_HIST)) || shell_histf "${REPLY_CMD:-$*}"; unset SKIP_SH_HIST;
+			then 	((SKIP_SH_HIST)) || shell_histf "${REPLY_CMD:-$*}"; SKIP_SH_HIST=;
 				history -a
 			fi
 
@@ -5499,10 +5614,10 @@ else
 					RINSERT=${RINSERT}${var}${NL};
 					_sysmsgf 'User prompt added'
 				fi
-				unset EDIT SKIP REPLY REPLY_OLD var v;
+				EDIT= SKIP= REPLY= REPLY_OLD= var= v=;
 				set --; continue;
 			fi
-			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY}; unset RINSERT ;}
+			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY} RINSERT= ;}
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
 
@@ -5549,8 +5664,8 @@ else
 			for var in "${MEDIA_CMD[@]}"
 			do 	REC_OUT="$REC_OUT| $var" REPLY="$REPLY| $var";
 				set -- "$*| $var";
-			done; unset var;
-		else 	unset SUFFIX PREFIX
+			done; var=;
+		else 	unset SUFFIX PREFIX;
 		fi
 
 		if ((PREVIEW<2))
@@ -5563,7 +5678,7 @@ else
 			then 	rest="${RESTART-$Q_TYPE}"
 				((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
 			fi
-			((JUMP)) && set -- && unset rest
+			((JUMP)) && set -- && rest=;
 			var="$(escapef "${INSTRUCTION:-$GINSTRUCTION}")${INSTRUCTION:+\\n\\n}${GINSTRUCTION:+\\n\\n}";
 			ESC="${HIST}${HIST:+${var:+\\n\\n}}${var}${rest}$(escapef "${*}")";
 			ESC=$(INDEX=32 trim_leadf "$ESC" "\\n");
@@ -5585,13 +5700,13 @@ else
 				then 	set -- "${ESC}${START-$A_TYPE}"
 				else 	set -- "${ESC}"
 				fi
-			fi; unset rest role;
+			fi; rest= role=;
 			
 			for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 			do 	((media_i++));
 				[[ -f $media ]] && media=$(duf "$media");
 				_sysmsgf "img #${media_i}" "${media:0: COLUMNS-6-${#media_i}}$([[ -n ${media: COLUMNS-6-${#media_i}} ]] && printf '\b\b\b%s' ...)";
-			done; unset media media_i;
+			done; media= media_i=;
 		fi
 		
 		set_optsf
@@ -5699,7 +5814,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 
 		((OPTEXIT>1)) && exit $RET_PRF;
 		((OLLAMA)) && API_HOST=$api_host;
-		unset buff api_host;
+		buff= api_host=;
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
 		if (( (RET_PRF>120 && !STREAM) || (!RET_PRF && PREVIEW==1) ))
 		then 	((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
@@ -5721,8 +5836,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 					((GROQAI)) && datef && jq -rs '.[-1].x_groq.usage | (.completion_time,.completion_tokens/.completion_time)' "$FILE";  #tkn rate
 					) )
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
-				  tkn_ans=$( ((EPN==6)) && unset A_TYPE; __tiktokenf "${A_TYPE}${ans}");
-				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); unset TOTAL_OLD tkn;
+				  tkn_ans=$( ((EPN==6)) && A_TYPE=; __tiktokenf "${A_TYPE}${ans}");
+				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); TOTAL_OLD=; tkn=();
 				};
 			else
 				{ ((ANTHROPICAI && EPN==0)) && tkn=(0 0) ;} ||
@@ -5730,7 +5845,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 					jq "." "$FILE" | response_tknf;
 					((GROQAI)) && jq -r '.usage | (.completion_time, .completion_tokens/.completion_time)' "$FILE";  #tkn rate
 					) )
-				unset ans buff n
+				ans= buff= n=;
 				for ((n=0;n<OPTN;n++))  #multiple responses
 				do 	buff=$(INDEX=$n prompt_pf "$FILE")
 					((${#buff}>1)) && buff=${buff:1:${#buff}-2}  #del lead and trail ""
@@ -5765,14 +5880,14 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 				fi  #adjust context err (OpenAI only)
 			fi;
 
-			unset BAD_RES PSKIP ESC_OLD;
+			BAD_RES= PSKIP= ESC_OLD=;
 			((${#tkn[@]}>1 || STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
 			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]
 			then 	Color200=${NC} __warmsgf \
 				'Err: History file modified'$'\n' 'Fork session? [Y]es/[n]o/[i]gnore all ' ''
 				case "$(__read_charf)" in
-					[IiGg]) 	unset CKSUM CKSUM_OLD ;function cksumf { 	: ;};;
+					[IiGg]) 	CKSUM= CKSUM_OLD=; function cksumf { 	: ;};;
 					[AaNnOoQq]|$'\e') :;;
 					*) 		session_mainf /copy "$FILECHAT" || break;;
 				esac
@@ -5780,7 +5895,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			if ((OPTB>1))  #best_of disables streaming response
 			then 	start_tiktokenf
 				tkn[1]=$(
-					((EPN==6)) && unset A_TYPE;
+					((EPN==6)) && A_TYPE=;
 					__tiktokenf "${A_TYPE}${ans}");
 			fi
 			ans="${A_TYPE##$SPC1}${ans}"
@@ -5795,21 +5910,22 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			fi
 			((OPTAWE)) ||
 			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : 0 ))" "${tkn[2]}"
-			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || unset OPTC OPTRESUME OPTCMPL MTURN
+			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || OPTC= OPTRESUME= OPTCMPL= MTURN=;
 			
 			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
-			unset HIST_TIME BREAK_SET
+			HIST_TIME= BREAK_SET=;
 		elif ((MTURN))
 		then
 			((PREVIEW)) && BCYAN="${Color9}";
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
-			BAD_RES=1 SKIP=1 EDIT=1;
-			unset CKSUM_OLD PSKIP JUMP REGEN PREVIEW REPLY_CMD REPLY_CMD_DUMP RET INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX;
+			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD=;
+			unset PSKIP JUMP REGEN PREVIEW REPLY_CMD REPLY_CMD_DUMP RET INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX;
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_CMD_IND[@]}));
-		unset MEDIA  MEDIA_CMD  MEDIA_IND  MEDIA_CMD_IND INT_RES GINSTRUCTION HIST_G REGEN SKIP_SH_HIST;
+		unset MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND INT_RES GINSTRUCTION REGEN;
+		HIST_G= SKIP_SH_HIST=;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
 		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
@@ -5818,9 +5934,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		if ((!NO_OPTMD_AUTO)) && ((!OPTMD)) && ((!OPTEXIT)) &&
 			((OPTC)) && ((MTURN)) && is_mdf "${ans}"
 		then
-			echo >&2;
-			_cmdmsgf 'Markdown' "AUTO";
-			cmd_runf /markdown;
+			printf '\n%s\n' '--- markdown ---' >&2;
+			cmd_runf /markdown; _cmdmsgf 'Markdown' "AUTO";
 		fi
 		
 		if ((OLLAMA+GROQAI)) && ((${#tkn[@]}==5))  #token generation rate  #0 tokens, #1 secs, #2 rate
@@ -5859,17 +5974,18 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		fi
 		if ((OPTW))
 		then 	#whisper auto context for better transcription / translation
-			WCHAT_C="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}\\n\\n${REPLY:-$*}";
-			if ((${#WCHAT_C}>224*4))
-			then 	((n = ${#WCHAT_C} - (220*4) ));
-				WCHAT_C=$(trim_leadf "${WCHAT_C: n}" "$SPC1");
-			fi  #max 224 tkns, GPT-2 encoding
+			WCHAT_C="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}\\n\\n${REPLY:-$*}\\n\\n$(
+			  ((${#ans} > 245)) && ans=${ans: ${#ans}-245}; printf '%s' "${ans#*[$IFS]}" )";
+			#trim right away, max 224 tkns, GPT-2 encoding
+			((${#WCHAT_C}>490)) && WCHAT_C=${WCHAT_C: ${#WCHAT_C}-490};
+			WCHAT_C=$(SMALLEST=1 INDEX=80 trim_leadf "${WCHAT_C}" $'*[ \t\n]');
 			#https://platform.openai.com/docs/guides/speech-to-text/improving-reliability
 		fi
 
 		((++MAIN_LOOP)) ;set --
-		unset INSTRUCTION GINSTRUCTION HIST_G REGEN OPTRESUME TKN_PREV REC_OUT HIST HIST_C SKIP PSKIP WSKIP JUMP EDIT REPLY REPLY_CMD REPLY_CMD_DUMP RET STREAM_OPT OPTA_OPT OPTAA_OPT OPTP_OPT OPTB_OPT OPTBB_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE PREVIEW BAD_RES INT_RES ESC RET_PRF Q
-		unset role rest tkn tkn_ans ans_tts ans buff glob out var pid s n
+		role= rest= tkn_ans= ans_tts= ans= buff= glob= out= pid= s= n=;
+		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF=;
+		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME SKIP PSKIP WSKIP JUMP EDIT REPLY_CMD REPLY_CMD_DUMP OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE PREVIEW BAD_RES INT_RES var tkn;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
@@ -5884,4 +6000,4 @@ fi
 ## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 
-# vim=syntax sync minlines=600
+# vim=syntax sync minlines=800

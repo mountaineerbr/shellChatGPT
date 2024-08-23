@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.71.6 | General Commands Manual
+% CHATGPT.SH(1) v0.72 | General Commands Manual
 % mountaineerbr
 % August 2024
 
@@ -884,7 +884,7 @@ Optional packages for specific features.
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
-- `termux-api`/`play-audio`/`termux-microphone-record`/`termux-clipboard-set` - Termux system
+- `termux-api`/`termux-tools`/`play-audio` - Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
 
