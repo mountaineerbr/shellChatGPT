@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2024
-title: CHATGPT.SH(1) v0.72 \| General Commands Manual
+title: CHATGPT.SH(1) v0.72.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -433,9 +433,9 @@ either “`!`” or “`/`”.
 | `!s`    | `!session` \[*HIST_FILE*\]             | Change to, search for, or create history file.             |
 | `!!s`   | `!!session` \[*HIST_FILE*\]            | Same as `!session`, break session.                         |
 
-*:* Commands followed by a colon will append command output to prompt.
+*:* Commands with a *colon* have their output appended to the prompt.
 
-*‡* Commands with double dagger may be invoked at the very end of the
+*‡* Commands with *double dagger* may be invoked at the very end of the
 input prompt.
 
 E.g.: “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”, “`/session`
@@ -713,23 +713,11 @@ Initial initial instruction or system message.
 **INSTRUCTION_CHAT**  
 Initial initial instruction or system message for chat mode.
 
-**MOD_CHAT**
+**MOD_CHAT**, **MOD_IMAGE**, **MOD_AUDIO**,
 
-**MOD_IMAGE**
+**MOD_SPEECH**, **MOD_LOCALAI**, **MOD_OLLAMA**,
 
-**MOD_AUDIO**
-
-**MOD_SPEECH**
-
-**MOD_LOCALAI**
-
-**MOD_OLLAMA**
-
-**MOD_MISTRAL**
-
-**MOD_GOOGLE**
-
-**MOD_GROQ**
+**MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
 **MOD_AUDIO_GROQ**  
 Set default model for each endpoint / integration.

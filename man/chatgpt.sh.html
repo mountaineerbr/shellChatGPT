@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.72 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.72.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.72 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.72.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2024</p>
 </header>
@@ -826,6 +826,8 @@ flush.</td>
 </tbody>
 </table>
 <table>
+<caption><em>:</em> Commands with a <em>colon</em> have their output
+appended to the prompt.</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Session</th>
@@ -908,10 +910,8 @@ flush.</td>
 </tr>
 </tbody>
 </table>
-<div class="line-block"><em>:</em> Commands followed by a colon will
-append command output to prompt.</div>
-<div class="line-block"><em>‡</em> Commands with double dagger may be
-invoked at the very end of the input prompt.</div>
+<div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
+may be invoked at the very end of the input prompt.</div>
 <div class="line-block">E.g.: “<code>/temp</code> <em>0.7</em>”,
 “<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”,
 “<code>/session</code> <em>HIST_NAME</em>”, “[<em>PROMPT</em>]
@@ -1171,15 +1171,12 @@ more random.</p>
 <p>Initial initial instruction or system message for chat mode.</p>
 </dd>
 </dl>
-<p><strong>MOD_CHAT</strong></p>
-<p><strong>MOD_IMAGE</strong></p>
-<p><strong>MOD_AUDIO</strong></p>
-<p><strong>MOD_SPEECH</strong></p>
-<p><strong>MOD_LOCALAI</strong></p>
-<p><strong>MOD_OLLAMA</strong></p>
-<p><strong>MOD_MISTRAL</strong></p>
-<p><strong>MOD_GOOGLE</strong></p>
-<p><strong>MOD_GROQ</strong></p>
+<p><strong>MOD_CHAT</strong>, <strong>MOD_IMAGE</strong>,
+<strong>MOD_AUDIO</strong>,</p>
+<p><strong>MOD_SPEECH</strong>, <strong>MOD_LOCALAI</strong>,
+<strong>MOD_OLLAMA</strong>,</p>
+<p><strong>MOD_MISTRAL</strong>, <strong>MOD_GOOGLE</strong>,
+<strong>MOD_GROQ</strong>,</p>
 <dl>
 <dt><strong>MOD_AUDIO_GROQ</strong></dt>
 <dd>

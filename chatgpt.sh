@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.72  aug/2024  by mountaineerbr  GPL+3
+# v0.72.1  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -325,17 +325,11 @@ Environment
 	INSTRUCTION_CHAT
 			Initial instruction or system message (chat mode).
 
-	MOD_CHAT
-	MOD_IMAGE
-	MOD_AUDIO
-	MOD_SPEECH
-	MOD_LOCALAI
-	MOD_OLLAMA
-	MOD_MISTRAL
-	MOD_GOOGLE
-	MOD_GROQ
-	MOD_AUDIO_GROQ
-	MOD_ANTHROPIC 	Set default model for each endpoint / integration.
+	MOD_CHAT        MOD_IMAGE      MOD_AUDIO
+	MOD_SPEECH      MOD_LOCALAI    MOD_OLLAMA
+	MOD_MISTRAL     MOD_GOOGLE     MOD_GROQ
+	MOD_AUDIO_GROQ  MOD_ANTHROPIC
+			Set default model for each endpoint / integration.
 	
 	OPENAI_API_HOST
 	OPENAI_API_HOST_STATIC
@@ -455,7 +449,7 @@ Commands
                                  Same as !session, break session.
    -------    ----------    -----------------------------------------
 
-      : Commands followed by a colon to append command output to prompt.
+      : Commands with a colon have their output appended to the prompt.
 
       ‡ Commands with double dagger may be invoked at the very end of
         the prompt.
@@ -3423,7 +3417,7 @@ function _ttsf
 			  then
 			    printf '%s\n' 'p' >&2;
 			  else
-			    NO_CLR=1 __read_charf -t 0.3;
+			    NO_CLR=1 __read_charf -t 0.4;
 			  fi
 			) &&
 			case "$var" in
@@ -4031,9 +4025,14 @@ function set_termuxpulsef
 		    _sysmsgf 'See' "<https://gitlab.com/fenixdragao/shellchatgpt#termux-users>";
 
 		    printf '\n%s  [Y/n] \a' "Enable \`module-sles-source'?" >&2;
-		    case "$(__read_charf -t 4)" in [NnAaQq]|$'\e')  false;;
+		    case "$(__read_charf -t 4)" in
+		      [NnAaQq]|$'\e')
+		        false
+		        ;;
 		      *)
-		        pulseaudio -k; pulseaudio -L "module-sles-source" -D & :;;
+		        pulseaudio -k;
+			pulseaudio -L "module-sles-source" -D &
+		        ;;
 		    esac;
 		    ;;
 		esac;
@@ -5978,7 +5977,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			  ((${#ans} > 245)) && ans=${ans: ${#ans}-245}; printf '%s' "${ans#*[$IFS]}" )";
 			#trim right away, max 224 tkns, GPT-2 encoding
 			((${#WCHAT_C}>490)) && WCHAT_C=${WCHAT_C: ${#WCHAT_C}-490};
-			WCHAT_C=$(SMALLEST=1 INDEX=80 trim_leadf "${WCHAT_C}" $'*[ \t\n]');
+			WCHAT_C=$(SMALLEST=1 INDEX=64 trim_leadf "${WCHAT_C}" $'*[ \t\n]');
 			#https://platform.openai.com/docs/guides/speech-to-text/improving-reliability
 		fi
 

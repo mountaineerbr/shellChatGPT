@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.72 | General Commands Manual
+% CHATGPT.SH(1) v0.72.1 | General Commands Manual
 % mountaineerbr
 % August 2024
 
@@ -445,9 +445,9 @@ may be either "`!`" or "`/`".
  --------------    -------------------------------------    ------------------------------------------------------------
 
 
-| _:_ Commands followed by a colon will append command output to prompt.
+: _:_ Commands with a *colon* have their output appended to the prompt.
 
-| _‡_ Commands with double dagger may be invoked at the very end of the input prompt.
+| _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt.
 
 | E.g.: "`/temp` _0.7_", "`!mod`_gpt-4_", "`-p` _0.2_", "`/session` _HIST_NAME_", "\[_PROMPT_] `/pick`", and "\[_PROMPT_] `/sh`".
 
@@ -763,23 +763,11 @@ Setting **temperature** has an effect, the higher the more random.
 :    Initial initial instruction or system message for chat mode.
 
 
-**MOD_CHAT**
+**MOD_CHAT**, **MOD_IMAGE**, **MOD_AUDIO**,
 
-**MOD_IMAGE**
+**MOD_SPEECH**, **MOD_LOCALAI**, **MOD_OLLAMA**,
 
-**MOD_AUDIO**
-
-**MOD_SPEECH**
-
-**MOD_LOCALAI**
-
-**MOD_OLLAMA**
-
-**MOD_MISTRAL**
-
-**MOD_GOOGLE**
-
-**MOD_GROQ**
+**MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
 **MOD_AUDIO_GROQ**
 
