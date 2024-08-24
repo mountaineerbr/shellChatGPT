@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.72.2  aug/2024  by mountaineerbr  GPL+3
+# v0.72.3  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2750,7 +2750,7 @@ function ollama_mediaf
 #will _NOT_ work with whitespace in filename if not pipe-delimited and may not work with mixed pipe- and whitespace-delimited input
 function _mediachatf
 {
-	typeset var spc_sep ftrim break i n
+	typeset var spc_sep ftrim break i m n
        	i=${#1} TRUNC_IND=;
 
 	#process only the last line of input, fix for escaped white spaces in filename, del trailing spaces and trailing pipe separator
@@ -2758,12 +2758,14 @@ function _mediachatf
 
 	((!CMD_CHAT)) && ((${#1}>2048)) && set -- "${1:${#1}-2048}";  #avoid too long an input (too slow)
 
-	while [[ -z $1 ]] || [[ $1 = *[a-zA-Z0-9]*$'\n'*[a-zA-Z0-9]* ]] || ((n>99)) && break;
+	while [[ -z $1 ]] || [[ $1 = *[a-zA-Z0-9]*$'\n'*[a-zA-Z0-9]* ]] || ((m>128)) && break;
 		[[ $1 = *[\|\ ]*[[:alnum:]]* ]] || {  #prompt is the raw filename / url:
 		  ftrim=$(trim_leadf "$1" $'*(\\\\[ntr]|[ \n\t\|])');
 		  { [[ -f $ftrim ]] || is_linkf "$ftrim" ;} && break=1;
 		}
-	do 	if ((break))
+	do
+		((++m))
+		if ((break))
 		then var=$ftrim;
 		elif [[ $1 = *\|* ]]
 		then 	var=$(sed 's/^.*[|][[:space:]]*//' <<<"$1");  #pipe separator
@@ -2773,19 +2775,22 @@ function _mediachatf
 		#check if file or url and add to array (max 20MB)
 		if is_imagef "$var" || { ((!GOOGLEAI)) && is_linkf "$var" ;} ||
 			{ ((GOOGLEAI)) && is_videof "$var" ;}  #|| ((MULTIMODAL))
-		then 	((++n));
+		then
+			((++n));
 			if ((CMD_CHAT))
 			then 	MEDIA_CMD=("${MEDIA_CMD[@]}" "$var");
 				MEDIA_CMD_IND=("${MEDIA_CMD_IND[@]}" "$var");
 			else 	MEDIA=("$var" "${MEDIA[@]}");  #read by fmt_ccf()
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
+
 			if ((break))
 			then 	set -- ;
 			elif [[ $1 = *\|* ]]
 			then 	set -- "$(sed 's/[[:space:]]*[|][^|]*$//' <<<"$1")";
 			else 	set -- "$(sed 's/\\[tnr]/ /g; s/[[:space:]]*[[:space:]][^[:space:]]*$//' <<<"$1")"
 			fi; spc_sep= ;
+
 			set -- "$(trim_trailf "$1" $'*(\\[tnr]|[ \t\n\r])')";
 			((TRUNC_IND = i - ${#1}));
 		else
