@@ -719,7 +719,7 @@ Initial initial instruction or system message for chat mode.
 
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_AUDIO_GROQ**  
+**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**  
 Set default model for each endpoint / integration.
 
 **OPENAI_API_HOST**

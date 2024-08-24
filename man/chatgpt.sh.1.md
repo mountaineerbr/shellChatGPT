@@ -769,7 +769,7 @@ Setting **temperature** has an effect, the higher the more random.
 
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_AUDIO_GROQ**
+**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**
 
 :    Set default model for each endpoint / integration.
 
