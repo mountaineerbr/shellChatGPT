@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.72.1  aug/2024  by mountaineerbr  GPL+3
+# v0.72.2  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2771,8 +2771,8 @@ function _mediachatf
 		fi
 
 		#check if file or url and add to array (max 20MB)
-		if is_imagef "$var" || { ((GOOGLEAI)) && is_videof "$var" ;} \
-			|| { ((!GOOGLEAI)) && is_linkf "$var" ;}  #|| ((MULTIMODAL))
+		if is_imagef "$var" || { ((!GOOGLEAI)) && is_linkf "$var" ;} ||
+			{ ((GOOGLEAI)) && is_videof "$var" ;}  #|| ((MULTIMODAL))
 		then 	((++n));
 			if ((CMD_CHAT))
 			then 	MEDIA_CMD=("${MEDIA_CMD[@]}" "$var");
@@ -2789,13 +2789,13 @@ function _mediachatf
 			set -- "$(trim_trailf "$1" $'*(\\[tnr]|[ \t\n\r])')";
 			((TRUNC_IND = i - ${#1}));
 		else
-			((spc_sep)) || {
+			((spc_sep)) || [[ $var = *[$IFS]* ]] || {
 			  var="${var:0: COLUMNS-25}$([[ -n ${var: COLUMNS-25} ]] && printf '\b\b\b%s' ...)";
-			  var=${var//$'\t'/ };
-			  __warmsgf 'multimodal: invalid --' "\"$var\"";
+			  __warmsgf 'multimodal: invalid --' "\`\`${var//$'\t'/ }''";
 			}
-
 			break;
+			#continue processing on pipe separator only
+			#((spc_sep)) && break;
 			#[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
 			#set -- "${1%\|*}";
 		fi  #https://stackoverflow.com/questions/12199059/
@@ -4032,6 +4032,7 @@ function set_termuxpulsef
 		      *)
 		        pulseaudio -k;
 			pulseaudio -L "module-sles-source" -D &
+			disown $!;
 		        ;;
 		    esac;
 		    ;;
