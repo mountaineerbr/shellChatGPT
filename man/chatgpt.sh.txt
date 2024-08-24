@@ -399,7 +399,7 @@ either “!” or “/”.
   !s        !session [HIST_FILE]           Change to, search for, or create history file.
   !!s       !!session [HIST_FILE]          Same as !session, break session.
 
-  : : Commands with a colon have their output appended to the prompt.
+: Commands with a colon have their output appended to the prompt.
 
 ‡ Commands with double dagger may be invoked at the very end of the
 input prompt.

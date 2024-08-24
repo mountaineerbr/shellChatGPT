@@ -445,7 +445,7 @@ may be either "`!`" or "`/`".
  --------------    -------------------------------------    ------------------------------------------------------------
 
 
-: _:_ Commands with a *colon* have their output appended to the prompt.
+| _:_ Commands with a *colon* have their output appended to the prompt.
 
 | _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt.
 
