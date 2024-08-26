@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.72.4  aug/2024  by mountaineerbr  GPL+3
+# v0.72.5  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2178,17 +2178,17 @@ function cmd_runf
 			then 	cmd_runf /doc"${*##cat}";
 			elif _is_linkf "$filein"
 			then 	cmd_runf /url"${*##cat}";
-			else 	false;
-			fi ||
-			case "$1" in
-				cat:*[!$IFS]*)
-					cmd_runf /sh: "cat ${fileinq:-$filein}";;
-				cat*[!$IFS]*)
-					cmd_runf /sh "cat ${fileinq:-$filein}";;
-				*)
-					__warmsgf '*' 'Press <Ctrl-D> to flush * '
-					STDERR=/dev/null  cmd_runf /sh cat </dev/tty;;
-			esac; return;
+			else
+				case "$*" in
+					cat:*[!$IFS]*)
+						cmd_runf /sh: "cat ${fileinq:-$filein}";;
+					cat*[!$IFS]*)
+						cmd_runf /sh "cat ${fileinq:-$filein}";;
+					*)
+						__warmsgf '*' 'Press <Ctrl-D> to flush * '
+						STDERR=/dev/null  cmd_runf /sh cat </dev/tty;;
+				esac;
+			fi; return;
 			;;
 		pdf*)
 			set -- "${*}";
@@ -2203,7 +2203,8 @@ function cmd_runf
 			then 	var="abiword --to=txt --to-name='$FILEFIFO' ${filein}; cat -- '$FILEFIFO'"
 			elif command -v ebook-convert
 			then 	var="ebook-convert ${filein} '$FILEFIFO'; cat -- '$FILEFIFO'"
-			else 	set --; function _is_pdff { 	false ;};  #auto-disable
+			else 	set --; RET=1;  #auto-disable
+				function _is_pdff { 	false ;};
 			fi 2>/dev/null >&2
 
 			case "$*" in
@@ -2223,7 +2224,8 @@ function cmd_runf
 
 			if command -v libreoffice
 			then 	var="libreoffice --headless --convert-to txt --outdir ${outdir} ${filein} && cat -- ${out}";
-			else 	set --; function _is_docf { 	false ;};  #auto-disable
+			else 	set --; RET=1;  #auto-disable
+				function _is_docf { 	false ;};
 			fi 2>/dev/null >&2
 
 			case "$*" in
@@ -5702,29 +5704,29 @@ else
 		#basic text and pdf file, and text url dumps
 		elif var=$(is_txturl "$1")
 		then
-			if ((${#REPLY_CMD_DUMP}))
-			then 	var=$REPLY_CMD_DUMP;
-			else 	trap 'trap "-" INT' INT;
-				var=$(cmd_runf /cat"$var"; printf '%s\n' "$REPLY"; exit $RET);
-				ret=${?}; trap "exit" INT;
-			fi
-			if ((${#var})) && ((ret!=1))
+			if ((!${#REPLY_CMD_DUMP}))
 			then
-			  REPLY_CMD="${REPLY:-$REPLY_CMD}" REPLY_CMD_DUMP="$var";
-			  REPLY="${REPLY}${NL}${NL}${var}";
+			  REPLY_CMD=$REPLY;
+			  cmd_runf /cat"$var";
+			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST=;
+			fi
+			if ((${#REPLY_CMD_DUMP})) && ((RET!=1))
+			then
+			  REPLY_CMD="${REPLY:-$REPLY_CMD}";
+			  REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
 			  ((PREVIEW)) && REPLY_OLD="$REPLY";
-			  case "$ret" in
-			    201|200) SKIP=1 EDIT=1 REPLY=$REPLY_CMD REPLY_CMD_DUMP= REPLY_CMD=;
+			  case "$RET" in
+			    201|200) SKIP=1 EDIT=1 REPLY=$REPLY_CMD REPLY_CMD_DUMP= REPLY_CMD= RET=;
 			         set --; continue 1;;  #redo / abort
-			    199) SKIP=1 EDIT=2; set --; continue 1;;  #edit in bash readline
-			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=2; set --; continue 1;;  #edit in text editor
+			    199) SKIP=1 EDIT=2 RET=; set --; continue 1;;  #edit in bash readline
+			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=2 RET=; set --; continue 1;;  #edit in text editor
 			  esac
-			  set -- "${*}${NL}${NL}${var}";
+			  set -- "${*}${NL}${NL}${REPLY_CMD_DUMP}";
 			  REC_OUT="${Q_TYPE##$SPC1}${*}";
 			else
-			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;
+			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD= RET=;
 			  set --; continue 1;  #edit orig input
-			fi;
+			fi; RET= var=;
 		#vision
 		elif is_visionf "$MOD"
 		then
