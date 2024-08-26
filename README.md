@@ -166,7 +166,7 @@ Packages required for specific features.
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`termux-tools`/`play-audio` - Termux system
-- `poppler`/`gs`/`abiword`/`ebook-convert` - Dump PDF as text
+- `poppler`/`gs`/`abiword`/`ebook-convert`/`LibreOffice` - Dump PDF or Doc as text
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
 
 </details>

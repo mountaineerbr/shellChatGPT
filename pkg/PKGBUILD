@@ -19,6 +19,7 @@ optdepends=(
 	'bat: render markdown (pygmentize, glow, mdcat, mdless)'
 	'w3m: dump URL text (lynx, elinks, links)'
 	'poppler: dump PDF as text (gs, abiword, ebook-convert)'
+	'libreoffice: dump doc files as text'
 	'dialog: file picker (kdialog, zenity, vifm, ranger, nnn)'
 )
 source=("${pkgname}-${pkgver}::git+${url}.git#commit=${_commit}")

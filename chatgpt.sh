@@ -2170,7 +2170,7 @@ function cmd_runf
 			if [[ $filein = *\\* ]]
 			then 	filein=${filein//\\};
 			else 	fileinq=$(printf '%q' "${filein}");
-			fi  #paths with spaces must be backspace-escaped
+			fi  #paths with spaces must be backslash-escaped
 
 			if is_pdff "$filein"
 			then 	cmd_runf /pdf"${*##cat}";
