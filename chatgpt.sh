@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.72.5  aug/2024  by mountaineerbr  GPL+3
+# v0.72.6  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3239,6 +3239,8 @@ silenceremove=start_periods=${start_periods}:start_threshold=${threshold}:start_
 #tip: set threshold to "mean_vol", or "max_vol minus -3dB to -6dB"  #ffmpeg mailing
 #voice-gate: lowpass=200,highpass=100  #man ffmpeg-filters
 #lowpass=5000,highpass=200  #fast filtering not perfect
+#-af lowpass=3000,highpass=200,afftdn=nf=-25
+#-af arnndn=m=cb.rnnn  #voice filters
 
 #extract mean and max volume from audio stream
 #ffmpeg -i "${1}" -af "atrim=start=0.2,areverse,atrim=start=0.2,volumedetect" -f null - 2>&1 | sed -n -e 's/[[:space:]]*dB//' -e 's/.*mean_volume:[[:space:]]*//p' -e 's/.*max_volume:[[:space:]]*//p'
@@ -5412,7 +5414,7 @@ else
 			*) 	session_mainf "$1" && set -- "${@:2}";;
 		esac
 	elif cmd_runf "$@"
-	then 	set -- ;
+	then 	set -- ; SKIP_SH_HIST=;
 	else  #print session context?
 		if ((OPTRESUME==1)) && ((OPTV<2)) && [[ -s $FILECHAT ]]
 		then 	OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
@@ -5706,25 +5708,25 @@ else
 		then
 			if ((!${#REPLY_CMD_DUMP}))
 			then
-			  REPLY_CMD=$REPLY;
+			  REPLY_CMD=$REPLY RET=;
 			  cmd_runf /cat"$var";
 			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST=;
 			fi
 			if ((${#REPLY_CMD_DUMP})) && ((RET!=1))
 			then
-			  REPLY_CMD="${REPLY:-$REPLY_CMD}";
+			  REPLY_CMD="${REPLY:-$REPLY_CMD}";  #!#
 			  REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
 			  ((PREVIEW)) && REPLY_OLD="$REPLY";
 			  case "$RET" in
-			    201|200) SKIP=1 EDIT=1 REPLY=$REPLY_CMD REPLY_CMD_DUMP= REPLY_CMD= RET=;
+			    201|200) SKIP=1 EDIT=1 REPLY=$REPLY_CMD REPLY_CMD_DUMP= REPLY_CMD=;
 			         set --; continue 1;;  #redo / abort
-			    199) SKIP=1 EDIT=2 RET=; set --; continue 1;;  #edit in bash readline
-			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=2 RET=; set --; continue 1;;  #edit in text editor
+			    199) SKIP=1 EDIT=2; set --; continue 1;;  #edit in bash readline
+			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=2; set --; continue 1;;  #edit in text editor
 			  esac
 			  set -- "${*}${NL}${NL}${REPLY_CMD_DUMP}";
 			  REC_OUT="${Q_TYPE##$SPC1}${*}";
 			else
-			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD= RET=;
+			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;
 			  set --; continue 1;  #edit orig input
 			fi; RET= var=;
 		#vision
@@ -5990,8 +5992,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		then
 			((PREVIEW)) && BCYAN="${Color9}";
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
-			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD=;
-			unset PSKIP JUMP REGEN PREVIEW REPLY_CMD REPLY_CMD_DUMP RET INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX;
+			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD= RET=;
+			unset PSKIP JUMP REGEN PREVIEW REPLY_CMD REPLY_CMD_DUMP INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX;
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
 		fi;
