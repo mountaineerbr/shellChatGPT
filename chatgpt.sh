@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.72.3  aug/2024  by mountaineerbr  GPL+3
+# v0.72.4  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -934,7 +934,7 @@ function trimf
 function block_printf
 {
 	typeset REPLY; OPTAWE= SKIP= ;
-	[[ ${BLOCK:0:10} = @* ]] && cat -- "${BLOCK##@}" | less >&2
+	[[ ${BLOCK:0:32} = @* ]] && cat -- "${BLOCK##@}" | less >&2
 	printf '\n%s\n%s\n' "${ENDPOINTS[EPN]}" "$BLOCK" >&2
 	printf '\n%s\n' '<Enter> continue, <Ctrl-D> redo, <Ctrl-C> exit' >&2
 	__clr_ttystf; read </dev/tty || return 200;
@@ -1200,8 +1200,8 @@ function set_histf
 
 		((${#string}>1)) && string=${string:1:${#string}-2}  #del lead and trail ""
 		#improve bash globbing speed with substring manipulation
-		sub="${string:0:30}" sub="${sub##@("${q_type}"|"${a_type}"|":")}"
-		stringc="${sub}${string:30}"  #del lead seqs `\nQ: ' and `\nA:'
+		sub="${string:0:32}" sub="${sub##@("${q_type}"|"${a_type}"|":")}"
+		stringc="${sub}${string:32}"  #del lead seqs `\nQ: ' and `\nA:'
 
 		if ((OPTTIK || token<1))
 		then 	((token<1 && OPTVV)) && __warmsgf "Warning:" "Zero/Neg token in history"
@@ -1721,7 +1721,7 @@ function _model_costf
 #check input and run a chat command  #tags: cmdrunf, runcmdf, run_cmdf
 function cmd_runf
 {
-	typeset opt_append filein var wc xskip pid n
+	typeset opt_append filein fileinq outdir out var wc xskip pid n
 	typeset -a args
 	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]* ]] || return;
 	((${#1}+${#2}<1024)) || return;
@@ -1935,6 +1935,7 @@ function cmd_runf
 			xskip=1;
 			[[ $* = ?([/!])url:* ]] && opt_append=1;  #append as user
 			set -- "$(trimf "$(trim_leadf "$*" '@(url|[/!]url)*(:)')" "$SPC")";
+
 			if var=$(set_browsercmdf)
 			then 	((OPTV)) || __printbf "${var%% *}";
 				case "$var" in
@@ -2164,25 +2165,36 @@ function cmd_runf
 			esac
 			;;
 		cat*)
-			set -- "${*}"; filein=$(trimf "${1##cat*(:)}" "$SPC");
+			set -- "${*}";
+			filein=$(trimf "${1##cat*(:)}" "$SPC") fileinq=$filein;
+			if [[ $filein = *\\* ]]
+			then 	filein=${filein//\\};
+			else 	fileinq=$(printf '%q' "${filein}");
+			fi  #paths with spaces must be backspace-escaped
+
 			if is_pdff "$filein"
-			then 	cmd_runf /pdf"${*##cat}"; return;
+			then 	cmd_runf /pdf"${*##cat}";
+			elif is_docf "$filein"
+			then 	cmd_runf /doc"${*##cat}";
 			elif _is_linkf "$filein"
-			then 	cmd_runf /url"${*##cat}"; return;
+			then 	cmd_runf /url"${*##cat}";
 			else 	false;
 			fi ||
 			case "$1" in
 				cat:*[!$IFS]*)
-					cmd_runf /sh: "cat ${filein}";;
+					cmd_runf /sh: "cat ${fileinq:-$filein}";;
 				cat*[!$IFS]*)
-					cmd_runf /sh "cat ${filein}";;
+					cmd_runf /sh "cat ${fileinq:-$filein}";;
 				*)
 					__warmsgf '*' 'Press <Ctrl-D> to flush * '
 					STDERR=/dev/null  cmd_runf /sh cat </dev/tty;;
 			esac; return;
 			;;
 		pdf*)
-			set -- "${*}"; filein=$(trimf "${1##pdf*(:)}" "$SPC");
+			set -- "${*}";
+			filein=$(trimf "${1##pdf*(:)}" "$SPC");
+			[[ $filein = *\\* ]] || filein=$(printf '%q' "${filein}");
+			
 			if command -v pdftotext
 			then 	var="pdftotext -layout -nopgbrk ${filein} -";
 			elif command -v gs
@@ -2191,13 +2203,35 @@ function cmd_runf
 			then 	var="abiword --to=txt --to-name='$FILEFIFO' ${filein}; cat -- '$FILEFIFO'"
 			elif command -v ebook-convert
 			then 	var="ebook-convert ${filein} '$FILEFIFO'; cat -- '$FILEFIFO'"
+			else 	set --; function _is_pdff { 	false ;};  #auto-disable
 			fi 2>/dev/null >&2
+
 			case "$*" in
 				pdf:*[!$IFS]*)
 					cmd_runf /sh: "$var";;
 				pdf*[!$IFS]*)
 					cmd_runf /sh "$var";;
-				*) 	__warmsgf 'Err:' 'No input or PDF-to-text software available';;
+				*) 	__warmsgf 'Err:' 'Input or PDF-to-Text software missing';;
+			esac; return;
+			;;
+		doc*)
+			set -- "${*}";
+			filein=$(trimf "${1##doc*(:)}" "$SPC");
+			[[ $filein = *\\* ]] || filein=$(printf '%q' "${filein}");
+			outdir=$(printf '%q' "${OUTDIR}");
+			out=${outdir}/${filein##*/} out=${out%.*}.txt;
+
+			if command -v libreoffice
+			then 	var="libreoffice --headless --convert-to txt --outdir ${outdir} ${filein} && cat -- ${out}";
+			else 	set --; function _is_docf { 	false ;};  #auto-disable
+			fi 2>/dev/null >&2
+
+			case "$*" in
+				doc:*[!$IFS]*)
+					cmd_runf /sh: "$var";;
+				doc*[!$IFS]*)
+					cmd_runf /sh "$var";;
+				*) 	__warmsgf 'Err:' 'Input or LibreOffice missing';;
 			esac; return;
 			;;
 		save*|\#*)
@@ -2301,7 +2335,7 @@ function cmd_runf
 			SKIP=1 EDIT=1 xskip=1;
 			;;
 		r|rr|''|[/!]|regen|[/!]regen|[$IFS])  #regenerate last response / retry
-			SKIP=1 EDIT=1
+			SKIP=1 EDIT=1 SKIP_SH_HIST=1;
 			case "$*" in
 				rr|[/!]*) REGEN=2;;  #edit prompt
 				*)
@@ -2524,7 +2558,7 @@ function fix_dotf
 function json_minif
 {
 	typeset blk;
-	if [[ ${BLOCK:0:10} = @* ]]
+	if [[ ${BLOCK:0:32} = @* ]]
 	then 	blk=$(jq -c . "${BLOCK##@}") || return
 		printf '%s\n' "$blk" >"${BLOCK##@}"
 	else 	blk=$(jq -c . <<<"$BLOCK") || return
@@ -2536,7 +2570,8 @@ function json_minif
 #usage: fmt_ccf [prompt] [role]
 function fmt_ccf
 {
-	typeset var ext
+	typeset var
+	typeset -l ext
 	[[ ${1} = *[!$IFS]* ]] || return
 	
 	if ! ((${#MEDIA[@]}+${#MEDIA_CMD[@]}))
@@ -2555,10 +2590,10 @@ function fmt_ccf
 			if [[ $var != *[!$IFS]* ]]
 			then 	continue;
 			elif [[ -f $var ]]
-			then 	ext=${var##*.}; ext=${ext,,};  #!#bash ,, expansion
-				ext=${ext/[Jj][Pp][Gg]/jpeg}; ((${#ext}<7)) || ext=;
+			then 	ext=${var##*.} ext=${ext/[Jj][Pp][Gg]/jpeg};
+				((${#ext}<7)) || ext=;
 				case "$ext" in jpeg|png|gif|webp) :;;  #20MB per image
-					*)  __warmsgf 'Warning' "filetype may be unsupported -- ${ext}" ;;
+					*)  __warmsgf 'Warning' "filetype may be unsupported -- ${ext:-extension_err}" ;;
 				esac
 				if ((ANTHROPICAI))
 				then
@@ -2798,6 +2833,7 @@ function _mediachatf
 			  var="${var:0: COLUMNS-25}$([[ -n ${var: COLUMNS-25} ]] && printf '\b\b\b%s' ...)";
 			  __warmsgf 'multimodal: invalid --' "\`\`${var//$'\t'/ }''";
 			}
+
 			break;
 			#continue processing on pipe separator only
 			#((spc_sep)) && break;
@@ -2873,13 +2909,21 @@ function _is_audiof
 }
 function is_audiof { 	[[ -f $1 ]] && _is_audiof "$1" ;}
 
-#test whether file is text or pdf file, or url
+#test whether file is text, pdf file, or url and print out filepath
 function is_txturl
 {
 	((${#1}>320)) && set -- "${1: ${#1}-320}"
-	set -- "$(trim_leadf "$(trim_trailf "$1" "$SPC")" $'*[ \t\n]')"  #C#
+	
+	set -- "$1" "$(INDEX=64 trimf "$1" "$SPC")";
+	if [[ -s ${2:-$1} ]]
+	then 	set -- "${2:-$1}";
+	else 	set -- "$(trim_leadf "$(trim_trailf "$1" "$SPC")" $'*[!\\\\][ \t\n]')";
+		[[ ${1:0:1} = [$IFS] ]] && set -- "${1:1}";
+	fi  #C#
 	case "$1" in \~\/*) 	set -- "$HOME/${1:2}";; esac;
-	is_txtfilef "$1" || is_pdff "$1" || { _is_linkf "$1" && ! _is_imagef "$1" && ! _is_videof "$1" ;}
+
+	[[ $1 = *\\* ]] && set -- "${1//\\}";  #path with spaces must be backslash-quoted
+	is_txtfilef "$1" || is_pdff "$1" || is_docf "$1" || { _is_linkf "$1" && ! _is_imagef "$1" && ! _is_videof "$1" ;}
 	((!${?})) && printf '%s' "$1";
 }
 
@@ -2899,6 +2943,19 @@ function is_mdf
 {
 	[[ "\\n$1" =~ (\*\*|__|\[[^\]]*\]\([^\)]*\)|\\n\ *\`\`\`|\\n\#\#*\ |\\n\ *[\*-]\ |\\n\ *[0-9][0-9]*\.\ ) ]]
 }
+
+function _is_docf
+{
+	typeset -l ext=$1
+	case "$ext" in
+	*.doc|*.docx|*.docm|*.dot|*.dotx|*.dotm|*.odt|*.ott|*.oth|*.rtf|*.uot|*.uof|\
+	*.xls|*.xlsx|*.xlsm|*.xlt|*.xltx|*.xltm|*.ods|*.ots|*.fods|*.uos|\
+	*.ppt|*.pptx|*.pptm|*.pot|*.potx|*.potm|*.pps|*.ppsx|*.ppsm|*.odp|*.otp|\
+	*.dif|*.slk|*.dbf|*.odg|*.otg|*.sxd|*.std|*.odf) :;;
+	*) false;;
+	esac;
+}
+function is_docf { 	[[ -f $1 ]] && _is_docf "$1" ;}
 
 #alternative to du
 function duf
@@ -3977,8 +4034,9 @@ function set_playcmdf
 	#--network-caching=150 --sout-mux-caching=50 --live-caching=100 --clock-jitter=0 --file-caching=0 --no-audio-time-stretch
 	elif command -v ffplay
 	then 	PLAY_CMD='ffplay -nodisp'
-	#-fflags +nobuffer
+	#-fflags +nobuffer -flags low_delay -framedrop 
 	#streaming: ffplay -nodisp -, cvlc -
+	#-fflags discardcorrupt, too aggressive (breaks audio-video sync)
 	elif command -v afplay  #macos
 	then 	PLAY_CMD='afplay'
 	else 	PLAY_CMD='false'
@@ -4850,11 +4908,11 @@ unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CM
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS  #in zsh, typeset sets params as "empty" instead of "unset"
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
-set -o ${READLINEOPT:-emacs}; 
+set -o ${READLINEOPT:-emacs};
 bind 'set enable-bracketed-paste on';
-bind -x '"\C-x\C-e": "_edit_no_execf"'
-bind '"\C-j": "\C-v\C-j"'  #add newline
-[[ $BASH_VERSION = [5-9]* ]] || ((OPTV)) || __warmsgf 'Warning:' 'Bash 5+ required';
+bind -x '"\C-x\C-e": "_edit_no_execf"';
+bind '"\C-j": "\C-v\C-j"';  #add newline with Ctrl-J
+[[ $BASH_VERSION = [5-9]* ]] || ((OPTV)) || __warmsgf 'Warning:' 'Bash 5+ recommended';
 
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
   #map colours
@@ -5330,7 +5388,8 @@ else
 	if ((MTURN))  #chat mode (multi-turn, interactive)
 	then 	[[ -t 1 ]] && __printbf 'history_bash'; var=$SECONDS;  #only visible when large and slow
 		history -c; history -r; history -w &  #prune & rewrite history file
-		[[ -t 1 ]] && __printbf '            '; ((SECONDS-var>1)) && __warmsgf 'Warning:' "Bash history size -- $(duf "$HISTFILE")";
+		[[ -t 1 ]] && __printbf '            ';
+		((SECONDS-var>1)) && __warmsgf 'Warning:' "Bash history size -- $(duf "$HISTFILE")";
 		if ((OPTRESUME)) && [[ -s $FILECHAT ]]
 		then 	REPLY_OLD=$(grep_usr_lastlinef);
 		elif [[ -s $HISTFILE ]]
@@ -5422,7 +5481,7 @@ else
 		#defaults prompter
 		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ -z "$*" ]]
 		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
-			B=$(_unescapef "${Q:0:320}") B=${B##*$'\n'} B=${B//?/\\b}  #backspaces
+			B=$(_unescapef "${Q:0:128}") B=${B##*$'\n'} B=${B//?/\\b}  #backspaces
 
 			while ((SKIP)) ||
 				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE: }${NC}" >&2
@@ -5478,7 +5537,7 @@ else
 					((EDIT==2)) && REPLY_CMD_DUMP=$REPLY;
 				fi; printf "${NC}" >&2;
 				
-				if [[ ${REPLY:0:8} = /cat*([$IFS]) ]]
+				if [[ ${REPLY:0:128} = /cat*([$IFS]) ]]
 				then 	((CATPR)) || CATPR=2 ;REPLY= SKIP=1
 					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"
 					set -- ;continue  #A#
@@ -5497,8 +5556,14 @@ else
 					  prev_tohistf "$(escapef "${REPLY_CMD:-$REPLY_OLD}")";
 					
 					#check whether last arg is url or directory
-					var=$(trim_leadf "$(trim_trailf "${REPLY: ind}" "$SPC")" $'*[ \t\n]')  #C#
+					var=$(INDEX=64 trimf "${REPLY: ind}" "$SPC")
+					if [[ -s $var ]]
+					then 	:;
+					else 	var=$(trim_leadf "$(trim_trailf "${REPLY: ind}" "$SPC")" $'*[!\\\\][ \t\n]');
+						[[ ${var:0:1} = [$IFS] ]] && var=${var:1};
+					fi  #C#
 					case "$var" in \~\/*) 	var="$HOME/${var:2}";; esac;
+
 					if { _is_linkf "$var" && ! _is_imagef "$var" && ! _is_videof "$var" && [[ $var != *\/\/ ]] ;} ||
 						{ [[ -d $var ]] && [[ $var != \/ ]] ;}
 					then 	((PREVIEW)) && PREVIEW=2 BCYAN="${Color9}";
@@ -5697,7 +5762,7 @@ else
 					((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
 					MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");
 				fi
-				var="$(unset MEDIA MEDIA_CMD; fmt_ccf "$(escapef "$INSTRUCTION")" system;)${INSTRUCTION:+,${NL}}"
+				var=$(unset MEDIA MEDIA_CMD; fmt_ccf "$(escapef "$INSTRUCTION")" system;) && var="${var}${INSTRUCTION:+,${NL}}";  #mind anthropic
 				set -- "${HIST_C}${HIST_C:+,${NL}}${var}$(
 					fmt_ccf "${HIST_G}$(escapef "${GINSTRUCTION}${GINSTRUCTION:+$NL$NL}${*}")" "$role")";
 			else 	#text cmpls

@@ -160,7 +160,7 @@ Packages required for specific features.
 - `Base64` - Image endpoint, vision models
 - `ImageMagick`/`fbida` - Image edits and variations
 - `Python` - Modules tiktoken, markdown, bs4
-- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
+- `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
@@ -359,6 +359,9 @@ commands is appended to the current prompt.
 
 When the `/pick` command is run at the end of the prompt, the selected
 file path is appended instead.
+
+_File paths_ that contain white spaces may need backslash-escaping
+in some functions.
 
 
 #### Voice In and Out + Chat Completions
@@ -1120,7 +1123,7 @@ the script uses `sox`, `ffmpeg` or other competent software,
 otherwise it defaults to `termux-microphone-record`
 
 Likewise, when playing audio (TTS, `option -z`),
-depending on `pulseaudio` configuration use `sox`, `ffmpeg` or
+depending on `pulseaudio` configuration use `sox`, `mpv` or
 fallback to termux wrapper playback (`play-audio` is optional).
 
 To set the clipboard, it is required `termux-clipboard-set` from the `termux-api` package.

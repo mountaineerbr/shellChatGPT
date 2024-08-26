@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.72.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.72.4 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.72.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.72.4 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2024</p>
 </header>
@@ -274,6 +274,8 @@ with chat command “<code>!img</code> [<em>url</em>|<em>filepath</em>]”.
 Image urls and files can also be appended by typing the operator pipe
 and a valid input at the end of the text prompt, such as “<code>|</code>
 [<em>url</em>|<em>filepath</em>]”.</p>
+<p><em>Filepaths</em> that contain white spaces may need
+backslash-escaping in some functions.</p>
 <h4 id="model-and-capacity">Model and Capacity</h4>
 <p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
 <em>MODEL</em> as its name, or set it as “<em>.</em>” to pick from the
@@ -1265,7 +1267,7 @@ escape sequences (these must not change cursor position).</p>
 <li><code>ImageMagick</code>/<code>fbida</code> - Image edits and
 variations</li>
 <li><code>Python</code> - Modules tiktoken, markdown, bs4</li>
-<li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFmpeg</code>/<code>afplay</code>
+<li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFplay</code>/<code>afplay</code>
 - Play TTS output</li>
 <li><code>SoX</code>/<code>Arecord</code>/<code>FFmpeg</code> - Record
 input (Whisper)</li>

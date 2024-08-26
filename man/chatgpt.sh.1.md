@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.72.1 | General Commands Manual
+% CHATGPT.SH(1) v0.72.4 | General Commands Manual
 % mountaineerbr
 % August 2024
 
@@ -102,6 +102,9 @@ With **vision models**, insert an image to the prompt with chat
 command "`!img` \[_url_|_filepath_]". Image urls and files can also
 be appended by typing the operator pipe and a valid input at the
 end of the text prompt, such as "`|` \[_url_|_filepath_]".
+
+_Filepaths_ that contain white spaces may need backslash-escaping
+in some functions.
 
 
 #### Model and Capacity
@@ -867,7 +870,7 @@ Optional packages for specific features.
 - `Base64` - Image endpoint, vision models
 - `ImageMagick`/`fbida` - Image edits and variations
 - `Python` - Modules tiktoken, markdown, bs4
-- `mpv`/`SoX`/`Vlc`/`FFmpeg`/`afplay` - Play TTS output
+- `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
