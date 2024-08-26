@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.72.6  aug/2024  by mountaineerbr  GPL+3
+# v0.73  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2269,7 +2269,7 @@ function cmd_runf
 				esac; set --;
 			done; __clr_lineupf $((12+1+47));  #!#
 			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
-			((${#args[@]})) && shell_histf "!${args[*]}"; SKIP_SH_HIST=1;
+			((${#args[@]})) && shell_histf "!${args[*]}"; SKIP_SH_HIST=1 REPLY_CMD_BLOCK=1;
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
 			echo Session and History >&2; [[ $* = . ]] && args=('fork current');
@@ -4908,7 +4908,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW RET init buff var tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW RET init buff var tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS  #in zsh, typeset sets params as "empty" instead of "unset"
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -5607,7 +5607,7 @@ else
 				elif ((${#REPLY}))
 				then
 					((PREVIEW+OPTV && EDIT!=2)) || [[ $REPLY = :* ]] \
-					|| is_txturl "${REPLY: ind}" >/dev/null \
+					|| { is_txturl "${REPLY: ind}" >/dev/null && ((!REPLY_CMD_BLOCK)) ;} \
 					|| new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;  #abort
@@ -5704,13 +5704,13 @@ else
 			fi;
 			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE_STR}}"
 		#basic text and pdf file, and text url dumps
-		elif var=$(is_txturl "$1")
+		elif ((!REPLY_CMD_BLOCK)) && var=$(is_txturl "$1")  #C#
 		then
 			if ((!${#REPLY_CMD_DUMP}))
 			then
 			  REPLY_CMD=$REPLY RET=;
 			  cmd_runf /cat"$var";
-			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST=;
+			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST= REPLY_CMD_BLOCK=1;
 			fi
 			if ((${#REPLY_CMD_DUMP})) && ((RET!=1))
 			then
@@ -5726,7 +5726,7 @@ else
 			  set -- "${*}${NL}${NL}${REPLY_CMD_DUMP}";
 			  REC_OUT="${Q_TYPE##$SPC1}${*}";
 			else
-			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;
+			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD= REPLY_CMD_BLOCK=;
 			  set --; continue 1;  #edit orig input
 			fi; RET= var=;
 		#vision
@@ -5987,7 +5987,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || OPTC= OPTRESUME= OPTCMPL= MTURN=;
 			
 			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
-			HIST_TIME= BREAK_SET=;
+			HIST_TIME= BREAK_SET= REPLY_CMD_BLOCK=;
 		elif ((MTURN))
 		then
 			((PREVIEW)) && BCYAN="${Color9}";

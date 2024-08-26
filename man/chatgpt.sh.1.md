@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.72.4 | General Commands Manual
+% CHATGPT.SH(1) v0.73 | General Commands Manual
 % mountaineerbr
 % August 2024
 
