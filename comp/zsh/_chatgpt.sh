@@ -170,6 +170,7 @@ _chatgpt.sh()
     '(-O --ollama --mistral --localai --groq --anthropic)--google[GoogleAI integration]' \
     '(-O --ollama --localai --google --mistral --anthropic)--groq[Groq integration]' \
     '(-O --ollama --localai --google --mistral --groq)--anthropic[Anthropic integration]' \
+    '--openai[Reset defaults to OpenAI]' \
     {--md,--markdown}'[Enable markdown rendering]' \
     {--md=-,--markdown=-}'[Set markdown software (=cmd)]:markdown command:(bat pygmentize glow mdcat mdless)' \
     {--no-md,--no-markdown}'[Disable markdown rendering]' \

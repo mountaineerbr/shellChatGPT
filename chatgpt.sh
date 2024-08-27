@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.73  aug/2024  by mountaineerbr  GPL+3
+# v0.73.1  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1178,7 +1178,8 @@ function lastjsonf
 function set_histf
 {
 	typeset time token string stringc stringd max_prev q_type a_type role role_last rest com sub ind herr nl x r n;
-	typeset -a MEDIA MEDIA_CMD;
+	time= token= string= stringc= stringd= max_prev= role= role_last= rest= sub= ind= nl=;
+	typeset -a MEDIA MEDIA_CMD; MEDIA=(); MEDIA_CMD=();
 	[[ -s $FILECHAT ]] || return; HIST= HIST_C=;
 	((BREAK_SET)) && return;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
@@ -1256,7 +1257,7 @@ function set_histf
 
 			#vision
 			if ((!OPTHH)) && is_visionf "$MOD"
-			then 	MEDIA=(); _mediachatf "$stringc"
+			then 	MEDIA=(); OPTV=100 _mediachatf "$stringc"
 				#((TRUNC_IND)) && stringc=${stringc:0:${#stringc}-TRUNC_IND};
 			fi
 
@@ -2831,7 +2832,7 @@ function _mediachatf
 			set -- "$(trim_trailf "$1" $'*(\\[tnr]|[ \t\n\r])')";
 			((TRUNC_IND = i - ${#1}));
 		else
-			((spc_sep)) || [[ $var = *[$IFS]* ]] || {
+			((spc_sep||OPTV>100)) || [[ $var = *[[\]\<\>{}\(\)${IFS}*?%\&^\$\#]* ]] || {
 			  var="${var:0: COLUMNS-25}$([[ -n ${var: COLUMNS-25} ]] && printf '\b\b\b%s' ...)";
 			  __warmsgf 'multimodal: invalid --' "\`\`${var//$'\t'/ }''";
 			}
@@ -2950,10 +2951,8 @@ function _is_docf
 {
 	typeset -l ext=$1
 	case "$ext" in
-	*.doc|*.docx|*.docm|*.dot|*.dotx|*.dotm|*.odt|*.ott|*.oth|*.rtf|*.uot|*.uof|\
-	*.xls|*.xlsx|*.xlsm|*.xlt|*.xltx|*.xltm|*.ods|*.ots|*.fods|*.uos|\
-	*.ppt|*.pptx|*.pptm|*.pot|*.potx|*.potm|*.pps|*.ppsx|*.ppsm|*.odp|*.otp|\
-	*.dif|*.slk|*.dbf|*.odg|*.otg|*.sxd|*.std|*.odf) :;;
+	*.doc|*.docx|*.xls|*.xlsx|*.ppt|*.pptx|\
+	*.odt|*.ods|*.odp|*.ott|*.ots|*.rtf|*.pdf) :;; 
 	*) false;;
 	esac;
 }
@@ -4909,7 +4908,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 done
 shift $((OPTIND -1))
 unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW RET init buff var tkn n s
-typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS  #in zsh, typeset sets params as "empty" instead of "unset"
+typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
 set -o ${READLINEOPT:-emacs};
