@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.73.2  aug/2024  by mountaineerbr  GPL+3
+# v0.73.3  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2259,7 +2259,7 @@ function cmd_runf
 				RET=$?; trap "exit" INT;
 				((RET)) && __warmsgf "Shell:" "$RET"; echo >&2;
 				#abort on empty
-				((!${#REPLY})) && { 	SKIP=1 EDIT=1 RET=1 REPLY="!${args[*]}"; __warmsgf "Cmd dump:" "(empty)"; return ;}
+				((!${#REPLY})) && { 	SKIP=1 EDIT=1 RET=1 REPLY="!${args[*]}"; __warmsgf "Cmd Dump:" "(empty)"; return ;}
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
 				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
 				case "$(__read_charf)" in
@@ -5088,21 +5088,19 @@ then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
 else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 
-#load text file from last arg or first arg, and stdin
+#dump and append text from supported file types, and stdin
 if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN)) && ((!(OPTC+OPTCMPL) ))
 then
-	if ((OPTEMBED+OPTI+OPTZ)) && ((${#}))
-	then 	if [[ -f ${@:${#}} ]] && is_txtfilef "${@:${#}}"
-		then 	set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
-		elif [[ -f ${@:${#}} ]] && is_pdff "${@:${#}}"
-		then 	set -- "${@:1:${#}-1}" "$(OPTV=4 cmd_runf /pdf "${@:${#}}"; printf '%s\n' "$REPLY")";
-		elif [[ -f $1 ]] && is_txtfilef "$1"
-		then 	set -- "$(<"$1")" "${@:2}";
-		elif [[ -f $1 ]] && is_pdff "$1"
-		then 	set -- "$(OPTV=4 cmd_runf /pdf "$1"; printf '%s\n' "$REPLY")" "${@:2}";
-		else 	false;
-		fi && SKIP_SH_HIST=1;
-	fi
+	((OPTEMBED+OPTI+OPTZ)) && ((${#})) &&
+	if is_txtfilef "${@:${#}}" || is_pdff "${@:${#}}" || is_docf "${@:${#}}"
+	then
+		OPTV=4 cmd_runf /cat "${@:${#}}";
+		((${#REPLY})) && set -- "${@:1:${#}-1}" "$REPLY";
+	elif is_txtfilef "$1" || is_pdff "$1" || is_docf "$1"
+	then
+		OPTV=4 cmd_runf /cat "$1";
+		((${#REPLY})) && set -- "$REPLY" "${@:2}";
+	fi  #D#
 
 	{ ((OPTI)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
 	  [[ -t 0 ]] || set -- "$@" "$(<$STDIN)";
@@ -5110,21 +5108,19 @@ then
 	edf "$@" && set -- "$(<"$FILETXT")";
 elif ! ((OPTTIKTOKEN+OPTI))
 then
-	if ((${#}))
-	then 	if [[ -f ${@:${#}} ]] && is_txtfilef "${@:${#}}"
-		then 	set -- "${@:1:${#}-1}" "$(<"${@:${#}}")";
-		elif [[ -f ${@:${#}} ]] && is_pdff "${@:${#}}"
-		then 	set -- "${@:1:${#}-1}" "$(OPTV=4 cmd_runf /pdf "${@:${#}}"; printf '%s\n' "$REPLY")";
-		elif [[ -f $1 ]] && is_txtfilef "$1"
-		then 	set -- "$(<"$1")" "${@:2}";
-		elif [[ -f $1 ]] && is_pdff "$1"
-		then 	set -- "$(OPTV=4 cmd_runf /pdf "$1"; printf '%s\n' "$REPLY")" "${@:2}";
-		else 	false;
-		fi && SKIP_SH_HIST=1;
-	fi
+	((${#})) &&
+	if is_txtfilef "${@:${#}}" || is_pdff "${@:${#}}" || is_docf "${@:${#}}"
+	then
+		OPTV=4 cmd_runf /cat "${@:${#}}";
+		((${#REPLY})) && set -- "${@:1:${#}-1}" "$REPLY";
+	elif is_txtfilef "$1" || is_pdff "$1" || is_docf "$1"
+	then
+		OPTV=4 cmd_runf /cat "$1";
+		((${#REPLY})) && set -- "$REPLY" "${@:2}";
+	fi  #D#
 
 	[[ -t 0 ]] || ((OPTZZ+OPTL+OPTFF+OPTHH)) || set -- "$@" "$(<$STDIN)";
-fi
+fi; REPLY= RET=;
 
 #tips and warnings
 if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) && [[ $MOD != *moderation* ]]
@@ -5250,8 +5246,8 @@ then
 	((OPTTIKTOKEN>2)) || __sysmsgf 'Language Model:' "$MOD"
 	((${#})) || [[ -t 0 ]] || set -- "-"
 	[[ -f $* ]] && [[ -t 0 ]] &&
-	if is_pdff "$*"
-	then 	exec 0< <(OPTV=4 cmd_runf /pdf "$*"; printf '%s\n' "$REPLY") && set -- "-";
+	if is_pdff "$*" || is_docf "$*"
+	then 	exec 0< <(OPTV=4 cmd_runf /cat "$*"; printf '%s\n' "$REPLY") && set -- "-";
 	else 	exec 0<"$*" && set -- "-";  #exec max one file
 	fi
 	if ((OPTYY))  #option -Y (debug, mostly)
