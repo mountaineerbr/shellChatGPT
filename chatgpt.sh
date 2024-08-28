@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.74  aug/2024  by mountaineerbr  GPL+3
+# v0.74.1  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2226,6 +2226,8 @@ function cmd_runf
 
 			if command -v libreoffice
 			then 	var="libreoffice --headless --convert-to txt --outdir ${outdir} ${filein} && cat -- ${out}";
+			elif command -v abiword
+			then 	var="abiword --to=txt --to-name=${out} ${filein}; cat -- ${out}";
 			else 	set --; RET=1;  #auto-disable
 				function _is_docf { 	false ;};
 			fi 2>/dev/null >&2
@@ -2939,8 +2941,7 @@ function _is_docf
 {
 	typeset -l ext=$1
 	case "$ext" in
-	*.doc|*.docx|*.xls|*.xlsx|*.ppt|*.pptx|\
-	*.odt|*.ods|*.odp|*.ott|*.ots|*.rtf|*.pdf) :;; 
+	*.doc|*.docx|*.odt|*.ott|*.rtf) :;; 
 	*) false;;
 	esac;
 }

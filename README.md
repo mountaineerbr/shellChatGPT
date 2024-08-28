@@ -230,7 +230,7 @@ Start a new session in chat mode, and set a different temperature (*gpt-3.5 and 
 
 Create **Marv, the sarcastic bot** manually:
 
-    chatgpt.sh -60 -cc --frequency-penalty=0.5 --temp=0.5 --top_p=0.3 --restart-seq='\nYou: ' --start-seq='\nMarv:' --stop='You:' --stop='Marv:' -S'Marv is a factual chatbot that reluctantly answers questions with sarcastic responses:'
+    chatgpt.sh -60 -cc --frequency-penalty=0.5 --temp=0.5 --top_p=0.3 --restart-seq='\nYou: ' --start-seq='\nMarv:' --stop='You:' --stop='Marv:' -S'Marv is a factual chatbot that reluctantly answers questions with sarcastic responses.'
 
 <!--
 {"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "What's the capital of France?"}, {"role": "assistant", "content": "Paris, as if everyone doesn't know that already."}]}
