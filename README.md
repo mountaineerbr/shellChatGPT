@@ -1204,11 +1204,14 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 ## 🎯  Project Objectives
 
-- Implement nice features from OpenAI API version 1.
+- Implement nice features from` OpenAI API version 1`.
 
 - Provide the closest API defaults.
 
 - Let the user customise defaults (as homework).
+
+- Première of `chatgpt.sh version 1.0` should occur at the time
+  when OpenAI launches its next major API version update.
 
 
 <!--

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.73.3  aug/2024  by mountaineerbr  GPL+3
+# v0.74  aug/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -254,10 +254,9 @@ Description
 	\`::' append the prompt as instruction / system without initiating
 	a new API request.
 
-	With vision models, insert an image to the prompt with command
-	\`!img [url|filepath]'. Image urls and files can also be appended
-	by typing the operator pipe and a valid input at the end of the
-	text prompt, such as \`| [url|filepath]'.
+	With vision models, append image files and possibly URLs at the
+	end of the prompt. Make sure file paths containing spaces are
+	backslash-escaped.
 
 
 	Image Generations and Edits (Dall-E)
@@ -811,7 +810,10 @@ function promptf
 	typeset pid
 
 	if ((OPTVV)) && ((!OPTII))
-	then 	block_printf || return
+	then 	block_printf || {
+		  REPLY=${REPLY_CMD:-$REPLY};
+		  REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
+		  return 200 ;}
 	fi
 
 	if ((STREAM))
@@ -1258,7 +1260,6 @@ function set_histf
 			#vision
 			if ((!OPTHH)) && is_visionf "$MOD"
 			then 	MEDIA=(); OPTV=100 _mediachatf "$stringc"
-				#((TRUNC_IND)) && stringc=${stringc:0:${#stringc}-TRUNC_IND};
 			fi
 
 			#print commented out lines ( $OPTHH > 2 )
@@ -2255,22 +2256,29 @@ function cmd_runf
 			[[ -n $* ]] || set --; xskip=1;
 			while :
 			do 	trap 'trap "-" INT' INT;  #disable trap for one <CRTL-C>#
-				REPLY=$(trap "-" INT; bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR);
-				RET=$?; trap "exit" INT;
-				((RET)) && __warmsgf "Shell:" "$RET"; echo >&2;
-				#abort on empty
-				((!${#REPLY})) && { 	SKIP=1 EDIT=1 RET=1 REPLY="!${args[*]}"; __warmsgf "Cmd Dump:" "(empty)"; return ;}
+				var=$(trap "-" INT; bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR);
+				RET=$?; ((RET)) && __warmsgf "ret code:" "$RET";
+				trap "exit" INT;
+				#return on empty or signal
+				if ((!${#var} || RET))
+				then 	((RET)) || RET=1; SKIP=1 EDIT=1;
+					__warmsgf "cmd dump:" "(empty)"; return 0;
+				else 	REPLY=$var var=;
+				fi; echo >&2;
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
 				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
 				case "$(__read_charf)" in
-					[AaQqRr]) 	SKIP=1 EDIT=1 REPLY="!${args[*]}" RET=200; break;;  #abort, redo
+					[AaQqRr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
+				 			REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
+							break;;  #abort, redo
 					[EeYy]|$'\e') 	SKIP=1 EDIT=1 RET=199; break;; #yes, bash `read`
 					[VvXx]|$'\t'|' ') 	SKIP=1 EDIT=1 RET=198; ((OPTX)) || OPTX=2; break;; #yes, text editor
 					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break;;  #no need to edit
 				esac; set --;
 			done; __clr_lineupf $((12+1+47));  #!#
 			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
-			((${#args[@]})) && shell_histf "!${args[*]}"; SKIP_SH_HIST=1 REPLY_CMD_BLOCK=1;
+			((${#args[@]})) && shell_histf "!${args[*]}";
+			((RET==200)) || REPLY_CMD_BLOCK=1 SKIP_SH_HIST=1;
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
 			echo Session and History >&2; [[ $* = . ]] && args=('fork current');
@@ -2657,7 +2665,7 @@ function _file_pickf
 	done;
 	__clr_dialoggf;
 
-	printf '%s' "$file";
+	printf '%q' "$file";
 }
 function __set_fpick
 {
@@ -2784,35 +2792,26 @@ function ollama_mediaf
 }
 
 #process files and urls from input
-#$TRUNC_IND is set to the number of chars to be subtracted from the input tail to delete the processed filenames from it
-#will _NOT_ work with whitespace in filename if not pipe-delimited and may not work with mixed pipe- and whitespace-delimited input
+#filenames with spaces must be blackslash-quoted
 function _mediachatf
 {
-	typeset var spc_sep ftrim break i m n
-       	i=${#1} TRUNC_IND=;
-
-	#process only the last line of input, fix for escaped white spaces in filename, del trailing spaces and trailing pipe separator
-	set -- "$(sed -n 's/\\n/\n/g; s/\\\\ / /g; s/\\ / /g; s/[[:space:]|]*$//; $p' <<<"$*")";
-
-	((!CMD_CHAT)) && ((${#1}>2048)) && set -- "${1:${#1}-2048}";  #avoid too long an input (too slow)
-
-	while [[ -z $1 ]] || [[ $1 = *[a-zA-Z0-9]*$'\n'*[a-zA-Z0-9]* ]] || ((m>128)) && break;
-		[[ $1 = *[\|\ ]*[[:alnum:]]* ]] || {  #prompt is the raw filename / url:
-		  ftrim=$(trim_leadf "$1" $'*(\\\\[ntr]|[ \n\t\|])');
-		  { [[ -f $ftrim ]] || is_linkf "$ftrim" ;} && break=1;
-		}
+	typeset var ind m n
+	#process only the last line of input
+	set -- "$(sed -e 's/\\n/\n/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";
+	
+	while [[ $1 = *[[:alnum:]]* ]] && ((m<128))
 	do
-		((++m))
-		if ((break))
-		then var=$ftrim;
-		elif [[ $1 = *\|* ]]
-		then 	var=$(sed 's/^.*[|][[:space:]]*//' <<<"$1");  #pipe separator
-		else 	var=$(sed 's/^.*[[:space:]][[:space:]]*//' <<<"$1") spc_sep=1;  #space separator
-		fi
+		((++m));
+		set -- "$(trim_leadf "$1" $'*(\\\\[ntr]|[ \n\t\r|])')";
+		if [[ -f $1 ]]
+		then 	var=$1;
+		else 	var=$(sed 's/^.*[^\\][[:space:]]//; s/^[[:space:]|]*//' <<<"$1");
+		fi; ind=${#var};
+		[[ $var = *\\* ]] && var=${var//\\};
 
 		#check if file or url and add to array (max 20MB)
 		if is_imagef "$var" || { ((!GOOGLEAI)) && is_linkf "$var" ;} ||
-			{ ((GOOGLEAI)) && is_videof "$var" ;}  #|| ((MULTIMODAL))
+			{ ((GOOGLEAI)) && is_videof "$var" ;}
 		then
 			((++n));
 			if ((CMD_CHAT))
@@ -2822,28 +2821,17 @@ function _mediachatf
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
 
-			if ((break))
-			then 	set -- ;
-			elif [[ $1 = *\|* ]]
-			then 	set -- "$(sed 's/[[:space:]]*[|][^|]*$//' <<<"$1")";
-			else 	set -- "$(sed 's/\\[tnr]/ /g; s/[[:space:]]*[[:space:]][^[:space:]]*$//' <<<"$1")"
-			fi; spc_sep= ;
-
-			set -- "$(trim_trailf "$1" $'*(\\[tnr]|[ \t\n\r])')";
-			((TRUNC_IND = i - ${#1}));
+			set -- "$(trim_trailf "${1: 0: ${#1}-ind}" $'*(\\[tnr]|[ \t\n\r|])')";
 		else
-			((spc_sep||OPTV>99)) || [[ $var = *[[\]\<\>{}\(\)${IFS}*?%\&^\$\#]* ]] || {
+			((OPTV>99)) || [[ $var = *[[\]\<\>{}\(\)*?%\&^\$\#\ ]* ]] ||
+			  [[ $var != *[[:alnum:]].[[:alnum:]]* ]] || [[ ${1:0:128} = "${var:0:128}" ]] || {
 			  var="${var:0: COLUMNS-25}$([[ -n ${var: COLUMNS-25} ]] && printf '\b\b\b%s' ...)";
 			  __warmsgf 'multimodal: invalid --' "\`\`${var//$'\t'/ }''";
 			}
 
 			break;
-			#continue processing on pipe separator only
-			#((spc_sep)) && break;
-			#[[ $1 = *\|*[[:alnum:]]*\|* ]] || break;
-			#set -- "${1%\|*}";
+			#set -- "${1: 0: ${#1}-ind}";
 		fi  #https://stackoverflow.com/questions/12199059/
-		((break)) && break;
 	done; ((n));
 }
 
@@ -5095,11 +5083,11 @@ then
 	if is_txtfilef "${@:${#}}" || is_pdff "${@:${#}}" || is_docf "${@:${#}}"
 	then
 		OPTV=4 cmd_runf /cat "${@:${#}}";
-		((${#REPLY})) && set -- "${@:1:${#}-1}" "$REPLY";
+		((!RET && ${#REPLY})) && set -- "${@:1:${#}-1}" "$REPLY";
 	elif is_txtfilef "$1" || is_pdff "$1" || is_docf "$1"
 	then
 		OPTV=4 cmd_runf /cat "$1";
-		((${#REPLY})) && set -- "$REPLY" "${@:2}";
+		((!RET && ${#REPLY})) && set -- "$REPLY" "${@:2}";
 	fi  #D#
 
 	{ ((OPTI)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
@@ -5112,11 +5100,11 @@ then
 	if is_txtfilef "${@:${#}}" || is_pdff "${@:${#}}" || is_docf "${@:${#}}"
 	then
 		OPTV=4 cmd_runf /cat "${@:${#}}";
-		((${#REPLY})) && set -- "${@:1:${#}-1}" "$REPLY";
+		((!RET && ${#REPLY})) && set -- "${@:1:${#}-1}" "$REPLY";
 	elif is_txtfilef "$1" || is_pdff "$1" || is_docf "$1"
 	then
 		OPTV=4 cmd_runf /cat "$1";
-		((${#REPLY})) && set -- "$REPLY" "${@:2}";
+		((!RET && ${#REPLY})) && set -- "$REPLY" "${@:2}";
 	fi  #D#
 
 	[[ -t 0 ]] || ((OPTZZ+OPTL+OPTFF+OPTHH)) || set -- "$@" "$(<$STDIN)";
@@ -5443,7 +5431,7 @@ else
 		       		set -- "${REPLY_OLD:-$@}"
 			fi;
 			REGEN=-1; ((--MAIN_LOOP));
-		fi
+		fi; RET=;
 		((OPTAWE)) || {  #awesome 1st pass skip
 
 		#prompter pass-through
@@ -5451,10 +5439,12 @@ else
 		then 	[[ -z $* ]] && [[ -n ${REPLY:-$REPLY_OLD} ]] && set -- "${REPLY:-$REPLY_OLD}";
 		elif ((OPTX))
 		#text editor prompter
-		then 	edf "${@:-$REPLY}"
+		then 	edf "${@:-${REPLY:-$REPLY_CMD}}"
 			case $? in
 				179|180) :;;        #jumps
-				200) 	set --; REPLY=; continue;;  #redo
+				200) 	set --; REPLY=;
+					REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
+					continue;;  #redo
 				201) 	set --; OPTX=; false;;   #abort
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
@@ -5462,7 +5452,9 @@ else
 					do 	((OPTV)) || new_prompt_confirmf
 						case $? in
 							201) 	set --; OPTX=; break 1;;  #abort
-							200) 	set --; REPLY=; continue 2;;  #redo
+							200) 	set --; REPLY=;
+								REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
+								continue 2;;  #redo
 							19[6789]) 	edf "${REPLY:-$*}" || break 1;;  #edit
 							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY; ((OPTW)) || cmd_runf -ww;
 								set --; break;;  #whisper append (hidden option)
@@ -5472,9 +5464,8 @@ else
 					done;
 					((OPTX>1)) && OPTX=;
 			esac
-			((EDIT==2)) && REPLY_CMD_DUMP=$REPLY;
 			case "${REPLY: ${#REPLY}-1}" in /) 	__warmsgf 'Warning:' "Text editor mode doesn't support previewing!";; esac;
-		fi
+		fi; PSKIP= RET=;
 
 		((JUMP)) ||
 		#defaults prompter
@@ -5533,21 +5524,22 @@ else
 
 					((CATPR)) && echo >&2;
 					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])')
-					((EDIT==2)) && REPLY_CMD_DUMP=$REPLY;
 				fi; printf "${NC}" >&2;
 				
 				if [[ ${REPLY:0:128} = /cat*([$IFS]) ]]
-				then 	((CATPR)) || CATPR=2 ;REPLY= SKIP=1
+				then 	((CATPR)) || CATPR=2 ;REPLY= PSKIP= SKIP=1
 					((CATPR==2)) && __cmdmsgf 'Cat Prompter' "one-shot"
 					set -- ;continue  #A#
-				elif cmd_runf "$REPLY"
+				elif var="$REPLY" RET=
+					cmd_runf "$REPLY"
 				then 	((SKIP_SH_HIST)) || shell_histf "$REPLY"; SKIP_SH_HIST=;
 					if ((REGEN>0))
 					then 	((MAIN_LOOP)) || [[ ! -s $FILECHAT ]] || REPLY_OLD=$(grep_usr_lastlinef);
 						REPLY="${REPLY_OLD:-$REPLY}"
 						((REGEN!=1)) || ((OPTV)) || test_cmplsf || printf '\n%s\n' '--- regenerate ---' >&2;
 					else 	((SKIP+EDIT)) || REPLY=;
-					fi; set --; continue 2
+						REPLY_CMD="$var";
+					fi; RET= var=; set --; continue 2
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0  #!#
 					[[ ${REPLY: ind} = */ ]]  #preview (mind no trailing spaces)
 				then
@@ -5572,6 +5564,7 @@ else
 					
 					#del trailing slashes, and set preview colour
 					((PREVIEW==1)) && REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n/])') REPLY_OLD=$REPLY BCYAN=${Color8};
+			         	REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
 				elif case "${REPLY: ind}" in  #cmd: //shell, //sh
 					*?[/!][/!]shell|*?[/!][/!]sh) var=/shell;;
 					*?[/!]shell|*?[/!]sh) var=shell;;
@@ -5600,14 +5593,15 @@ else
 					((SKIP_SH_HIST)) || shell_histf "$REPLY";
 					set --; continue 2;
 				elif ((${#REPLY}))
-				then
+				then 	PSKIP=;
 					((PREVIEW+OPTV && EDIT!=2)) || [[ $REPLY = :* ]] \
 					|| { is_txturl "${REPLY: ind}" >/dev/null && ((!REPLY_CMD_BLOCK)) ;} \
 					|| new_prompt_confirmf ed whisper
 					case $? in
 						201) 	break 2;;  #abort
-						200) 	WSKIP=1 REPLY= REPLY_CMD_DUMP=; set --; ((EDIT==2)) && REPLY=$REPLY_CMD;
-							printf '\n%s\n' '--- redo ---' >&2; continue;;  #redo
+						200) 	WSKIP=1 REPLY=${REPLY_CMD:-$REPLY_OLD};
+							REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
+							printf '\n%s\n' '--- redo ---' >&2; set --; continue;;  #redo
 						199) 	WSKIP=1 EDIT=1;
 							printf '\n%s\n' '--- edit ---' >&2; continue;;  #edit
 						198) 	((OPTX)) || OPTX=2
@@ -5630,7 +5624,6 @@ else
 						 	PREVIEW=2 BCYAN="${Color9}";;
 						*) 	#record prev resp
 							prev_tohistf "$(escapef "${REPLY_CMD:-$REPLY_OLD}")";
-							((EDIT==2)) || REPLY_CMD_DUMP= ;;
 						esac; REPLY_OLD="$REPLY";
 					fi
 				else
@@ -5638,10 +5631,10 @@ else
 				fi ;set -- "$REPLY"
 				((OPTCTRD==1)) || unset OPTCTRD
 				((CATPR==1)) || unset CATPR
-				WSKIP= SKIP= EDIT= B= Q= ind= var=
+				WSKIP= PSKIP= SKIP= EDIT= B= Q= ind= var=
 				break
 			done
-		fi
+		fi; RET=;
 
 		if ! ((OPTCMPL+JUMP+${#1}))
 		then 	__warmsgf "(empty)"
@@ -5683,7 +5676,7 @@ else
 					RINSERT=${RINSERT}${var}${NL};
 					_sysmsgf 'User prompt added'
 				fi
-				EDIT= SKIP= REPLY= REPLY_OLD= var= v=;
+				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= var= v=;
 				set --; continue;
 			fi
 			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY} RINSERT= ;}
@@ -5700,35 +5693,36 @@ else
 			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE_STR}}"
 		#basic text and pdf file, and text url dumps
 		elif ((!REPLY_CMD_BLOCK)) && var=$(is_txturl "$1")  #C#
-		then
+		then 	RET=;
 			if ((!${#REPLY_CMD_DUMP}))
 			then
-			  REPLY_CMD=$REPLY RET=;
+			  REPLY_CMD=$REPLY;
 			  cmd_runf /cat"$var";
 			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST= REPLY_CMD_BLOCK=1;
-			fi
-			if ((${#REPLY_CMD_DUMP})) && ((RET!=1))
+			fi; PSKIP= var=;
+			if ((${#REPLY_CMD_DUMP}))
 			then
 			  REPLY_CMD="${REPLY:-$REPLY_CMD}";  #!#
-			  REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
+			  ((RET==200)) || [[ "${REPLY:0:128}" = "${REPLY_CMD_DUMP:0:128}" ]] ||
+			    REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
 			  ((PREVIEW)) && REPLY_OLD="$REPLY";
 			  case "$RET" in
-			    201|200) SKIP=1 EDIT=1 REPLY=$REPLY_CMD REPLY_CMD_DUMP= REPLY_CMD=;
+			    201|200) SKIP=1 EDIT=1 REPLY=$REPLY_CMD;
+			         REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
 			         set --; continue 1;;  #redo / abort
-			    199) SKIP=1 EDIT=2; set --; continue 1;;  #edit in bash readline
-			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=2; set --; continue 1;;  #edit in text editor
+			    199) SKIP=1 EDIT=1; set --; continue 1;;  #edit in bash readline
+			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=1; set --; continue 1;;  #edit in text editor
 			  esac
 			  set -- "${*}${NL}${NL}${REPLY_CMD_DUMP}";
 			  REC_OUT="${Q_TYPE##$SPC1}${*}";
 			else
 			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD= REPLY_CMD_BLOCK=;
 			  set --; continue 1;  #edit orig input
-			fi; RET= var=;
+			fi; RET=;
 		#vision
 		elif is_visionf "$MOD"
 		then
 			_mediachatf "$1";
-			#((TRUNC_IND)) && REPLY_OLD=$* && set -- "${1:0:${#1}-TRUNC_IND}";
 			((MTURN)) &&
 			for var in "${MEDIA_CMD[@]}"
 			do 	REC_OUT="$REC_OUT| $var" REPLY="$REPLY| $var";
@@ -5879,7 +5873,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			printf '%s\n' "$BLOCK" >"$buff"
 			BLOCK="@${buff}" OPTFOLD=$var promptf
 		else 	OPTFOLD=$var promptf
-		fi; RET_PRF=$?;
+		fi; RET_PRF=$? RET=;
 
 		((OPTEXIT>1)) && exit $RET_PRF;
 		((OLLAMA)) && API_HOST=$api_host;
@@ -5887,9 +5881,10 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
 		if (( (RET_PRF>120 && !STREAM) || (!RET_PRF && PREVIEW==1) ))
 		then 	((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
-			SKIP=1 EDIT=1; set --; continue;  #B#
+			PSKIP= SKIP=1 EDIT=1; set --; continue;  #B#
 		fi
-		((RET_PRF>120)) && INT_RES='#'; ((RET_PRF)) || REPLY_OLD="${REPLY:-${REPLY_OLD:-$*}}";
+		((RET_PRF>120)) && INT_RES='#';
+		((RET_PRF)) || REPLY_OLD="${REPLY:-${REPLY_OLD:-$*}}";
 
 		#record to hist file
 		if 	if ((STREAM))
@@ -5987,7 +5982,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		then
 			((PREVIEW)) && BCYAN="${Color9}";
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
-			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD= RET=;
+			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD=;
 			unset PSKIP JUMP REGEN PREVIEW REPLY_CMD REPLY_CMD_DUMP INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX;
 			((OPTX)) && __read_charf >/dev/null
 			set -- ;continue
@@ -5997,7 +5992,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		HIST_G= SKIP_SH_HIST=;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
-		((RET_PRF>120)) && { 	SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
+		((RET_PRF>120)) && { 	PSKIP= SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
 
 		#auto detect markdown in response
 		if ((!NO_OPTMD_AUTO)) && ((!OPTMD)) && ((!OPTEXIT)) &&
@@ -6053,8 +6048,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 
 		((++MAIN_LOOP)) ;set --
 		role= rest= tkn_ans= ans_tts= ans= buff= glob= out= pid= s= n=;
-		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF=;
-		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME SKIP PSKIP WSKIP JUMP EDIT REPLY_CMD REPLY_CMD_DUMP OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE PREVIEW BAD_RES INT_RES var tkn;
+		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= WSKIP= PSKIP= SKIP= EDIT=;
+		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE PREVIEW BAD_RES INT_RES var tkn;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi

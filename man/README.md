@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2024
-title: CHATGPT.SH(1) v0.73 \| General Commands Manual
+title: CHATGPT.SH(1) v0.74 \| General Commands Manual
 ---
 
 ### NAME
@@ -104,10 +104,9 @@ If a plain text or PDF file path is set as the first positional
 argument, or as an argument to `option -S` (set instruction prompt), the
 file is loaded as text PROMPT.
 
-With **vision models**, insert an image to the prompt with chat command
-“`!img` \[*url*\|*filepath*\]”. Image urls and files can also be
-appended by typing the operator pipe and a valid input at the end of the
-text prompt, such as “`|` \[*url*\|*filepath*\]”.
+With **vision models**, append image files and possibly URLs at the end
+of the prompt. Make sure file paths containing spaces are
+backslash-escaped.
 
 *Filepaths* that contain white spaces may need backslash-escaping in
 some functions.

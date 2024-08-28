@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.73 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.74 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.73 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.74 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2024</p>
 </header>
@@ -269,11 +269,9 @@ This will change to or create a new history file (with
 <p>If a plain text or PDF file path is set as the first positional
 argument, or as an argument to <code>option -S</code> (set instruction
 prompt), the file is loaded as text PROMPT.</p>
-<p>With <strong>vision models</strong>, insert an image to the prompt
-with chat command “<code>!img</code> [<em>url</em>|<em>filepath</em>]”.
-Image urls and files can also be appended by typing the operator pipe
-and a valid input at the end of the text prompt, such as “<code>|</code>
-[<em>url</em>|<em>filepath</em>]”.</p>
+<p>With <strong>vision models</strong>, append image files and possibly
+URLs at the end of the prompt. Make sure file paths containing spaces
+are backslash-escaped.</p>
 <p><em>Filepaths</em> that contain white spaces may need
 backslash-escaping in some functions.</p>
 <h4 id="model-and-capacity">Model and Capacity</h4>
