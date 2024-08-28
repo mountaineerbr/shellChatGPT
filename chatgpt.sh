@@ -254,8 +254,8 @@ Description
 	\`::' append the prompt as instruction / system without initiating
 	a new API request.
 
-	With vision models, append image files and possibly URLs at the
-	end of the prompt. Make sure file paths containing spaces are
+	With vision models, append the image file paths and possibly URLs
+	at the end of the prompt. Make sure file paths containing spaces are
 	backslash-escaped.
 
 

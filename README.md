@@ -1204,7 +1204,7 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 ## 🎯  Project Objectives
 
-- Implement nice features from` OpenAI API version 1`.
+- Implement nice features from `OpenAI API version 1`.
 
 - Provide the closest API defaults.
 

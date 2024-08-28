@@ -104,8 +104,8 @@ If a plain text or PDF file path is set as the first positional
 argument, or as an argument to `option -S` (set instruction prompt), the
 file is loaded as text PROMPT.
 
-With **vision models**, append image files and possibly URLs at the end
-of the prompt. Make sure file paths containing spaces are
+With **vision models**, append the image file paths and possibly URLs at
+the end of the prompt. Make sure file paths containing spaces are
 backslash-escaped.
 
 *Filepaths* that contain white spaces may need backslash-escaping in
