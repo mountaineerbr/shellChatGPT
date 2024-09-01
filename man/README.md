@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: August 2024
-title: CHATGPT.SH(1) v0.74 \| General Commands Manual
+date: September 2024
+title: CHATGPT.SH(1) v0.75 \| General Commands Manual
 ---
 
 ### NAME
@@ -245,8 +245,8 @@ Press \<*CTRL-X* *CTRL-E*\> to edit command line in text editor
 
 Press \<*CTRL-J*\> or \<*CTRL-V* *CTRL-J*\> for newline (readline).
 
-Press \<*CTRL-\\*\> to exit from the script, even if recording,
-requesting, or playing TTS.
+Press \<*CTRL-\\*\> to exit from the script (send *QUIT* signal), or
+“*Q*” in user confirmation prompts.
 
 A personal OpenAI API is required, set it with `option --api-key`. See
 also **ENVIRONMENT section**.

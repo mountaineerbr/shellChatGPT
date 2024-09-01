@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.74.4  aug/2024  by mountaineerbr  GPL+3
+# v0.75  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -95,11 +95,9 @@ OPTFOLD=1
 #RESTART=""
 # Inject   start text
 #START=""
-# Chat mode of text cmpls sets "\nQ: " and "\nA:"
-# Restart/Start seqs have priority
-# Cost rates
-# Input and output rates (dollars per million tokens)
-#COST_CUSTOM="0 0"
+#  Chat mode of text cmpls sets "\nQ: " and "\nA:"
+# Input and output prices (dollars per million tokens)
+#MOD_PRICE="0 0"
 # Currency rate against USD
 # e.g. BRL is 5.66 USD, JPY is 0.006665 USD
 #CURRENCY_RATE="1"
@@ -475,7 +473,8 @@ Commands
 
 	Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
 	Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
-	Press <CTRL-\\> to terminate the script.
+	Press <CTRL-\\> to terminate the script at any time (QUIT signal),
+	or \`Q' in user confirmation prompts.
 
 
 Options
@@ -732,8 +731,8 @@ function model_capf
 		code-davinci-00[2-9]*|mistral-embed*) 	MODMAX=8001;;
 		gemini*-flash*) 	MODMAX=1048576;;  #standard: 128000
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=2097152;;  #standard: 128000
-		gpt-4[a-z]*|gpt-[5-9]*|gpt-4-1106*|gpt-4-*preview*|gpt-4-vision*|\
-		gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
+		gpt-4[a-z]*|chatgpt-[4-9]*|gpt-[5-9]*|gpt-4-1106*|\
+		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
 		mistral-large*|open-mistral-nemo*) 	MODMAX=128000;;
 		gpt-3.5-turbo-1106) 	MODMAX=16385;;
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*) MODMAX=32768;;
@@ -951,7 +950,8 @@ function new_prompt_confirmf
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
 	REPLY=$(read_charf); _clr_lineupf $((8+1+40+${#extra}))  #!#
 	case "$REPLY" in
-		[aQq]) 		return 201;;  #break
+		[Q]) 		return 202;;  #exit
+		[aq]) 		return 201;;  #abort
 		[Rr]) 		return 200;;  #redo
 		[Ee]|$'\e') 	return 199;;  #edit
 		[VvXx]) 	return 198;;  #text editor
@@ -1672,7 +1672,7 @@ Find the right options for the \Zbchatgpt.sh programme\ZB, the precise command l
 This is a single-shot turn.'
 
 #calculate cost of query (dollars per million tokens)
-#usage: costf [input_tokens] [output_tokens] [input_cost] [output_cost] [scale]
+#usage: costf [input_tokens] [output_tokens] [input_price] [output_price] [scale]
 function costf
 {
 	bc <<<"scale=${5:-8};
@@ -1680,7 +1680,9 @@ function costf
 }
 function _model_costf
 {
-	case "${COST_CUSTOM[*]}" in *[1-9]*) 	echo  ${COST_CUSTOM[@]}; return;; esac;
+	case "${MOD_PRICE[*]}" in
+	*[0-9]*[$IFS]*[0-9]*) 	echo ${MOD_PRICE[@]:0:2}; return;;
+	esac;
 	case "${1##ft:}" in
 		claude-3-opus*) 	echo 15 75;;
 		claude-3-sonnet*|claude-3-5-sonnet*) echo 3 15;;
@@ -1695,8 +1697,8 @@ function _model_costf
 		open-mixtral-8x22b*) 	echo 2 6;;
 		mistral-medium*) 	echo 2.75 8.1;;
 		gpt-4o-mini*) 	echo 0.15 0.6;;
-		gpt-4o-2024-08-06) echo 2.5 10;;
-		gpt-4o-2024-05-13|gpt-4o*) 	echo 5 15;;
+		gpt-4o-2024-08-06|gpt-4o*) echo 2.5 10;;
+		gpt-4o-2024-05-13|chatgpt-4o*) 	echo 5 15;;
 		text-embedding-3-small) 	echo 0.02 0;;
 		text-embedding-3-large) 	echo 0.13 0;;
 		text-embedding-ada-002|mistral-embed*) 	echo 0.1 0;;
@@ -1715,7 +1717,7 @@ function _model_costf
 		*) 	echo 0 0; false;;
 	esac;
 }
-#costs updated on aug/24
+#prices updated on aug/24
 #https://openai.com/api/pricing/
 #https://cloud.google.com/vertex-ai/generative-ai/pricing
 #https://ai.google.dev/pricing
@@ -1724,7 +1726,7 @@ function _model_costf
 function cmd_runf
 {
 	typeset opt_append filein fileinq outdir out var wc xskip pid n
-	typeset -a args
+	typeset -a args arr
 	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]* ]] || return;
 	((${#1}+${#2}<1024)) || return;
 	printf "${NC}" >&2;
@@ -1797,11 +1799,11 @@ function cmd_runf
 			CURRENCY_RATE=${*:-$CURRENCY_RATE}
 			cmdmsgf 'Currency Rate:' "${*:-$CURRENCY_RATE} (vs Dollar)"
 			;;
-		costs*|cost*)
-			set -- "${*##@(costs|cost)$SPC}"
-			set -- "${*//[!0-9.,]}"
-			COST_CUSTOM=( ${*//,/.} )
-			cmdmsgf 'Costs / 1M tkns:' "input: \$ ${COST_CUSTOM[0]}  output: \$ ${COST_CUSTOM[1]}"
+		prices*|price*)
+			set -- "${*##@(prices|price)$SPC}"
+			set -- "${*//[!0-9.,\ ]}"
+			MOD_PRICE=( ${*//,/.} )
+			cmdmsgf 'Price / 1M tkns:' "input: \$ ${MOD_PRICE[0]}  output: \$ ${MOD_PRICE[1]}"
 			;;
 		block*|blk*)
 			set -- "${*##@(block|blk)$SPC}"
@@ -1818,8 +1820,8 @@ function cmd_runf
 			((STREAM)) || unset STREAM;
 			cmdmsgf 'Streaming' $(_onoff ${STREAM:-0})
 			;;
-		help-assist*|help*)
-			set -- "${*##@(help-assist|help)$SPC}";
+		help-assist*|help?*)
+			set -- "${*##@(help-assistant|help-assist|help)$SPC}";
 			grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2 && return;  #F#
 			trap 'trap "-" INT' INT;
 			printf '\n%s\n' '============= HELP ASSISTANT =============' >&2;
@@ -2091,18 +2093,18 @@ function cmd_runf
 			typeset IFS dry; IFS=$'\n'; ((PREVIEW)) && BCYAN="${Color9}" PREVIEW= ;
 			[[ ${n:=${*//[!0-9]}} = 0* || $* = [/!]* ]] \
 			&& n=${n##*([/!0])} dry=4; ((n>0)) || n=1
-			if var=($(
+			if arr=( $(
 				grep -n -e '^[[:space:]]*[^#]' "$FILECHAT" \
-				| tail -n $n | cut -c 1-160 | sed -e 's/[[:space:]]/ /g'))
+				| tail -n $n | cut -c 1-160 | sed -e 's/[[:space:]]/ /g') )
 			then
-				((n<${#var[@]})) || n=${#var[@]}
+				((n<${#arr[@]})) || n=${#arr[@]}
 				wc=$((COLUMNS>50 ? COLUMNS-6+dry : 60))
-				printf "kill${dry:+\\b\\b\\b\\b}:%.${wc}s\\n" "${var[@]}" >&2
+				printf "kill${dry:+\\b\\b\\b\\b}:%.${wc}s\\n" "${arr[@]}" >&2
 				if ((!dry))
 				then
 					set --
 					for ((n=n;n>0;n--))
-					do 	set -- -e "${var[${#var[@]}-n]%%:*} s/^/#/" "$@"
+					do 	set -- -e "${arr[${#arr[@]}-n]%%:*} s/^/#/" "$@"
 					done
 					sed -i "$@" "$FILECHAT";
 				fi
@@ -2272,7 +2274,8 @@ function cmd_runf
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
 				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
 				case "$(read_charf)" in
-					[AaQqRr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
+					[Q]) 	RET=202; exit 202;;  #exit
+					[AaqRr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
 				 			REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
 							break;;  #abort, redo
 					[EeYy]|$'\e') 	SKIP=1 EDIT=1 RET=199; break;; #yes, bash `read`
@@ -2489,7 +2492,8 @@ function edf
 		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
 	do 	_warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [r]edo or [a]bort? " ''
 		case "$(read_charf)" in
-			[AaQq]) echo abort >&2; return 201;;  #abort
+			[Q]) echo bye >&2; return 202;;  #exit
+			[Aaq]) echo abort >&2; return 201;;  #abort
 			[CcNn]) break;;      #continue
 			[Rr])  return 200;;  #redo
 			[Ee]|$'\e'|*) _edf "$FILETXT";;  #edit
@@ -3102,6 +3106,12 @@ function set_optsf
 	  [[ "$START" = "$START_OLD" ]] || start_compf
 	}
 
+	case "${MOD_PRICE[*]}" in
+	*[0-9]*[$IFS]*[0-9]*) 	:;;
+	*[0-9]*|*[a-zA-Z]*) 	_warmsgf "err:" "bad model prices -- ${MOD_PRICE[*]}";
+			MOD_PRICE=();;
+	esac;
+
 	#update pid array
 	for p in ${PIDS[@]}
 	do 	kill -0 -- $p 2>/dev/null && pids+=($p);
@@ -3116,7 +3126,7 @@ function record_confirmf
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
 	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * [e]dit text,  [w]hisper_off * ' \
 							      ' * Press ENTER to START record * ' >&2;
-		case "$(read_charf)" in [AaOoQqWw]) 	return 196;; [Ee]|$'\e') 	return 199;; esac;
+		case "$(read_charf)" in [Q]) 	return 202;; [AaOoqWw]) 	return 196;; [Ee]|$'\e') 	return 199;; esac;
 		_clr_lineupf 33; _clr_lineupf 33;  #!#
 	fi
 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr_off * ' >&2
@@ -3142,7 +3152,9 @@ function recordf
 	
 	#see record_confirmf()
 	case "$(read_charrecf "$@")" in
-		[AaOoQqWw])   ret=196  #whisper off
+		[Q]) 	ret=202  #exit
+			;;
+		[AaOoqWw])   ret=196  #whisper off
 			;;
 		[Ee]|$'\e') ret=199  #text edit (single-shot)
 			;;
@@ -3292,7 +3304,8 @@ function whisperf
 	then 	printf "${PURPLE}%s ${NC}" 'Record mic input? [Y/n]' >&2
 		[[ -t 1 ]] && echo >&2 || var=$(read_charf)
 		case "$var" in
-			[AaNnQq]|$'\e') 	:;;
+			[Q]) 	return 202;;  #exit
+			[AaNnq]|$'\e') 	:;;
 			*) 	((CHAT_ENV)) || sysmsgf 'Rec Cmd:' "\"${REC_CMD%% *}\"";
 				OPTV=4 record_confirmf || return
 				WSKIP=1 recordf "$FILEINW"
@@ -3372,7 +3385,8 @@ function whisperf
 		_warmsgf $'\nerr:' 'whisper response';
 		printf 'Retry request? Y/n ' >&2;
 		case "$(read_charf)" in
-			[AaNnQq]) false;;  #no
+			[Q]) 	return 202;;
+			[AaNnq]) false;;  #no
 			*) 	((rec)) && args+=("$FILEINW")
 				whisperf "${args[@]}";;
 		esac
@@ -3511,6 +3525,7 @@ function _ttsf
 				_warmsgf $'\rerr:' 'tts response';
 				printf 'Retry request? Y/n ' >&2;
 				case "$(read_charf)" in
+					[Q]) 	return 202;;
 					[AaNnQq]) break 1;;  #no
 					*) 	continue;;
 				esac;;
@@ -3537,6 +3552,7 @@ function _ttsf
 			do 	printf '%s\b' "$n" >&2
 				if var=$(NO_CLR=1 read_charf -t 1)
 				then 	case "$var" in
+					[Q]) 	return 202;;
 					[RrYy]|$'\t') continue 2;;
 					[PpWw]|[$' \e']) printf '%s' waiting.. >&2; read_charf >/dev/null;
 						continue 2;;  #wait until key press
@@ -5077,8 +5093,9 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 #model options
 set_optsf  #IPC#
 
-#promote var to array (model costs)
-COST_CUSTOM=( $COST_CUSTOM )
+#model prices (promote var to array)
+(( ${#MOD_PRICE[@]}+${#COST_CUSTOM[@]} )) &&  #$COST_CUSTOM is deprecated
+  MOD_PRICE=( ${MOD_PRICE[@]:-${COST_CUSTOM[@]}} )
 
 #markdown rendering
 if ((OPTMD+${#MD_CMD}))
@@ -5324,7 +5341,7 @@ else
 	[[ -z $INSTRUCTION && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
 	case "$INSTRUCTION" in
 		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
-			awesomef || case $? in 	210|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
+			awesomef || case $? in 	210|202|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
 			_sysmsgf $'\nHist   File:' "${FILECHAT}"
 			if ((OPTRESUME==1))
 			then 	unset OPTAWE
@@ -5337,7 +5354,7 @@ else
 		[.,]*) custom_prf "$@"
 			case $? in
 				200) 	set -- ;;  #create, read and clear pos args
-				1|201|[1-9]*) 	exit 1; unset INSTRUCTION;;  #err
+				1|202|201|[1-9]*) 	exit 1; unset INSTRUCTION;;  #err
 			esac;;
 	esac
 
@@ -5456,18 +5473,24 @@ else
 		then 	[[ -z $* ]] && [[ -n ${REPLY:-$REPLY_OLD} ]] && set -- "${REPLY:-$REPLY_OLD}";
 		elif ((OPTX))
 		#text editor prompter
-		then 	edf "${@:-${REPLY:-$REPLY_CMD}}"
+		then 	((EDIT)) || REPLY=""  #!#
+			edf "${REPLY:-$@}"
 			case $? in
 				179|180) :;;        #jumps
 				200) 	set --; REPLY=;
 					REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
 					continue;;  #redo
 				201) 	set --; OPTX=; false;;   #abort
+				202) 	exit 202;;  #exit
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}" | tail -n $((LINES-2))
-					do 	((OPTV)) || new_prompt_confirmf
+					do
+					((OPTV)) || [[ $REPLY = :* ]] \
+					|| { is_txturl "${REPLY: ind}" >/dev/null && ((!REPLY_CMD_BLOCK)) ;} \
+					|| new_prompt_confirmf
 						case $? in
+							202) 	exit 202;;  #exit
 							201) 	set --; OPTX=; break 1;;  #abort
 							200) 	set --; REPLY=;
 								REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
@@ -5481,7 +5504,7 @@ else
 					done;
 					((OPTX>1)) && OPTX=;
 			esac
-			case "${REPLY: ${#REPLY}-1}" in /) 	_warmsgf 'Warning:' "Text editor mode doesn't support previewing!";; esac;
+			#[[ ${REPLY: ${#REPLY}-1} = / ]] && _warmsgf 'Warning:' "Text editor mode doesn't support previewing!";
 		fi; PSKIP= RET=;
 
 		((JUMP)) ||
@@ -5523,10 +5546,12 @@ else
 							else 	case $? in
 									196) 	WSKIP= OPTW= REPLY=; continue 1;;
 									199) 	EDIT=1; continue 1;;
+									202) 	exit 202;;  #exit
 								esac;
 								echo record abort >&2;
 							fi; ((OPTW>1)) && OPTW=;;
-						196|201) 	WSKIP= OPTW= REPLY=; continue 1;;  #whisper off
+						202) 	exit 202;;  #exit
+						201|196) 	WSKIP= OPTW= REPLY=; continue 1;;  #whisper off
 						199) 	EDIT=1; continue 1;;  #text edit
 						*) 	REPLY=; continue 1;;
 					esac; unset RESUBW;
@@ -5611,10 +5636,11 @@ else
 					set --; continue 2;
 				elif ((${#REPLY}))
 				then 	PSKIP=;
-					((PREVIEW+OPTV && EDIT!=2)) || [[ $REPLY = :* ]] \
+					((PREVIEW+OPTV)) || [[ $REPLY = :* ]] \
 					|| { is_txturl "${REPLY: ind}" >/dev/null && ((!REPLY_CMD_BLOCK)) ;} \
 					|| new_prompt_confirmf ed whisper
 					case $? in
+						202) 	exit 202;;  #exit
 						201) 	break 2;;  #abort
 						200) 	WSKIP=1 REPLY=${REPLY_CMD:-$REPLY_OLD};
 							REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
@@ -5717,13 +5743,15 @@ else
 			  cmd_runf /cat"$var";
 			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST= REPLY_CMD_BLOCK=1;
 			fi; PSKIP= var=;
-			if ((${#REPLY_CMD_DUMP}))
+			if ((${#REPLY_CMD_DUMP})) &&
+				((!RET || (RET>180 && RET<220) ))  #!# our exit codes: >180 and <220
 			then
 			  REPLY_CMD="${REPLY:-$REPLY_CMD}";  #!#
 			  ((RET==200)) || [[ "${REPLY:0:128}" = "${REPLY_CMD_DUMP:0:128}" ]] ||
 			    REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
 			  ((PREVIEW)) && REPLY_OLD="$REPLY";
 			  case "$RET" in
+			    202) echo bye >&2; exit 202;;
 			    201|200) SKIP=1 EDIT=1 REPLY=$REPLY_CMD;
 			         REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
 			         set --; continue 1;;  #redo / abort
