@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.75  sep/2024  by mountaineerbr  GPL+3
+# v0.75.1  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1697,8 +1697,8 @@ function _model_costf
 		open-mixtral-8x22b*) 	echo 2 6;;
 		mistral-medium*) 	echo 2.75 8.1;;
 		gpt-4o-mini*) 	echo 0.15 0.6;;
-		gpt-4o-2024-08-06|gpt-4o*) echo 2.5 10;;
 		gpt-4o-2024-05-13|chatgpt-4o*) 	echo 5 15;;
+		gpt-4o-2024-08-06|gpt-4o*) echo 2.5 10;;
 		text-embedding-3-small) 	echo 0.02 0;;
 		text-embedding-3-large) 	echo 0.13 0;;
 		text-embedding-ada-002|mistral-embed*) 	echo 0.1 0;;
