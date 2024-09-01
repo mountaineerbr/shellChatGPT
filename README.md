@@ -326,8 +326,7 @@ Print out last session, optionally set the history name:
 #### Vision and Multimodal Models
 
 To send an `image` / `url` to vision models, start the script and then either
-set the image with the `!img` chat command with one or more filepaths / URLs
-separated by the operator pipe **|**.
+set the image with the `!img` chat command with one or more filepaths / URLs.
 
 
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
@@ -364,7 +363,7 @@ In the **second example**, the _PDF_ will be dumped as text.
 
 For PDF text dump support, `poppler/abiword` is required.
 For _doc_ and _odt_ doc files, `LibreOffice` is required.
-See **Optional Packages** section.
+See the [Optional Packages](#optional-packages) section.
 
 Also note that file path containing whitespaces must be
 **blackslash-escaped**.

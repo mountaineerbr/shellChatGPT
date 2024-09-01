@@ -333,8 +333,7 @@ Set chat mode, plus Whisper language and prompt, and the TTS voice option argume
 #### 2.5 Vision and Multimodal Models
 
 To send an _image_ or _url_ to **vision models**, either set the image
-with the `!img` command with one or more _filepaths_ / _urls_
-separated by the operator pipe _|_.
+with the `!img` command with one or more _filepaths_ / _urls_.
 
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
 
@@ -367,7 +366,7 @@ In the second example, the _PDF_ will be dumped as text.
 
 For PDF text dump support, `poppler/abiword` is required.
 For _doc_ and _odt_ doc files, `LibreOffice` is required.
-See **Optional Packages** section.
+See the **Optional Packages** section.
 
 Also note that file path containing whitespaces must be
 **blackslash-escaped**.

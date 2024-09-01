@@ -329,8 +329,7 @@ option argument:
 #### 2.5 Vision and Multimodal Models
 
 To send an *image* or *url* to **vision models**, either set the image
-with the `!img` command with one or more *filepaths* / *urls* separated
-by the operator pipe *\|*.
+with the `!img` command with one or more *filepaths* / *urls*.
 
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
 
@@ -358,8 +357,8 @@ is a basic text feature that works with any model.
 In the second example, the *PDF* will be dumped as text.
 
 For PDF text dump support, `poppler/abiword` is required. For *doc* and
-*odt* doc files, `LibreOffice` is required. See **Optional Packages**
-section.
+*odt* doc files, `LibreOffice` is required. See the **Optional
+Packages** section.
 
 Also note that file path containing whitespaces must be
 **blackslash-escaped**.
