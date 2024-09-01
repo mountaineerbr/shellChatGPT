@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.75 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.75.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.75 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.75.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">September 2024</p>
 </header>
@@ -270,10 +270,8 @@ This will change to or create a new history file (with
 argument, or as an argument to <code>option -S</code> (set instruction
 prompt), the file is loaded as text PROMPT.</p>
 <p>With <strong>vision models</strong>, append the image file paths and
-possibly URLs at the end of the prompt. Make sure file paths containing
-spaces are backslash-escaped.</p>
-<p><em>Filepaths</em> that contain white spaces may need
-backslash-escaping in some functions.</p>
+possibly URLs at the end of the prompt.</p>
+<p>Make sure file paths containing spaces are backslash-escaped.</p>
 <h4 id="model-and-capacity">Model and Capacity</h4>
 <p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
 <em>MODEL</em> as its name, or set it as “<em>.</em>” to pick from the
@@ -467,7 +465,8 @@ Whisper, and then TTS arguments.</p>
 <p>Set chat mode, plus Whisper language and prompt, and the TTS voice
 option argument:</p>
 <pre><code>chatgpt.sh -ccwz  en &#39;whisper prompt&#39;  --  nova</code></pre>
-<h4 id="gpt-4-vision">2.5 GPT-4-Vision</h4>
+<h4 id="vision-and-multimodal-models">2.5 Vision and Multimodal
+Models</h4>
 <p>To send an <em>image</em> or <em>url</em> to <strong>vision
 models</strong>, either set the image with the <code>!img</code> command
 with one or more <em>filepaths</em> / <em>urls</em> separated by the
@@ -478,8 +477,25 @@ end of the text prompt interactively:</p>
 <pre><code>chatgpt.sh -cc -m gpt-4-vision-preview
 
 [...]
-Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg</code></pre>
-<h4 id="commands-1">2.6 Commands</h4>
+Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpeg</code></pre>
+<h4 id="text-pdf-doc-and-url-dumps">2.6 Text, PDF, Doc, and URL
+Dumps</h4>
+<p>The user may add a <em>filepath</em> or <em>URL</em> to the end of
+the prompt. The file is then read and the text content appended to the
+user prompt. This is a basic text feature that works with any model.</p>
+<pre><code>chatgpt.sh -cc
+
+[...]
+Q: What is this page: https://example.com
+
+Q: Help me study this paper. ~/Downloads/Prigogine\ Perspective\ on\ Nature.pdf</code></pre>
+<p>In the second example, the <em>PDF</em> will be dumped as text.</p>
+<p>For PDF text dump support, <code>poppler/abiword</code> is required.
+For <em>doc</em> and <em>odt</em> doc files, <code>LibreOffice</code> is
+required. See <strong>Optional Packages</strong> section.</p>
+<p>Also note that file path containing whitespaces must be
+<strong>blackslash-escaped</strong>.</p>
+<h4 id="commands-1">2.7 Commands</h4>
 <p>While in chat mode, the following commands can be invoked in the new
 prompt to execute a task or set parameters. The command operator may be
 either “<code>!</code>” or “<code>/</code>”.</p>
@@ -929,7 +945,7 @@ prompt, the selected file path is appended instead.</p>
 <p>Command “<code>!block</code> [<em>ARGS</em>]” may be run to set raw
 model options in JSON syntax according to each API. Alternatively, set
 envar <strong>$BLOCK_USR</strong>.</p>
-<h4 id="session-management">2.7 Session Management</h4>
+<h4 id="session-management">2.8 Session Management</h4>
 <p>The script uses a <em>TSV file</em> to record entries, which is kept
 at the script cache directory. A new history file can be created or an
 existing one changed to with command “<code>/session</code>
@@ -971,7 +987,7 @@ the correct session from the history file.</p>
 edited with the “<code>/hist</code>” command (also for context
 injection). Delete history entries or comment them out with
 “<code>#</code>”.</p>
-<h4 id="completion-preview-regeneration">2.8 Completion Preview /
+<h4 id="completion-preview-regeneration">2.9 Completion Preview /
 Regeneration</h4>
 <p>To preview a prompt completion before committing it to history,
 append a forward slash “<code>/</code>” to the prompt as the last
@@ -1262,13 +1278,13 @@ escape sequences (these must not change cursor position).</p>
 <p>Optional packages for specific features.</p>
 <ul>
 <li><code>Base64</code> - Image endpoint, vision models</li>
+<li><code>Python</code> - Modules tiktoken, markdown, bs4</li>
 <li><code>ImageMagick</code>/<code>fbida</code> - Image edits and
 variations</li>
-<li><code>Python</code> - Modules tiktoken, markdown, bs4</li>
-<li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFplay</code>/<code>afplay</code>
-- Play TTS output</li>
 <li><code>SoX</code>/<code>Arecord</code>/<code>FFmpeg</code> - Record
 input (Whisper)</li>
+<li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFplay</code>/<code>afplay</code>
+- Play TTS output</li>
 <li><code>xdg-open</code>/<code>open</code>/<code>xsel</code>/<code>xclip</code>/<code>pbcopy</code>
 - Open images, set clipboard</li>
 <li><code>W3M</code>/<code>Lynx</code>/<code>ELinks</code>/<code>Links</code>

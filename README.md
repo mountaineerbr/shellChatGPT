@@ -46,9 +46,10 @@ If no suffix is provided, it works as plain text completions.
   - 3.3 [Installation](#-installation)
   - 3.4 [Usage Examples](#-usage-examples-)
   - 3.5 [Native Chat Completions](#-native-chat-completions)
-    - 3.5.1 [Vision Models (GPT-4-Vision)](#vision-models-gpt-4-vision)
-    - 3.5.2 [File Picker and Shell Dump](#file-picker-and-shell-dump)
-    - 3.5.3 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
+    - 3.5.1 [Vision and Multimodal Models](#vision-and-multimodal-models)
+    - 3.5.2 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
+    - 3.5.3 [File Picker and Shell Dump](#file-picker-and-shell-dump)
+    - 3.5.4 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
   - 3.6 [Chat Mode of Text Completions](#chat-mode-of-text-completions)
   - 3.7 [Text Completions](#-text-completions)
     - 3.7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
@@ -158,10 +159,10 @@ Packages required for specific features.
   <summary>Click to expand!</summary>
 
 - `Base64` - Image endpoint, vision models
-- `ImageMagick`/`fbida` - Image edits and variations
 - `Python` - Modules tiktoken, markdown, bs4
-- `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
+- `ImageMagick`/`fbida` - Image edits and variations
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
+- `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
@@ -322,7 +323,7 @@ Print out last session, optionally set the history name:
 <!-- The same as `chatgpt.sh -HH` -->
 
 
-#### Vision Models (GPT-4-Vision)
+#### Vision and Multimodal Models
 
 To send an `image` / `url` to vision models, start the script and then either
 set the image with the `!img` chat command with one or more filepaths / URLs
@@ -332,21 +333,44 @@ separated by the operator pipe **|**.
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
 
 
-Alternatively, set the image paths / URLs at the end of the prompt interactively:
+Alternatively, set the image paths / URLs at the end of the prompt:
 
     chatgpt.sh -cc -m gpt-4-vision-preview
 
     [...]
-    Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
+    Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpeg
 
 
 **TIP:** Run chat command `!info` to check model configuration!
 
-**DEBUG:** Set `option -VV` to see the raw JSON request body.
+**DEBUG:** Set `option -V` to see the raw JSON request body.
+
+
+#### Text, PDF, Doc, and URL Dumps
+
+To make an easy workfow, the user may add a filepath or URL to the end
+of the prompt. The file is then read and the text content appended to the user prompt.
+This is a basic text feature that works with any model.
+
+    chatgpt.sh -cc
+
+    [...]
+    Q: What is this page: https://example.com
+
+    Q: Help me study this paper. ~/Downloads/Prigogine\ Perspective\ on\ Nature.pdf
+
+
+In the **second example**, the _PDF_ will be dumped as text.
+
+For PDF text dump support, `poppler/abiword` is required.
+For _doc_ and _odt_ doc files, `LibreOffice` is required.
+See **Optional Packages** section.
+
+Also note that file path containing whitespaces must be
+**blackslash-escaped**.
 
 
 #### File Picker and Shell Dump
-
 
 The `/pick` command opens a file picker (usually a command-line
 file manager). The selected file's path will be appended to the

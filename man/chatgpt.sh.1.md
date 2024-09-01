@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.75 | General Commands Manual
+% CHATGPT.SH(1) v0.75.1 | General Commands Manual
 % mountaineerbr
 % September 2024
 
@@ -99,11 +99,9 @@ or as an argument to `option -S` (set instruction prompt), the file
 is loaded as text PROMPT.
 
 With **vision models**, append the image file paths and possibly URLs
-at the end of the prompt. Make sure file paths containing spaces are
-backslash-escaped.
+at the end of the prompt.
 
-_Filepaths_ that contain white spaces may need backslash-escaping
-in some functions.
+Make sure file paths containing spaces are backslash-escaped.
 
 
 #### Model and Capacity
@@ -332,7 +330,7 @@ Set chat mode, plus Whisper language and prompt, and the TTS voice option argume
     chatgpt.sh -ccwz  en 'whisper prompt'  --  nova
 
 
-#### 2.5 GPT-4-Vision
+#### 2.5 Vision and Multimodal Models
 
 To send an _image_ or _url_ to **vision models**, either set the image
 with the `!img` command with one or more _filepaths_ / _urls_
@@ -347,10 +345,35 @@ text prompt interactively:
     chatgpt.sh -cc -m gpt-4-vision-preview
 
     [...]
-    Q: In this first user prompt, what can you see? | https://i.imgur.com/wpXKyRo.jpeg
+    Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpeg
 
 
-#### 2.6 Commands
+#### 2.6 Text, PDF, Doc, and URL Dumps
+
+The user may add a _filepath_ or _URL_ to the end of the prompt.
+The file is then read and the text content appended to the user prompt.
+This is a basic text feature that works with any model.
+
+
+    chatgpt.sh -cc
+
+    [...]
+    Q: What is this page: https://example.com
+
+    Q: Help me study this paper. ~/Downloads/Prigogine\ Perspective\ on\ Nature.pdf
+
+
+In the second example, the _PDF_ will be dumped as text.
+
+For PDF text dump support, `poppler/abiword` is required.
+For _doc_ and _odt_ doc files, `LibreOffice` is required.
+See **Optional Packages** section.
+
+Also note that file path containing whitespaces must be
+**blackslash-escaped**.
+
+
+#### 2.7 Commands
 
 While in chat mode, the following commands can be invoked in the
 new prompt to execute a task or set parameters. The command operator
@@ -470,7 +493,7 @@ Command "`!block` \[_ARGS_]" may be run to set raw model options
 in JSON syntax according to each API. Alternatively, set envar **$BLOCK_USR**.
 
 
-#### 2.7 Session Management
+#### 2.8 Session Management
 
 The script uses a _TSV file_ to record entries, which is kept at the script
 cache directory. A new history file can be created or an existing one
@@ -526,7 +549,7 @@ edited with the "`/hist`" command (also for context injection).
 Delete history entries or comment them out with "`#`".
 
 
-#### 2.8 Completion Preview / Regeneration
+#### 2.9 Completion Preview / Regeneration
 
 To preview a prompt completion before committing it to history,
 append a forward slash "`/`" to the prompt as the last character.
@@ -867,10 +890,10 @@ raw escape sequences (these must not change cursor position).
 Optional packages for specific features.
 
 - `Base64` - Image endpoint, vision models
-- `ImageMagick`/`fbida` - Image edits and variations
 - `Python` - Modules tiktoken, markdown, bs4
-- `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
+- `ImageMagick`/`fbida` - Image edits and variations
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
+- `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
