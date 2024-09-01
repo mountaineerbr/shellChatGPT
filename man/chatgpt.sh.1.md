@@ -368,7 +368,7 @@ For PDF text dump support, `poppler/abiword` is required.
 For _doc_ and _odt_ doc files, `LibreOffice` is required.
 See the **Optional Packages** section.
 
-Also note that file path containing whitespaces must be
+Also note that file paths containing white spaces must be
 **blackslash-escaped**.
 
 

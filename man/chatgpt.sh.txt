@@ -325,7 +325,7 @@ In the second example, the PDF will be dumped as text.
 For PDF text dump support, poppler/abiword is required. For doc and odt
 doc files, LibreOffice is required. See the Optional Packages section.
 
-Also note that file path containing whitespaces must be
+Also note that file paths containing white spaces must be
 blackslash-escaped.
 
 2.7 Commands
