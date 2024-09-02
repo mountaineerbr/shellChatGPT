@@ -383,7 +383,7 @@ commands is appended to the current prompt.
 When the `/pick` command is run at the end of the prompt, the selected
 file path is appended instead.
 
-_File paths_ that contain white spaces may need backslash-escaping
+_File paths_ that contain white spaces need backslash-escaping
 in some functions.
 
 

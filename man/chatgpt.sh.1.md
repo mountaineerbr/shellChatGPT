@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.75.1 | General Commands Manual
+% CHATGPT.SH(1) v0.76 | General Commands Manual
 % mountaineerbr
 % September 2024
 
@@ -368,7 +368,7 @@ For PDF text dump support, `poppler/abiword` is required.
 For _doc_ and _odt_ doc files, `LibreOffice` is required.
 See the **Optional Packages** section.
 
-Also note that file paths containing white spaces must be
+Also note that _file paths_ containing white spaces must be
 **blackslash-escaped**.
 
 

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: September 2024
-title: CHATGPT.SH(1) v0.75.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.76 \| General Commands Manual
 ---
 
 ### NAME
@@ -360,7 +360,7 @@ For PDF text dump support, `poppler/abiword` is required. For *doc* and
 *odt* doc files, `LibreOffice` is required. See the **Optional
 Packages** section.
 
-Also note that file paths containing white spaces must be
+Also note that *file paths* containing white spaces must be
 **blackslash-escaped**.
 
 #### 2.7 Commands

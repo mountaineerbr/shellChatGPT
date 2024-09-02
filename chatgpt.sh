@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.75.1  sep/2024  by mountaineerbr  GPL+3
+# v0.76  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3189,8 +3189,8 @@ function read_charrecf
 	tmout=0.4    #read timeout
 	atrim=0.26   #audio trim
 	min_len=1.8  #seconds (float)
-	rms=0.0094   #rms amplitude (0.001 to 0.1)
-	threshold="-29dB"  #noise tolerance (-32dbFS to -28dBFS)
+	rms=0.014    #rms amplitude (0.001 to 0.1)
+	threshold="-27dB"  #noise tolerance (-32dbFS to -26dBFS)
 
 	if ((OPTV>1)) &&
 	    { case "$REC_CMD" in termux-microphone-record*)  false;; *)  :;; esac ;} &&
@@ -4101,8 +4101,12 @@ function set_reccmdf
 #check and set termux pulseaudio configuration
 function set_termuxpulsef
 {
-	if command -v pulseaudio >/dev/null 2>&1 &&
-		command -v pactl >/dev/null 2>&1
+	if case "$OPT_SLES" in
+		[Yy]) 	:;;
+		[Nn]) 	return 1;;
+		*) 	command -v pulseaudio >/dev/null 2>&1 &&
+			command -v pactl >/dev/null 2>&1;;
+	esac;
 	then
 		case "$(pactl list modules 2>&1)" in
 		  *module-sles-source*)  :;;
@@ -4112,20 +4116,23 @@ function set_termuxpulsef
 		    _sysmsgf 'See' "<https://gitlab.com/fenixdragao/shellchatgpt#termux-users>";
 
 		    printf '\n%s  [Y/n] \a' "Enable \`module-sles-source'?" >&2;
-		    case "$(read_charf -t 4)" in
+		    case "$( ((${#OPT_SLES})) && printf $OPT_SLES || read_charf -t 4)" in
 		      [NnAaQq]|$'\e')
-		        false
+		        OPT_SLES=n;
+		        false;
 		        ;;
 		      *)
-		        pulseaudio -k;
+		        OPT_SLES=y;
+		        pulseaudio -k; sleep 0.2;
 			pulseaudio -L "module-sles-source" -D &
-			disown $!;
+			disown $!; sleep 0.4;
 		        ;;
 		    esac;
 		    ;;
 		esac;
 	else
 		  sysmsgf 'Tip:' "install \`pulseaudio', \`sox', and \`ffmpeg' for enhanced audio";
+		  OPT_SLES=n;
 		  false;
 	fi
 }
@@ -4928,7 +4935,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW RET init buff var tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW OPT_SLES RET init buff var tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -5539,7 +5546,8 @@ else
 								((!GROQAI && WHISPER_GROQ)) && API_HOST=${GROQ_API_HOST:-$GROQ_API_HOST_DEF};
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2=;
 								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
-								set -- "$@" "${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}";
+								context="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-${INSTRUCTION_OLD:-$INSTRUCTION_CHAT}}}")}";
+								((${#context})) && set -- "$@" "$context";
 								whisperf "$FILEINW" "$@";
 							)
 								((WAPPEND)) && REPLY=$REPLY_OLD${REPLY_OLD:+${REPLY:+ }}$REPLY WAPPEND= ;
