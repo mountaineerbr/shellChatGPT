@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.76.1  sep/2024  by mountaineerbr  GPL+3
+# v0.76.2  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4123,9 +4123,9 @@ function set_termuxpulsef
 		        ;;
 		      *)
 		        OPT_SLES=y;
-		        pulseaudio -k; sleep 0.2;
+		        pulseaudio -k; sleep 0.1;
 			pulseaudio -L "module-sles-source" -D &
-			disown $!; sleep 0.4;
+			disown $!; sleep 0.2;
 		        ;;
 		    esac;
 		    ;;
