@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.76.2  sep/2024  by mountaineerbr  GPL+3
+# v0.77  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2377,6 +2377,7 @@ function cmd_runf
 			then 	for var in "${REPLAY_FILES[@]:-$FILEOUT_TTS}"
 				do 	[[ -f $var ]] || continue
 					du -h "$var" 2>/dev/null
+					[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
 					${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
 					trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 					wait $pid;
@@ -3131,7 +3132,6 @@ function record_confirmf
 	fi
 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr_off * ' >&2
 	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
-	#((!OPTV)) || bellf;
 }
 
 #record mic
@@ -3146,6 +3146,8 @@ function recordf
 
 	#move out file before writing
 	[[ -s $1 ]] && mv -f -- "$1" "${1%.*}.2.${1##*.}";
+	
+	[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
 
 	$REC_CMD "$1" & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; ret=199;" INT;
@@ -3536,8 +3538,11 @@ function _ttsf
 		((OPTV && !CHAT_ENV)) || [[ ! -s $FOUT ]] || {
 			((CHAT_ENV)) || sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
 			case "$PLAY_CMD" in false) 	return $ret;; esac;
-		while 	${PLAY_CMD} "$FOUT" & pid=$! PIDS+=($!);
-		do 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; case \"\$PLAY_CMD\" in *termux-media-player*) termux-media-player stop;; esac;" INT;
+		while
+			[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
+			${PLAY_CMD} "$FOUT" & pid=$! PIDS+=($!);
+		do
+			trap "trap 'exit' INT; kill -- $pid 2>/dev/null; case \"\$PLAY_CMD\" in *termux-media-player*) termux-media-player stop;; esac;" INT;
 			wait $pid;
 			case $? in
 				0) 	case "$PLAY_CMD" in *termux-media-player*) while sleep 1 ;[[ $(termux-media-player info 2>/dev/null) = *[Pp]laying* ]] ;do : ;done;; esac;  #termux fix
@@ -4101,6 +4106,7 @@ function set_reccmdf
 #check and set termux pulseaudio configuration
 function set_termuxpulsef
 {
+	((OPTV>1)) || return;
 	if case "$OPT_SLES" in
 		[Yy]) 	:;;
 		[Nn]) 	return 1;;
@@ -4115,17 +4121,20 @@ function set_termuxpulsef
 		    _warmsgf 'Pulseaudio:' "configure \`pulseaudio' with \`module-sles-source'";
 		    _sysmsgf 'See' "<https://gitlab.com/fenixdragao/shellchatgpt#termux-users>";
 
-		    printf '\n%s  [Y/n] \a' "Enable \`module-sles-source'?" >&2;
-		    case "${OPT_SLES:-$(read_charf -t 4)}" in
-		      [NnAaQq]|$'\e')
+		    ((${#OPT_SLES})) ||
+		      printf '\n%s  [N/y] \a' "Enable \`module-sles-source'?" >&2;
+		    case "${OPT_SLES:-$(read_charf -t 2||echo >&2)}" in
+		      [YySs]|[$' \t'])
+		        OPT_SLES=y;
+		        _printbf "pulse";
+		        pulseaudio -k; sleep 0.1;
+		        pulseaudio -L "module-sles-source" -D &
+		        disown $!; sleep 0.2;
+		        _printbf "     ";
+		        ;;
+		      [NnAaQq]|$'\e'|*)
 		        OPT_SLES=n;
 		        false;
-		        ;;
-		      *)
-		        OPT_SLES=y;
-		        pulseaudio -k; sleep 0.1;
-			pulseaudio -L "module-sles-source" -D &
-			disown $!; sleep 0.2;
 		        ;;
 		    esac;
 		    ;;
@@ -4137,19 +4146,6 @@ function set_termuxpulsef
 	fi
 }
 #https://madskjeldgaard.dk/posts/sox-tutorial-sox-on-android/
-
-#play audio bell
-function bellf
-{
-	typeset bell
-	bell="/usr/share/sounds/freedesktop/stereo/message.oga";
-	[[ -s $bell ]] || bell="${OUTDIR%/}/bell.oga";
-	if [[ -s $bell ]]
-	then 	set_playcmdf;
-		$PLAY_CMD "$bell";
-	else 	curl -s -L "https://gitlab.com/mountaineerbr/etc/-/raw/main/media/message.oga" -o "$bell";
-	fi >/dev/null 2>&1 & PIDS+=($!);
-}
 
 #append to shell hist list
 function shell_histf
