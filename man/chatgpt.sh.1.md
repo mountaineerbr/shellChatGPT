@@ -365,7 +365,7 @@ This is a basic text feature that works with any model.
 In the second example, the _PDF_ will be dumped as text.
 
 For PDF text dump support, `poppler/abiword` is required.
-For _doc_ and _odt_ doc files, `LibreOffice` is required.
+For _doc_ and _odt_ files, `LibreOffice` is required.
 See the **Optional Packages** section.
 
 Also note that _file paths_ containing white spaces must be

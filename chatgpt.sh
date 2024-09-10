@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77  sep/2024  by mountaineerbr  GPL+3
+# v0.77.1  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4178,7 +4178,7 @@ function session_globf
 	[[ ! -f "$1" ]] || return
 	case "$1" in
 		[Nn]ew) 	return 2;;
-		[Cc]urrent|.) 	set -- "${FILECHAT##*/}" "${@:2}";;
+		[Cc]urrent|.) 	printf '%s' "${FILECHAT:-$1}"; return;;
 	esac
 
 	cd -- "${CACHEDIR}"
@@ -4230,7 +4230,7 @@ function session_globf
 
 	file="${CACHEDIR%%/}/${file:-${*:${#}}}"
 	file="${file%%.${sglob}}.${ext}"
-	[[ -f $file || $ok -gt 0 ]] && printf '%s\n' "${file}"
+	[[ -f $file || $ok -gt 0 ]] && printf '%s' "${file}"
 }
 #set tsv filename based on input
 function session_name_choosef
@@ -4430,7 +4430,7 @@ function session_mainf
 	typeset name file optsession arg break msg
 	typeset -a args
 	name="${*}"               ;((${#name}<512)) || return
-	name="${name##*([$IFS])}" ;[[ $name = [/!]* ]] || return
+	name=$(trim_trailf "${name}" "*([$IFS])") ;[[ $name = [/!]* ]] || return
 	name="${name##?([/!])*([$IFS])}"
 
 	case "${name}" in
@@ -5396,11 +5396,11 @@ else
 	then 	INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		shell_histf "$INSTRUCTION"
 		((OPTC)) && INSTRUCTION="${INSTRUCTION:-$INSTRUCTION_CHAT}"
+		INSTRUCTION_OLD="$INSTRUCTION"
 		if ((OPTC && OPTRESUME)) || ((OPTCMPL==1 || OPTRESUME==1))
 		then 	unset INSTRUCTION;
 		else 	break_sessionf;
 		fi
-		INSTRUCTION_OLD="$INSTRUCTION"
 	elif [[ $INSTRUCTION != *[!:$IFS]* ]]
 	then 	unset INSTRUCTION
 	fi

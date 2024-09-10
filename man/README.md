@@ -357,8 +357,8 @@ is a basic text feature that works with any model.
 In the second example, the *PDF* will be dumped as text.
 
 For PDF text dump support, `poppler/abiword` is required. For *doc* and
-*odt* doc files, `LibreOffice` is required. See the **Optional
-Packages** section.
+*odt* files, `LibreOffice` is required. See the **Optional Packages**
+section.
 
 Also note that *file paths* containing white spaces must be
 **blackslash-escaped**.
