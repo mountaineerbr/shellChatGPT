@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: September 2024
-title: CHATGPT.SH(1) v0.77 \| General Commands Manual
+title: CHATGPT.SH(1) v0.77.3 \| General Commands Manual
 ---
 
 ### NAME
@@ -838,6 +838,8 @@ File paths containing spaces may not work correctly with some script
 features.
 
 Bash truncates input on “\000” (null).
+
+The script logic resembles a bowl of spaghetti code after a cat fight.
 
 Garbage in, garbage out. An idiot savant.
 

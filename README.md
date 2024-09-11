@@ -1271,6 +1271,8 @@ Not all features of the API will be covered.
 the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
 
+- The script logic resembles a bowl of spaghetti code after a cat fight.
+
 - Garbage in, garbage out. An idiot savant.
 
 - See _BUGS AND LIMITS_ section in the [man page](man/README.md#bugs).

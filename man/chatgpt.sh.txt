@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.77 | General Commands Manual
+CHATGPT.SH(1) v0.77.3 | General Commands Manual
 mountaineerbr
 September 2024
 
@@ -790,6 +790,8 @@ File paths containing spaces may not work correctly with some script
 features.
 
 Bash truncates input on “\000” (null).
+
+The script logic resembles a bowl of spaghetti code after a cat fight.
 
 Garbage in, garbage out. An idiot savant.
 

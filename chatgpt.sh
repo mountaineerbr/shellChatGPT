@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77.2  sep/2024  by mountaineerbr  GPL+3
+# v0.77.3  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3191,8 +3191,8 @@ function read_charrecf
 	tmout=0.4    #read timeout
 	atrim=0.26   #audio trim
 	min_len=1.8  #seconds (float)
-	rms=0.014    #rms amplitude (0.001 to 0.1)
-	threshold="-27dB"  #noise tolerance (-32dbFS to -26dBFS)
+	rms=0.0157   #rms amplitude (0.001 to 0.1)
+	threshold="-26dB"  #noise tolerance (-32dbFS to -26dBFS)
 
 	if ((OPTV>1)) &&
 	    { case "$REC_CMD" in termux-microphone-record*)  false;; *)  :;; esac ;} &&
@@ -4430,7 +4430,7 @@ function session_mainf
 	typeset name file optsession arg break msg
 	typeset -a args
 	name="${*}"               ;((${#name}<512)) || return
-	name=$(trim_trailf "${name}" "*([$IFS])") ;[[ $name = [/!]* ]] || return
+	name=$(trimf "${name}" "*([$IFS])") ;[[ $name = [/!]* ]] || return
 	name="${name##?([/!])*([$IFS])}"
 
 	case "${name}" in
