@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77.3  sep/2024  by mountaineerbr  GPL+3
+# v0.77.4  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -731,7 +731,7 @@ function model_capf
 		code-davinci-00[2-9]*|mistral-embed*) 	MODMAX=8001;;
 		gemini*-flash*) 	MODMAX=1048576;;  #standard: 128000
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=2097152;;  #standard: 128000
-		gpt-4[a-z]*|chatgpt-[4-9]*|gpt-[5-9]*|gpt-4-1106*|\
+		o[1-9]*|gpt-4[a-z]*|chatgpt-[4-9]*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
 		mistral-large*|open-mistral-nemo*) 	MODMAX=128000;;
 		gpt-3.5-turbo-1106) 	MODMAX=16385;;
@@ -5878,7 +5878,9 @@ $BLOCK
 			BLOCK="{
 $( ((ANTHROPICAI)) && ((EPN==6)) && ((${#INSTRUCTION_OLD})) && echo "\"system\": \"$(escapef "$INSTRUCTION_OLD")\"," )
 $BLOCK $OPTSUFFIX_OPT
-$( ((ANTHROPICAI)) && ((EPN!=6)) && max="max_tokens_to_sample" || max="max_tokens"
+$(
+((ANTHROPICAI)) && ((EPN!=6)) && max="max_tokens_to_sample" || max="max_tokens"
+case "$MOD" in o[1-9]*) 	max="max_completion_tokens";; esac
 ((OPTMAX_NILL && EPN==6)) || echo "\"${max:-max_tokens}\": $OPTMAX," )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTBB_OPT $OPTSTOP $OPTSEED_OPT
@@ -5974,7 +5976,9 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			if ((!${#ans})) && ((RET_PRF<120))
 			then
 				var=$FILE; ((GOOGLEAI)) && ((STREAM)) && var=$FILE_PRE;
-				jq -e '(.error?)//(.[]?|.error?)//(..|.error?)//empty' "$var" >&2 || ((OPTCMPL)) || ! _warmsgf 'Err';
+				jq -e '(.error?)//(.[]?|.error?)//(..|.error?)//empty' "$var" >&2 ||
+				{ [[ $(<$var) = *'"error":'* ]] && cat -- "$var" >&2 ;} ||
+				((OPTCMPL)) || ! _warmsgf 'Err';
 				_warmsgf "(response empty)";
 				((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI) )) &&
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
