@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77.4  sep/2024  by mountaineerbr  GPL+3
+# v0.77.5  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -677,7 +677,7 @@ function set_model_epnf
 					text*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		gpt-4*|gpt-3.5*|gpt-*|*turbo*|*vision*)
+		o[1-9]*|chatgpt-[4-9]*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*)
 				EPN=6 EPN6=6  OPTB= OPTBB=
 				((OPTC)) && OPTC=2
 				#set token adjustment per message
@@ -3050,6 +3050,14 @@ function set_optsf
 {
 	typeset s n p stop
 	typeset -a pids
+
+	case "$MOD" in o[1-9]*)
+		((STREAM)) && _warmsgf 'Warning:' 'Reasoning models do not support streaming yet';
+		#[[ -n $OPTA ]] && _warmsgf 'Warning:' 'Resetting presence_penalty';
+		#[[ -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency_penalty';
+		STREAM= OPTA= OPTAA= OPTT=1;;
+	esac
+
 	((OPTI+OPTEMBED)) || {
 	  ((OPTW+OPTZ && !CHAT_ENV)) || {
 	    check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
