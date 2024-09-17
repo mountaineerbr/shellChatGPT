@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77.5  sep/2024  by mountaineerbr  GPL+3
+# v0.77.6  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -677,7 +677,7 @@ function set_model_epnf
 					text*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		o[1-9]*|chatgpt-[4-9]*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*)
+		o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*)
 				EPN=6 EPN6=6  OPTB= OPTBB=
 				((OPTC)) && OPTC=2
 				#set token adjustment per message
@@ -731,7 +731,7 @@ function model_capf
 		code-davinci-00[2-9]*|mistral-embed*) 	MODMAX=8001;;
 		gemini*-flash*) 	MODMAX=1048576;;  #standard: 128000
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=2097152;;  #standard: 128000
-		o[1-9]*|gpt-4[a-z]*|chatgpt-[4-9]*|gpt-[5-9]*|gpt-4-1106*|\
+		o[1-9]*|gpt-4[a-z]*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
 		mistral-large*|open-mistral-nemo*) 	MODMAX=128000;;
 		gpt-3.5-turbo-1106) 	MODMAX=16385;;
@@ -1696,6 +1696,8 @@ function _model_costf
 		open-mixtral-8x7b*) 	echo 0.7 0.7;;
 		open-mixtral-8x22b*) 	echo 2 6;;
 		mistral-medium*) 	echo 2.75 8.1;;
+		o1-mini*|o1-mini-2024-09-12) echo 3 12;;
+		o1*|o1-preview-2024-09-12) echo 15 60;;
 		gpt-4o-mini*) 	echo 0.15 0.6;;
 		gpt-4o-2024-05-13|chatgpt-4o*) 	echo 5 15;;
 		gpt-4o-2024-08-06|gpt-4o*) echo 2.5 10;;
@@ -5983,9 +5985,10 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			#print error msg and check for OpenAI response length-type error
 			if ((!${#ans})) && ((RET_PRF<120))
 			then
-				var=$FILE; ((GOOGLEAI)) && ((STREAM)) && var=$FILE_PRE;
-				jq -e '(.error?)//(.[]?|.error?)//(..|.error?)//empty' "$var" >&2 ||
-				{ [[ $(<$var) = *'"error":'* ]] && cat -- "$var" >&2 ;} ||
+				REPLY_CMD_DUMP=;
+				((GOOGLEAI && STREAM)) && cat -- "$FILE_PRE" >&2 ||
+				jq -e '(.error?)//(.[]?|.error?)//(..|.error?)//empty' "$FILE" >&2 2>/dev/null ||
+				{ [[ $(<$FILE) = *'"error":'* ]] && cat -- "$FILE" >&2 ;} ||
 				((OPTCMPL)) || ! _warmsgf 'Err';
 				_warmsgf "(response empty)";
 				((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI) )) &&
