@@ -4,7 +4,7 @@
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
-# API keys 
+# API keys
 #OPENAI_API_KEY=
 #GOOGLE_API_KEY=
 #MISTRAL_API_KEY=
