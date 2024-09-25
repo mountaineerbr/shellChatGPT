@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77.7  sep/2024  by mountaineerbr  GPL+3
+# v0.77.8  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3382,7 +3382,7 @@ function whisperf
 		bpurple + (.text//.${granule}//empty) + reset" "$FILE" | foldf \
 		|| jq -r ".text//.${granule}//empty" "$FILE" || ! _warmsgf 'Err' ;}
 	fi & pid=$! PIDS+=($!);
-	trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
+	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; BAD_RES=1" INT;
 
 	wait $pid; trap 'exit' INT; wait $pid &&  #check exit code
 	if WHISPER_OUT=$(jq -r "def scale: ${scale}; ${JQDATE} if .${granule}s then (.${granule}s[] | \"[\(.start|seconds_to_time_string)]\" + (.text//.${granule}//empty)) else (.text//.${granule}//empty) end" "$FILE" 2>/dev/null) &&
