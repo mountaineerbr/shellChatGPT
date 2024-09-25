@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77.6  sep/2024  by mountaineerbr  GPL+3
+# v0.77.7  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2310,19 +2310,20 @@ function cmd_runf
 					if command -v "magick" >/dev/null 2>&1;
 					then
 					  typeset var2 size
-					  var2=${var%.*}s.${var##*.}  #shrink
+					  #var2=${var%.*}s.${var##*.}  #shrink
 					  size=($(magick identify -format "%w %h" "$var"))
 					  _sysmsgf "Camera Raw:" "$(printf '%dx%d' "${size[@]}")  $(duf "$var")";
 					  
-					  ((size[0]>2048 || size[1]>2048)) && ((size[0]!=size[1])) && 
-					  magick "$var" -auto-orient -resize '2048x2048>' "$var2" >&2;
-					  
-					  [[ -s $var2 ]] && var=$var2 size=($(magick identify -format "%w %h" "$var2"));
-					  
-					  ((size[0]<size[1] ? size[0]>768 : size[1]>768)) &&
-					  magick "$var" -auto-orient -resize '768x768^' "$var2" >&2;
+					  #((size[0]>2048 || size[1]>2048)) && ((size[0]!=size[1])) && 
+					  #magick "$var" -auto-orient -resize '2048x2048>' "$var2" >&2;
+					  #
+					  #[[ -s $var2 ]] && var=$var2 size=($(magick identify -format "%w %h" "$var2"));
+					  #
+					  #((size[0]<size[1] ? size[0]>768 : size[1]>768)) &&
+					  #magick "$var" -auto-orient -resize '768x768^' "$var2" >&2;
 
-					  [[ -s $var2 ]] && var=$var2 || magick mogrify -auto-orient "$var" >&2;
+					  #[[ -s $var2 ]] && var=$var2 ||
+					  magick mogrify -auto-orient "$var" >&2;
 					  #https://platform.openai.com/docs/guides/vision/calculating-costs
 					elif command -v "exiftran" >/dev/null 2>&1;
 					then
@@ -3181,6 +3182,8 @@ function recordf
 	rec_killf $pid $termux;
        	trap 'exit' INT;
 	wait $pid 
+	[[ -n $TERMUX_VERSION ]] && sleep 0.6;  #termux on slow-cpu bug workaround
+
 	#if command -v ffmpeg >/dev/null 2>&1
 	#then 	trim_silencef "$FILEINW";
 	#fi
@@ -3396,11 +3399,11 @@ function whisperf
 		#[[ -s $FILE ]] && jq . "$FILE" >&2 2>/dev/null;
 		_warmsgf $'\nerr:' 'whisper response';
 		printf 'Retry request? Y/n ' >&2;
-		case "$(read_charf)" in
+		case "$( ((!BAD_RES)) && sleep 0.6 || read_charf)" in
 			[Q]) 	return 202;;
 			[AaNnq]) false;;  #no
 			*) 	((rec)) && args+=("$FILEINW")
-				whisperf "${args[@]}";;
+				BAD_RES=1 whisperf "${args[@]}";;
 		esac
 	}
 }
