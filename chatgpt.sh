@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77.9  sep/2024  by mountaineerbr  GPL+3
+# v0.77.10  sep/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5916,7 +5916,10 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 
 		#move cursor to the end of user input in previous line
 		if test_cmplsf && ((!JUMP))
-		then 	if ((OPTSUFFIX && ${#SUFFIX}))
+		then 	if ((${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}+${#REPLY_CMD_DUMP}))
+			then 
+			  echo >&2;
+			elif ((OPTSUFFIX && ${#SUFFIX}))
 			then  #insert mode, print last line of reply
 			  _p_linerf "$PREFIX"; var=0;
 			elif ! ((ANTHROPICAI && EPN==0))
