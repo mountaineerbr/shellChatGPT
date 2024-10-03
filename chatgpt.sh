@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.77.10  sep/2024  by mountaineerbr  GPL+3
+# v0.78  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -759,7 +759,7 @@ function __promptf
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
-		-d "$BLOCK"
+		-d "$BLOCK"  $CURLTIMEOUT
 	then 	[[ \ $*\  = *\ -s\ * ]] || _clr_lineupf;
 	else 	return $?;  #E#
 	fi
@@ -1203,6 +1203,8 @@ function set_histf
 		#improve bash globbing speed with substring manipulation
 		sub="${string:0:32}" sub="${sub##@("${q_type}"|"${a_type}"|":")}"
 		stringc="${sub}${string:32}"  #del lead seqs `\nQ: ' and `\nA:'
+
+		((MOD_REASON)) && case "${string}" in :*) 	continue;; esac;
 
 		if ((OPTTIK || token<1))
 		then 	((token<1 && OPTVV)) && _warmsgf "Warning:" "Zero/Neg token in history"
@@ -1912,6 +1914,7 @@ function cmd_runf
 			then 	pick_modelf "$1"
 			else 	MOD=${1:-$MOD};
 			fi
+			((MOD_REASON)) && set_optsf
 			set_model_epnf "$MOD"; model_capf "$MOD"
 			send_tiktokenf '/END_TIKTOKEN/'
 			cmdmsgf 'Model Name' "$MOD$(is_visionf "$MOD" && printf ' / %s' 'multimodal')"
@@ -2941,7 +2944,7 @@ function is_txturl
 function is_visionf
 {
 	case "${1##ft:}" in 
-	*vision*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
+	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*|\
 	claude-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
@@ -3054,11 +3057,24 @@ function set_optsf
 	typeset s n p stop
 	typeset -a pids
 
-	case "$MOD" in o[1-9]*)
-		((STREAM)) && _warmsgf 'Warning:' 'Reasoning models do not support streaming yet';
-		#[[ -n $OPTA ]] && _warmsgf 'Warning:' 'Resetting presence_penalty';
-		#[[ -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency_penalty';
-		STREAM= OPTA= OPTAA= OPTT=1;;
+	case "$MOD" in o[1-9]*|*reason*) ((MOD_REASON)) || {
+			((OPTMAX<2048)) && {
+				_warmsgf 'Warning:' 'Reasoning models require larger max output tokens';
+				OPTMAX_REASON=$OPTMAX; ((OPTMAX+=1024));
+			}
+			((STREAM)) && _warmsgf 'Warning:' 'Reasoning models do not support streaming yet';
+			((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'Reasoning models do not support system messages yet';
+			#[[ -n $OPTA ]] && _warmsgf 'Warning:' 'Resetting presence_penalty';
+			#[[ -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency_penalty';
+			STREAM_REASON=$STREAM OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTT_REASON=$OPTT INSTRUCTION_CHAT_REASON=$INSTRUCTION_CHAT INSTRUCTION_REASON=$INSTRUCTION;
+			STREAM= OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=;
+		}
+		;;
+		llava-v1.5-7b-4096-preview)  #groq vision
+		INSTRUCTION_CHAT= INSTRUCTION=;
+		;;
+		*) ((MOD_REASON)) && STREAM=$STREAM_REASON OPTA=$OPTA_REASON OPTAA=$OPTAA_REASON OPTT=$OPTT_REASON OPTMAX=${OPTMAX_REASON:-$OPTMAX} INSTRUCTION_CHAT=$INSTRUCTION_CHAT_REASON INSTRUCTION=$INSTRUCTION_REASON MOD_REASON= CURLTIMEOUT=;
+		;;
 	esac
 
 	((OPTI+OPTEMBED)) || {
@@ -4944,7 +4960,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW OPT_SLES RET init buff var tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW OPT_SLES RET CURLTIMEOUT MOD_REASON init buff var tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -5381,8 +5397,10 @@ else
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
 		OPTT="${OPTT:-0.8}";  #!#
+		((MOD_REASON)) || {
 		((ANTHROPICAI)) || OPTA="${OPTA:-0.6}";
 		((MISTRALAI)) && unset OPTA;
+		}
 
 		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
 		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
@@ -5793,6 +5811,8 @@ else
 		else 	unset SUFFIX PREFIX;
 		fi
 
+		set_optsf
+
 		if ((PREVIEW<2))
 		then 	((MTURN+OPTRESUME)) &&
 			if ((EPN==6));
@@ -5833,8 +5853,6 @@ else
 				_sysmsgf "img #${media_i}" "${media:0: COLUMNS-6-${#media_i}}$([[ -n ${media: COLUMNS-6-${#media_i}} ]] && printf '\b\b\b%s' ...)";
 			done; media= media_i=;
 		fi
-		
-		set_optsf
 
 		if ((EPN==6))
 		then 	set -- "$(sed -e '/^[[:space:]]*$/d' <<<"$*" | sed -e '$s/,[[:space:]]*$//')";
