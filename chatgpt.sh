@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78  oct/2024  by mountaineerbr  GPL+3
+# v0.78.1  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1914,7 +1914,7 @@ function cmd_runf
 			then 	pick_modelf "$1"
 			else 	MOD=${1:-$MOD};
 			fi
-			((MOD_REASON)) && set_optsf
+			case "${MOD}" in o[1-9]*) 	:;; *) 	((MOD_REASON));; esac && set_optsf
 			set_model_epnf "$MOD"; model_capf "$MOD"
 			send_tiktokenf '/END_TIKTOKEN/'
 			cmdmsgf 'Model Name' "$MOD$(is_visionf "$MOD" && printf ' / %s' 'multimodal')"
