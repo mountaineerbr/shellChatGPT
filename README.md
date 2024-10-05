@@ -1263,6 +1263,8 @@ Not all features of the API will be covered.
 
 - This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
+- Probably, we will _not_ support "Real-Time" chatting.
+
 - We _aren't_ very much keen on implementing video capabilities.
 
 - Bash shell truncates input on `\000` (null).
