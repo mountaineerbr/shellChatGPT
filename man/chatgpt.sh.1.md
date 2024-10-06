@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.78 | General Commands Manual
+% CHATGPT.SH(1) v0.78.3 | General Commands Manual
 % mountaineerbr
 % October 2024
 
@@ -94,7 +94,7 @@ command operator forward slash "`/`" and a history file name, the
 command "`/session` \[_HIST_NAME_]" is assumed. This will
 change to or create a new history file (with `options -ccCdPP`).
 
-If a plain text or PDF file path is set as the first positional argument,
+If a plain text or PDF file path is set as the last positional parameter
 or as an argument to `option -S` (set instruction prompt), the file
 is loaded as text PROMPT.
 

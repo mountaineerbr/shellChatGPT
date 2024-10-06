@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78.2  oct/2024  by mountaineerbr  GPL+3
+# v0.78.3  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -231,8 +231,8 @@ Description
 	Positional arguments are read as a single PROMPT. Optionally set
 	INTRUCTION with option -S.
 
-	If a plain text or PDF file path is set as the first positional
-	argument or as an argument to \`option -S\`, the file is loaded
+	If a plain text or PDF file path is set as the last positional
+	parameter or as an argument to \`option -S\`, the file is loaded
 	as text PROMPT.
 
 	To create and reuse a custom prompt, set the prompt name as a command
@@ -5682,7 +5682,7 @@ else
 							printf '\n%s\n' '--- redo ---' >&2; set --; continue;;  #redo
 						199) 	WSKIP=1 EDIT=1;
 							printf '\n%s\n' '--- edit ---' >&2; continue;;  #edit
-						198) 	((OPTX)) || OPTX=2; EDIT=1;
+						198) 	((OPTX)) || OPTX=2; EDIT=1 SKIP=1;
 							((OPTX==2)) &&
 							printf '\n%s\n' '--- text editor one-shot ---' >&2
 							set -- ;continue 2;;
