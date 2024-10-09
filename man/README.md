@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2024
-title: CHATGPT.SH(1) v0.78.3 \| General Commands Manual
+title: CHATGPT.SH(1) v0.78.5 \| General Commands Manual
 ---
 
 ### NAME
@@ -106,6 +106,9 @@ loaded as text PROMPT.
 
 With **vision models**, append the image file paths and possibly URLs at
 the end of the prompt.
+
+In chat mode, a PDF, DOC, TXT or URL filepath at the very end of the
+user prompt is appended as text dump to the current user input.
 
 Make sure file paths containing spaces are backslash-escaped.
 

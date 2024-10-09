@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.78.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.78.5 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.78.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.78.5 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2024</p>
 </header>
@@ -271,6 +271,8 @@ parameter or as an argument to <code>option -S</code> (set instruction
 prompt), the file is loaded as text PROMPT.</p>
 <p>With <strong>vision models</strong>, append the image file paths and
 possibly URLs at the end of the prompt.</p>
+<p>In chat mode, a PDF, DOC, TXT or URL filepath at the very end of the
+user prompt is appended as text dump to the current user input.</p>
 <p>Make sure file paths containing spaces are backslash-escaped.</p>
 <h4 id="model-and-capacity">Model and Capacity</h4>
 <p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with

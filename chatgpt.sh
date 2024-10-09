@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78.4  oct/2024  by mountaineerbr  GPL+3
+# v0.78.5  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -252,9 +252,9 @@ Description
 	\`::' append the prompt as instruction / system without initiating
 	a new API request.
 
-	With vision models, append the image file paths and possibly URLs
-	at the end of the prompt. Make sure file paths containing spaces are
-	backslash-escaped.
+	With vision and reasoning models, append the image file paths and
+	possibly URLs at the end of the prompt. Make sure file paths
+	containing spaces are backslash-escaped.
 
 
 	Image Generations and Edits (Dall-E)
@@ -1666,7 +1666,7 @@ function help_assistf
 )
 ASSIST_MSG4='\ZbQuestion\ZB or \Zbsearch term\ZB:'
 ASSIST_MSG3="Proceed?  [N/y]" 
-ASSIST_MSG2='Warning: the request will consume about 5000 input tokens'
+ASSIST_MSG2='Warning: request may consume up to 320 output tokens plus user input tokens'
 ASSIST_MSG='\ZuWelcome to Help Assistant!\ZU
 
 Find the right options for the \Zbchatgpt.sh programme\ZB, the precise command line invocation, and the proper chat command.

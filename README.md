@@ -100,25 +100,25 @@ If no suffix is provided, it works as plain text completions.
 
 ## 🚀 Features
 
-- Text and chat completions with **gpt-4o** and [**gtp-4-vision** support](#vision-models-gpt-4-vision)
-- **Text editor interface**, _Bash readline_, and _cat_ input modes
+- Text and chat completions, support for [vision](#vision-models-gpt-4-vision) and **reasoning models**
+- **Text editor interface**, _Bash readline_, and _multiline/cat_ modes
 - [**Markdown rendering**](#markdown) support in response
-- **Preview**, and  [**regenerate responses**](#--notes-and-tips)
+- **Preview** and [**regenerate responses**](#--notes-and-tips)
 - **Manage sessions**, _print out_ previous sessions
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
    easily create and set the initial system prompt
 - **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
-- Integration with [mudler's LocalAI](#localai), [Ollama](#ollama),
+- Integration with [LocalAI](#localai), [Ollama](#ollama),
    [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), and [Anthropic](#anthropic)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 - [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
 - Colour scheme personalisation 🎨 and a configuration file
-- _Tiktoken_ for accurate tokenization (optional)
 - Stdin and text file input support
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
 - **Fast** shell code for a responsive experience! ⚡️ 
 
+<!-- _Tiktoken_ for accurate tokenization (optional) -->
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
 <!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
 <!-- - Insert mode of text completions -->
@@ -158,7 +158,7 @@ Packages required for specific features.
 <details>
   <summary>Click to expand!</summary>
 
-- `Base64` - Image endpoint, vision models
+- `Base64` - Image endpoint, multimodal models
 - `Python` - Modules tiktoken, markdown, bs4
 - `ImageMagick`/`fbida` - Image edits and variations
 - `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
@@ -402,8 +402,8 @@ Chat in Portuguese with Whisper and set _onyx_ as the TTS voice:
 prompting the user to confirm each step.
 
 For a more automated execution, set `option -v`,
-and `-vv` for hands-free experience (_live chat_)
-(detect silence, experimental), such as:
+and `-vv` for hands-free experience (_live chat_ with silence detection),
+such as:
 
     chatgpt.sh -cc -w -z -v
 
