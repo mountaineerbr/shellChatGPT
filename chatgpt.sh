@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78.5  oct/2024  by mountaineerbr  GPL+3
+# v0.78.6  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -851,6 +851,7 @@ function response_tknf
 {
 	jq -r '(.usage.prompt_tokens)//"0",
 		(.usage.completion_tokens)//"0",
+		(.usage.completion_tokens_details.reasoning_tokens)//"0",
 		(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$@";
 }
 #https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
@@ -2116,14 +2117,30 @@ function cmd_runf
 			fi
 			;;
 		i|info)
+			typeset hurl hurlv modmodal rseq sseq stop
+			
+			((OLLAMA)) && hurl='ollama-url' hurlv=${OLLAMA_API_HOST}${ENDPOINTS[EPN]};
+			((GOOGLEAI)) && hurl='google-url' hurlv=${GOOGLE_API_HOST}${ENDPOINTS[EPN]};
+			((ANTHROPICAI)) && hurl='anthropic-url' hurlv=${ANTHROPIC_API_HOST}${ENDPOINTS[EPN]};
+
+			set_optsf 2>/dev/null
+			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
+			is_visionf "$MOD" && modmodal=' / multimodal'
+
+			if ((EPN==6))
+			then 	rseq='unavailable'
+				sseq='unavailable'
+			elif ((OPTC))
+			then 	rseq=\"${RESTART-$Q_TYPE}\"
+				sseq=\"${START-$A_TYPE}\"
+			else 	rseq=\"${RESTART-unset}\"
+				sseq=\"${START-unset}\"
+			fi
+
 			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
-			$(
-			  ((OLLAMA)) && echo ollama-url "${OLLAMA_API_HOST}${ENDPOINTS[EPN]}"
-			  ((GOOGLEAI)) && echo google-url "${GOOGLE_API_HOST}${ENDPOINTS[EPN]}"
-			  ((ANTHROPICAI)) && echo anthropic-url "${ANTHROPIC_API_HOST}${ENDPOINTS[EPN]}"
-			) \
+			$hurl          $hurlv \
 			host-url      "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
-			model-name    "${MOD:-?}$(is_visionf "$MOD" && printf ' / %s' 'multimodal')" \
+			model-name    "${MOD:-?}${modmodal}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
 			context-prev  "${MAX_PREV:-?}" \
@@ -2146,13 +2163,9 @@ function cmd_runf
 			clipboard     "${OPTCLIP:-unset}" \
 			ctrld-prpter  "${OPTCTRD:-unset}" \
 			cat-prompter  "${CATPR:-unset}" \
-			restart-seq   "\"$(
-				((EPN==6)) && echo unavailable && exit;
-				((OPTC)) && printf '%s' "${RESTART-$Q_TYPE}" || printf '%s' "${RESTART-unset}")\"" \
-			start-seq     "\"$(
-				((EPN==6)) && echo unavailable && exit;
-				((OPTC)) && printf '%s' "${START-$A_TYPE}"   || printf '%s' "${START-unset}")\"" \
-			stop-seqs     "$(set_optsf 2>/dev/null ;OPTSTOP=${OPTSTOP#*:} OPTSTOP=${OPTSTOP%%,} ;printf '%s' "${OPTSTOP:-\"unset\"}")" \
+			restart-seq   "${rseq}" \
+			start-seq     "${sseq}" \
+			stop-seqs     "${stop}" \
 			history-file  "${FILECHAT/"$HOME"/"~"}"  >&2  #2>/dev/null
 			;;
 		-u|multi|multiline|-uu*(u)|[/!]multi|[/!]multiline)
@@ -2384,7 +2397,7 @@ function cmd_runf
 				do 	[[ -f $var ]] || continue
 					du -h "$var" 2>/dev/null
 					[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
-					${PLAY_CMD} "$var" & pid=$! PIDS+=($!);
+					${PLAY_CMD} "$var" >&2 & pid=$! PIDS+=($!);
 					trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 					wait $pid;
 				done;
@@ -3058,9 +3071,9 @@ function set_optsf
 	typeset -a pids
 
 	case "$MOD" in o[1-9]*) ((MOD_REASON)) || {
-			((OPTMAX<2048)) && {
-				_warmsgf 'Warning:' 'Reasoning models require larger max output tokens';
-				OPTMAX_REASON=$OPTMAX; ((OPTMAX+=1024));
+			((OPTMM<1024*3 && OPTMAX<1024*4)) && {
+				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
+				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
 			((STREAM)) && _warmsgf 'Warning:' 'Reasoning models do not support streaming yet';
 			((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'Reasoning models do not support system messages yet';
@@ -3176,7 +3189,7 @@ function recordf
 	
 	[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
 
-	$REC_CMD "$1" & pid=$! PIDS+=($!);
+	$REC_CMD "$1" >&2 & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; ret=199;" INT;
 	
 	#see record_confirmf()
@@ -3569,7 +3582,7 @@ function _ttsf
 			case "$PLAY_CMD" in false) 	return $ret;; esac;
 		while
 			[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
-			${PLAY_CMD} "$FOUT" & pid=$! PIDS+=($!);
+			${PLAY_CMD} "$FOUT" >&2 & pid=$! PIDS+=($!);
 		do
 			trap "trap 'exit' INT; kill -- $pid 2>/dev/null; case \"\$PLAY_CMD\" in *termux-media-player*) termux-media-player stop;; esac;" INT;
 			wait $pid;
@@ -4715,7 +4728,8 @@ function set_googleaif
 	{
 		typeset var
 		((STREAM)) && var='[-1]';
-		jq -r ".${var} | .usageMetadata | (.promptTokenCount,.candidatesTokenCount)" "$@";
+		jq -r ".${var} | .usageMetadata |
+		( (.promptTokenCount//\"0\"), (.candidatesTokenCount//\"0\"), \"0\")" "$@";
 	}
 	function fmt_ccf
 	{
@@ -4780,8 +4794,8 @@ function set_anthropicf
 	}
 	function response_tknf
 	{
-		jq -r '(.usage.output_tokens)//empty,
-			(.usage.input_tokens)//(.message.usage.input_tokens)//empty' "$@";
+		jq -r '(.usage.output_tokens)//"0",
+			(.usage.input_tokens)//(.message.usage.input_tokens)//"0", "0"' "$@";
 	}
 	function _list_modelsf
 	{
@@ -5982,8 +5996,10 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 					((GROQAI)) && var="x_groq";
 					((ANTHROPICAI)) && ind="";
 					jq -rs ".[${ind}] | .${var}" "$FILE" | response_tknf;
-					((GROQAI)) && datef && jq -rs '.[-1].x_groq.usage | (.completion_time,.completion_tokens/.completion_time)' "$FILE";  #tkn rate
-					) )
+					((GROQAI)) && { datef;
+						jq -rs '.[-1].x_groq.usage | (.completion_time,.completion_tokens/.completion_time)' "$FILE";
+					}  #tkn rate
+					) )  #0:input_tkn  1:output_tkn  2:reason_tkn  3:time  4:cmpl_time  5:tkn_rate
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6)) && A_TYPE=; __tiktokenf "${A_TYPE}${ans}");
 				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); TOTAL_OLD=; tkn=();
@@ -6002,7 +6018,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 				done
 			fi
 			if ((OLLAMA))
-			then 	tkn=($(jq -r -s '.[-1]|.prompt_eval_count//"0", .eval_count//"0", .created_at//"0", (.eval_duration/1000000000)?, (.eval_count/(.eval_duration/1000000000)?)?' "$FILE") )
+			then 	tkn=($(jq -r -s '.[-1]|.prompt_eval_count//"0", .eval_count//"0", "0", .created_at//"0", (.eval_duration/1000000000)?, (.eval_count/(.eval_duration/1000000000)?)?' "$FILE") )
 				((STREAM)) && ((MAX_PREV+=tkn[1]));
 			fi
 
@@ -6061,10 +6077,10 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			    push_tohistf "$(escapef ":${INSTRUCTION:-$GINSTRUCTION}")" $( ((MAIN_LOOP)) || echo $TOTAL_OLD )
 			fi
 			((OPTAWE)) ||
-			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : 0 ))" "${tkn[2]}"
-			push_tohistf "$ans" "${tkn[1]:-$tkn_ans}" "${tkn[2]}" || OPTC= OPTRESUME= OPTCMPL= MTURN=;
-			
-			((TOTAL_OLD=tkn[0]+tkn[1])) && MAX_PREV=$TOTAL_OLD
+			push_tohistf "$(escapef "$REC_OUT")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : 0 ))" "${tkn[3]}"
+			push_tohistf "$ans" "$((${tkn[1]:-${tkn_ans:-0}}-tkn[2]))" "${tkn[3]}" || OPTC= OPTRESUME= OPTCMPL= MTURN=;
+
+			((TOTAL_OLD=tkn[0]+tkn[1]-tkn[2])) && MAX_PREV=$TOTAL_OLD
 			HIST_TIME= BREAK_SET= REPLY_CMD_BLOCK=;
 		elif ((MTURN))
 		then
@@ -6089,10 +6105,10 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			printf '\n%s\n' '--- markdown ---' >&2;
 			cmd_runf /markdown; _cmdmsgf 'Markdown' "AUTO";
 		fi
-		
-		if ((OLLAMA+GROQAI)) && ((${#tkn[@]}==5))  #token generation rate  #0 tokens, #1 secs, #2 rate
+
+		if ((OLLAMA+GROQAI)) && ((${#tkn[@]}>=5))  #token generation rate  #0 tokens, #1 secs, #2 rate
 		then
-			TKN_RATE=( "${tkn[1]}" "$(printf '%.2f' "${tkn[3]}")" "$(printf '%.2f' "${tkn[4]}")" )
+			TKN_RATE=( "${tkn[1]}" "$(printf '%.2f' "${tkn[4]}")" "$(printf '%.2f' "${tkn[5]}")" )
 		elif 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]
 		then
 			TKN_RATE=( "${tkn[1]:-$tkn_ans}" "$(bc <<<"scale=8; ${EPOCHREALTIME:-$SECONDS} - $SECONDS_REQ")"
