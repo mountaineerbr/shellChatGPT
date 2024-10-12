@@ -225,8 +225,8 @@ And for Groq, set the environmental variable `$GROQ_API_KEY`.
 Run the script with `option --groq`.
 Whisper endpoint available.
 
-And for Anthropic, set envar `$ANTHROPIC_API_KEY`.
-Command line options are `--anthropic` or `--ant`.
+And for Anthropic, set envar `$ANTHROPIC_API_KEY` or
+command line `option --anthropic`.
 
 
 #### Observations
@@ -811,7 +811,7 @@ Setting **temperature** has an effect, the higher the more random.
 **PROVIDER_API_HOST**
 
 :    API host URL for the providers
-     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, and _GROQ_.
+     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, and _GROQ_.
 
 
 **OPENAI_API_KEY**
@@ -1195,6 +1195,11 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
 ### Script Settings
 
+**\--anthropic**, **\--ant**
+
+: Set Anthropic integration (chat).
+
+
 **\--api-key**   \[_KEY_]
 
 : Set OpenAI API key.
@@ -1222,7 +1227,7 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 : Set or unset response folding (wrap at white spaces).
 
 
-**\--google**
+**\--google**, **\-goo**
 
 : Set Google Gemini integration (cmpls/chat).
 

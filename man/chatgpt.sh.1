@@ -277,8 +277,8 @@ And for Groq, set the environmental variable \f[CR]$GROQ_API_KEY\f[R].
 Run the script with \f[CR]option \-\-groq\f[R].
 Whisper endpoint available.
 .PP
-And for Anthropic, set envar \f[CR]$ANTHROPIC_API_KEY\f[R].
-Command line options are \f[CR]\-\-anthropic\f[R] or \f[CR]\-\-ant\f[R].
+And for Anthropic, set envar \f[CR]$ANTHROPIC_API_KEY\f[R] or command
+line \f[CR]option \-\-anthropic\f[R].
 .SS Observations
 User configuration is kept at \[lq]\f[I]\[ti]/.chatgpt.conf\f[R]\[rq].
 Script cache is kept at \[lq]\f[I]\[ti]/.cache/chatgptsh/\f[R]\[rq].
@@ -1281,7 +1281,8 @@ The \f[I]STATIC\f[R] parameter disables endpoint auto selection.
 .TP
 \f[B]PROVIDER_API_HOST\f[R]
 API host URL for the providers \f[I]LOCALAI\f[R], \f[I]OLLAMA\f[R],
-\f[I]MISTRAL\f[R], \f[I]GOOGLE\f[R], and \f[I]GROQ\f[R].
+\f[I]MISTRAL\f[R], \f[I]GOOGLE\f[R], \f[I]ANTHROPIC\f[R], and
+\f[I]GROQ\f[R].
 .PP
 \f[B]OPENAI_API_KEY\f[R]
 .TP
@@ -1597,6 +1598,9 @@ Set twice to phrase or thrice for word\-level timestamps (\-WWW).
 .RE
 .SS Script Settings
 .TP
+\f[B]\-\-anthropic\f[R], \f[B]\-\-ant\f[R]
+Set Anthropic integration (chat).
+.TP
 \f[B]\-\-api\-key\f[R] [\f[I]KEY\f[R]]
 Set OpenAI API key.
 .TP
@@ -1616,7 +1620,7 @@ Dump template configuration file to stdout.
 \f[B]\-\-fold\f[R] (\f[I]defaults\f[R]), \f[B]\-\-no\-fold\f[R]
 Set or unset response folding (wrap at white spaces).
 .TP
-\f[B]\-\-google\f[R]
+\f[B]\-\-google\f[R], \f[B]\-goo\f[R]
 Set Google Gemini integration (cmpls/chat).
 .TP
 \f[B]\-\-groq\f[R]

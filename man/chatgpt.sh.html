@@ -382,8 +382,8 @@ line <code>option --google</code>.</p>
 <p>And for Groq, set the environmental variable
 <code>$GROQ_API_KEY</code>. Run the script with
 <code>option --groq</code>. Whisper endpoint available.</p>
-<p>And for Anthropic, set envar <code>$ANTHROPIC_API_KEY</code>. Command
-line options are <code>--anthropic</code> or <code>--ant</code>.</p>
+<p>And for Anthropic, set envar <code>$ANTHROPIC_API_KEY</code> or
+command line <code>option --anthropic</code>.</p>
 <h4 id="observations">Observations</h4>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
@@ -1210,7 +1210,8 @@ selection.</p>
 <dt><strong>PROVIDER_API_HOST</strong></dt>
 <dd>
 <p>API host URL for the providers <em>LOCALAI</em>, <em>OLLAMA</em>,
-<em>MISTRAL</em>, <em>GOOGLE</em>, and <em>GROQ</em>.</p>
+<em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>, and
+<em>GROQ</em>.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_API_KEY</strong></p>
@@ -1558,6 +1559,10 @@ detection.</p>
 </dl>
 <h3 id="script-settings">Script Settings</h3>
 <dl>
+<dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
+<dd>
+<p>Set Anthropic integration (chat).</p>
+</dd>
 <dt><strong>--api-key</strong> [<em>KEY</em>]</dt>
 <dd>
 <p>Set OpenAI API key.</p>
@@ -1580,7 +1585,7 @@ detection.</p>
 <dd>
 <p>Set or unset response folding (wrap at white spaces).</p>
 </dd>
-<dt><strong>--google</strong></dt>
+<dt><strong>--google</strong>, <strong>-goo</strong></dt>
 <dd>
 <p>Set Google Gemini integration (cmpls/chat).</p>
 </dd>
