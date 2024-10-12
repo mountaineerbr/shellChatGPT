@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2024
-title: CHATGPT.SH(1) v0.78.5 \| General Commands Manual
+title: CHATGPT.SH(1) v0.78.9 \| General Commands Manual
 ---
 
 ### NAME
@@ -744,7 +744,7 @@ Initial initial instruction or system message for chat mode.
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
 **MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**  
-Set default model for each endpoint / integration.
+Set default model for each endpoint / provider.
 
 **OPENAI_API_HOST**
 
@@ -880,6 +880,165 @@ Outputs”.
 
 ### OPTIONS
 
+#### Service Providers
+
+**--anthropic**, **--ant**  
+Set Anthropic integration (cmpls/chat).
+
+**--google**, **-goo**  
+Set Google Gemini integration (cmpls/chat).
+
+**--groq**  
+Set Groq integration (chat).
+
+**--localai**  
+Set LocalAI integration (cmpls/chat).
+
+**--mistral**  
+Set Mistral AI integration (chat).
+
+**--openai**  
+Reset service integrations.
+
+**-O**, **--ollama**  
+Set and make requests to Ollama server (cmpls/chat).
+
+#### Configuration File
+
+**-f**, **--no-conf**  
+Ignore user configuration file.
+
+**-F**  
+Edit configuration file with text editor, if it exists.
+
+\$CHATGPTRC="*~/.chatgpt.conf*".
+
+**-FF**  
+Dump template configuration file to stdout.
+
+#### Sessions and History Files
+
+**-H**, **--hist** \[`/`*HIST_FILE*\]  
+Edit history file with text editor or pipe to stdout.
+
+A history file name can be optionally set as argument.
+
+**-P**, **-PP**, **--print** \[`/`*HIST_FILE*\]  
+Print out last history session.
+
+Set twice to print commented out history entries, inclusive. Heeds
+`options -ccdrR`.
+
+These are aliases to **-HH** and **-HHH**, respectively.
+
+#### Input Modes
+
+**-u**, **--multiline**  
+Toggle multiline prompter, \<*CTRL-D*\> flush.
+
+**-U**, **--cat**  
+Set cat prompter, \<*CTRL-D*\> flush.
+
+**-x**, **-xx**, **--editor**  
+Edit prompt in text editor.
+
+Set twice to run the text editor interface a single time for the first
+user input.
+
+#### Interface Modes
+
+**-c**, **--chat**  
+Chat mode in text completions (used with `options -wzvv`).
+
+**-cc**  
+Chat mode in chat completions (used with `options -wzvv`).
+
+**-C**, **--continue**, **--resume**  
+Continue from (resume) last session (cmpls/chat).
+
+**-d**, **--text**  
+Start new multi-turn session in plain text completions.
+
+**-e**, **--edit**  
+Edit first input from stdin or file (cmpls/chat).
+
+**-E**, **-EE**, **--exit**  
+Exit on first run (even with options -cc).
+
+**-g**, **--stream** (*defaults*)  
+Set response streaming.
+
+**-G**, **--no-stream**  
+Unset response streaming.
+
+**-i**, **--image** \[*PROMPT*\]  
+Generate images given a prompt. Set *option -v* to not open response.
+
+**-i** \[*PNG*\]  
+Create variations of a given image.
+
+**-i** \[*PNG*\] \[*MASK*\] \[*PROMPT*\]  
+Edit image with mask and prompt (required).
+
+**-q**, **-qq**, **--insert**  
+Insert text rather than completing only. May be set twice for
+multi-turn.
+
+Use “*\[insert\]*” to indicate where the language model should insert
+text (`instruct` and Mistral `code` models).
+
+**-S** **.**\[*PROMPT_NAME*\], **-..**\[*PROMPT_NAME*\]
+
+**-S** **,**\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]  
+Load, search for, or create custom prompt.
+
+Set `.`\[*PROMPT*\] to single-shot edit prompt.
+
+Set `..`\[*PROMPT*\] to silently load prompt.
+
+Set `,`\[*PROMPT*\] to edit a prompt file.
+
+Set `.`*?*, or `.`*list* to list prompt template files.
+
+**-S** **/**\[*AWESOME_PROMPT_NAME*\]
+
+**-S** **%**\[*AWESOME_PROMPT_NAME_ZH*\]  
+Set or search for an *awesome-chatgpt-prompt(-zh)*. *Davinci* and
+*gpt3.5+* models.
+
+Set **//** or **%%** instead to refresh cache.
+
+**-T**, **--tiktoken**
+
+**-TT**, **-TTT**  
+Count input tokens with python Tiktoken (ignores special tokens).
+
+Set twice to print tokens, thrice to available encodings.
+
+Set the model or encoding with `option -m`.
+
+It heeds `options -ccm`.
+
+**-w**, **--transcribe** \[*AUD*\] \[*LANG*\] \[*PROMPT*\]  
+Transcribe audio file into text. LANG is optional. A prompt that matches
+the audio language is optional. Audio will be transcribed or translated
+to the target LANG.
+
+Set twice to phrase or thrice for word-level timestamps (-www).
+
+With `options -vv`, stop voice recorder on silence auto detection.
+
+**-W**, **--translate** \[*AUD*\] \[*PROMPT-EN*\]  
+Translate audio file into English text.
+
+Set twice to phrase or thrice for word-level timestamps (-WWW).
+
+**-z**, **--tts** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
+Synthesise speech from text prompt. Takes a voice name, speed and text
+prompt.
+
+Set `option -v` to not play response automatically.
+
 #### Model Settings
 
 **-@**, **--alpha** \[\[*VAL%*\]*COLOUR*\]  
@@ -951,139 +1110,16 @@ Set an instruction text prompt. It may be a text file.
 Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
 1.0). Def=*0*.
 
-#### Script Modes
-
-**-c**, **--chat**  
-Chat mode in text completions (used with `options -wzvv`).
-
-**-cc**  
-Chat mode in chat completions (used with `options -wzvv`).
-
-**-C**, **--continue**, **--resume**  
-Continue from (resume) last session (cmpls/chat).
-
-**-d**, **--text**  
-Start new multi-turn session in plain text completions.
-
-**-e**, **--edit**  
-Edit first input from stdin or file (cmpls/chat).
-
-**-E**, **-EE**, **--exit**  
-Exit on first run (even with options -cc).
-
-**-g**, **--stream** (*defaults*)  
-Set response streaming.
-
-**-G**, **--no-stream**  
-Unset response streaming.
-
-**-i**, **--image** \[*PROMPT*\]  
-Generate images given a prompt. Set *option -v* to not open response.
-
-**-i** \[*PNG*\]  
-Create variations of a given image.
-
-**-i** \[*PNG*\] \[*MASK*\] \[*PROMPT*\]  
-Edit image with mask and prompt (required).
-
-**-qq**, **--insert**  
-Insert text rather than completing only. May be set twice for
-multi-turn.
-
-Use “*\[insert\]*” to indicate where the language model should insert
-text (`instruct` and Mistral `code` models).
-
-**-S** **.**\[*PROMPT_NAME*\], **-..**\[*PROMPT_NAME*\]
-
-**-S** **,**\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]  
-Load, search for, or create custom prompt.
-
-Set `.`\[*PROMPT*\] to single-shot edit prompt.
-
-Set `..`\[*PROMPT*\] to silently load prompt.
-
-Set `,`\[*PROMPT*\] to edit a prompt file.
-
-Set `.`*?*, or `.`*list* to list prompt template files.
-
-**-S** **/**\[*AWESOME_PROMPT_NAME*\]
-
-**-S** **%**\[*AWESOME_PROMPT_NAME_ZH*\]  
-Set or search for an *awesome-chatgpt-prompt(-zh)*. *Davinci* and
-*gpt3.5+* models.
-
-Set **//** or **%%** instead to refresh cache.
-
-**-T**, **--tiktoken**
-
-**-TT**
-
-**-TTT**  
-Count input tokens with python Tiktoken (ignores special tokens).
-
-Set twice to print tokens, thrice to available encodings.
-
-Set the model or encoding with `option -m`.
-
-It heeds `options -ccm`.
-
-**-w**, **--transcribe** \[*AUD*\] \[*LANG*\] \[*PROMPT*\]  
-Transcribe audio file into text. LANG is optional. A prompt that matches
-the audio language is optional. Audio will be transcribed or translated
-to the target LANG.
-
-Set twice to phrase or thrice for word-level timestamps (-www).
-
-With `options -vv`, stop voice recorder on silence auto detection.
-
-**-W**, **--translate** \[*AUD*\] \[*PROMPT-EN*\]  
-Translate audio file into English text.
-
-Set twice to phrase or thrice for word-level timestamps (-WWW).
-
-### Script Settings
-
-**--anthropic**, **--ant**  
-Set Anthropic integration (chat).
+#### Miscellaneous Settings
 
 **--api-key** \[*KEY*\]  
-Set OpenAI API key.
-
-**-f**, **--no-conf**  
-Ignore user configuration file.
-
-**-F**  
-Edit configuration file with text editor, if it exists.
-
-\$CHATGPTRC="*~/.chatgpt.conf*".
-
-**-FF**  
-Dump template configuration file to stdout.
+Set API key to use.
 
 **--fold** (*defaults*), **--no-fold**  
 Set or unset response folding (wrap at white spaces).
 
-**--google**, **-goo**  
-Set Google Gemini integration (cmpls/chat).
-
-**--groq**  
-Set Groq integration (chat).
-
 **-h**, **--help**  
 Print the help page.
-
-**-H**, **--hist** \[`/`*HIST_FILE*\]  
-Edit history file with text editor or pipe to stdout.
-
-A history file name can be optionally set as argument.
-
-**-P**, **-PP**, **--print** \[`/`*HIST_FILE*\]  
-Print out last history session.
-
-Set twice to print commented out history entries, inclusive. Heeds
-`options -ccdrR`.
-
-These are aliases to **-HH** and **-HHH**, respectively.
 
 **-k**, **--no-colour**  
 Disable colour output. Def=*auto*.
@@ -1094,12 +1130,6 @@ List models or print details of *MODEL*.
 **-L**, **--log** \[*FILEPATH*\]  
 Set log file. *FILEPATH* is required.
 
-**--localai**  
-Set LocalAI integration (cmpls/chat).
-
-**--mistral**  
-Set Mistral AI integration (chat).
-
 **--md**, **--markdown**, **--markdown**=\[*SOFTWARE*\]  
 Enable markdown rendering in response. Software is optional: *bat*,
 *pygmentize*, *glow*, *mdcat*, or *mdless*.
@@ -1109,15 +1139,6 @@ Disable markdown rendering.
 
 **-o**, **--clipboard**  
 Copy response to clipboard.
-
-**-O**, **--ollama**  
-Set and make requests to Ollama server (cmpls/chat).
-
-**-u**, **--multiline**  
-Toggle multiline prompter, \<*CTRL-D*\> flush.
-
-**-U**, **--cat**  
-Set cat prompter, \<*CTRL-D*\> flush.
 
 **-v**, **--verbose**  
 Less verbose.
@@ -1136,20 +1157,11 @@ Dump raw JSON request block (debug).
 **--version**  
 Print script version.
 
-**-x**, **--editor**  
-Edit prompt in text editor.
-
 **-y**, **--tik**  
 Set tiktoken for token count (cmpls/chat, python).
 
 **-Y**, **--no-tik** (*defaults*)  
 Unset tiktoken use (cmpls/chat, python).
-
-**-z**, **--tts** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
-Synthesise speech from text prompt. Takes a voice name, speed and text
-prompt.
-
-Set *option -v* to not play response.
 
 **-Z**, **-ZZ**, **-ZZZ**, **--last**  
 Print JSON data of the last responses.
