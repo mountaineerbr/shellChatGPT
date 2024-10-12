@@ -570,8 +570,6 @@ Options
 		Set twice to phrase or thrice for word-level timestamps (-WWW). 
 	-z, --tts   [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 		Synthesise speech from text prompt, set -v to not play.
-	-Z, -ZZ, -ZZZ, --last
-		Print data from the last JSON responses.
 
 	Model Settings
 	-@, --alpha  [[VAL%]COLOUR]
@@ -650,7 +648,9 @@ Options
 	-y, --tik
 		Set tiktoken for token count (cmpls/chat).
 	-Y, --no-tik  (defaults)
-		Unset tiktoken use (cmpls/chat)."
+		Unset tiktoken use (cmpls/chat).
+	-Z, -ZZ, -ZZZ, --last
+		Print data from the last JSON responses."
 
 ENDPOINTS=(
 	/v1/completions               #0
