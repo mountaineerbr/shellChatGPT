@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78.9  oct/2024  by mountaineerbr  GPL+3
+# v0.78.10  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5264,7 +5264,7 @@ then 	function jq { 	false ;}
 	Color200=$INV _warmsgf 'Warning:' 'JQ not found. Please, install JQ.'
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
-{ curl --help all || curl --help ;} 2>&1 | grep -F -q -e "--fail-with-body" && FAIL="--fail-with-body" || FAIL="--fail";
+[[ $(curl --help all 2>&1) = *"fail-with-body"* ]] && FAIL="--fail-with-body" || FAIL="--fail";
 
 trap 'cleanupf; exit;' EXIT
 trap 'exit' HUP QUIT TERM KILL
