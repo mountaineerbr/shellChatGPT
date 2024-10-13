@@ -67,7 +67,7 @@ the succeeding text after the flag.
 
 Insert mode works with `instruct` and Mistral `code` models.
 
-#### Instructions
+#### Instruction Prompts
 
 Positional arguments are read as a single **PROMPT**. Model
 **INSTRUCTION** is optional but recommended and can be set with
@@ -340,7 +340,7 @@ section.
 Also note that *file paths* containing white spaces must be
 **blackslash-escaped**.
 
-#### 2.7 Commands
+#### 2.7 Command List
 
 While in chat mode, the following commands can be invoked in the new
 prompt to execute a task or set parameters. The command operator may be
