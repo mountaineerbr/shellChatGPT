@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78.12  oct/2024  by mountaineerbr  GPL+3
+# v0.78.13  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5023,7 +5023,7 @@ def reset:   null;"
 ((OPTZ && OPTW && !MTURN)) && unset OPTX
 ((OPTI)) && unset OPTC
 ((OPTCLIP)) && set_clipcmdf
-((OPTW+OPTWW)) && set_reccmdf
+((OPTW+OPTWW)) && ((!(OPTI+OPTL+OPTFF+OPTHH+OPTZZ+OPTTIKTOKEN) )) && set_reccmdf
 ((OPTZ)) && set_playcmdf
 ((OPTC)) || OPTT="${OPTT:-0}"  #!#temp *must* be set
 ((OPTCMPL)) && unset OPTC  #opt -d
