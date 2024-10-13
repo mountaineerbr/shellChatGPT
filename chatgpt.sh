@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78.13  oct/2024  by mountaineerbr  GPL+3
+# v0.78.14  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -226,7 +226,7 @@ Description
 	to the prompt at the location to be filled in (instruct	models).
 
 
-	Instructions
+	Instruction Prompts
 
 	Positional arguments are read as a single PROMPT. Optionally set
 	INTRUCTION with option -S.
@@ -358,7 +358,7 @@ Environment
 	REC_CMD 	Audio recorder command, e.g. \`sox -d'.
 
 
-Commands
+Command List
 	In chat mode, commands are invoked with either \`!' or \`/' as
 	operators. These commands allow users to modify settings and
 	manage the session.
