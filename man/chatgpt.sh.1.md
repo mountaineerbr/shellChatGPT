@@ -201,7 +201,7 @@ the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_",
 and "_flac_"), or "_-_" for stdout. Set `options -vz` to _not_ play received output.
 
 
-#### General Observations
+#### General Considerations
 
 User configuration is kept at "_~/.chatgpt.conf_".
 Script cache is kept at "_~/.cache/chatgptsh/_".

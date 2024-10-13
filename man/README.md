@@ -202,7 +202,7 @@ name* or the *format*, such as “*./new_audio.mp3*” (“*mp3*”, “*opus*�
 “*aac*”, and “*flac*”), or “*-*” for stdout. Set `options -vz` to *not*
 play received output.
 
-#### General Observations
+#### General Considerations
 
 User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
 at “*~/.cache/chatgptsh/*”.
