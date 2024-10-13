@@ -432,8 +432,8 @@ Commands
       -P      -HH, !print       Print session history.
       -L      !log  [FILEPATH]  Save to log file (pretty-print).
      !br      !break, !new      Start new session (session break).
-     !ls      !list    [GLOB]   List History files with name glob. List
-                                prompts \`pr', awesome \`awe', or all \`.'.
+     !ls      !list    [GLOB]   List Hist files with glob in name. All: \`.'.
+                                Instruction prompts: \`pr'. Awesome: \`awe'.
      !grep    !sub    [REGEX]   Search sessions and copy to tail.
       !c      !copy [SRC_HIST] [DEST_HIST]
                                 Copy session from source to destination.

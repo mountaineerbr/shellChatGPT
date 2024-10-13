@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.78.9 | General Commands Manual
+% CHATGPT.SH(1) v0.78.14 | General Commands Manual
 % mountaineerbr
 % October 2024
 
@@ -201,35 +201,7 @@ the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_",
 and "_flac_"), or "_-_" for stdout. Set `options -vz` to _not_ play received output.
 
 
-### API Integrations
-
-For LocalAI integration, run the script with `option --localai`,
-or set environment **$OPENAI_API_HOST** with the server URL.
-
-For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
-and run the script with `option --mistral` or set **$OPENAI_API_HOST**
-to "https://api.mistral.ai/".
-Prefer setting command line `option --mistral` for complete integration.
-<!-- also see: \$MISTRAL_API_HOST -->
-
-For Ollama, set `option -O` (`--ollama`), and set **$OLLAMA_API_HOST**
-if the server URL is different from the defaults.
-
-Note that model management (downloading and setting up) must
-follow the Ollama project guidelines and own methods.
-
-For Google Gemini, set environment variable **$GOOGLE_API_KEY**, and
-run the script with the command line `option --google`.
-
-And for Groq, set the environmental variable `$GROQ_API_KEY`.
-Run the script with `option --groq`.
-Whisper endpoint available.
-
-And for Anthropic, set envar `$ANTHROPIC_API_KEY` or
-command line `option --anthropic`.
-
-
-#### Observations
+#### General Observations
 
 User configuration is kept at "_~/.chatgpt.conf_".
 Script cache is kept at "_~/.cache/chatgptsh/_".
@@ -455,13 +427,12 @@ may be either "`!`" or "`/`".
  --------------    -----------------------    ------------------------------------------------
 
  Session           Management
- --------------    -------------------------------------    ------------------------------------------------------------
+ --------------    -------------------------------------    ----------------------------------------------------------------------------------------------------
       `-H`         `!hist`                                  Edit history in editor.
       `-P`         `-HH`, `!print`                          Print session history.
       `-L`         `!log`       \[_FILEPATH_]               Save to log file.
      `!br`         `!break`, `!new`                         Start new session (session break).
-     `!ls`         `!list`      \[_GLOB_]                   List History files with _name_ _glob_.
-                                                              List prompts "_pr_", awesome "_awe_", or all files "_._".
+     `!ls`         `!list`      \[_GLOB_]                   List History files with _glob_ in _name_. Intruction prompts: "_pr_". Awesome: "_awe_". All: "_._".
    `!grep`         `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
       `!c`         `!copy` \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
       `!f`         `!fork`      \[_DEST_HIST_]              Fork current session to destination.
@@ -469,7 +440,7 @@ may be either "`!`" or "`/`".
      `!!k`         `!!kill`     \[\[_0_]_NUM_]              Dry-run of command `!kill`.
       `!s`         `!session`   \[_HIST_FILE_]              Change to, search for, or create history file.
      `!!s`         `!!session`  \[_HIST_FILE_]              Same as `!session`, break session.
- --------------    -------------------------------------    ------------------------------------------------------------
+ --------------    -------------------------------------    ----------------------------------------------------------------------------------------------------
 
 
 | _:_ Commands with a *colon* have their output appended to the prompt.
@@ -751,6 +722,34 @@ the model's style or continue a previous audio segment is optional
 as last positional argument. This prompt should be in English.
 
 Setting **temperature** has an effect, the higher the more random.
+
+
+### Provider Integrations
+
+For LocalAI integration, run the script with `option --localai`,
+or set environment **$OPENAI_API_HOST** with the server URL.
+
+For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
+and run the script with `option --mistral` or set **$OPENAI_API_HOST**
+to "https://api.mistral.ai/".
+Prefer setting command line `option --mistral` for complete integration.
+<!-- also see: \$MISTRAL_API_HOST -->
+
+For Ollama, set `option -O` (`--ollama`), and set **$OLLAMA_API_HOST**
+if the server URL is different from the defaults.
+
+Note that model management (downloading and setting up) must
+follow the Ollama project guidelines and own methods.
+
+For Google Gemini, set environment variable **$GOOGLE_API_KEY**, and
+run the script with the command line `option --google`.
+
+And for Groq, set the environmental variable `$GROQ_API_KEY`.
+Run the script with `option --groq`.
+Whisper endpoint available.
+
+And for Anthropic, set envar `$ANTHROPIC_API_KEY` or
+command line `option --anthropic`.
 
 
 ### ENVIRONMENT

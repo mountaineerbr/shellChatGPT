@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2024
-title: CHATGPT.SH(1) v0.78.9 \| General Commands Manual
+title: CHATGPT.SH(1) v0.78.14 \| General Commands Manual
 ---
 
 ### NAME
@@ -202,33 +202,7 @@ name* or the *format*, such as “*./new_audio.mp3*” (“*mp3*”, “*opus*�
 “*aac*”, and “*flac*”), or “*-*” for stdout. Set `options -vz` to *not*
 play received output.
 
-### API Integrations
-
-For LocalAI integration, run the script with `option --localai`, or set
-environment **\$OPENAI_API_HOST** with the server URL.
-
-For Mistral AI set environment variable **\$MISTRAL_API_KEY**, and run
-the script with `option --mistral` or set **\$OPENAI_API_HOST** to
-“https://api.mistral.ai/”. Prefer setting command line
-`option --mistral` for complete integration.
-<!-- also see: \$MISTRAL_API_HOST -->
-
-For Ollama, set `option -O` (`--ollama`), and set **\$OLLAMA_API_HOST**
-if the server URL is different from the defaults.
-
-Note that model management (downloading and setting up) must follow the
-Ollama project guidelines and own methods.
-
-For Google Gemini, set environment variable **\$GOOGLE_API_KEY**, and
-run the script with the command line `option --google`.
-
-And for Groq, set the environmental variable `$GROQ_API_KEY`. Run the
-script with `option --groq`. Whisper endpoint available.
-
-And for Anthropic, set envar `$ANTHROPIC_API_KEY` or command line
-`option --anthropic`.
-
-#### Observations
+#### General Observations
 
 User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
 at “*~/.cache/chatgptsh/*”.
@@ -441,21 +415,20 @@ either “`!`” or “`/`”.
 | `!blk`  | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
 | \-      | `!multimodal`           | Toggle model as multimodal.                    |
 
-| Session | Management                             |                                                            |
-|:--------|:---------------------------------------|------------------------------------------------------------|
-| `-H`    | `!hist`                                | Edit history in editor.                                    |
-| `-P`    | `-HH`, `!print`                        | Print session history.                                     |
-| `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                          |
-| `!br`   | `!break`, `!new`                       | Start new session (session break).                         |
-| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *name* *glob*.                     |
-|         |                                        | List prompts “*pr*”, awesome “*awe*”, or all files “*.*”.  |
-| `!grep` | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail. |
-| `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                   |
-| `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.                       |
-| `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.              |
-| `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                                |
-| `!s`    | `!session` \[*HIST_FILE*\]             | Change to, search for, or create history file.             |
-| `!!s`   | `!!session` \[*HIST_FILE*\]            | Same as `!session`, break session.                         |
+| Session | Management                             |                                                                                                     |
+|:--------|:---------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `-H`    | `!hist`                                | Edit history in editor.                                                                             |
+| `-P`    | `-HH`, `!print`                        | Print session history.                                                                              |
+| `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                                                                   |
+| `!br`   | `!break`, `!new`                       | Start new session (session break).                                                                  |
+| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *glob* in *name*. Intruction prompts: “*pr*”. Awesome: “*awe*”. All: “*.*”. |
+| `!grep` | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail.                                          |
+| `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                                                            |
+| `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.                                                                |
+| `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.                                                       |
+| `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                                                                         |
+| `!s`    | `!session` \[*HIST_FILE*\]             | Change to, search for, or create history file.                                                      |
+| `!!s`   | `!!session` \[*HIST_FILE*\]            | Same as `!session`, break session.                                                                  |
 
 *:* Commands with a *colon* have their output appended to the prompt.
 
@@ -711,6 +684,32 @@ style or continue a previous audio segment is optional as last
 positional argument. This prompt should be in English.
 
 Setting **temperature** has an effect, the higher the more random.
+
+### Provider Integrations
+
+For LocalAI integration, run the script with `option --localai`, or set
+environment **\$OPENAI_API_HOST** with the server URL.
+
+For Mistral AI set environment variable **\$MISTRAL_API_KEY**, and run
+the script with `option --mistral` or set **\$OPENAI_API_HOST** to
+“https://api.mistral.ai/”. Prefer setting command line
+`option --mistral` for complete integration.
+<!-- also see: \$MISTRAL_API_HOST -->
+
+For Ollama, set `option -O` (`--ollama`), and set **\$OLLAMA_API_HOST**
+if the server URL is different from the defaults.
+
+Note that model management (downloading and setting up) must follow the
+Ollama project guidelines and own methods.
+
+For Google Gemini, set environment variable **\$GOOGLE_API_KEY**, and
+run the script with the command line `option --google`.
+
+And for Groq, set the environmental variable `$GROQ_API_KEY`. Run the
+script with `option --groq`. Whisper endpoint available.
+
+And for Anthropic, set envar `$ANTHROPIC_API_KEY` or command line
+`option --anthropic`.
 
 ### ENVIRONMENT
 

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.78.9 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.78.14 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.78.9 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.78.14 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2024</p>
 </header>
@@ -361,30 +361,7 @@ a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>opus</em>”,
 “<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
 <code>options -vz</code> to <em>not</em> play received output.</p>
-<h3 id="api-integrations">API Integrations</h3>
-<p>For LocalAI integration, run the script with
-<code>option --localai</code>, or set environment
-<strong>$OPENAI_API_HOST</strong> with the server URL.</p>
-<p>For Mistral AI set environment variable
-<strong>$MISTRAL_API_KEY</strong>, and run the script with
-<code>option --mistral</code> or set <strong>$OPENAI_API_HOST</strong>
-to “https://api.mistral.ai/”. Prefer setting command line
-<code>option --mistral</code> for complete integration.
-<!-- also see: \$MISTRAL_API_HOST --></p>
-<p>For Ollama, set <code>option -O</code> (<code>--ollama</code>), and
-set <strong>$OLLAMA_API_HOST</strong> if the server URL is different
-from the defaults.</p>
-<p>Note that model management (downloading and setting up) must follow
-the Ollama project guidelines and own methods.</p>
-<p>For Google Gemini, set environment variable
-<strong>$GOOGLE_API_KEY</strong>, and run the script with the command
-line <code>option --google</code>.</p>
-<p>And for Groq, set the environmental variable
-<code>$GROQ_API_KEY</code>. Run the script with
-<code>option --groq</code>. Whisper endpoint available.</p>
-<p>And for Anthropic, set envar <code>$ANTHROPIC_API_KEY</code> or
-command line <code>option --anthropic</code>.</p>
-<h4 id="observations">Observations</h4>
+<h4 id="general-observations">General Observations</h4>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
 <p>The moderation endpoint can be accessed by setting the model name to
@@ -875,49 +852,44 @@ flush.</td>
 <tr class="odd">
 <td style="text-align: left;"><code>!ls</code></td>
 <td style="text-align: left;"><code>!list</code> [<em>GLOB</em>]</td>
-<td>List History files with <em>name</em> <em>glob</em>.</td>
+<td>List History files with <em>glob</em> in <em>name</em>. Intruction
+prompts: “<em>pr</em>”. Awesome: “<em>awe</em>”. All: “<em>.</em>”.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td>List prompts “<em>pr</em>”, awesome “<em>awe</em>”, or all files
-“<em>.</em>”.</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
 <td>Search sessions (for regex) and copy session to hist tail.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!c</code></td>
 <td style="text-align: left;"><code>!copy</code> [<em>SRC_HIST</em>]
 [<em>DEST_HIST</em>]</td>
 <td>Copy session from source to destination.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!f</code></td>
 <td style="text-align: left;"><code>!fork</code>
 [<em>DEST_HIST</em>]</td>
 <td>Fork current session to destination.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!k</code></td>
 <td style="text-align: left;"><code>!kill</code> [<em>NUM</em>]</td>
 <td>Comment out <em>n</em> last entries in history file.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!k</code></td>
 <td style="text-align: left;"><code>!!kill</code>
 [[<em>0</em>]<em>NUM</em>]</td>
 <td>Dry-run of command <code>!kill</code>.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!s</code></td>
 <td style="text-align: left;"><code>!session</code>
 [<em>HIST_FILE</em>]</td>
 <td>Change to, search for, or create history file.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!s</code></td>
 <td style="text-align: left;"><code>!!session</code>
 [<em>HIST_FILE</em>]</td>
@@ -1158,6 +1130,29 @@ guide the model’s style or continue a previous audio segment is optional
 as last positional argument. This prompt should be in English.</p>
 <p>Setting <strong>temperature</strong> has an effect, the higher the
 more random.</p>
+<h3 id="provider-integrations">Provider Integrations</h3>
+<p>For LocalAI integration, run the script with
+<code>option --localai</code>, or set environment
+<strong>$OPENAI_API_HOST</strong> with the server URL.</p>
+<p>For Mistral AI set environment variable
+<strong>$MISTRAL_API_KEY</strong>, and run the script with
+<code>option --mistral</code> or set <strong>$OPENAI_API_HOST</strong>
+to “https://api.mistral.ai/”. Prefer setting command line
+<code>option --mistral</code> for complete integration.
+<!-- also see: \$MISTRAL_API_HOST --></p>
+<p>For Ollama, set <code>option -O</code> (<code>--ollama</code>), and
+set <strong>$OLLAMA_API_HOST</strong> if the server URL is different
+from the defaults.</p>
+<p>Note that model management (downloading and setting up) must follow
+the Ollama project guidelines and own methods.</p>
+<p>For Google Gemini, set environment variable
+<strong>$GOOGLE_API_KEY</strong>, and run the script with the command
+line <code>option --google</code>.</p>
+<p>And for Groq, set the environmental variable
+<code>$GROQ_API_KEY</code>. Run the script with
+<code>option --groq</code>. Whisper endpoint available.</p>
+<p>And for Anthropic, set envar <code>$ANTHROPIC_API_KEY</code> or
+command line <code>option --anthropic</code>.</p>
 <h3 id="environment">ENVIRONMENT</h3>
 <p><strong>BLOCK_USR</strong></p>
 <dl>
