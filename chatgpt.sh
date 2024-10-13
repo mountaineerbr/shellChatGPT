@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78.10  oct/2024  by mountaineerbr  GPL+3
+# v0.78.11  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3245,7 +3245,7 @@ function read_charrecf
 	typeset atrim min_len tmout rms threshold init var
 	tmout=0.4    #read timeout
 	atrim=0.26   #audio trim
-	min_len=1.8  #seconds (float)
+	min_len=1.6  #seconds (float)
 	rms=0.0157   #rms amplitude (0.001 to 0.1)
 	threshold="-26dB"  #noise tolerance (-32dbFS to -26dBFS)
 
@@ -3257,7 +3257,7 @@ function read_charrecf
 	  _clr_ttystf; sleep ${min_len};
 	  while var=$(
 	      ffmpeg -fflags +nobuffer+discardcorrupt \
-	        -i "$1" -af silencedetect=n=${threshold}:d=${min_len} -f null - 2>&1 |
+	        -i "$1" -af silencedetect=n=${threshold}:d=${min_len} -f null - 2>&1 </dev/null |
 	        sed -n 's/^.*silence_start:[[:space:]]*//p' | sed -n '$ p'
 	    )  #!# ignore start silence until speech
 	    (( $(bc <<<"${var:-0} < (${min_len} * 1.6)") ))
@@ -3271,7 +3271,7 @@ function read_charrecf
 	  _cmdmsgf "Silence Detection:" "rms_amplitude: ${rms}  min_length: ${min_len}s";
 	  _clr_ttystf; sleep ${min_len};
 	  while var=$(
-	      sox "$1" -n trim -${min_len} stat 2>&1 |
+	      sox "$1" -n trim -${min_len} stat 2>&1 </dev/null |
 	        sed -n 's/RMS .*amplitude:[[:space:]]*//p'
 	    )
 	    if ((!init))  #!# enable detection after first rms peak
