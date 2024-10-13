@@ -3245,7 +3245,7 @@ function read_charrecf
 	typeset atrim min_len tmout rms threshold init var
 	tmout=0.4    #read timeout
 	atrim=0.26   #audio trim
-	min_len=1.6  #seconds (float)
+	min_len=1.8  #seconds (float)
 	rms=0.0157   #rms amplitude (0.001 to 0.1)
 	threshold="-26dB"  #noise tolerance (-32dbFS to -26dBFS)
 
