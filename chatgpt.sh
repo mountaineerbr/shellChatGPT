@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.78.14  oct/2024  by mountaineerbr  GPL+3
+# v0.79  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1681,7 +1681,7 @@ function help_assistf
 )
 ASSIST_MSG4='\ZbQuestion\ZB or \Zbsearch term\ZB:'
 ASSIST_MSG3="Proceed?  [N/y]" 
-ASSIST_MSG2='Warning: request may consume up to 320 output tokens plus user input tokens'
+ASSIST_MSG2='Warning: this may consume up to 5000 tokens (input+output)!'
 ASSIST_MSG='\ZuWelcome to Help Assistant!\ZU
 
 Find the right options for the \Zbchatgpt.sh programme\ZB, the precise command line invocation, and the proper chat command.
@@ -5763,27 +5763,28 @@ else
 			fi
 
 			#system/instruction?
-			if [[ ${*} = :* ]]
-			then
-				var=$(escapef "$( trim_leadf "$*" "$SPC:" )")
+			case "${1:0:32}${2:0:16}" in :*)
+				var=$(trim_leadf "$*" "$SPC:")
 
-				   [[ ${*} = :::* ]] && var=${var:1}  #[DEPRECATED] 
-				if [[ ${*} = ::* ]]
-				then
+				case "${var:0:32}" in :::*) 	var=${var:1};; esac;  #[DEPRECATED] 
+				case "${var:0:32}" in ::*)
 					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=added || v=set;
 					_sysmsgf "System prompt $v";
 					if ((GOOGLEAI))
 					then 	RINSERT=${RINSERT}${var:1}${NL}${NL};
 					else 	INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD}
 						INSTRUCTION=${INSTRUCTION}${INSTRUCTION:+${NL}${NL}}${var:1}
-					fi
-				else
+					fi;
+				;;
+					*)
 					RINSERT=${RINSERT}${var}${NL};
-					_sysmsgf 'User prompt added'
-				fi
-				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= var= v=;
+					_sysmsgf 'User prompt added';
+				;;
+				esac;
+				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD= REPLY_CMD_DUMP= var= v=;
 				set --; continue;
-			fi
+			;;
+			esac;
 			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY} RINSERT= ;}
 			REC_OUT="${Q_TYPE##$SPC1}${*}"
 		fi
@@ -6012,7 +6013,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 					((GROQAI)) && { datef;
 						jq -rs '.[-1].x_groq.usage | (.completion_time,.completion_tokens/.completion_time)' "$FILE";
 					}  #tkn rate
-					) )  #0:input_tkn  1:output_tkn  2:reason_tkn  3:time  4:cmpl_time  5:tkn_rate
+					) )  #[0]input_tkn  [1]output_tkn  [2]reason_tkn  [3]time  [4]cmpl_time  [5]tkn_rate
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6)) && A_TYPE=; __tiktokenf "${A_TYPE}${ans}");
 				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); TOTAL_OLD=; tkn=();
@@ -6119,8 +6120,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			cmd_runf /markdown; _cmdmsgf 'Markdown' "AUTO";
 		fi
 
-		if ((OLLAMA+GROQAI)) && ((${#tkn[@]}>=5))  #token generation rate  #0 tokens, #1 secs, #2 rate
-		then
+		if ((OLLAMA+GROQAI)) && ((${#tkn[@]}>=5))  #token generation rate
+		then  #[0]tokens  [1]response_secs  [2]tkn_rate
 			TKN_RATE=( "${tkn[1]}" "$(printf '%.2f' "${tkn[4]}")" "$(printf '%.2f' "${tkn[5]}")" )
 		elif 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]
 		then
