@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.3  oct/2024  by mountaineerbr  GPL+3
+# v0.79.4  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2158,7 +2158,7 @@ function cmd_runf
 			model-name    "${MOD:-?}${modmodal}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
-			context-prev  "${MAX_PREV:-?}  (${HIST_LOOP:-0} turns)" \
+			context-prev  "${MAX_PREV:-${TKN_PREV:-?}}  (${HIST_LOOP:-0} turns)" \
 			token-rate    "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
 			session-cost  "${SESSION_COST:-0} \$" \
 			turn-cost-max "$(costf ${MAX_PREV:-0} ${OPTMAX:-0} $(_model_costf "$MOD") 6 ) \$" \
@@ -5530,7 +5530,7 @@ else
 	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;
 	((OPTRESUME)) && fix_breakf "$FILECHAT";
 
-	if ((${#})) && [[ ! -e $1 ]]
+	if ((${#})) && ((!OPTE)) && [[ ! -e $1 && ! -e ${@:${#}} ]]
 	then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 		sysmsgf "Inst+Prompt:" "~$TKN_PREV tokens"
 	fi
