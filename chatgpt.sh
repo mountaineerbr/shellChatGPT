@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.5  oct/2024  by mountaineerbr  GPL+3
+# v0.79.6  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2140,7 +2140,7 @@ function cmd_runf
 			set_optsf 2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
 			is_visionf "$MOD" && modmodal=' / multimodal'
-			set_histf >/dev/null 2>&1;
+			OPTC= OLLAMA= GOOGLEAI= OPTHH=1 EPN=0 set_histf >/dev/null;
 
 			if ((EPN==6))
 			then 	rseq='unavailable'
