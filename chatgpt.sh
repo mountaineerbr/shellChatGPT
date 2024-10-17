@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.6  oct/2024  by mountaineerbr  GPL+3
+# v0.79.7  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2140,6 +2140,7 @@ function cmd_runf
 			set_optsf 2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
 			is_visionf "$MOD" && modmodal=' / multimodal'
+			((MTURN+OPTRESUME)) &&
 			OPTC= OLLAMA= GOOGLEAI= OPTHH=1 EPN=0 set_histf >/dev/null;
 
 			if ((EPN==6))
@@ -2553,8 +2554,8 @@ function edf
 		case "$reply" in
 			[-/!]) read_mainf -i "$reply" reply;
 				cmd_runf "$reply"; _edf "$FILETXT";;  #cmd
-			[AQ]) echo bye >&2; return 202;;  #exit
-			[aq]) echo abort >&2; return 201;;  #abort
+			[AQ]) echo '[bye]' >&2; return 202;;  #exit
+			[aq]) echo '[abort]' >&2; return 201;;  #abort
 			[CcNn]) break;;      #continue
 			[Rr])  return 200;;  #redo
 			[Ee]|$'\e'|*) _edf "$FILETXT";;  #edit
@@ -4304,7 +4305,7 @@ function session_globf
 			return
 			;;
 		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit)
-			echo abort; echo abort >&2
+			echo abort; echo '[abort]' >&2
 			return 201
 			;;
 		"$REPLY")
@@ -4374,7 +4375,7 @@ function session_name_choosef
 		else 	print_name="${fname/"$HOME"/"~"}"
 		fi
 		if [[ ! -e $fname ]]
-		then 	case "$fname" in *[N]ew.${sglob}) 	:;; *[Aa]bort.${sglob}|*[Cc]ancel.${sglob}|*[Ee]xit.${sglob}|*[Qq]uit.${sglob}) 	echo abort; echo abort >&2; return 201;; esac
+		then 	case "$fname" in *[N]ew.${sglob}) 	:;; *[Aa]bort.${sglob}|*[Cc]ancel.${sglob}|*[Ee]xit.${sglob}|*[Qq]uit.${sglob}) 	echo abort; echo '[abort]' >&2; return 201;; esac
 			if test_dialogf
 			then 	dialog --colors --backtitle "${item} manager" \
 				--title "confirm${new} ${item} file?" \
@@ -4387,7 +4388,7 @@ function session_name_choosef
 				_sysmsgf "Confirm${new}? [Y]es/[n]o/[a]bort:" "${print_name} " '' ''
 				var=$(read_charf)
 			fi
-			case "$var" in [AaQq]|$'\e'|*[Aa]bort|*[Aa]bort.${sglob}) 	echo abort; echo abort >&2; return 201;; [NnOo]) 	:;; *) 	false;; esac
+			case "$var" in [AaQq]|$'\e'|*[Aa]bort|*[Aa]bort.${sglob}) 	echo abort; echo '[abort]' >&2; return 201;; [NnOo]) 	:;; *) 	false;; esac
 		else 	false
 		fi
 	do 	unset fname new print_name
@@ -4462,7 +4463,7 @@ do 	_spinf 	#grep session with user regex
 				[NnOo]|$'\e') ((${regex:+1})) && printf '%s\n' '---' >&2;
 					false;
 					;;
-				[AaQq]) echo abort >&2;
+				[AaQq]) echo '[abort]' >&2;
 					return 201;
 					;;
 				*) 	((${regex:+1})) && printf '%s\n' '---' >&2;
@@ -4493,10 +4494,10 @@ function session_copyf
 	then 	src=${FILECHAT}; echo "${src:-err}" >&2
 	else 	src="$(session_globf "${@:1:1}" || session_name_choosef "${@:1:1}")"; echo "${src:-err}" >&2
 		set -- "${@:2:1}"
-	fi; case "$src" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo abort >&2; return 201;; esac
+	fi; case "$src" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo '[abort]' >&2; return 201;; esac
 	_sysmsgf 'Destination hist file: ' '' ''
 	dest="$(session_globf "$@" || session_name_choosef "$@")"; echo "${dest:-err}" >&2
-	dest="${dest:-$FILECHAT}"; case "$dest" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo abort >&2; return 201;; esac
+	dest="${dest:-$FILECHAT}"; case "$dest" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo '[abort]' >&2; return 201;; esac
 
 	buff=$(session_sub_printf "$src") \
 	&& if [[ -f "$dest" ]] ;then 	[[ "$(<"$dest")" != *"${buff}" ]] || return 0 ;fi \
@@ -5639,7 +5640,7 @@ else
 									199) 	EDIT=1; continue 1;;
 									202) 	exit 202;;  #exit
 								esac;
-								echo record abort >&2;
+								echo '[record abort]' >&2;
 							fi; ((OPTW>1)) && OPTW=;;
 						202) 	exit 202;;  #exit
 						201|196) 	WSKIP= OPTW= REPLY=; continue 1;;  #whisper off
@@ -5843,7 +5844,7 @@ else
 			    REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
 			  ((PREVIEW)) && REPLY_OLD="$REPLY";
 			  case "$RET" in
-			    202) echo bye >&2; exit 202;;
+			    202) echo '[bye]' >&2; exit 202;;
 			    201|200) SKIP=1 EDIT=1 REPLY=$REPLY_CMD;
 			         REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
 			         set --; continue 1;;  #redo / abort
