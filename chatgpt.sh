@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.1  oct/2024  by mountaineerbr  GPL+3
+# v0.79.2  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -961,7 +961,7 @@ function new_prompt_confirmf
 {
 	typeset REPLY extra
 	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor, m[u]ltiline";; esac;
-	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hspr_Add, [w]hspr_off, w[h]spr_retry";; esac;
+	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hsp_append, [w]hsp_off, w[h]sp_retry";; esac;
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
 	REPLY=$(read_charf); _clr_lineupf $((8+1+40+${#extra}))  #!#
@@ -973,7 +973,7 @@ function new_prompt_confirmf
 		[VvXx]) 	return 198;;  #text editor
 		[UuMm]) 	return 197;;  #multiline
 		[w]) 		return 196;;  #whisper off
-		[WA]) 		return 195;;  #whisper append
+		[WAPp]) 	return 195;;  #whisper append
 		[HhTt]) 	return 194;;  #whisper retry request
 		[NnOo]) 	REC_OUT=; return 1;;  #no
 	esac  #yes
@@ -2140,6 +2140,7 @@ function cmd_runf
 			set_optsf 2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
 			is_visionf "$MOD" && modmodal=' / multimodal'
+			set_histf >/dev/null 2>&1;
 
 			if ((EPN==6))
 			then 	rseq='unavailable'
@@ -2157,7 +2158,7 @@ function cmd_runf
 			model-name    "${MOD:-?}${modmodal}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
-			context-prev  "${MAX_PREV:-?}" \
+			context-prev  "${MAX_PREV:-?}  (${HIST_LOOPS:-0} turns)" \
 			token-rate    "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
 			session-cost  "${SESSION_COST:-0} \$" \
 			turn-cost-max "$(costf ${MAX_PREV:-0} ${OPTMAX:-0} $(_model_costf "$MOD") 6 ) \$" \
@@ -2503,8 +2504,8 @@ function ed_outf
 #text editor chat wrapper
 function edf
 {
-	typeset ed_msg pre rest pos ind sub inst instruction
-	ed_msg=$'\n\n'",,,,,,(edit below this line),,,,,,"
+	typeset ed_msg pre rest pos ind sub inst instruction prev reply
+	ed_msg=",,,,,,(edit below this line),,,,,,"
 	((OPTC)) && rest="${RESTART-$Q_TYPE}" || rest="${RESTART}"
 	rest="$(_unescapef "$rest")"
 	instruction=${GINSTRUCTION:-$INSTRUCTION};
@@ -2520,10 +2521,10 @@ function edf
 	if ((${#instruction}==${#pre}-2)) || ((${#INSTRUCTION_OLD}==${#pre}-2)) ||
 	   ((CHAT_ENV && MTURN+OPTRESUME && HIST_LOOP==1))  #G#
 	then 	inst=1 &&  #instruction editing on
-		ed_msg=$'\n\n'",,,,,,(edit ABOVE AND BELOW this line),,,,,,"
+		ed_msg=",,,,,,(edit ABOVE AND BELOW this line),,,,,,"
 	fi
 
-	((OPTCMPL)) || [[ $pre != *[!$IFS]* ]] || pre="${pre}${ed_msg}"
+	((OPTCMPL)) || [[ $pre != *[!$IFS]* ]] || pre="${pre}"$'\n\n'"${ed_msg}"
 	printf "%s\\n" "${pre}${pre:+${NL}${NL}}${rest}${*}" > "$FILETXT"
 
 	_edf "$FILETXT"
@@ -2532,9 +2533,11 @@ function edf
 		
 		if ((inst)) && [[ "$pos" != "${pre}"* ]]
 		then 	inst= ;  #instruction editing
-			pre=$(sed -n "1,/${ed_msg##*${NL}}/ p" <<<"${pos}")
-			instruction=$(sed "/${ed_msg##*${NL}}/ d" <<<"${pre}");
-			instruction=$(trim_trailf "$instruction" "$SPC");
+			prev=$(sed -n "1,/${ed_msg}/ p" <<<"${pos}");
+			instruction=$(sed "/${ed_msg}/ d" <<<"${prev}");
+		    ((${#prev}==${#instruction})) || {  #skip?
+
+			pre=$prev instruction=$(trimf "$instruction" "$SPC");
 			if ((${#instruction}))
 			then 	if ((GOOGLEAI))
 				then 	GINSTRUCTION="$instruction" INSTRUCTION=;
@@ -2542,18 +2545,22 @@ function edf
 				fi; INSTRUCTION_OLD="$instruction"
 			fi
  			((HIST_LOOP==1)) && OPTX= cmd_runf /break
+		    }
 		fi
-		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
-	do 	_warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [r]edo or [a]bort? " ''
-		case "$(read_charf)" in
-			[Q]) echo bye >&2; return 202;;  #exit
-			[Aaq]) echo abort >&2; return 201;;  #abort
+		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#%#}" ]]
+	do 	_warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [/]cmd, [r]edo or [a]bort? " ''
+		reply=$(read_charf)
+		case "$reply" in
+			[-/!]) read_mainf -i "$reply" reply;
+				cmd_runf "$reply"; _edf "$FILETXT";;  #cmd
+			[AQ]) echo bye >&2; return 202;;  #exit
+			[aq]) echo abort >&2; return 201;;  #abort
 			[CcNn]) break;;      #continue
 			[Rr])  return 200;;  #redo
 			[Ee]|$'\e'|*) _edf "$FILETXT";;  #edit
 		esac
 	done
-	
+
 	ind=320 sub="${pos:${#pre}:${ind}}"
 	if ((OPTCMPL))
 	then 	((${#rest})) &&
