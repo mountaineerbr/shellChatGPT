@@ -8,9 +8,8 @@
 __session_listf()
 {
   local REPLY
-  __has_scriptf || return;
 
-  "${script:-chatgpt.sh}" -EE /list 2>/dev/null | while read -r
+  chatgpt.sh -EE /list 2>/dev/null | while read -r
     do
       printf '%s\n'  "${1}${REPLY%%.[Tt][Ss][Vv]}";
     done
@@ -20,9 +19,8 @@ __session_listf()
 __pr_listf()
 {
   local REPLY
-  __has_scriptf || return;
 
-  "${script:-chatgpt.sh}" -EE -S .list 2>/dev/null | while read -r
+  chatgpt.sh -EE -S .list 2>/dev/null | while read -r
     do
       printf '%s\n' "${1}${REPLY%%.[Pp][Rr]}";
     done
@@ -31,9 +29,7 @@ __pr_listf()
 #list models
 __model_listf()
 {
-  __has_scriptf || return;
-
-  "${script:-chatgpt.sh}" -EE -lll 2>/dev/null
+  chatgpt.sh -EE -lll 2>/dev/null
 }
 
 #list awesome-prompts
@@ -41,26 +37,18 @@ __awesome_listf()
 {
   local var
   var=${2:-${1:-/}}
-  __has_scriptf || return;
 
   set -- "${1:0:1}"
-  "${script:-chatgpt.sh}" -EE -S ${1:-/}list 2>&1 \
+  chatgpt.sh -EE -S ${1:-/}list 2>&1 \
     | sed -n '/^ *[0-9][0-9]*/,$ p' \
     | sed "s/[0-9][0-9]*:/${var//\//\\\/}/g"
-}
-
-#check script path is valid
-__has_scriptf()
-{
-  command -v "${script:-chatgpt.sh}" >/dev/null 2>&1
 }
 
 #main fun
 _chatgptsh()
 {
-  local cur prev opts ifs script models op var
+  local cur prev opts ifs models op var
   COMPREPLY=()
-  script="chatgpt.sh"
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
@@ -88,7 +76,7 @@ _chatgptsh()
         -R --start
         -s --stop
         -S --instruction
-        -. -, -..
+        -. -, -,,
         -t --temperature
         -c --chat -cc
         -C --continue
@@ -159,7 +147,7 @@ _chatgptsh()
       COMPREPLY=( $(compgen -W "bat pygmentize glow mdcat mdless" -- "${cur##*=}") )
       ;;
     -m|-[!-]*m|--model)
-      COMPREPLY=( $(compgen -W "$("${script}" -EE -lll 2>/dev/null)" -- "${cur}") )
+      COMPREPLY=( $(compgen -W "$(chatgpt.sh -EE -lll 2>/dev/null)" -- "${cur}") )
       ((${#COMPREPLY[@]})) || COMPREPLY=( "${models[@]}" )
       ;;
     -[.,]|-[!S.,-][.,]|\
@@ -180,19 +168,20 @@ _chatgptsh()
       ;;
     *)
       case "${cur}" in
-        #options -S.. and -.. hacks
         -S[/%]*|-[!-]*S[/%]*)
           COMPREPLY=( $(compgen -W "$(var=${cur##*[/%]}
             __awesome_listf "${cur//[!\/%]}" "${cur%%"${var}"}")
             ${cur:0:1}list /[awesome_prompt_act] %[awesome_prompt_act_ch]" -- "${cur}") )
           ;;
+        #options -S. and -. hacks (custom prompt files)
         -S[.,]*|\
         -S[.,][.,]*|\
-        -[.,][.,]*|\
-        -[!-]*[.,][.,]*|\
-        [.,] | [.,][.,] | [.,][!/.,]* | [.,][.,][!/]*)  #prompt files as first normal argument
+        -[.,]*|-[!-]*[.,]*|\
+        [.,] | [.,][.,] | [.,][!/.,]* | [.,][.,][!/]*)  #first positional argument
           ifs=$IFS IFS=$'\t\n'
-          COMPREPLY=( $(compgen -W "$(__pr_listf "${cur}") .[prompt_name]" -- "${cur}") )
+	  var=${cur%[.,][a-zA-Z0-9]*}
+	  var=${cur:0:${#var}+1}
+          COMPREPLY=( $(compgen -W "$(__pr_listf "${var}") .[prompt_name]" -- "${cur}") )
           IFS=$ifs
           ;;
         -m*|-[!-]*m*)

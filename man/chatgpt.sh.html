@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.79 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.79.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.79 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.79.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2024</p>
 </header>
@@ -255,11 +255,16 @@ text cmpls only, triple colons append the text immediately to the
 previous prompt without a restart sequence.</p>
 <p>To create and reuse a custom prompt, set the prompt name as a command
 line option, such as “<code>-S .[_prompt_name_]</code>” or
-“<code>-S ..[_prompt_name_]</code>”. Note that loading a custom prompt
-will also change to its respective history file.</p>
+“<code>-S ,[_prompt_name_]</code>”.</p>
+<p>When the operator is a comma “<em>,</em>”, single-shot editing will
+be available after loading the prompt text. Use “<em>,,</em>” to
+actually edit the template file itself!</p>
+<p>Note that loading a custom prompt will also change to its
+respectively-named history file.</p>
 <p>Alternatively, set the first positional argument with the operator
-and the prompt name, such as “<code>..[_prompt_]</code>”, unless
-instruction was set at the command line.</p>
+and the prompt name after any command line options, such as
+“<code>.[_prompt_name_]</code>”. This loads the prompt file unless
+instruction was set with command line options.</p>
 <h4 id="commands">Commands</h4>
 <p>If the first positional argument of the script starts with the
 command operator forward slash “<code>/</code>” and a history file name,
@@ -1483,17 +1488,18 @@ models).</p>
 </dd>
 </dl>
 <p><strong>-S</strong> <strong>.</strong>[<em>PROMPT_NAME</em>],
-<strong>-..</strong>[<em>PROMPT_NAME</em>]</p>
+<strong>-.</strong>[<em>PROMPT_NAME</em>]</p>
 <dl>
 <dt><strong>-S</strong> <strong>,</strong>[<em>PROMPT_NAME</em>],
 <strong>-,</strong>[<em>PROMPT_NAME</em>]</dt>
 <dd>
 <p>Load, search for, or create custom prompt.</p>
-<p>Set <code>.</code>[<em>PROMPT</em>] to single-shot edit prompt.</p>
-<p>Set <code>..</code>[<em>PROMPT</em>] to silently load prompt.</p>
-<p>Set <code>,</code>[<em>PROMPT</em>] to edit a prompt file.</p>
+<p>Set <code>.</code>[<em>PROMPT</em>] to load prompt silently.</p>
+<p>Set <code>,</code>[<em>PROMPT</em>] to single-shot edit prompt.</p>
+<p>Set <code>,,</code>[<em>PROMPT</em>] to edit the prompt template
+file.</p>
 <p>Set <code>.</code><em>?</em>, or <code>.</code><em>list</em> to list
-prompt template files.</p>
+all prompt files.</p>
 </dd>
 </dl>
 <p><strong>-S</strong>

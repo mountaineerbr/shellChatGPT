@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.79 | General Commands Manual
+% CHATGPT.SH(1) v0.79.1 | General Commands Manual
 % mountaineerbr
 % October 2024
 
@@ -78,13 +78,18 @@ triple colons append the text immediately to the previous prompt
 without a restart sequence.
 
 To create and reuse a custom prompt, set the prompt name as a command
-line option, such as "`-S .[_prompt_name_]`" or "`-S ..[_prompt_name_]`".
-Note that loading a custom prompt will also change to its respective
+line option, such as "`-S .[_prompt_name_]`" or "`-S ,[_prompt_name_]`".
+
+When the operator is a comma "_,_", single-shot editing will be available after
+loading the prompt text. Use "_,,_" to actually edit the template file itself!
+
+Note that loading a custom prompt will also change to its respectively-named
 history file.
 
 Alternatively, set the first positional argument with the operator
-and the prompt name, such as "`..[_prompt_]`", unless instruction was
-set at the command line.
+and the prompt name after any command line options, such as
+"`.[_prompt_name_]`". This loads the prompt file unless instruction
+was set with command line options.
 
 
 #### Commands
@@ -1120,19 +1125,19 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
       should insert text (`instruct` and Mistral `code` models).
 
 
-**-S** **.**\[_PROMPT_NAME_], **-..**\[_PROMPT_NAME_]
+**-S** **.**\[_PROMPT_NAME_], **-.**\[_PROMPT_NAME_]
 
 **-S** **,**\[_PROMPT_NAME_], **-,**\[_PROMPT_NAME_]
 
 :     Load, search for, or create custom prompt.
       
-      Set `.`\[_PROMPT_] to single-shot edit prompt.
+      Set `.`\[_PROMPT_] to load prompt silently.
+      
+      Set `,`\[_PROMPT_] to single-shot edit prompt.
 
-      Set `..`\[_PROMPT_] to silently load prompt.
+      Set `,,`\[_PROMPT_] to edit the prompt template file.
       
-      Set `,`\[_PROMPT_] to edit a prompt file.
-      
-      Set `.`_?_, or `.`_list_ to list prompt template files.
+      Set `.`_?_, or `.`_list_ to list all prompt files.
 
 
 **-S** **/**\[_AWESOME_PROMPT_NAME_]

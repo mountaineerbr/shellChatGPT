@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79  oct/2024  by mountaineerbr  GPL+3
+# v0.79.1  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -236,9 +236,10 @@ Description
 	as text PROMPT.
 
 	To create and reuse a custom prompt, set the prompt name as a command
-	line option, such as \`-S .[prompt_name]' or \`-S ..[prompt_name]'.
+	line option, such as \`-S .[prompt_name]' or \`-S ,[prompt_name]'.
+
 	Alternatively, set the first positional argument with the operator
-	and the name, such as  \`..[prompt]'.
+	dot \`.' and the prompt name, such as  \`.[prompt]'.
 
 
 	Commands
@@ -545,13 +546,13 @@ Options
 		Insert text rather than completing. Use \`[insert]' within the
 		user prompt to indicate where the model should insert text.
 		Set twice for multi-turn (\`instruct' and Mistral \`code' models).
-	-S .[PROMPT_NAME], -..[PROMPT_NAME]
-	-S ,[PROMPT_NAME],    -,[PROMPT_NAME]
+	-S .[PROMPT_NAME],  -.[PROMPT_NAME]
+	-S ,[PROMPT_NAME],  -,[PROMPT_NAME]
 		Load, search for, or create custom prompt.
-		Set \`.[prompt]' to single-shot edit prompt.
-		Set \`..[prompt]' to silently load prompt.
-		Set \`,[prompt]' to edit the prompt file.
-		Set \`.?' to list prompt template files.
+		Set \`.[prompt]' to load prompt silently.
+		Set \`,[prompt]' to single-shot edit prompt.
+		Set \`,,[prompt]' to edit the prompt template.
+		Set \`.?' to list all prompt template files.
 	-S /[AWESOME_PROMPT_NAME]
 	-S %[AWESOME_PROMPT_NAME_ZH]
 		Set or search an awesome-chatgpt-prompt(-zh).
@@ -960,7 +961,7 @@ function new_prompt_confirmf
 {
 	typeset REPLY extra
 	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor, m[u]ltiline";; esac;
-	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hspr_Add, [w]hspr_off, whspr_retr[y]";; esac;
+	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hspr_Add, [w]hspr_off, w[h]spr_retry";; esac;
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
 	REPLY=$(read_charf); _clr_lineupf $((8+1+40+${#extra}))  #!#
@@ -973,7 +974,7 @@ function new_prompt_confirmf
 		[UuMm]) 	return 197;;  #multiline
 		[w]) 		return 196;;  #whisper off
 		[WA]) 		return 195;;  #whisper append
-		[Yy]) 		return 194;;  #whisper retry request
+		[HhTt]) 	return 194;;  #whisper retry request
 		[NnOo]) 	REC_OUT=; return 1;;  #no
 	esac  #yes
 }
@@ -1194,7 +1195,7 @@ function set_histf
 {
 	typeset time token string stringc stringd max_prev q_type a_type role role_last rest com sub ind herr nl x r n;
 	time= token= string= stringc= stringd= max_prev= role= role_last= rest= sub= ind= nl=;
-	typeset -a MEDIA MEDIA_CMD; MEDIA=(); MEDIA_CMD=();
+	typeset -a MEDIA MEDIA_CMD; MEDIA=(); MEDIA_CMD=(); HIST_LOOP=0;
 	[[ -s $FILECHAT ]] || return; HIST= HIST_C=;
 	((BREAK_SET)) && return;
 	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
@@ -1241,7 +1242,7 @@ function set_histf
 			fi
 		   (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX))
 		}
-		then
+		then 	((++HIST_LOOP))
 			((max_prev+=token)); ((MAIN_LOOP)) || ((TOTAL_OLD+=token))
 			MAX_PREV=$((max_prev+TKN_PREV))  HIST_TIME="${time##\#}"
 
@@ -1810,7 +1811,7 @@ function cmd_runf
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
-			}; CKSUM_OLD= MAX_PREV= WCHAT_C= MAIN_LOOP= TOTAL_OLD= xskip=1;
+			}; CKSUM_OLD= MAX_PREV= WCHAT_C= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= xskip=1;
 			;;
 		currency[_-]rate*|currency*)  #currency rate
 			set -- "${*##@(currency[_-]rate|currency)$SPC}"
@@ -2502,26 +2503,46 @@ function ed_outf
 #text editor chat wrapper
 function edf
 {
-	typeset ed_msg pre rest pos ind sub
+	typeset ed_msg pre rest pos ind sub inst instruction
 	ed_msg=$'\n\n'",,,,,,(edit below this line),,,,,,"
 	((OPTC)) && rest="${RESTART-$Q_TYPE}" || rest="${RESTART}"
 	rest="$(_unescapef "$rest")"
-	((GOOGLEAI)) && typeset INSTRUCTION=${GINSTRUCTION:-$INSTRUCTION};
+	instruction=${GINSTRUCTION:-$INSTRUCTION};
 
-	if ((CHAT_ENV))
+	if ((CHAT_ENV)) && ((MTURN+OPTRESUME))  #G#
 	then 	MAIN_LOOP=1 Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= \
 		  OLLAMA= TKN_PREV= MAX_PREV= set_histf "${rest}${*}"
 	fi
 
 	set_filetxtf
-	pre="${INSTRUCTION}${INSTRUCTION:+$'\n\n'}""$(unescapef "$HIST")"
+	pre="${instruction}${instruction:+$'\n\n'}""$(unescapef "$HIST")"
+
+	if ((${#instruction}==${#pre}-2)) || ((${#INSTRUCTION_OLD}==${#pre}-2)) ||
+	   ((CHAT_ENV && MTURN+OPTRESUME && HIST_LOOP==1))  #G#
+	then 	inst=1 &&  #instruction editing on
+		ed_msg=$'\n\n'",,,,,,(edit ABOVE AND BELOW this line),,,,,,"
+	fi
+
 	((OPTCMPL)) || [[ $pre != *[!$IFS]* ]] || pre="${pre}${ed_msg}"
-	((OPTMD)) && pre="# vi: filetype=markdown${NL}${NL}${pre}"
-	printf "%s\\n" "${pre}"$'\n\n'"${rest}${*}" > "$FILETXT"
+	printf "%s\\n" "${pre}${pre:+${NL}${NL}}${rest}${*}" > "$FILETXT"
 
 	_edf "$FILETXT"
 
 	while [[ -f $FILETXT ]] && pos="$(<"$FILETXT")"
+		
+		if ((inst)) && [[ "$pos" != "${pre}"* ]]
+		then 	inst= ;  #instruction editing
+			pre=$(sed -n "1,/${ed_msg##*${NL}}/ p" <<<"${pos}")
+			instruction=$(sed "/${ed_msg##*${NL}}/ d" <<<"${pre}");
+			instruction=$(trim_trailf "$instruction" "$SPC");
+			if ((${#instruction}))
+			then 	if ((GOOGLEAI))
+				then 	GINSTRUCTION="$instruction" INSTRUCTION=;
+				else 	INSTRUCTION="$instruction";
+				fi; INSTRUCTION_OLD="$instruction"
+			fi
+ 			((HIST_LOOP==1)) && OPTX= cmd_runf /break
+		fi
 		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#}" ]]
 	do 	_warmsgf "Warning:" "Bad edit: [E]dit, [c]ontinue, [r]edo or [a]bort? " ''
 		case "$(read_charf)" in
@@ -3993,12 +4014,12 @@ function custom_prf
 	esac
 
 	#options
-	case "${INSTRUCTION// }"  in
+	case "${INSTRUCTION:0:32}"  in
 		+([.,])@(list|\?)|[.,]+([.,/*?-]))
 			INSTRUCTION= list=1
 			_cmdmsgf 'Prompt File' 'LIST'
 			;;
-		,*|.,*)   #edit template prompt file
+		,,*)   #edit template prompt file
 			INSTRUCTION="${INSTRUCTION##[.,]*( )}"
 			template=1 skip=0 msg='EDIT TEMPLATE'
 			;;
@@ -4008,11 +4029,12 @@ function custom_prf
 	esac
 	
 	#set skip confirmation (catch ./file)
-	[[ $INSTRUCTION = ..* ]] && [[ $INSTRUCTION != ../*([!/]) ]] \
+	[[ $INSTRUCTION = .* ]] && [[ $INSTRUCTION != .?(.)/*([!/]) ]] \
 	&& INSTRUCTION="${INSTRUCTION##[.,]}" skip=${skip:-1} 
 	
 	[[ ! -f $INSTRUCTION ]] && [[ $INSTRUCTION != ./*([!/]) ]] \
 	&& INSTRUCTION="${INSTRUCTION##[.,]}"
+	
 	name=$(trim_leadf "$INSTRUCTION" '*( )')
 
 	#set source prompt file
@@ -4474,7 +4496,7 @@ function session_copyf
 	&& { FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
 	     FILECHAT="${dest}" _break_sessionf; OLD_DEST="${dest}";
 	     #check if dest is the same as current
-	     [[ "$dest" = "$FILECHAT" ]] && BREAK_SET= MAIN_LOOP= TOTAL_OLD= MAX_PREV= ;} \
+	     [[ "$dest" = "$FILECHAT" ]] && BREAK_SET= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= MAX_PREV= ;} \
 	&& _sysmsgf 'SESSION FORK' \
 	&& printf '%s\n' "$buff" >> "$dest" \
 	&& printf '%s\n' "$dest"
@@ -4581,7 +4603,7 @@ function session_mainf
 		        case "$(read_charf)" in [YySs]) 	:;; $'\e'|*) 	false ;;esac
 		        } ;}
 		    then  FILECHAT="${file:-$FILECHAT}" cmd_runf /break;
-		          unset MAIN_LOOP TOTAL_OLD MAX_PREV;
+		          unset MAIN_LOOP HIST_LOOP TOTAL_OLD MAX_PREV;
 		    else  #print snippet of tail session
 		          [[ ${file:-$FILECHAT} = "$FILECHAT" ]] || ((OPTV+BREAK_SET+break)) ||
 		            OPTPRINT=1 session_sub_printf "${file:-$FILECHAT}" >/dev/null
@@ -4835,7 +4857,7 @@ function set_anthropicf
 
 
 #parse opts  #DIJQX
-unset OPTMM OPTMARG MAIN_LOOP; STOPS=();
+unset OPTMM OPTMARG MAIN_LOOP HIST_LOOP; STOPS=();
 optstring="a:A:b:B:cCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
 do
@@ -4964,7 +4986,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		R) 	START="$OPTARG";;
 		j) 	OPTSEED=$OPTARG;;
 		s) 	STOPS=("$OPTARG" "${STOPS[@]}");;
-		S|.|,) 	if [[ -f "$OPTARG" ]]
+		S|.|,) 	if [[ $opt == S ]] && [[ -f "$OPTARG" ]]
 			then 	INSTRUCTION="${opt##S}$(<"$OPTARG")"
 			else 	INSTRUCTION="${opt##S}$OPTARG"
 			fi;;
@@ -5749,7 +5771,7 @@ else
 		then 	set -- "$(trimf "$*" "$SPC1")"  #!#
 			REPLY="$*"
 		fi
-		((${#REPLY_OLD})) || REPLY_OLD="${REPLY:-$*}";
+		((${#REPLY_OLD})) || REPLY_OLD="${REPLY:-$*}";  #I# Avoid $REPLY_CMD!
 		
 		}  #awesome 1st pass skip end
 
@@ -5997,7 +6019,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			PSKIP= JUMP= SKIP=1 EDIT=1; set --; continue;  #B#
 		fi
 		((RET_PRF>120)) && INT_RES='#';
-		((RET_PRF)) || REPLY_OLD="${REPLY:-${REPLY_OLD:-$*}}";
+		((RET_PRF)) || REPLY_OLD="${REPLY:-${REPLY_OLD:-$*}}";  #I#
 
 		#record to hist file
 		if 	if ((STREAM))

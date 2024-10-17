@@ -245,13 +245,13 @@ Load the *unix instruction* file ("unix.pr") for a new session.
 The command line syntaxes below are all aliases:
 
 
-    chatgpt.sh -cc ..unix
+    chatgpt.sh -cc .unix
     
-    chatgpt.sh -cc..unix
+    chatgpt.sh -cc.unix
     
-    chatgpt.sh -cc -..unix
+    chatgpt.sh -cc -.unix
     
-    chatgpt.sh -cc -S ..unix
+    chatgpt.sh -cc -S .unix
 
 <!--
 In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "unix.tsv" file at the cache directory.
@@ -273,9 +273,9 @@ and the name of the history file (defaults to the `/session` command).
 The command below starts a chat session, loads the "unix" instruction, and changes to the defaults "chatgpt.tsv" history.
 
 
-    chatgpt.sh -cc..unix /current
+    chatgpt.sh -cc.unix /current
 
-    chatgpt.sh -cc -S "..unix" /session current
+    chatgpt.sh -cc -S ".unix" /session current
 -->
 
 
@@ -567,13 +567,12 @@ Set a one-shot instruction prompt with `option -S`:
 
 
 To create or load a prompt template file, set the first positional argument
-as `.prompt_name` or `..prompt_name`.
-In the second case, load the prompt as instruction
-without a single-shot editing.
+as `.prompt_name` or `,prompt_name`.
+In the second case, load the prompt and single-shot edit it.
 
     chatgpt.sh -cc .psycologist 
 
-    chatgpt.sh -cc ..software_programmer
+    chatgpt.sh -cc ,software_programmer
 
 
 Alternatively, set `option -S` with the operator and the name of
@@ -581,11 +580,11 @@ the prompt as an argument:
 
     chatgpt.sh -cc -S .psycologist 
 
-    chatgpt.sh -cc -S..software_programmer
+    chatgpt.sh -cc -S,software_programmer
 
 
 This will load the custom prompt or create it if it does not yet exist.
-In the second example, single-shot editing will be skipped after
+In the second example, single-shot editing will be available after
 loading prompt _software_programmer_.
 
 Please note and make sure to backup your important custom prompts!

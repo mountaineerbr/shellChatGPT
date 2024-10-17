@@ -6,10 +6,6 @@
 #               /usr/local/share/zsh/site-functions/
 # User-Specific: under $fpath
 
-local operator operator2 script
-operator="" operator2=""
-script="chatgpt.sh"
-
 
 #list session names
 __session_listf()
@@ -21,9 +17,8 @@ __session_listf()
     *)
       local REPLY options ifs
       ifs=$IFS IFS=$'\t\n'
-      __has_scriptf || script="false"
 
-      options=( $("${script}" -EE /list 2>/dev/null | while read -r
+      options=( $(chatgpt.sh -EE /list 2>/dev/null | while read -r
         do
           printf '%s\n' "/${REPLY%%.[Tt][Ss][Vv]}"
         done) )
@@ -50,9 +45,8 @@ __pr_listf()
 {
   local REPLY options ifs
   ifs=$IFS IFS=$'\t\n'
-  __has_scriptf || script="false"
 
-  options=( $("${script}" -EE -S .list 2>/dev/null | while read -r
+  options=( $(chatgpt.sh -EE -S .list 2>/dev/null | while read -r
     do
       printf '%s\n' "${operator}${REPLY%%.[Pp][Rr]}"
     done) )
@@ -67,18 +61,18 @@ __pr_list3f()
 {
   local options
   __pr_list2f
-  case "${words[CURRENT]}" in /*) __awesome_list1f "$@";; %*) __awesome_list3f "$@";; esac
-  options=( "." ".." "," "/" "%" "/awesome_prompt_act" "%awesome_prompt_act_ch" "text_file" "text_prompt" "pdf_file" )
+  case "${words[CURRENT]}" in /*/*|./*) _files; return;; /*) __awesome_list1f "$@";; %*) __awesome_list3f "$@";; esac
+  options=( "." "," ",," "/" "%" "/awesome_prompt_act" "%awesome_prompt_act_ch" "text_file" "text_prompt" "pdf_file" )
   compadd -a options "$@"
+  ((compstate[nmatches])) || _files
 }
 
 #list models from cache
 __mod_listf()
 {
   local options
-  __has_scriptf || script="false"
 
-  options=( $("${script}" -EE -lll 2>/dev/null) )
+  options=( $(chatgpt.sh -EE -lll 2>/dev/null) )
   ((${#options[@]})) || options=( 'davinci-002'  'gpt-3.5-turbo'  'gpt-3.5-turbo-instruct'
     'gpt-4o'  'gpt-4-turbo'  'text-moderation-latest'
     'mistral-large-latest'  'codestral-latest'  'open-mixtral-8x22b'
@@ -90,9 +84,8 @@ __mod_listf()
 __awesome_listf()
 {
   local options
-  __has_scriptf || return
 
-  options=( $( "${script}" -EE -S ${operator:-/}list 2>&1 \
+  options=( $( chatgpt.sh -EE -S ${operator:-/}list 2>&1 \
       | sed -n '/^ *[0-9][0-9]*/,$ p' \
       | sed "s/[0-9][0-9]*:/${operator2//\//\\/}/g" ) )
   compadd -a options "$@"
@@ -101,12 +94,6 @@ __awesome_list1f() { 	operator="/" operator2="/" __awesome_listf "$@" ;}
 __awesome_list2f() { 	operator="/" operator2=""  __awesome_listf "$@" ;}
 __awesome_list3f() { 	operator="%" operator2="%" __awesome_listf "$@" ;}
 __awesome_list4f() { 	operator="%" operator2=""  __awesome_listf "$@" ;}
-
-#check script path is valid
-__has_scriptf()
-{
-  command -v "${script:-chatgpt.sh}" >/dev/null 2>&1
-}
 
 #main fun
 _chatgpt.sh()
@@ -143,8 +130,9 @@ _chatgpt.sh()
     {-i,--image}'[Image generation, variation or edit]' \
     {-q,-qq,--insert}'[Insert text mode (two for multiturn)]' \
     {-S,--instruction}'[Instruction prompt]:instruction:__pr_list3f' \
-    {-S.-,-S..-,-S\,-}'[Custom prompt]:name:__pr_listf' \
-    {-.+,-\,+,-..-}'[Load custom prompt]:name:__pr_listf' \
+    {-S.-,-.+}'[Load custom prompt]:name:__pr_listf' \
+    {-S\,-,-\,+}'[One-shot edit custom prompt]:name:__pr_listf' \
+    {-S\,\,-,-\,\,+}'[Edit template of custom prompt]:name:__pr_listf' \
     -S/-'[Awesome-prompts]:act:__awesome_list2f' \
     -S%-'[Awesome-prompts]:act:__awesome_list4f' \
     {-T,--tiktoken}'[Count input tokens]' \
