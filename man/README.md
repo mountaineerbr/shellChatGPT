@@ -53,7 +53,7 @@ In chat mode, some options are automatically set to un-lobotomise the
 bot.
 
 Set `option -cc` to start the chat mode via **native chat completions**
-and defaults to *gpt-4o*.
+and defaults to *chatgpt-4o-latest*.
 
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
@@ -125,7 +125,7 @@ as “*.*” to pick from the model list. List available models with
 `option -l`.
 
 Set *maximum response tokens* with `option` “`-`*NUM*” or “`-M` *NUM*”.
-This defaults to *1024* tokens.
+This defaults to *1024* tokens and *25000* for reasoning models.
 
 If a second *NUM* is given to this option, *maximum model capacity* will
 also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and

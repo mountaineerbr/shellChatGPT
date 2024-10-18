@@ -45,7 +45,7 @@ defaults to _gpt-3.5-turbo-instruct_ if none set.
 In chat mode, some options are automatically set to un-lobotomise the bot.
 
 Set `option -cc` to start the chat mode via **native chat completions**
-and defaults to _gpt-4o_.
+and defaults to _chatgpt-4o-latest_.
 
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
@@ -119,7 +119,7 @@ or set it as "_._" to pick from the model list.
 List available models with `option -l`.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
-This defaults to _1024_ tokens.
+This defaults to _1024_ tokens and _25000_ for reasoning models.
 
 If a second _NUM_ is given to this option, _maximum model capacity_
 will also be set. The option syntax takes the form of "`-`_NUM/NUM_",
