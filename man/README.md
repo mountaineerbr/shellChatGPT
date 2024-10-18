@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2024
-title: CHATGPT.SH(1) v0.79.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.79.9 \| General Commands Manual
 ---
 
 ### NAME
@@ -950,6 +950,8 @@ Edit prompt in text editor.
 Set twice to run the text editor interface a single time for the first
 user input.
 
+Set `options -eex` to edit last buffer from cache.
+
 #### Interface Modes
 
 **-c**, **--chat**  
@@ -966,6 +968,8 @@ Start new multi-turn session in plain text completions.
 
 **-e**, **--edit**  
 Edit first input from stdin or file (cmpls/chat).
+
+With `options -eex`, edit last text editor buffer from cache.
 
 **-E**, **-EE**, **--exit**  
 Exit on first run (even with options -cc).

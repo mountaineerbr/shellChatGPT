@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.8  oct/2024  by mountaineerbr  GPL+3
+# v0.79.9  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -516,6 +516,7 @@ Options
 		Set cat prompter, <CTRL-D> flush.
 	-x, -xx, --editor
 		Edit prompt in text editor. Set twice for single-shot.
+		Set options -eex to edit last text buffer from cache.
 
 	Interface Modes
 	-c, --chat
@@ -526,7 +527,8 @@ Options
 	-d, --text
 		Start new multi-turn session in plain text completions.
 	-e, --edit
-		Edit first input from stdin or file (cmpls/chat).
+		Edit the first input before request. (cmpls/chat).
+		With options -eex, edit the last text editor buffer.
 	-E, -EE, --exit
 		Exit on first run (even with -cc).
 	-g, --stream  (defaults)
@@ -2526,7 +2528,10 @@ function edf
 	fi
 
 	((OPTCMPL)) || [[ $pre != *[!$IFS]* ]] || pre="${pre}"$'\n\n'"${ed_msg}"
-	printf "%s\\n" "${pre}${pre:+${NL}${NL}}${rest}${*}" > "$FILETXT"
+	if ((OPTE>1))
+	then 	printf "%s\\n" "${1:+${NL}${NL}}${*}" >> "$FILETXT"; pre= ;  #dont clear buffer
+	else 	printf "%s\\n" "${pre}${pre:+${NL}${NL}}${rest}${*}" > "$FILETXT";
+	fi
 
 	_edf "$FILETXT"
 
@@ -4936,7 +4941,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		d) 	OPTCMPL=1;;
-		e) 	OPTE=1;;
+		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
 		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL MTURN CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
@@ -5542,7 +5547,6 @@ else
 	echo >&2  #!#
 	
 	#option -e, edit first user input
-	((OPTE && OPTX)) && unset OPTE;  #option -x always edits, anyways
 	((OPTE && ${#})) && { 	REPLY=$* EDIT=1 SKIP= WSKIP=; set -- ;}
 
 	while :
