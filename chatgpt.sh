@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.7  oct/2024  by mountaineerbr  GPL+3
+# v0.79.8  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3274,7 +3274,7 @@ function read_charrecf
 	typeset atrim min_len tmout rms threshold init var
 	tmout=0.4    #read timeout
 	atrim=0.26   #audio trim
-	min_len=1.8  #seconds (float)
+	min_len=1.66 #seconds (float)
 	rms=0.0157   #rms amplitude (0.001 to 0.1)
 	threshold="-26dB"  #noise tolerance (-32dbFS to -26dBFS)
 
@@ -5531,7 +5531,7 @@ else
 	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;
 	((OPTRESUME)) && fix_breakf "$FILECHAT";
 
-	if ((${#})) && ((!OPTE)) && [[ ! -e $1 && ! -e ${@:${#}} ]]
+	if ((${#})) && ((!(OPTE+OPTX) )) && [[ ! -e $1 && ! -e ${@:${#}} ]]
 	then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 		sysmsgf "Inst+Prompt:" "~$TKN_PREV tokens"
 	fi
