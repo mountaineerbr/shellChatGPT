@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.11  oct/2024  by mountaineerbr  GPL+3
+# v0.79.12  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -688,10 +688,10 @@ function set_model_epnf
 					*search*) 	EPN=5 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
-		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|text*moderation*|*embed*|*similarity*|*search*)
+		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|*moderation*|*embed*|*similarity*|*search*)
 				case "$1" in
 					*embed*|*similarity*|*search*) 	EPN=5 OPTEMBED=1;;
-					text*moderation*) 	EPN=1 OPTEMBED=1;;
+					*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
 		o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*)
@@ -741,7 +741,7 @@ function model_capf
 		claude-[3-9]*|claude-2.1*) MODMAX=200000;;
 		claude-2.0*|claude-instant*) MODMAX=100000;;
 		llama-[3-9].[1-9]*|llama[4-9]-*|llama[4-9]*) MODMAX=131072;;
-		text*moderation*) 	MODMAX=150000;;
+		*moderation*) 	MODMAX=32768;;
 		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
 		davinci-002|babbage-002) 	MODMAX=16384;;
 		davinci|curie|babbage|ada) 	MODMAX=2049;;
@@ -5075,7 +5075,7 @@ if [[ -n $OPTMARG ]]
 then 	((OPTI)) && MOD_IMAGE=$OPTMARG  #default models for functions
 	((OPTW && !(OPTC+OPTCMPL+MTURN) )) && MOD_AUDIO=$OPTMARG
 	((OPTZ && !(OPTC+OPTCMPL+MTURN) )) && MOD_SPEECH=$OPTMARG
-	case "$MOD" in moderation|mod|oderation|od) 	MOD="text-moderation-stable";; esac;
+	case "$MOD" in moderation|oderation) 	MOD="text-moderation-stable";; esac;
 	[[ $MOD = *moderation* ]] && unset OPTC OPTW OPTWW OPTZ OPTI OPTII MTURN OPTRESUME OPTCMPL OPTEMBED
 else
 	if ((OLLAMA))
