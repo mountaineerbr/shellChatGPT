@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2024
-title: CHATGPT.SH(1) v0.79.9 \| General Commands Manual
+title: CHATGPT.SH(1) v0.79.11 \| General Commands Manual
 ---
 
 ### NAME
@@ -214,7 +214,7 @@ User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
 at “*~/.cache/chatgptsh/*”.
 
 The moderation endpoint can be accessed by setting the model name to
-*text-moderation-latest*.
+*omni-moderation-latest* (or *text-moderation-latest*).
 
 Stdin text is appended to PROMPT, to set a single PROMPT.
 
