@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.10  oct/2024  by mountaineerbr  GPL+3
+# v0.79.11  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1143,7 +1143,7 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! _warmsgf 'Err';
 	else 	{   jq -r '.data[].id' "$FILE" | sort &&
-		    {    ((MISTRALAI+GROQAI+ANTHROPICAI)) || printf '%s\n' text-moderation-latest text-moderation-stable text-moderation-007 ;}
+		    {    ((MISTRALAI+GROQAI+ANTHROPICAI)) || printf '%s\n' text-moderation-latest text-moderation-stable omni-moderation-latest omni-moderation-2024-09-26 ;}
 		} | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
 	fi || ! _warmsgf 'Err:' 'Model list'
 }
