@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.79.11 | General Commands Manual
+% CHATGPT.SH(1) v0.80 | General Commands Manual
 % mountaineerbr
 % October 2024
 
@@ -45,7 +45,8 @@ defaults to _gpt-3.5-turbo-instruct_ if none set.
 In chat mode, some options are automatically set to un-lobotomise the bot.
 
 Set `option -cc` to start the chat mode via **native chat completions**
-and defaults to _chatgpt-4o-latest_.
+and defaults to _gpt-4o_, which is optimised to follow instructions.
+Try _chatgpt-4o-latest_ for a model optimised for chatting instead.
 
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
@@ -1256,7 +1257,7 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
 **-m**, **\--model**   \[_MODEL_]
 
-:     Set language _MODEL_ name. Def=_gpt-3.5-turbo-instruct_, _gpt-4o_.
+:     Set language _MODEL_ name. Def=_gpt-3.5-turbo-instruct_/_gpt-4o_.
 
       Set _MODEL_ name as "_._" to pick from the list.
 

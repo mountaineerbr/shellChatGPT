@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.79.11 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.80 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.79.11 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.80 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2024</p>
 </header>
@@ -227,8 +227,9 @@ if none set.</p>
 <p>In chat mode, some options are automatically set to un-lobotomise the
 bot.</p>
 <p>Set <code>option -cc</code> to start the chat mode via <strong>native
-chat completions</strong> and defaults to
-<em>chatgpt-4o-latest</em>.</p>
+chat completions</strong> and defaults to <em>gpt-4o</em>, which is
+optimised to follow instructions. Try <em>chatgpt-4o-latest</em> for a
+model optimised for chatting instead.</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session, and set <code>option -E</code> to exit on the
 first response (even in multi turn mode).</p>
@@ -1616,7 +1617,7 @@ Def=<em>1</em>.</p>
 <dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
 <dd>
 <p>Set language <em>MODEL</em> name.
-Def=<em>gpt-3.5-turbo-instruct</em>, <em>gpt-4o</em>.</p>
+Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
 <p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
 </dd>
 <dt><strong>--multimodal</strong></dt>

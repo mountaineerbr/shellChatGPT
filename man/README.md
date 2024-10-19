@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2024
-title: CHATGPT.SH(1) v0.79.11 \| General Commands Manual
+title: CHATGPT.SH(1) v0.80 \| General Commands Manual
 ---
 
 ### NAME
@@ -53,7 +53,8 @@ In chat mode, some options are automatically set to un-lobotomise the
 bot.
 
 Set `option -cc` to start the chat mode via **native chat completions**
-and defaults to *chatgpt-4o-latest*.
+and defaults to *gpt-4o*, which is optimised to follow instructions. Try
+*chatgpt-4o-latest* for a model optimised for chatting instead.
 
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
@@ -1090,7 +1091,7 @@ Set Top_k value (local-ai, ollama, google).
 Set how long the model will stay loaded into memory (ollama).
 
 **-m**, **--model** \[*MODEL*\]  
-Set language *MODEL* name. Def=*gpt-3.5-turbo-instruct*, *gpt-4o*.
+Set language *MODEL* name. Def=*gpt-3.5-turbo-instruct*/*gpt-4o*.
 
 Set *MODEL* name as “*.*” to pick from the list.
 

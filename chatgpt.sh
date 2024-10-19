@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.79.13  oct/2024  by mountaineerbr  GPL+3
+# v0.80  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -15,7 +15,7 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-chatgpt-4o-latest}"
+MOD_CHAT="${MOD_CHAT:-gpt-4o}"  #"chatgpt-4o-latest"
 # Image model (generations)
 MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
 # Whisper model (STT)
@@ -2622,10 +2622,10 @@ function _break_sessionf
 	[[ -f "$FILECHAT" ]] || return; typeset tail;
 	
 	tail=$(tail -n 20 -- "$FILECHAT") || return;
-	((${#tail}>12000)) && tail=${tail:${#tail} -10000};
+	((${#tail}>2048)) && tail=${tail:${#tail} -2048};
 	
 	[[ BREAK${tail} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]] \
-	|| printf '%s\n' 'SESSION BREAK' >> "$FILECHAT";
+	|| printf '%s%s\n' "$1" 'SESSION BREAK' >> "$FILECHAT";
 }
 function break_sessionf
 {
@@ -4454,8 +4454,8 @@ do 	_spinf 	#grep session with user regex
 			  ((OPTPRINT)) && break 2;
 
 			  if ((${regex:+1}))
-			  then 	_sysmsgf "Correct session?" '[Y/n/a] ' ''
-			  else 	_sysmsgf "Tail of the correct session?" '[Y]es, [n]o, [r]egex, [a]bort ' ''
+			  then 	_sysmsgf "Correct session?" '[Y/n/p/r/a] ' ''
+			  else 	_sysmsgf "Tail of the correct session?" '[Y]es, [n]o, [p]rint, [r]egex, [a]bort ' ''
 			  fi;
 			  reply=$(read_charf);
 			  case "$reply" in
@@ -4465,7 +4465,10 @@ do 	_spinf 	#grep session with user regex
 					skip=1 ok= ;
 					continue 2;
 					;;
-				[NnOo]|$'\e') ((${regex:+1})) && printf '%s\n' '---' >&2;
+				[Pp]) 	_unescapef "\\n\\n${buff:-err}" >&2;
+					m=0; continue 1;
+					;;
+				[NnOo]|$'\e') ((${regex:+1})) && printf '%s\n\n' '---' >&2;
 					false;
 					;;
 				[AaQq]) echo '[abort]' >&2;
@@ -5299,6 +5302,7 @@ then 	function jq { 	false ;}
 	Color200=$INV _warmsgf 'Warning:' 'JQ not found. Please, install JQ.'
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
+((!(OPTHH+OPTFF+OPTZZ) )) &&
 [[ $(curl --help all 2>&1) = *"fail-with-body"* ]] && FAIL="--fail-with-body" || FAIL="--fail";
 
 trap 'cleanupf; exit;' EXIT
