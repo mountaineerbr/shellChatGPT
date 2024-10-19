@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.80.3  oct/2024  by mountaineerbr  GPL+3
+# v0.80.4  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2049,8 +2049,11 @@ function cmd_runf
 			((++OPTSUFFIX)) ;((OPTSUFFIX%=2))
 			cmdmsgf 'Insert Mode' $(_onoff $OPTSUFFIX)
 			;;
-		-v|verbose)
-			((++OPTV)) ;((OPTV%=3))
+		-v|-vv|-vv*|verbose)
+			set --  ${*//[!v]}; set -- ${*//v/ v};
+			for var
+			do 	((++OPTV)); ((OPTV%=3));
+			done;
 			case "${OPTV:-0}" in
 				1) var='Less';;  2) var='Much less';;
 				0) var='ON'; unset OPTV;;
