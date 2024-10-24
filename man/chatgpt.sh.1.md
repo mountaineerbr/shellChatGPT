@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.80 | General Commands Manual
+% CHATGPT.SH(1) v0.81 | General Commands Manual
 % mountaineerbr
 % October 2024
 
@@ -27,29 +27,46 @@
 
 ### DESCRIPTION
 
-#### Text Completion Modes
+This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
+endpoints from multiple service providers such as OpenAI, LocalAI,
+Ollama, Anthropic, Mistral AI, GoogleAI and Groq AI.
 
 With no options set, complete INPUT in single-turn mode of
-plain text completions. 
+the native chat completion.
 
-`Option -d` starts a multi-turn session in **plain text completions**.
-This does not set further options automatically.
+Handles single-turn and multi-turn modes, pure text completions,
+image generation/editing, speech-to-text, and text-to-speech.
+
+Accepts prompts, text files, PDFs, and image files as input.
+Supports various options for model selection, parameters,
+and output formats.
 
 
 #### Chat Completion Modes
 	
 Set `option -c` to start a multi-turn chat mode via **text completions**
-and record conversation. This option works with instruct models,
+with command line history support. This option works with instruct models,
 defaults to _gpt-3.5-turbo-instruct_ if none set.
+
+Set `options -cc` to start the chat mode via **native chat completions**.
+This mode defaults to the _gpt-4o_ model, which is optimised to follow
+instructions. Try _chatgpt-4o-latest_ for a model optimised for chatting.
 
 In chat mode, some options are automatically set to un-lobotomise the bot.
 
-Set `option -cc` to start the chat mode via **native chat completions**
-and defaults to _gpt-4o_, which is optimised to follow instructions.
-Try _chatgpt-4o-latest_ for a model optimised for chatting instead.
-
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
+
+
+#### Text Completion Modes
+
+`Option -d` starts a multi-turn session in **plain text completions**
+with history support. This does not set further options automatically,
+such as instructions or temperature.
+
+To run the script in text completion in single turn mode, set a text
+completion model such as _gpt-3.5-turbo-instruct_ and other options
+(such as temperature and stops) at the command line invocation.
 
 
 #### Insert Modes (Fill-In-the-Middle)
@@ -230,8 +247,6 @@ or "_Q_" in user confirmation prompts.
 A personal OpenAI API is required, set it with `option --api-key`.
 See also **ENVIRONMENT section**.
 
-This script also supports warping LocalAI, Ollama, Gemini and Mistral APIs.
-
 For complete model and settings information, refer to OpenAI
 API docs at <https://platform.openai.com/docs/>.
 
@@ -252,9 +267,9 @@ or other stop sequences (stops may be set with `-s`).
 sequences are not set automatically if the chat mode of text completions
 is not activated with `option -c`.
 
-To enable **multiline input**, set `option -u`. With this option set,
-press \<_CTRL-D_> to flush input! This is useful to paste from clipboard.
-Alternatively, set `option -U` to set _cat command_ as prompter.
+Readline is set to work with **multiline input** and pasting from the
+clipboard. Alternatively, set `option -u` to enable pressing \<_CTRL-D_>
+to flush input! Or set `option -U` to set _cat command_ as input prompter.
 
 <!--  [DISABLED]
 Type in a backslash "_\\_" as the last character of the input line
@@ -386,7 +401,7 @@ may be either "`!`" or "`/`".
       `!sh`        `!shell`      \[_CMD_]            Run shell or _command_, and edit output. _‡_
      `!sh:`        `!shell:`     \[_CMD_]            Same as `!sh` but apppend output as user.
      `!!sh`        `!!shell`     \[_CMD_]            Run interactive shell (with _command_) and exit.
-     `!url`        `!url:`       \[_URL_]            Dump URL text.
+     `!url`        `!url:`       \[_URL_]            Dump URL text or YouTube transcript text.
  --------------    ------------------------------    ----------------------------------------------------------
 
  Script            Settings and UX

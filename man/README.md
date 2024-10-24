@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2024
-title: CHATGPT.SH(1) v0.80 \| General Commands Manual
+title: CHATGPT.SH(1) v0.81 \| General Commands Manual
 ---
 
 ### NAME
@@ -35,29 +35,45 @@ title: CHATGPT.SH(1) v0.80 \| General Commands Manual
 
 ### DESCRIPTION
 
-#### Text Completion Modes
+This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
+endpoints from multiple service providers such as OpenAI, LocalAI,
+Ollama, Anthropic, Mistral AI, GoogleAI and Groq AI.
 
-With no options set, complete INPUT in single-turn mode of plain text
-completions.
+With no options set, complete INPUT in single-turn mode of the native
+chat completion.
 
-`Option -d` starts a multi-turn session in **plain text completions**.
-This does not set further options automatically.
+Handles single-turn and multi-turn modes, pure text completions, image
+generation/editing, speech-to-text, and text-to-speech.
+
+Accepts prompts, text files, PDFs, and image files as input. Supports
+various options for model selection, parameters, and output formats.
 
 #### Chat Completion Modes
 
 Set `option -c` to start a multi-turn chat mode via **text completions**
-and record conversation. This option works with instruct models,
-defaults to *gpt-3.5-turbo-instruct* if none set.
+with command line history support. This option works with instruct
+models, defaults to *gpt-3.5-turbo-instruct* if none set.
+
+Set `options -cc` to start the chat mode via **native chat
+completions**. This mode defaults to the *gpt-4o* model, which is
+optimised to follow instructions. Try *chatgpt-4o-latest* for a model
+optimised for chatting.
 
 In chat mode, some options are automatically set to un-lobotomise the
 bot.
 
-Set `option -cc` to start the chat mode via **native chat completions**
-and defaults to *gpt-4o*, which is optimised to follow instructions. Try
-*chatgpt-4o-latest* for a model optimised for chatting instead.
-
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
+
+#### Text Completion Modes
+
+`Option -d` starts a multi-turn session in **plain text completions**
+with history support. This does not set further options automatically,
+such as instructions or temperature.
+
+To run the script in text completion in single turn mode, set a text
+completion model such as *gpt-3.5-turbo-instruct* and other options
+(such as temperature and stops) at the command line invocation.
 
 #### Insert Modes (Fill-In-the-Middle)
 
@@ -233,9 +249,6 @@ Press \<*CTRL-\\*\> to exit from the script (send *QUIT* signal), or
 A personal OpenAI API is required, set it with `option --api-key`. See
 also **ENVIRONMENT section**.
 
-This script also supports warping LocalAI, Ollama, Gemini and Mistral
-APIs.
-
 For complete model and settings information, refer to OpenAI API docs at
 <https://platform.openai.com/docs/>.
 
@@ -255,10 +268,10 @@ completing it until probable “`<|endoftext|>`”, or other stop sequences
 start sequences are not set automatically if the chat mode of text
 completions is not activated with `option -c`.
 
-To enable **multiline input**, set `option -u`. With this option set,
-press \<*CTRL-D*\> to flush input! This is useful to paste from
-clipboard. Alternatively, set `option -U` to set *cat command* as
-prompter.
+Readline is set to work with **multiline input** and pasting from the
+clipboard. Alternatively, set `option -u` to enable pressing
+\<*CTRL-D*\> to flush input! Or set `option -U` to set *cat command* as
+input prompter.
 
 <!--  [DISABLED]
 Type in a backslash "_\\_" as the last character of the input line
@@ -379,7 +392,7 @@ either “`!`” or “`/`”.
 | `!sh`     | `!shell` \[*CMD*\]              | Run shell or *command*, and edit output. *‡*            |
 | `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` but apppend output as user.               |
 | `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell (with *command*) and exit.        |
-| `!url`    | `!url:` \[*URL*\]               | Dump URL text.                                          |
+| `!url`    | `!url:` \[*URL*\]               | Dump URL text or YouTube transcript text.               |
 
 | Script  | Settings and UX            |                                                          |
 |:--------|:---------------------------|----------------------------------------------------------|

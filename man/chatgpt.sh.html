@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.80 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.81 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.80 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.81 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2024</p>
 </header>
@@ -213,26 +213,37 @@ Whisper / TTS</div>
 [<code>/</code><em>HIST_FILE</em>|<em>.</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HPw</code></div>
 <h3 id="description">DESCRIPTION</h3>
-<h4 id="text-completion-modes">Text Completion Modes</h4>
-<p>With no options set, complete INPUT in single-turn mode of plain text
-completions.</p>
-<p><code>Option -d</code> starts a multi-turn session in <strong>plain
-text completions</strong>. This does not set further options
-automatically.</p>
+<p>This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
+endpoints from multiple service providers such as OpenAI, LocalAI,
+Ollama, Anthropic, Mistral AI, GoogleAI and Groq AI.</p>
+<p>With no options set, complete INPUT in single-turn mode of the native
+chat completion.</p>
+<p>Handles single-turn and multi-turn modes, pure text completions,
+image generation/editing, speech-to-text, and text-to-speech.</p>
+<p>Accepts prompts, text files, PDFs, and image files as input. Supports
+various options for model selection, parameters, and output formats.</p>
 <h4 id="chat-completion-modes">Chat Completion Modes</h4>
 <p>Set <code>option -c</code> to start a multi-turn chat mode via
-<strong>text completions</strong> and record conversation. This option
-works with instruct models, defaults to <em>gpt-3.5-turbo-instruct</em>
-if none set.</p>
+<strong>text completions</strong> with command line history support.
+This option works with instruct models, defaults to
+<em>gpt-3.5-turbo-instruct</em> if none set.</p>
+<p>Set <code>options -cc</code> to start the chat mode via
+<strong>native chat completions</strong>. This mode defaults to the
+<em>gpt-4o</em> model, which is optimised to follow instructions. Try
+<em>chatgpt-4o-latest</em> for a model optimised for chatting.</p>
 <p>In chat mode, some options are automatically set to un-lobotomise the
 bot.</p>
-<p>Set <code>option -cc</code> to start the chat mode via <strong>native
-chat completions</strong> and defaults to <em>gpt-4o</em>, which is
-optimised to follow instructions. Try <em>chatgpt-4o-latest</em> for a
-model optimised for chatting instead.</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session, and set <code>option -E</code> to exit on the
 first response (even in multi turn mode).</p>
+<h4 id="text-completion-modes">Text Completion Modes</h4>
+<p><code>Option -d</code> starts a multi-turn session in <strong>plain
+text completions</strong> with history support. This does not set
+further options automatically, such as instructions or temperature.</p>
+<p>To run the script in text completion in single turn mode, set a text
+completion model such as <em>gpt-3.5-turbo-instruct</em> and other
+options (such as temperature and stops) at the command line
+invocation.</p>
 <h4 id="insert-modes-fill-in-the-middle">Insert Modes
 (Fill-In-the-Middle)</h4>
 <p>Set <code>option -q</code> for <strong>insert mode</strong>. The flag
@@ -388,8 +399,6 @@ text editor (readline).</p>
 <p>A personal OpenAI API is required, set it with
 <code>option --api-key</code>. See also <strong>ENVIRONMENT
 section</strong>.</p>
-<p>This script also supports warping LocalAI, Ollama, Gemini and Mistral
-APIs.</p>
 <p>For complete model and settings information, refer to OpenAI API docs
 at <a href="https://platform.openai.com/docs/"
 class="uri">https://platform.openai.com/docs/</a>.</p>
@@ -406,11 +415,11 @@ other stop sequences (stops may be set with <code>-s</code>).</p>
 optionally set. Restart and start sequences are not set automatically if
 the chat mode of text completions is not activated with
 <code>option -c</code>.</p>
-<p>To enable <strong>multiline input</strong>, set
-<code>option -u</code>. With this option set, press
-&lt;<em>CTRL-D</em>&gt; to flush input! This is useful to paste from
-clipboard. Alternatively, set <code>option -U</code> to set <em>cat
-command</em> as prompter.</p>
+<p>Readline is set to work with <strong>multiline input</strong> and
+pasting from the clipboard. Alternatively, set <code>option -u</code> to
+enable pressing &lt;<em>CTRL-D</em>&gt; to flush input! Or set
+<code>option -U</code> to set <em>cat command</em> as input
+prompter.</p>
 <!--  [DISABLED]
 Type in a backslash "_\\_" as the last character of the input line
 to append a literal newline once and return to edition,
@@ -623,7 +632,7 @@ either “<code>!</code>” or “<code>/</code>”.</p>
 <tr class="odd">
 <td style="text-align: left;"><code>!url</code></td>
 <td style="text-align: left;"><code>!url:</code> [<em>URL</em>]</td>
-<td>Dump URL text.</td>
+<td>Dump URL text or YouTube transcript text.</td>
 </tr>
 </tbody>
 </table>

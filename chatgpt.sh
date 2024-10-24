@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.80.5  oct/2024  by mountaineerbr  GPL+3
+# v0.81  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -198,26 +198,38 @@ Synopsis
 
 
 Description
-	Text Completion Modes
-
-	With no options set, complete INPUT in single-turn mode of
-	plain text completions.
-
-	Option -d starts a multi-turn session in plain text completions,
-	and does not set further options automatically.
-
+	Wraps ChatGPT, DALL-E, Whisper, and TTS from various providers.
 	
+	Defaults to single-turn native chat completions. Handles single
+	and multi-turn chat, text completions, image generation/editing,
+	speech-to-text, and text-to-speech.
+
+	Accepts prompts, files (text, PDF, image), and options for model
+	selection, parameters, and output.
+
+
 	Chat Completion Modes
 	
 	Set option -c to start multi-turn chat mode via text completions
 	(instruct models) or -cc for native chat completions (gpt-3.5+
-	models).
+	models) with command line history support.
 
 	In chat mode, some options are automatically set to un-lobotomise
 	the bot.
 
 	Option -C resumes (continues from) last history session. Set option
 	-E to exit on response.
+
+
+	Text Completion Modes
+
+	Option -d initiates a multi-turn text completion session with history.
+	Further options (e.g., instructions, temperature) must be specified
+	explicitly. 
+
+	For single-turn text completion, provide the model (e.g.,
+	gpt-3.5-turbo-instruct) and other parameters (e.g., temperature,
+	stop sequences) on the command line.
 
 
 	Insert Modes
@@ -390,7 +402,7 @@ Command List
      !sh      !shell    [CMD]   Run shell or command, and edit output. ‡
      !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
     !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
-     !url     !url:     [URL]   Dump URL text.
+     !url     !url:     [URL]   Dump URL text or YouTube transcript.
    --- Script Settings and UX ---------------------------------------
     !fold     !wrap             Toggle response wrapping.
       -g      !stream           Toggle response streaming.
@@ -1963,7 +1975,10 @@ function cmd_runf
 			[[ $* = ?([/!])url:* ]] && opt_append=1;  #append as user
 			set -- "$(trimf "$(trim_leadf "$*" '@(url|[/!]url)*(:)')" "$SPC")";
 
-			if var=$(set_browsercmdf)
+			if case "$*" in *youtube.com/watch*|*youtu.be/*) 	:;; *) 	! :;; esac
+			then 	yt_transf "$*" > "$FILEFIFO";
+				[[ -s  "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO" || _warmsgf 'Err:' 'YouTube transcript dump fail';
+			elif var=$(set_browsercmdf)
 			then 	((OPTV)) || _printbf "${var%% *}";
 				case "$var" in
 				curl*|google-chrome*|chromium*)
@@ -2638,7 +2653,7 @@ function break_sessionf
 #fix: remove session break
 function fix_breakf
 {
-	[[ $(tail -n 1 "$1") = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] &&
+	[[ $(tail -n 1 "$1" 2>/dev/null) = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] &&
 	  sed -i -e '$d' "$1" && _sysmsgf 'Session Break Removed';
 }
 
@@ -2854,7 +2869,7 @@ function _dialog_optf
 function test_cmplsf
 {
 	((OPTCMPL && !OPTSUFFIX)) || ((OPTSUFFIX)) ||
-	((!OPTCMPL && !OPTC && !MTURN && !OPTSUFFIX && EPN==0))  #demo
+	((!OPTCMPL && !OPTC && !MTURN && !OPTSUFFIX && EPN==0))
 }
 
 #set media for ollama *generation endpoint*
@@ -3035,6 +3050,24 @@ function _is_docf
 	esac;
 }
 function is_docf { 	[[ -f $1 ]] && _is_docf "$1" ;}
+
+#dump youtube video transcription
+function yt_transf
+{
+	curl -Ls "$1" |
+	grep -o '"baseUrl":"https://www.youtube.com/api/timedtext[^"]*lang=en' |
+	cut -d \" -f4 |
+	sed 's/\\u0026/\&/g' |
+	xargs curl -Ls |
+	grep -o '<text[^<]*</text>' |
+	sed -E 's/<text start="([^"]*)".*>(.*)<.*/\1 \2/' |
+	sed 's/\xc2\xa0/ /g;s/&amp;/\&/g' |
+	{ recode xml || cat ;} |
+	awk '{$1=sprintf("%02d:%02d:%02d",$1/3600,$1%3600/60,$1%60)}1' |
+	awk 'NR%n==1{printf"%s ",$1}{sub(/^[^ ]* /,"");printf"%s"(NR%n?FS:RS),$0}' n=2 |
+	awk 1;
+}
+#https://stackoverflow.com/questions/9611397
 
 #alternative to du
 function duf
@@ -5031,7 +5064,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW OPT_SLES RET CURLTIMEOUT MOD_REASON DEMO init buff var tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR PREVIEW OPT_SLES RET CURLTIMEOUT MOD_REASON STURN init buff var tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -5063,6 +5096,7 @@ def byellow: null; \
 def bpurple: null; \
 def reset:   null;"
 
+((!(OPTCMPL+OPTC+OPTZZ+OPTL+OPTI+OPTTIKTOKEN+OPTFF) )) && OPTT=${OPTT:-0.8} STURN=1;  #single-turn no-hist demo
 ((OPTL+OPTZZ)) && unset OPTX
 ((OPTZ && OPTW)) && unset OPTX
 ((OPTI)) && unset OPTC
@@ -5100,7 +5134,7 @@ else
 	elif ((LOCALAI))
 	then 	MOD=$MOD_LOCALAI
 	elif ((!OPTCMPL))
-	then 	if ((OPTC>1))  #chat
+	then 	if ((OPTC>1||STURN))  #chat / single-turn
 		then 	MOD=$MOD_CHAT
 		elif ((OPTW)) && ((!MTURN))  #whisper endpoint
 		then 	((GROQAI)) && MOD_AUDIO=$MOD_AUDIO_GROQ
@@ -5341,8 +5375,7 @@ elif ((OPTHH))  #edit history/pretty print last session
 then 	OPTRESUME=1 
 	[[ -z $INSTRUCTION && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
 	if [[ $INSTRUCTION = [.,]* ]]
-	then 	##[[ $INSTRUCTION = [.,][.,]* ]] && OPTV=4  #when "..[prompt]"
-		custom_prf
+	then 	custom_prf
 	elif [[ -n $* ]] && [[ $* != *($SPC)/* ]]
 	then 	set -- /session"$@"
 	fi
@@ -5997,7 +6030,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		if ((PREVIEW==1))
 		then 	((OPTK)) || JQCOL2='def byellow: yellow;'
 		else 	unset JQCOL2
-		fi; ((OPTC)) && echo >&2
+		fi; ((OPTC||(STURN && EPN==6) )) && echo >&2
 
 		#request and response prompts
 		SECONDS_REQ=${EPOCHREALTIME:-$SECONDS};

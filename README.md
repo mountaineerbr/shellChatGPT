@@ -456,12 +456,12 @@ These unexpected use cases demonstrate the versatility of the `chatgpt.sh` scrip
 This is the pure text completions endpoint. It is typically used to
 complete input text, such as for completing part of an essay.
 
-One-shot text completion:
+One-shot text completion, sets max completion tokens to 128 and the text completion model name:
 
-    chatgpt.sh "Hello there! What is your name?"
+    chatgpt.sh -128 -m gpt-3.5-turbo-instruct "Hello there! Your name is"
 
 
-**NOTE:** For multiturn, set `option -d`.
+**NOTE:** For multiturn mode with history support, set `option -d`.
 
 
 A strong Instruction prompt may be needed for the language model to do what is required.
