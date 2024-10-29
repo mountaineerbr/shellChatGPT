@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.82.1  oct/2024  by mountaineerbr  GPL+3
+# v0.82.2  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2994,6 +2994,53 @@ function _is_docf
 }
 function is_docf { 	[[ -f $1 ]] && _is_docf "$1" ;}
 
+# Filtro HTML
+#https://ascii.cl/htmlcodes.htm
+#https://www.freeformatter.com/html-entities.html
+function sedhtmlf
+{
+	sed -E -e 's/\xc2\xa0/ /g ; s/&mdash;/--/g' -e 's/&quot;/"/g' -e "s/&apos;/'/g" \
+	-e 's/&#32;/ /g ;s/&#33;/!/g ;s/&#34;/"/g ;s/&#35;/#/g ;s/&#36;/$/g' \
+	-e 's/&#37;/%/g' -e "s/&#39;/'/g" -e 's/&#40;/(/g ;s/&#41;/)/g ;s/&#42;/*/g' \
+	-e 's/&#43;/+/g ;s/&#44;/,/g ;s/&#45;/-/g ;s/&#46;/./g ;s/&#47;/\//g' \
+	-e 's/&#58;/:/g ;s/&#59;/;/g ;s/&#61;/=/g ;s/&#63;/?/g ;s/&#64;/@/g' \
+	-e 's/&#91;/[/g ;s/&#92;/\\/g ;s/&#93;/]/g ;s/&#94;/^/g ;s/&#95;/_/g' \
+	-e 's/&#96;/`/g ;s/&#123;/{/g ;s/&#124;/|/g ;s/&#125;/}/g ;s/&#126;/~/g' \
+	-e 's/(&amp;|&#38;)/\&/g ;s/(&lt;|&#60;)/</g ;s/(&gt;|&#62;)/>/g ;s/(&Agrave;|&#192;)/À/g' \
+	-e 's/(&Aacute;|&#193;)/Á/g ;s/(&Acirc;|&#194;)/Â/g ;s/(&Atilde;|&#195;)/Ã/g ;s/(&Auml;|&#196;)/Ä/g' \
+	-e 's/(&Aring;|&#197;)/Å/g ;s/(&AElig;|&#198;)/Æ/g ;s/(&Ccedil;|&#199;)/Ç/g ;s/(&Egrave;|&#200;)/È/g' \
+	-e 's/(&Eacute;|&#201;)/É/g ;s/(&Ecirc;|&#202;)/Ê/g ;s/(&Euml;|&#203;)/Ë/g ;s/(&Igrave;|&#204;)/Ì/g' \
+	-e 's/(&Iacute;|&#205;)/Í/g ;s/(&Icirc;|&#206;)/Î/g ;s/(&Iuml;|&#207;)/Ï/g ;s/(&ETH;|&#208;)/Ð/g' \
+	-e 's/(&Ntilde;|&#209;)/Ñ/g ;s/(&Ograve;|&#210;)/Ò/g ;s/(&Oacute;|&#211;)/Ó/g ;s/(&Ocirc;|&#212;)/Ô/g' \
+	-e 's/(&Otilde;|&#213;)/Õ/g ;s/(&Ouml;|&#214;)/Ö/g ;s/(&Oslash;|&#216;)/Ø/g ;s/(&Ugrave;|&#217;)/Ù/g' \
+	-e 's/(&Uacute;|&#218;)/Ú/g ;s/(&Ucirc;|&#219;)/Û/g ;s/(&Uuml;|&#220;)/Ü/g ;s/(&Yacute;|&#221;)/Ý/g' \
+	-e 's/(&THORN;|&#222;)/Þ/g ;s/(&szlig;|&#223;)/ß/g ;s/(&agrave;|&#224;)/à/g ;s/(&aacute;|&#225;)/á/g' \
+	-e 's/(&acirc;|&#226;)/â/g ;s/(&atilde;|&#227;)/ã/g ;s/(&auml;|&#228;)/ä/g ;s/(&aring;|&#229;)/å/g' \
+	-e 's/(&aelig;|&#230;)/æ/g ;s/(&ccedil;|&#231;)/ç/g ;s/(&egrave;|&#232;)/è/g ;s/(&eacute;|&#233;)/é/g' \
+	-e 's/(&ecirc;|&#234;)/ê/g ;s/(&euml;|&#235;)/ë/g ;s/(&igrave;|&#236;)/ì/g ;s/(&iacute;|&#237;)/í/g' \
+	-e 's/(&icirc;|&#238;)/î/g ;s/(&iuml;|&#239;)/ï/g ;s/(&eth;|&#240;)/ð/g ;s/(&ntilde;|&#241;)/ñ/g' \
+	-e 's/(&ograve;|&#242;)/ò/g ;s/(&oacute;|&#243;)/ó/g ;s/(&ocirc;|&#244;)/ô/g ;s/(&otilde;|&#245;)/õ/g' \
+	-e 's/(&ouml;|&#246;)/ö/g ;s/(&oslash;|&#248;)/ø/g ;s/(&ugrave;|&#249;)/ù/g ;s/(&uacute;|&#250;)/ú/g' \
+	-e 's/(&ucirc;|&#251;)/û/g ;s/(&uuml;|&#252;)/ü/g ;s/(&yacute;|&#253;)/ý/g ;s/(&thorn;|&#254;)/þ/g' \
+	-e 's/(&yuml;|&#255;)/ÿ/g ;s/(&#160;|&nbsp;)/ /g ;s/(&iexcl;|&#161;)/¡/g ;s/(&cent;|&#162;)/¢/g' \
+	-e 's/(&pound;|&#163;)/£/g ;s/(&curren;|&#164;)/¤/g ;s/(&yen;|&#165;)/¥/g ;s/(&brvbar;|&#166;)/¦/g' \
+	-e 's/(&sect;|&#167;)/§/g ;s/(&uml;|&#168;)/¨/g ;s/(&copy;|&#169;)/©/g ;s/(&ordf;|&#170;)/ª/g' \
+	-e 's/(&laquo;|&#171;)/«/g ;s/(&not;|&#172;)/¬/g ;s/(&shy;|&#173;)/­/g ;s/(&reg;|&#174;)/®/g' \
+	-e 's/(&macr;|&#175;)/¯/g ;s/(&deg;|&#176;)/°/g ;s/(&plusmn;|&#177;)/±/g ;s/(&sup2;|&#178;)/²/g' \
+	-e 's/(&sup3;|&#179;)/³/g ;s/(&acute;|&#180;)/´/g ;s/(&micro;|&#181;)/µ/g ;s/(&para;|&#182;)/¶/g' \
+	-e 's/(&cedil;|&#184;)/¸/g ;s/(&sup1;|&#185;)/¹/g ;s/(&ordm;|&#186;)/º/g ;s/(&raquo;|&#187;)/»/g' \
+	-e 's/(&frac14;|&#188;)/¼/g ;s/(&frac12;|&#189;)/½/g ;s/(&frac34;|&#190;)/¾/g ;s/(&iquest;|&#191;)/¿/g' \
+	-e 's/(&times;|&#215;)/×/g ;s/(&divide;|&#247;)/÷/g ;s/(&circ;|&#710;)/ˆ/g ;s/(&tilde;|&#732;)/˜/g' \
+	-e 's/(&ensp;|&#8194;)/ /g ;s/(&emsp;|&#8195;)/ /g ;s/(&thinsp;|&#8201;)/ /g ;s/(&ndash;|&#8211;)/–/g' \
+	-e 's/(&mdash;|&#8212;)/—/g ;s/(&lsquo;|&#8216;)/‘/g ;s/(&rsquo;|&#8217;)/’/g ;s/(&sbquo;|&#8218;)/‚/g' \
+	-e 's/(&ldquo;|&#8220;)/“/g ;s/(&rdquo;|&#8221;)/”/g ;s/(&bdquo;|&#8222;)/„/g ;s/(&dagger;|&#8224;)/†/g' \
+	-e 's/(&Dagger;|&#8225;)/‡/g ;s/(&bull;|&#8226;)/•/g ;s/(&hellip;|&#8230;)/…/g ;s/(&permil;|&#8240;)/‰/g' \
+	-e 's/(&prime;|&#8242;)/′/g ;s/(&Prime;|&#8243;)/″/g ;s/(&lsaquo;|&#8249;)/‹/g ;s/(&rsaquo;|&#8250;)/›/g' \
+	-e 's/(&oline;|&#8254;)/‾/g ;s/(&euro;|&#8364;)/€/g ;s/(&trade;|&#8482;)/™/g ;s/(&larr;|&#8592;)/←/g' \
+	-e 's/(&uarr;|&#8593;)/↑/g ;s/(&rarr;|&#8594;)/→/g ;s/(&darr;|&#8595;)/↓/g ;s/(&harr;|&#8596;)/↔/g' \
+	-e 's/(&crarr;|&#8629;)/↵/g';
+}
+
 #dump youtube video transcription
 function yt_transf
 {
@@ -3005,10 +3052,10 @@ function yt_transf
 	grep -o '<text[^<]*</text>' |
 	sed -E 's/<text start="([^"]*)".*>(.*)<.*/\1 \2/' |
 	sed 's/\xc2\xa0/ /g;s/&amp;/\&/g' |
-	{ recode xml || cat ;} |
+	{ sedhtmlf || cat ;} |
 	awk '{$1=sprintf("%02d:%02d:%02d",$1/3600,$1%3600/60,$1%60)}1' |
 	awk 'NR%n==1{printf"%s ",$1}{sub(/^[^ ]* /,"");printf"%s"(NR%n?FS:RS),$0}' n=2 |
-	awk 1;
+	awk 1 | sed 's/^00://';
 }
 #https://stackoverflow.com/questions/9611397
 
@@ -5169,7 +5216,7 @@ then 	: ${MISTRAL_API_KEY:?Required}
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB;
 elif unset MISTRAL_API_KEY MISTRAL_API_HOST MISTRALAI;
 #github azure api
-	[[ $OPENAI_API_HOST = *.ai.azure.com* ]] || ((GITHUBAI))
+	[[ $OPENAI_API_HOST = *ai.azure.com* ]] || ((GITHUBAI))
 then
 	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}
 	((${#GITHUB_API_HOST})) && OPENAI_API_HOST=$GITHUB_API_HOST || GITHUB_API_HOST=$GITHUB_API_HOST_DEF;
@@ -5480,7 +5527,7 @@ else
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
 		OPTT="${OPTT:-0.8}";  #!#
 		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI)) || OPTA="${OPTA:-0.6}";
-		{ [[ $OPENAI_API_HOST = *.ai.azure.com* ]] || ((GITHUBAI)) ;} && unset OPTA OPTAA;
+		{ [[ $OPENAI_API_HOST = *ai.azure.com* ]] || ((GITHUBAI)) ;} && unset OPTA OPTAA;
 
 		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
 		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
