@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.81 | General Commands Manual
+CHATGPT.SH(1) v0.82 | General Commands Manual
 mountaineerbr
 October 2024
 
@@ -27,7 +27,7 @@ DESCRIPTION
 
 This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
 endpoints from multiple service providers such as OpenAI, LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI and Groq AI.
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, and GitHub Models.
 
 With no options set, complete INPUT in single-turn mode of the native
 chat completion.
@@ -343,14 +343,14 @@ either “!” or “/”.
   !i        !info                 Information on model and session settings.
   !j        !jump                 Jump to request, append start seq primer (text cmpls).
   !!j       !!jump                Jump to request, no response priming.
-  !md       !markdown [SOFTW]     Toggle markdown rendering in response.
-  !!md      !!markdown [SOFTW]    Render last response in markdown.
-  !rep      !replay               Replay last TTS audio response.
-  !res      !resubmit             Resubmit last TTS recorded input from cache.
   !cat      -                     Cat prompter as one-shot, <CTRL-D> flush.
   !cat      !cat: [TXT|URL|PDF]   Cat text, PDF file, or dump URL.
   !dialog   -                     Toggle the “dialog” interface.
   !img      !media [FILE|URL]     Append image, media, or URL to prompt.
+  !md       !markdown [SOFTW]     Toggle markdown rendering in response.
+  !!md      !!markdown [SOFTW]    Render last response in markdown.
+  !rep      !replay               Replay last TTS audio response.
+  !res      !resubmit             Resubmit last TTS recorded input from cache.
   !p        !pick, [PROPMT]       File picker, appends filepath to user prompt. ‡
   !pdf      !pdf: [FILE]          Convert PDF and dump text.
   !photo    !!photo [INDEX]       Take a photo, optionally set camera index (Termux). ‡
@@ -359,41 +359,40 @@ either “!” or “/”.
   !!sh      !!shell [CMD]         Run interactive shell (with command) and exit.
   !url      !url: [URL]           Dump URL text or YouTube transcript text.
 
-  Script   Settings and UX        
-  -------- ---------------------- ------------------------------------------------------
-  !fold    !wrap                  Toggle response wrapping.
-  -g       !stream                Toggle response streaming.
-  -h       !!h [REGEX]            Print help or grep help for regex.
-  !help    !help-assist [QUERY]   Run the help assistant function.
-  -l       !models [NAME]         List language models or show model details.
-  -o       !clip                  Copy responses to clipboard.
-  -u       !multi                 Toggle multiline prompter. <CTRL-D> flush.
-  -uu      !!multi                Multiline, one-shot. <CTRL-D> flush.
-  -U       -UU                    Toggle cat prompter or set one-shot. <CTRL-D> flush.
-  -V       !debug                 Dump raw request block and confirm.
-  -v       !ver                   Toggle verbose modes.
-  -x       !ed                    Toggle text editor interface.
-  -xx      !!ed                   Single-shot text editor.
-  -y       !tik                   Toggle python tiktoken use.
-  !q       !quit                  Exit. Bye.
+  Script   Settings and UX   
+  -------- ----------------- ------------------------------------------------------
+  !fold    !wrap             Toggle response wrapping.
+  -g       !stream           Toggle response streaming.
+  -h       !help [REGEX]     Print help or grep help for regex.
+  -l       !models [NAME]    List language models or show model details.
+  -o       !clip             Copy responses to clipboard.
+  -u       !multi            Toggle multiline prompter. <CTRL-D> flush.
+  -uu      !!multi           Multiline, one-shot. <CTRL-D> flush.
+  -U       -UU               Toggle cat prompter or set one-shot. <CTRL-D> flush.
+  -V       !debug            Dump raw request block and confirm.
+  -v       !ver              Toggle verbose modes.
+  -x       !ed               Toggle text editor interface.
+  -xx      !!ed              Single-shot text editor.
+  -y       !tik              Toggle python tiktoken use.
+  !q       !quit             Exit. Bye.
 
   Model   Settings            
   ------- ------------------- ------------------------------------------------
   -Nill   !Nill               Toggle model max response (chat cmpls).
-  -M      !NUM !max [NUM]     Set maximum response tokens.
-  -N      !modmax [NUM]       Set model token capacity.
-  -a      !pre [VAL]          Set presence penalty.
-  -A      !freq [VAL]         Set frequency penalty.
-  -b      !best [NUM]         Set best-of n results.
-  -j      !seed [NUM]         Set a seed number (integer).
-  -K      !topk [NUM]         Set top_k.
-  -m      !mod [MOD]          Set model by name, empty to pick from list.
-  -n      !results [NUM]      Set number of results.
-  -p      !topp [VAL]         Set top_p.
-  -r      !restart [SEQ]      Set restart sequence.
-  -R      !start [SEQ]        Set start sequence.
-  -s      !stop [SEQ]         Set one stop sequence.
-  -t      !temp [VAL]         Set temperature.
+  -M      !NUM !max [NUM]     Maximum response tokens.
+  -N      !modmax [NUM]       Model token capacity.
+  -a      !pre [VAL]          Presence penalty.
+  -A      !freq [VAL]         Frequency penalty.
+  -b      !best [NUM]         Best-of n results.
+  -j      !seed [NUM]         Seed number (integer).
+  -K      !topk [NUM]         Top_k.
+  -m      !mod [MOD]          Model by name, empty to pick from list.
+  -n      !results [NUM]      Number of results.
+  -p      !topp [VAL]         Top_p.
+  -r      !restart [SEQ]      Restart sequence.
+  -R      !start [SEQ]        Start sequence.
+  -s      !stop [SEQ]         One stop sequence.
+  -t      !temp [VAL]         Temperature.
   -w      !rec [ARGS]         Toggle Whisper. Optionally, set arguments.
   -z      !tts [ARGS]         Toggle TTS chat mode (speech out).
   !ka     !keep-alive [NUM]   Set duration of model load in memory (Ollama).
@@ -661,11 +660,14 @@ Ollama project guidelines and own methods.
 For Google Gemini, set environment variable $GOOGLE_API_KEY, and run the
 script with the command line option --google.
 
-And for Groq, set the environmental variable $GROQ_API_KEY. Run the
-script with option --groq. Whisper endpoint available.
+For Groq, set the environmental variable $GROQ_API_KEY. Run the script
+with option --groq. Whisper endpoint available.
 
-And for Anthropic, set envar $ANTHROPIC_API_KEY or command line
-option --anthropic.
+For Anthropic, set envar $ANTHROPIC_API_KEY and run the script with
+command line option --anthropic.
+
+And for GitHub Models, $GITHUB_TOKEN and invoke the script with
+option --github.
 
 ENVIRONMENT
 
@@ -704,7 +706,7 @@ MOD_SPEECH, MOD_LOCALAI, MOD_OLLAMA,
 
 MOD_MISTRAL, MOD_GOOGLE, MOD_GROQ,
 
-MOD_AUDIO_GROQ, MOD_ANTHROPIC
+MOD_AUDIO_GROQ, MOD_ANTHROPIC, MOD_GITHUB
 
     Set default model for each endpoint / provider.
 
@@ -718,13 +720,13 @@ OPENAI_API_HOST_STATIC
 PROVIDER_API_HOST
 
     API host URL for the providers LOCALAI, OLLAMA, MISTRAL, GOOGLE,
-    ANTHROPIC, and GROQ.
+    ANTHROPIC, GROQ, and GITHUB.
 
 OPENAI_API_KEY
 
 PROVIDER_API_KEY
 
-    Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
+    Keys for OpenAI, GoogleAI, MistralAI, Groq, and GitHub APIs.
 
 OUTDIR
 
@@ -830,6 +832,10 @@ Service Providers
 --anthropic, --ant
 
     Set Anthropic integration (cmpls/chat).
+
+--github, --git
+
+    Set GitHub Models integration (chat).
 
 --google, -goo
 

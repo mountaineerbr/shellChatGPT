@@ -94,7 +94,7 @@ _chatgptsh()
         -f --no-conf
         -F -FF
         --fold --no-fold
-        --google  --groq  --anthropic  --openai
+        --google  --groq  --anthropic  --github  --openai
         -h --help
         -H --hist -HH -P -PP --print
         -k --no-colour

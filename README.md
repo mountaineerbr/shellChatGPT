@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, Gemini, Mistral, and Groq integration.
+Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, Gemini, Mistral, Groq and GitHub Models integration.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
@@ -53,47 +53,47 @@ If no suffix is provided, it works as plain text completions.
   - 3.6 [Chat Mode of Text Completions](#chat-mode-of-text-completions)
   - 3.7 [Text Completions](#-text-completions)
     - 3.7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
-- 4. [Script Help Assistant](#script-help-assistant)
-- 5. [Markdown](#markdown)
-- 6. [Prompts](#-prompts)
-  - 6.1 [Custom Prompts](#-custom-prompts)
-  - 6.2 [Awesome Prompts](#-awesome-prompts)
-- 7. [Shell Completion](#shell-completion)
-  - 7.1 [Bash](#bash)
-  - 7.2 [Zsh](#zsh)
-  - 7.3 [Troubleshoot](#troubleshoot-shell)
-- 8. [Notes and Tips](#-notes-and-tips)
-- 9. [More Script Modes](#more-script-modes)
-  - 9.1 [Image Generations](#-image-generations)
-  - 9.2 [Image Variations](#image-variations)
-  - 9.3 [Image Edits](#image-edits)
-    - 9.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
-    - 9.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
-  - 9.4 [Audio Transcriptions / Translations](#-audio-transcriptions--translations)
-- 10. [Service Providers](#service-providers)
-  - 10.1 [LocalAI](#localai)
-    - 10.1.1 [LocalAI Server](#localai-server)
-    - 10.1.2 [Tips](#tips)
-    - 10.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
-    - 10.1.4 [Installing Models](#installing-models)
-    - 10.1.5 [Host API Configuration](#host-api-configuration)
-  - 10.2 [Ollama](#ollama)
-  - 10.3 [Google AI](#google-ai)
-  - 10.4 [Mistral AI](#mistral-ai)
-  - 10.5 [Groq](#groq)
-  - 10.6 [Anthropic](#anthropic)
-- 11. [Arch Linux Users](#arch-linux-users)
-- 12. [Termux Users](#termux-users)
-  - 12.1 [Dependencies](#dependencies-termux)
-  - 12.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
-  - 12.3 [Tiktoken](#tiktoken)
-  - 12.4 [Troubleshoot](#troubleshoot-termux)
-- 13. [Project Objectives](#-project-objectives)
-- 14. [Limitations](#%EF%B8%8F-limitations)
-- 15. [Bug report](#bug-report)
-- 16. [Help Pages](#-help-pages)
-- 17. [Contributors](#-contributors)
-- 18. [Acknowledgements](#acknowledgements)
+- 4. [Markdown](#markdown)
+- 5. [Prompts](#-prompts)
+  - 5.1 [Custom Prompts](#-custom-prompts)
+  - 5.2 [Awesome Prompts](#-awesome-prompts)
+- 6. [Shell Completion](#shell-completion)
+  - 6.1 [Bash](#bash)
+  - 6.2 [Zsh](#zsh)
+  - 6.3 [Troubleshoot](#troubleshoot-shell)
+- 7. [Notes and Tips](#-notes-and-tips)
+- 8. [More Script Modes](#more-script-modes)
+  - 8.1 [Image Generations](#-image-generations)
+  - 8.2 [Image Variations](#image-variations)
+  - 8.3 [Image Edits](#image-edits)
+    - 8.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
+    - 8.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
+  - 8.4 [Audio Transcriptions / Translations](#-audio-transcriptions--translations)
+- 9. [Service Providers](#service-providers)
+  - 9.1 [LocalAI](#localai)
+    - 9.1.1 [LocalAI Server](#localai-server)
+    - 9.1.2 [Tips](#tips)
+    - 9.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
+    - 9.1.4 [Installing Models](#installing-models)
+    - 9.1.5 [Host API Configuration](#host-api-configuration)
+  - 9.2 [Ollama](#ollama)
+  - 9.3 [Google AI](#google-ai)
+  - 9.4 [Mistral AI](#mistral-ai)
+  - 9.5 [Groq](#groq)
+  - 9.6 [Anthropic](#anthropic)
+  - 9.7 [GitHub](#github)
+- 10. [Arch Linux Users](#arch-linux-users)
+- 11. [Termux Users](#termux-users)
+  - 11.1 [Dependencies](#dependencies-termux)
+  - 11.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
+  - 11.3 [Tiktoken](#tiktoken)
+  - 11.4 [Troubleshoot](#troubleshoot-termux)
+- 12. [Project Objectives](#-project-objectives)
+- 13. [Limitations](#%EF%B8%8F-limitations)
+- 14. [Bug report](#bug-report)
+- 15. [Help Pages](#-help-pages)
+- 16. [Contributors](#-contributors)
+- 17. [Acknowledgements](#acknowledgements)
 
 </details>
 
@@ -109,7 +109,7 @@ If no suffix is provided, it works as plain text completions.
    easily create and set the initial system prompt
 - **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
 - Integration with [LocalAI](#localai), [Ollama](#ollama),
-   [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), and [Anthropic](#anthropic)
+   [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), [Anthropic](#anthropic), and [GitHub Models](#github)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
    [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 - [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
@@ -512,7 +512,7 @@ The last working shell script version that works with this endpoint
 is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978e6f7630a3a6ebffc1efbe5a49b60bead4c).
 -->
 
-
+<!-- REMOVED
 ## Script Help Assistant
 
 If you have got a question about the script itself and how to set it up,
@@ -521,7 +521,7 @@ there is a built-in assistant (much like **M$ Office Clipper**).
 While in chat mode, type the command `/help [question]`, in which the question
 is related to script features and your current chat settings, and how
 you can change them or invoke the script with the right syntax!
-
+-->
 
 ## Markdown
 
@@ -1054,6 +1054,26 @@ Try:
 ```
 
 
+### GitHub
+
+GitHub has partnered with Azure to use its infratructure.
+
+As a GitHub user, join the [waitlist](https://github.com/marketplace/models/waitlist/join)
+and then generate a [personal token](https://github.com/settings/tokens).
+Set the environmental variable `$GITHUB_TOKEN` and run the
+script with `option --github` or `--git`.
+
+Check the [on-line model list](https://github.com/marketplace/models)
+or list the available models and their original names with `chatgpt.sh --github -l`.
+
+
+```
+    chatgpt.sh --github -m Phi-3-small-8k-instruct
+```
+
+See also the [GitHub Model Catalog - Getting Started](https://techcommunity.microsoft.com/t5/educator-developer-blog/github-model-catalog-getting-started/ba-p/4212711) page.
+
+
 <!--
 ## 🌎 Environment
 
@@ -1295,15 +1315,14 @@ Read the online [**man page here**](man/README.md).
 
 Alternatively, a help page snippet can be printed with `chatgpt.sh -h`.
 
-Also check the built-in [Script Help Assistant](#script-help-assistant).
-
 
 ## 💪 Contributors
 
-***Many Thanks*** to all that contributed to this project.
+***Many Thanks*** to everyone who contributed to this project.
 
 
-[edshamis](https://www.github.com/edshamis)
+- [edshamis](https://www.github.com/edshamis)
+- [johnd0e](https://github.com/johnd0e)
 
 
 ## Acknowledgements

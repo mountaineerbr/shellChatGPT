@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.81 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.82 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,7 +174,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.81 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.82 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2024</p>
 </header>
@@ -215,7 +215,7 @@ Whisper / TTS</div>
 <h3 id="description">DESCRIPTION</h3>
 <p>This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
 endpoints from multiple service providers such as OpenAI, LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI and Groq AI.</p>
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, and GitHub Models.</p>
 <p>With no options set, complete INPUT in single-turn mode of the native
 chat completion.</p>
 <p>Handles single-turn and multi-turn modes, pure text completions,
@@ -556,28 +556,6 @@ either “<code>!</code>” or “<code>/</code>”.</p>
 <td>Jump to request, no response priming.</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>!md</code></td>
-<td style="text-align: left;"><code>!markdown</code>
-[<em>SOFTW</em>]</td>
-<td>Toggle markdown rendering in response.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!!md</code></td>
-<td style="text-align: left;"><code>!!markdown</code>
-[<em>SOFTW</em>]</td>
-<td>Render last response in markdown.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!rep</code></td>
-<td style="text-align: left;"><code>!replay</code></td>
-<td>Replay last TTS audio response.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!res</code></td>
-<td style="text-align: left;"><code>!resubmit</code></td>
-<td>Resubmit last TTS recorded input from cache.</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;">-</td>
 <td>Cat prompter as one-shot, &lt;<em>CTRL-D</em>&gt; flush.</td>
@@ -598,6 +576,28 @@ either “<code>!</code>” or “<code>/</code>”.</p>
 <td style="text-align: left;"><code>!media</code>
 [<em>FILE</em>|<em>URL</em>]</td>
 <td>Append image, media, or URL to prompt.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!md</code></td>
+<td style="text-align: left;"><code>!markdown</code>
+[<em>SOFTW</em>]</td>
+<td>Toggle markdown rendering in response.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!!md</code></td>
+<td style="text-align: left;"><code>!!markdown</code>
+[<em>SOFTW</em>]</td>
+<td>Render last response in markdown.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!rep</code></td>
+<td style="text-align: left;"><code>!replay</code></td>
+<td>Replay last TTS audio response.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!res</code></td>
+<td style="text-align: left;"><code>!resubmit</code></td>
+<td>Resubmit last TTS recorded input from cache.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!p</code></td>
@@ -657,67 +657,61 @@ either “<code>!</code>” or “<code>/</code>”.</p>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-h</code></td>
-<td style="text-align: left;"><code>!!h</code> [<em>REGEX</em>]</td>
+<td style="text-align: left;"><code>!help</code> [<em>REGEX</em>]</td>
 <td>Print help or grep help for regex.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>!help</code></td>
-<td style="text-align: left;"><code>!help-assist</code>
-[<em>QUERY</em>]</td>
-<td>Run the help assistant function.</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;"><code>-l</code></td>
 <td style="text-align: left;"><code>!models</code> [<em>NAME</em>]</td>
 <td>List language models or show model details.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-o</code></td>
 <td style="text-align: left;"><code>!clip</code></td>
 <td>Copy responses to clipboard.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-u</code></td>
 <td style="text-align: left;"><code>!multi</code></td>
 <td>Toggle multiline prompter. &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-uu</code></td>
 <td style="text-align: left;"><code>!!multi</code></td>
 <td>Multiline, one-shot. &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-U</code></td>
 <td style="text-align: left;"><code>-UU</code></td>
 <td>Toggle cat prompter or set one-shot. &lt;<em>CTRL-D</em>&gt;
 flush.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-V</code></td>
 <td style="text-align: left;"><code>!debug</code></td>
 <td>Dump raw request block and confirm.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-v</code></td>
 <td style="text-align: left;"><code>!ver</code></td>
 <td>Toggle verbose modes.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-x</code></td>
 <td style="text-align: left;"><code>!ed</code></td>
 <td>Toggle text editor interface.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-xx</code></td>
 <td style="text-align: left;"><code>!!ed</code></td>
 <td>Single-shot text editor.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-y</code></td>
 <td style="text-align: left;"><code>!tik</code></td>
 <td>Toggle python tiktoken use.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!q</code></td>
 <td style="text-align: left;"><code>!quit</code></td>
 <td>Exit. Bye.</td>
@@ -742,72 +736,72 @@ flush.</td>
 <td style="text-align: left;"><code>-M</code></td>
 <td style="text-align: left;"><code>!NUM</code> <code>!max</code>
 [<em>NUM</em>]</td>
-<td>Set maximum response tokens.</td>
+<td>Maximum response tokens.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-N</code></td>
 <td style="text-align: left;"><code>!modmax</code> [<em>NUM</em>]</td>
-<td>Set model token capacity.</td>
+<td>Model token capacity.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-a</code></td>
 <td style="text-align: left;"><code>!pre</code> [<em>VAL</em>]</td>
-<td>Set presence penalty.</td>
+<td>Presence penalty.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-A</code></td>
 <td style="text-align: left;"><code>!freq</code> [<em>VAL</em>]</td>
-<td>Set frequency penalty.</td>
+<td>Frequency penalty.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-b</code></td>
 <td style="text-align: left;"><code>!best</code> [<em>NUM</em>]</td>
-<td>Set best-of n results.</td>
+<td>Best-of n results.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-j</code></td>
 <td style="text-align: left;"><code>!seed</code> [<em>NUM</em>]</td>
-<td>Set a seed number (integer).</td>
+<td>Seed number (integer).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-K</code></td>
 <td style="text-align: left;"><code>!topk</code> [<em>NUM</em>]</td>
-<td>Set top_k.</td>
+<td>Top_k.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-m</code></td>
 <td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
-<td>Set model by name, empty to pick from list.</td>
+<td>Model by name, empty to pick from list.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-n</code></td>
 <td style="text-align: left;"><code>!results</code> [<em>NUM</em>]</td>
-<td>Set number of results.</td>
+<td>Number of results.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-p</code></td>
 <td style="text-align: left;"><code>!topp</code> [<em>VAL</em>]</td>
-<td>Set top_p.</td>
+<td>Top_p.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-r</code></td>
 <td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]</td>
-<td>Set restart sequence.</td>
+<td>Restart sequence.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-R</code></td>
 <td style="text-align: left;"><code>!start</code> [<em>SEQ</em>]</td>
-<td>Set start sequence.</td>
+<td>Start sequence.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-s</code></td>
 <td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>]</td>
-<td>Set one stop sequence.</td>
+<td>One stop sequence.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-t</code></td>
 <td style="text-align: left;"><code>!temp</code> [<em>VAL</em>]</td>
-<td>Set temperature.</td>
+<td>Temperature.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-w</code></td>
@@ -1166,11 +1160,13 @@ the Ollama project guidelines and own methods.</p>
 <p>For Google Gemini, set environment variable
 <strong>$GOOGLE_API_KEY</strong>, and run the script with the command
 line <code>option --google</code>.</p>
-<p>And for Groq, set the environmental variable
-<code>$GROQ_API_KEY</code>. Run the script with
-<code>option --groq</code>. Whisper endpoint available.</p>
-<p>And for Anthropic, set envar <code>$ANTHROPIC_API_KEY</code> or
-command line <code>option --anthropic</code>.</p>
+<p>For Groq, set the environmental variable <code>$GROQ_API_KEY</code>.
+Run the script with <code>option --groq</code>. Whisper endpoint
+available.</p>
+<p>For Anthropic, set envar <code>$ANTHROPIC_API_KEY</code> and run the
+script with command line <code>option --anthropic</code>.</p>
+<p>And for GitHub Models, <code>$GITHUB_TOKEN</code> and invoke the
+script with <code>option --github</code>.</p>
 <h3 id="environment">ENVIRONMENT</h3>
 <p><strong>BLOCK_USR</strong></p>
 <dl>
@@ -1208,7 +1204,8 @@ command line <code>option --anthropic</code>.</p>
 <p><strong>MOD_MISTRAL</strong>, <strong>MOD_GOOGLE</strong>,
 <strong>MOD_GROQ</strong>,</p>
 <dl>
-<dt><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_ANTHROPIC</strong></dt>
+<dt><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_ANTHROPIC</strong>,
+<strong>MOD_GITHUB</strong></dt>
 <dd>
 <p>Set default model for each endpoint / provider.</p>
 </dd>
@@ -1223,15 +1220,15 @@ selection.</p>
 <dt><strong>PROVIDER_API_HOST</strong></dt>
 <dd>
 <p>API host URL for the providers <em>LOCALAI</em>, <em>OLLAMA</em>,
-<em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>, and
-<em>GROQ</em>.</p>
+<em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>, <em>GROQ</em>,
+and <em>GITHUB</em>.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_API_KEY</strong></p>
 <dl>
 <dt><strong>PROVIDER_API_KEY</strong></dt>
 <dd>
-<p>Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.</p>
+<p>Keys for OpenAI, GoogleAI, MistralAI, Groq, and GitHub APIs.</p>
 </dd>
 <dt><strong>OUTDIR</strong></dt>
 <dd>
@@ -1359,6 +1356,10 @@ version 1 but not all endpoints or options will be covered.</p>
 <dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
 <dd>
 <p>Set Anthropic integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--github</strong>, <strong>--git</strong></dt>
+<dd>
+<p>Set GitHub Models integration (chat).</p>
 </dd>
 <dt><strong>--google</strong>, <strong>-goo</strong></dt>
 <dd>

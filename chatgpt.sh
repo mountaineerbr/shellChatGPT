@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.81  oct/2024  by mountaineerbr  GPL+3
+# v0.82  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -10,6 +10,7 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 #MISTRAL_API_KEY=
 #GROQ_API_KEY=
 #ANTHROPIC_API_KEY=
+#GITHUB_TOKEN=
 
 # DEFAULTS
 # Text cmpls model
@@ -37,6 +38,8 @@ MOD_GROQ="${MOD_GROQ:-llama-3.1-70b-versatile}"
 #WHISPER_GROQ=
 # Anthropic model
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-20240620}"
+# Github Azure model
+MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -116,17 +119,17 @@ CACHEDIR="${CACHEDIR:-${XDG_CACHE_HOME:-$HOME/.cache}}/chatgptsh"
 OUTDIR="${OUTDIR:-${XDG_DOWNLOAD_DIR:-$HOME/Downloads}}"
 
 # Colour palette
-# Normal Colours   # Bold              # Background
-Black='\e[0;30m'   BBlack='\e[1;30m'   On_Black='\e[40m'  \
-Red='\e[0;31m'     BRed='\e[1;31m'     On_Red='\e[41m'    \
-Green='\e[0;32m'   BGreen='\e[1;32m'   On_Green='\e[42m'  \
-Yellow='\e[0;33m'  BYellow='\e[1;33m'  On_Yellow='\e[43m' \
-Blue='\e[0;34m'    BBlue='\e[1;34m'    On_Blue='\e[44m'   \
-Purple='\e[0;35m'  BPurple='\e[1;35m'  On_Purple='\e[45m' \
-Cyan='\e[0;36m'    BCyan='\e[1;36m'    On_Cyan='\e[46m'   \
-White='\e[0;37m'   BWhite='\e[1;37m'   On_White='\e[47m'  \
-Inv='\e[0;7m'      Nc='\e[m'           Alert=$BWhite$On_Red \
-Bold='\033[0;1m'
+# Normal Colours       # Bold                  # Background
+Black='\u001b[0;30m'   BBlack='\u001b[1;30m'   On_Black='\u001b[40m'  \
+Red='\u001b[0;31m'     BRed='\u001b[1;31m'     On_Red='\u001b[41m'    \
+Green='\u001b[0;32m'   BGreen='\u001b[1;32m'   On_Green='\u001b[42m'  \
+Yellow='\u001b[0;33m'  BYellow='\u001b[1;33m'  On_Yellow='\u001b[43m' \
+Blue='\u001b[0;34m'    BBlue='\u001b[1;34m'    On_Blue='\u001b[44m'   \
+Purple='\u001b[0;35m'  BPurple='\u001b[1;35m'  On_Purple='\u001b[45m' \
+Cyan='\u001b[0;36m'    BCyan='\u001b[1;36m'    On_Cyan='\u001b[46m'   \
+White='\u001b[0;37m'   BWhite='\u001b[1;37m'   On_White='\u001b[47m'  \
+Inv='\u001b[0;7m'      Nc='\u001b[m'           Alert=$BWhite$On_Red   \
+Bold='\u001b[0;1m';
 HISTSIZE=256;
 
 # Load user defaults
@@ -135,6 +138,7 @@ HISTSIZE=256;
 
 # Set file paths
 FILE="${CACHEDIR%/}/chatgpt.json"
+FILESTREAM="${CACHEDIR%/}/chatgpt_stream.json"
 FILECHAT="${FILECHAT:-${CACHEDIR%/}/chatgpt.tsv}"
 FILEWHISPER="${FILECHAT%/*}/whisper.json"
 FILEWHISPERLOG="${OUTDIR%/*}/whisper_log.txt"
@@ -159,6 +163,7 @@ MISTRAL_API_HOST_DEF="https://api.mistral.ai";
 GOOGLE_API_HOST_DEF="https://generativelanguage.googleapis.com/v1beta";
 GROQ_API_HOST_DEF="https://api.groq.com/openai";
 ANTHROPIC_API_HOST_DEF="https://api.anthropic.com";
+GITHUB_API_HOST_DEF="https://models.inference.ai.azure.com";
 OPENAI_API_KEY_DEF=$OPENAI_API_KEY;
 API_HOST=$OPENAI_API_HOST_DEF;
 
@@ -338,7 +343,7 @@ Environment
 	MOD_CHAT        MOD_IMAGE      MOD_AUDIO
 	MOD_SPEECH      MOD_LOCALAI    MOD_OLLAMA
 	MOD_MISTRAL     MOD_GOOGLE     MOD_GROQ
-	MOD_AUDIO_GROQ  MOD_ANTHROPIC
+	MOD_AUDIO_GROQ  MOD_ANTHROPIC  MOD_GITHUB
 			Set default model for each endpoint / provider.
 	
 	OPENAI_API_HOST
@@ -348,12 +353,12 @@ Environment
 
 	[PROVIDER]_API_HOST
 			API host URL for the providers LOCALAI, OLLAMA,
-			MISTRAL, GOOGLE, GROQ, and ANTHROPIC.
+			MISTRAL, GOOGLE, GROQ, ANTHROPIC, and GITHUB.
 
 	OPENAI_API_KEY
 	[PROVIDER]_API_KEY
-			Keys for OpenAI, GoogleAI, MistralAI, Groq, and
-			Anthropic APIs.
+			Keys for OpenAI, GoogleAI, MistralAI, Groq,
+			Anthropic, and GitHub Models APIs.
 
 	OUTDIR 		Output directory for received image and audio.
 
@@ -382,20 +387,20 @@ Command List
       -S.     -.       [NAME]   Load and edit custom prompt.
       -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
       -Z      !last             Print last response JSON.
-     !\#      !save   [PROMPT]  Save current prompt to shell history. ‡
+      !#      !save   [PROMPT]  Save current prompt to shell history. ‡
        !      !r, !regen        Regenerate last response.
       !!      !rr               Regenerate response, edit prompt first.
       !i      !info             Info on model and session settings.
       !j      !jump             Jump to request, append response primer.
      !!j     !!jump             Jump to request, no response priming.
-     !md      !markdown [SOFTW] Toggle markdown support in response.
-    !!md     !!markdown [SOFTW] Render last response in markdown.
-     !rep     !replay           Replay last TTS audio response.
-     !res     !resubmit         Resubmit last TTS recorded input.
      !cat     -                 Cat prompter (one-shot, ctrd-d).
      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL.
      !dialog  -                 Toggle the \`dialog' interface.
      !img     !media [FILE|URL] Append image, media, or URL to prompt.
+     !md      !markdown [SOFTW] Toggle markdown support in response.
+    !!md     !!markdown [SOFTW] Render last response in markdown.
+     !rep     !replay           Replay last TTS audio response.
+     !res     !resubmit         Resubmit last TTS recorded input.
      !p       !pick,  [PROMPT]  File picker, appends filepath to prompt. ‡
      !pdf     !pdf:    [FILE]   Dump PDF text.
     !photo   !!photo   [INDEX]  Take a photo, camera index (Termux). ‡
@@ -406,8 +411,7 @@ Command List
    --- Script Settings and UX ---------------------------------------
     !fold     !wrap             Toggle response wrapping.
       -g      !stream           Toggle response streaming.
-      -h     !!h      [REGEX]   Print help, optionally set regex.
-    !help     !help-assist [QUERY]  Run the help assistant function.
+      -h      !help   [REGEX]   Print help, optionally set regex.
       -l      !models  [NAME]   List language models or model details.
       -o      !clip             Copy responses to clipboard.
       -u      !multi            Toggle multiline, ctrl-d flush.
@@ -421,25 +425,25 @@ Command List
       !q      !quit             Exit. Bye.
    --- Model Settings -----------------------------------------------
      -Nill    !Nill             Toggle model max response (chat cmpls).
-      -M      !NUM !max [NUM]   Set max response tokens.
-      -N      !modmax   [NUM]   Set model token capacity.
-      -a      !pre      [VAL]   Set presence penalty.
-      -A      !freq     [VAL]   Set frequency penalty.
-      -b      !best     [NUM]   Set best-of n results.
-      -j      !seed     [NUM]   Set a seed number (integer).
-      -K      !topk     [NUM]   Set top_k.
-      -m      !mod      [MOD]   Set model by name or pick from list.
-      -n      !results  [NUM]   Set number of results.
-      -p      !topp     [VAL]   Set top_p.
-      -r      !restart  [SEQ]   Set restart sequence.
-      -R      !start    [SEQ]   Set start sequence.
-      -s      !stop     [SEQ]   Set one stop sequence.
-      -t      !temp     [VAL]   Set temperature.
+      -M      !NUM !max [NUM]   Max response tokens.
+      -N      !modmax   [NUM]   Model token capacity.
+      -a      !pre      [VAL]   Presence penalty.
+      -A      !freq     [VAL]   Frequency penalty.
+      -b      !best     [NUM]   Best-of n results.
+      -j      !seed     [NUM]   Seed number (integer).
+      -K      !topk     [NUM]   Top_k.
+      -m      !mod      [MOD]   Model by name or pick from list.
+      -n      !results  [NUM]   Number of results.
+      -p      !topp     [VAL]   Top_p.
+      -r      !restart  [SEQ]   Restart sequence.
+      -R      !start    [SEQ]   Start sequence.
+      -s      !stop     [SEQ]   One stop sequence.
+      -t      !temp     [VAL]   Temperature.
       -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
-     !ka      !keep-alive [NUM] Set duration of model load in memory
      !blk     !block   [ARGS]   Set and add options to JSON request.
-       -       !multimodal       Toggle model as multimodal.
+     !ka      !keep-alive [NUM] Set duration of model load in memory
+       -       !multimodal      Toggle model as multimodal.
    --- Session Management -------------------------------------------
       -H      !hist             Edit raw history file in editor.
       -P      -HH, !print       Print session history.
@@ -494,6 +498,8 @@ Options
 	Service Providers
 	--anthropic
 		Set Anthropic integration (cmpls/chat).
+	--github
+		Set GitHub Models integration (chat).
 	--google
 		Set Google Gemini integration (cmpls/chat).
 	--groq  Set Groq integration (chat).
@@ -688,7 +694,7 @@ ENDPOINTS=(
 function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6
-	((LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI)) && is_visionf "$1" && set -- "vision";
+	((LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI+GITHUBAI)) && is_visionf "$1" && set -- "vision";
 	case "${1##ft:}" in
 		*dalle-e*|*stable*diffusion*)
 				# 3 generations  4 variations  9 edits  
@@ -733,7 +739,7 @@ function set_model_epnf
 						then 	OPTCMPL= OPTC= EPN=1;
 						elif ((OPTCMPL || OPTSUFFIX))
 						then 	OPTC= EPN=0;
-						elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI))
+						elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI || GITHUBAI))
 						then 	OPTCMPL= EPN=6;
 						elif ((OPTC))
 						then 	OPTCMPL= EPN=0;
@@ -747,44 +753,46 @@ function set_model_epnf
 #set ``model capacity''
 function model_capf
 {
-	case "${1##ft:}" in  #set model max tokens, ft: fine-tune models
-		open-codestral-mamba*|codestral-mamba*) MODMAX=256000;;
+	typeset -l model; model=$1;
+	case "${model##ft:}" in  #ft: fine-tune models
+		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct) MODMAX=256000;;
 		open-mixtral-8x22b) MODMAX=64000;;
 		claude-[3-9]*|claude-2.1*) MODMAX=200000;;
 		claude-2.0*|claude-instant*) MODMAX=100000;;
-		llama-[3-9].[1-9]*|llama[4-9]-*|llama[4-9]*) MODMAX=131072;;
 		*moderation*) 	MODMAX=32768;;
-		text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
-		davinci-002|babbage-002) 	MODMAX=16384;;
+		llama3*|gemma-*|text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
 		davinci|curie|babbage|ada) 	MODMAX=2049;;
-		code-davinci-00[2-9]*|mistral-embed*) 	MODMAX=8001;;
+		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
+		code-davinci-00[2-9]*|mistral-embed*|-8k*) 	MODMAX=8001;;
 		gemini*-flash*) 	MODMAX=1048576;;  #standard: 128000
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=2097152;;  #standard: 128000
 		o[1-9]*|gpt-4[a-z]*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
-		mistral-large*|open-mistral-nemo*) 	MODMAX=128000;;
-		gpt-3.5-turbo-1106) 	MODMAX=16385;;
-		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*) MODMAX=32768;;
-		gpt-3.5*16K*|*turbo*16k*|*16k) 	MODMAX=16384;;
+		mistral-3b*|*mistral-nemo*|*mistral-large*|open-mistral-nemo*|phi-3.5-mini-instruct|\
+		phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
+		cohere-command-r*|*llama-[3-9].[1-9]*|*llama[4-9]-*|\
+		*llama[4-9]*|*ministral*|*-128k*) 	MODMAX=128000;;  #131072
+		davinci-00[2-9]|babbage-00[2-9]|gpt-3.5*16k*|*turbo*16k*|\
+		gpt-3.5-turbo-1106|gemini*-vision*|*-16k*) 	MODMAX=16384;;
+		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small) MODMAX=32768;;
 		gpt-4*|*-bison*|*-unicorn|text-davinci-002-render-sha|\
-		llama3*|gemma-*) 	MODMAX=8192;;
 		*turbo*|*davinci*) 	MODMAX=4096;;
-		gemini*-vision*) 	MODMAX=16384;;
 		gemini*-pro*) 	MODMAX=32760;;
+		cohere-embed-v3-*) 	MODMAX=1000;;
 		*embedding-gecko*) 	MODMAX=3072;;
 		*embed*|*search*) 	MODMAX=2046;;
 		aqa) 	MODMAX=7168;;
+		*-4k*) 	MODMAX=4000;;
 		*) 	MODMAX=4000;;
 	esac
 }
-#codestral-mamba:256k
 #groq: 3.1 models to max_tokens of 8k and 405b to 16k input tokens.
 #https://blog.google/technology/ai/google-gemini-next-generation-model-february-2024/
 
 #make cmpls request
 function __promptf
 {
-	if curl "$@" ${FAIL} -L "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
+	if curl "$@" ${FAIL} -L "${MISTRAL_API_HOST:-${GITHUB_API_HOST:-$API_HOST}}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
@@ -803,7 +811,8 @@ function _promptf
 	if ((STREAM))
 	then 	set -- -s "$@" -S --no-buffer;
 		  [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
-		__promptf "$@" | while IFS=  read -r chunk  #|| [[ -n $chunk ]]
+		__promptf "$@" | tee "$FILESTREAM" |
+		while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
 			#anthropic sends lots more than only '[DATA]:' fields.
 			#google hack does not pass '[DATA]:'.
@@ -1201,6 +1210,9 @@ function lastjsonf
 	elif [[ -s $FILE ]]  #last response
 	then 	jq . "$FILE" 2>/dev/null || cat -- "$FILE";
 		[[ -t 1 ]] && printf "${BWHITE}%s${NC}\\n" "$FILE" >&2;
+	elif [[ -s $FILESTREAM ]]
+	then 	jq . "$FILESTREAM" 2>/dev/null || cat -- "$FILESTREAM";
+		[[ -t 1 ]] && printf "${BWHITE}%s${NC}\\n" "$FILESTREAM" >&2;
 	fi;
 }
 
@@ -1642,67 +1654,6 @@ function _set_browsercmdf
 	esac;
 }
 
-#script help assistant
-function help_assistf
-(
-	typeset REPLY tkn_in tkn_max
-	tkn_in=5060 tkn_max=320;
-
-	if ((GOOGLEAI))
-	then 	MOD_GOOGLE="gemini-1.5-flash-latest"
-		MOD=$MOD_GOOGLE
-	elif ((MISTRALAI))
-	then 	MOD_MISTRAL="open-mixtral-8x7b";
-		MOD=$MOD_MISTRAL
-	elif ((GROQAI))
-	then 	#MOD_GROQ="gemma-7b-it"
-		MOD_GROQ="mixtral-8x7b-32768"
-		MOD=$MOD_GROQ
-	elif ((ANTHROPICAI))
-	then 	MOD_ANTHROPIC="claude-3-haiku-20240307";
-		MOD=$MOD_ANTHROPIC
-	elif ! ((OLLAMA+LOCALAI))
-	then 	MOD_CHAT="gpt-4o-mini";
-		MOD=$MOD_CHAT
-	fi;
-
-	printf '%s\n' "${ASSIST_MSG//\\Z[[:alnum:]]}" | COLUMNS=42 foldf >&2;
-	printf '\nModel: %s   Cost: ~$%.*f\n' "$MOD" 4 "$(costf $tkn_in $tkn_max $(_model_costf "$MOD") )";
-	printf '\n%s\n* %s *\a\n%s\n' "****${ASSIST_MSG2//?/\*}" "$ASSIST_MSG2" "${ASSIST_MSG2//?/\*}****" >&2;
-	printf '\n%s '  "$ASSIST_MSG3" >&2; _clr_ttystf;
-	case "$(read_charf)" in
-		[YySs]|[$' \t']) _clr_lineupf "${#ASSIST_MSG3}";;
-		*) exit 200;;
-	esac;
-
-	printf "${BWHITE}%s${NC}\\n\\n" "${ASSIST_MSG4//\\Z[[:alnum:]]}" >&2;
-	if ((!${#1}))
-	then 	read_mainf -i "$1" REPLY </dev/tty;
-		((${#REPLY})) || exit 200; 
-	else 	printf '>>> %s\n' "$1" >&2;
-	fi
-
-	printf "\\n${BWHITE}%s${NC}\\n\\n" "Response:" >&2;
-	_printbf wait..; function history { : ;};
-	FILECHAT=$FILEFIFO OPTT=0.2 OPTF=1 OPTC=2 EPN=6 OPTEXIT=2 OPTMD=2 OPTV=3 OPTMAX=$tkn_max OPTARG= OPTIND= OPTSUFFIX= OPTCMPL= OPTRESUME= \
-	 . "${BASH_SOURCE[0]:-$0}" -S "You are a command line shell expert and a project developer of the bash shell \`chatgpt.sh\` script. A user is currently in the chat mode (REPL mode) of the script and is asking for your assistance. They may be looking for a specific feature, struggling with a command, or simply wanting a general overview. Here is the user's question:" \
-	   "${NL}${NL}\`\`\`${REPLY:-$1}\`\`\`${NL}${NL}"   \
-	   "${NL}${NL}Below is the script's help page:${NL}${NL}" \
-	   "${NL}${NL}\`\`\`${NL}${HELP}${NL}\`\`\`${NL}${NL}" \
-	   "${NL}${NL}Lastly, this is the user current chat environment:${NL}${NL}" \
-	   "${NL}${NL}\`\`\`${NL}$(BWHITE= NC= cmd_runf /i 2>&1)${NL}\`\`\`${NL}${NL}" \
-	   "${NL}${NL}Please provide a concise and helpful response to the user's question, with excerpts of the help page if necessary. Not all options may be set while the user is in chat mode (REPL mode), such as changing service providers. Guide the user and present the correct command syntax to be used in the chat mode or the precise command line invocation. Remember the user is in chat mode right now. Try to be helpful, clear, and a little sassy when appropriate! Provide your best succint answer and make sure to recheck the response before answering as you only have a single turn to answer the user correctly. Thanks! =]" \
-	   2>/dev/null;  #stop-seq info from the assistant may stop the answer!
-)
-ASSIST_MSG4='\ZbQuestion\ZB or \Zbsearch term\ZB:'
-ASSIST_MSG3="Proceed?  [N/y]" 
-ASSIST_MSG2='Warning: this may consume up to 5000 tokens (input+output)!'
-ASSIST_MSG='\ZuWelcome to Help Assistant!\ZU
-
-Find the right options for the \Zbchatgpt.sh programme\ZB, the precise command line invocation, and the proper chat command.
-
-This is a single-shot turn.'
-
 #calculate cost of query (dollars per million tokens)
 #usage: costf [input_tokens] [output_tokens] [input_price] [output_price] [scale]
 function costf
@@ -1854,28 +1805,14 @@ function cmd_runf
 			((STREAM)) || unset STREAM;
 			cmdmsgf 'Streaming' $(_onoff ${STREAM:-0})
 			;;
-		help-assist*|help?*)
-			set -- "${*##@(help-assistant|help-assist|help)$SPC}";
-			grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2 && return;  #F#
-			trap 'trap "-" INT' INT;
-			printf '\n%s\n' '============= HELP ASSISTANT =============' >&2;
-			help_assistf "$@" || SKIP=1 EDIT=1 RET=$? REPLY="!${args[*]}";
-			printf '\n%s\n' '==========================================' >&2;
-			trap 'exit' INT;
-			if ((RET==200))
-			then 	printf '\n%s\n' 'Simple Help Search:' >&2;
-				cmd_runf -h "$*"; return;
-			#elif ((RET>0)); then 	_warmsgf 'Err:' 'Unknown';
-			fi
-			;;
 		-h|h|help|-\?|\?)
 			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
 			less -S <<<"${var}"; xskip=1;
 			;;
-		-h*|[/!]h*)  #this will only catch -h and //h
-			set -- "${*##@(-h|[/!]h)$SPC}";
+		-h*|h*|[/!]h*|help?*|-\?*|\?*)
+			set -- "${*##@(-h|h|[/!]h|help|\?)$SPC}";
 			if ((${#1}<2)) ||
-				! grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2;  #F#
+				! grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmd_runf -h)" >&2;
 			then 	cmd_runf -h; return;
 			fi; xskip=1
 			;;
@@ -2130,6 +2067,10 @@ function cmd_runf
 		-Z|last)
 			lastjsonf >&2
 			;;
+		-ZZ) 	OPTZZ=2 lastjsonf >&2
+			;;
+		-ZZZ*) 	OPTZZ=3 lastjsonf >&2
+			;;
 		[/!]k*|k*)  #kill num hist entries
 			typeset IFS dry; IFS=$'\n'; ((PREVIEW)) && BCYAN="${Color9}" PREVIEW= ;
 			[[ ${n:=${*//[!0-9]}} = 0* || $* = [/!]* ]] \
@@ -2156,6 +2097,7 @@ function cmd_runf
 			((OLLAMA)) && hurl='ollama-url' hurlv=${OLLAMA_API_HOST}${ENDPOINTS[EPN]};
 			((GOOGLEAI)) && hurl='google-url' hurlv=${GOOGLE_API_HOST}${ENDPOINTS[EPN]};
 			((ANTHROPICAI)) && hurl='anthropic-url' hurlv=${ANTHROPIC_API_HOST}${ENDPOINTS[EPN]};
+			((GITHUBAI)) && hurl='github-url' hurlv=${GITHUB_API_HOST}${ENDPOINTS[EPN]};
 
 			set_optsf 2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
@@ -2175,7 +2117,7 @@ function cmd_runf
 
 			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
 			$hurl          $hurlv \
-			host-url      "${MISTRAL_API_HOST:-$API_HOST}${ENDPOINTS[EPN]}" \
+			host-url      "${MISTRAL_API_HOST:-${GITHUB_API_HOST:-$API_HOST}}${ENDPOINTS[EPN]}" \
 			model-name    "${MOD:-?}${modmodal}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
@@ -2327,7 +2269,7 @@ function cmd_runf
 
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
 				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
-				case "$(read_charf)" in
+				case "$(NO_CLR=1 read_charf)" in
 					[Q]) 	RET=202; exit 202;;  #exit
 					[AaqRr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
 				 			REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
@@ -3021,7 +2963,8 @@ function is_txturl
 #check for multimodal (vision) model
 function is_visionf
 {
-	case "${1##ft:}" in 
+	typeset -l model; model=$1;
+	case "${model##ft:}" in 
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*|\
@@ -3153,7 +3096,8 @@ function set_optsf
 	typeset s n p stop
 	typeset -a pids
 
-	case "$MOD" in o[1-9]*) ((MOD_REASON)) || {
+	case "$MOD" in
+		o[1-9]*) ((MOD_REASON)) || {
 			((OPTMM<1024*3 && OPTMAX<1024*4)) && {
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
 				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
@@ -3172,6 +3116,13 @@ function set_optsf
 		*) ((MOD_REASON)) && STREAM=$STREAM_REASON OPTA=$OPTA_REASON OPTAA=$OPTAA_REASON OPTT=$OPTT_REASON OPTMAX=${OPTMAX_REASON:-$OPTMAX} INSTRUCTION_CHAT=$INSTRUCTION_CHAT_REASON INSTRUCTION=$INSTRUCTION_REASON MOD_REASON= CURLTIMEOUT=;
 		;;
 	esac
+	((GITHUBAI)) && [[ $OPTA$OPTAA = *[1-9]* ]] &&
+	case "$MOD" in
+		Mistral-*|AI21-Jamba*)
+		_warmsgf 'Warning:' 'model may not support frequency_ and/or presence_penalty';
+		OPTA= OPTAA=;
+		;;
+	esac;
 
 	((OPTI+OPTEMBED)) || {
 	  ((OPTW+OPTZ && !CHAT_ENV)) || {
@@ -4931,7 +4882,8 @@ m:mod  n:results  o:clipboard  o:clip  O:ollama  p:top-p  p:topp  q:insert \
 r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
 u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
-w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
+w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  \
+github  github:git  version 
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -4985,7 +4937,7 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		d) 	OPTCMPL=1;;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "${BASH_SOURCE[0]:-$0}" "$@" ;exit;;
@@ -5028,13 +4980,14 @@ w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  version
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		o) 	OPTCLIP=1;;
-		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= ;;
-		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= ;;
-		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= ;;
+		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= ;;
+		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= ;;
+		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= GITHUBAI= ;;
 		localai) LOCALAI=1;;
-		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= WHISPER_GROQ= ;;
-		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 ;;
-		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ;;
+		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= WHISPER_GROQ= GITHUBAI= ;;
+		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 GITHUBAI= ;;
+		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= ;;
+		github) GITHUBAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
@@ -5076,18 +5029,18 @@ bind '"\C-j": "\C-v\C-j"';  #add newline with Ctrl-J
 
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
   #map colours
-  : "${RED:=${Color1:=${Red}}}"       "${BRED:=${Color2:=${BRed}}}"
-  : "${YELLOW:=${Color3:=${Yellow}}}" "${BYELLOW:=${Color4:=${BYellow}}}"
-  : "${PURPLE:=${Color5:=${Purple}}}" "${BPURPLE:=${Color6:=${BPurple}}}" "${ON_PURPLE:=${Color7:=${On_Purple}}}"
-  : "${CYAN:=${Color8:=${Cyan}}}"     "${BCYAN:=${Color9:=${BCyan}}}"  "${ON_CYAN:=${Color12:=${On_Cyan}}}"  #Color12 needs adding to all themes
-  : "${WHITE:=${Color10:=${White}}}"  "${BWHITE:=${Color11:=${BWhite}}}"
+  : "${RED:=${Color1:=${Red}}}"       "${BRED:=${Color2:=${BRed}}}"  #warning / error
+  : "${YELLOW:=${Color3}}"            "${BYELLOW:=${Color4:=${Bold}}}"  #response
+  : "${PURPLE:=${Color5:=${Purple}}}" "${BPURPLE:=${Color6:=${BPurple}}}" "${ON_PURPLE:=${Color7:=${On_Purple}}}"  #whisper
+  : "${CYAN:=${Color8:=${Cyan}}}"     "${BCYAN:=${Color9:=${BCyan}}}"  "${ON_CYAN:=${Color12:=${On_Cyan}}}"  #user, Color12 needs adding to all themes
+  : "${WHITE:=${Color10}}"            "${BWHITE:=${Color11:=${Bold}}}"  #system
   : "${INV:=${Inv}}" "${ALERT:=${Alert}}" "${BOLD:=${Bold}}" "${NC:=${Nc}}"
   JQCOL="\
-  def red:     \"${RED//\\e/\\u001b}\";     \
-  def yellow:  \"${YELLOW//\\e/\\u001b}\";  \
-  def byellow: \"${BYELLOW//\\e/\\u001b}\"; \
-  def bpurple: \"${BPURPLE//\\e/\\u001b}\"; \
-  def reset:   \"${NC//\\e/\\u001b}\";"
+  def red:     \"${RED}\";     \
+  def yellow:  \"${YELLOW}\";  \
+  def byellow: \"${BYELLOW}\"; \
+  def bpurple: \"${BPURPLE}\"; \
+  def reset:   \"${NC}\";"
 }
 JQCOLNULL="\
 def red:     null; \
@@ -5133,6 +5086,8 @@ else
 	then 	MOD=$MOD_ANTHROPIC
 	elif ((LOCALAI))
 	then 	MOD=$MOD_LOCALAI
+	elif ((GITHUBAI))
+	then 	MOD=$MOD_GITHUB
 	elif ((!OPTCMPL))
 	then 	if ((OPTC>1||STURN))  #chat / single-turn
 		then 	MOD=$MOD_CHAT
@@ -5165,7 +5120,7 @@ fi
 #google integration
 if ((GOOGLEAI))
 then 	set_googleaif;
-	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI;
+	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI;
 else 	unset GOOGLEAI;
 fi
 
@@ -5175,21 +5130,21 @@ then 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
 	((OPTC==1 || OPTCMPL)) && OPTC=2;
 	ENDPOINTS[0]=${ENDPOINTS[6]};
 	API_HOST=${GROQ_API_HOST:-$GROQ_API_HOST_DEF};
-	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI;
+	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI;
 else 	unset GROQAI;
 fi  #https://console.groq.com/docs/api-reference
 
 #anthropic integration
 if ((ANTHROPICAI))
 then 	set_anthropicf;
-	unset OLLAMA GOOGLEAI MISTRALAI GROQAI;
+	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI;
 else 	unset ANTHROPICAI;
 fi
 
 #ollama integration
 if ((OLLAMA))
 then 	set_ollamaf;
-	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI;
+	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI;
 else  	unset OLLAMA OLLAMA_API_HOST;
 fi
 
@@ -5211,8 +5166,27 @@ then 	: ${MISTRAL_API_KEY:?Required}
 	elif [[ $MOD != *embed* ]]
 	then 	OPTSUFFIX= OPTCMPL= OPTC=2;
 	fi; MISTRALAI=1;
-	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI OPTA OPTAA OPTB;
-else 	unset MISTRAL_API_KEY MISTRAL_API_HOST;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB;
+elif unset MISTRAL_API_KEY MISTRAL_API_HOST MISTRALAI;
+#github azure api
+	[[ $OPENAI_API_HOST = *.ai.azure.com* ]] || ((GITHUBAI))
+then
+	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}
+	((${#GITHUB_API_HOST})) && OPENAI_API_HOST=$GITHUB_API_HOST || GITHUB_API_HOST=$GITHUB_API_HOST_DEF;
+	ENDPOINTS=("${ENDPOINTS[@]//\/v1\//\/}")
+	function list_modelsf
+	{
+		{ 	curl -\# ${FAIL} -L "https://github.com/marketplace/models" |
+			sed -n 's/"original_name":"[^"]*",/\n&\n/gp' | sed -n 's/"original_name"://p' |
+			sed 's/[",]//g';
+			curl -L -\# "$GITHUB_API_HOST/models" -H "Authorization: Bearer $GUTHUB_TOKEN" |
+			jq -r '.[].name';
+		} | sort | uniq | tee -- "$FILEMODEL";
+		#https://github.com/marketplace/info
+	};
+	GITHUBAI=1 OPTC=2;  #chat completions only
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI;
+else 	unset GITHUB_TOKEN GITHUB_API_HOST GITHUB_API_HOST GITHUBAI;
 fi
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"
@@ -5228,6 +5202,7 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 [[ -n $OPTNN ]] && MODMAX="$OPTNN"
 
 #model options
+((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN)) ||
 set_optsf  #IPC#
 
 #model prices (promote var to array)
@@ -5487,12 +5462,14 @@ else
 				printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request or append user prompt: ' >&2
 				var=$(read_charf)
 				case "$var" in 	?) SKIP=1 EDIT=1 OPTAWE= REPLY=$var;; 	*) JUMP=1;; esac; unset var;
-			fi;;
+			fi; [[ $INSTRUCTION = *[!$IFS]* ]] || unset INSTRUCTION;
+			;;
 		[.,]*) custom_prf "$@"
 			case $? in
 				200) 	set -- ;;  #create, read and clear pos args
 				1|202|201|[1-9]*) 	exit 1; unset INSTRUCTION;;  #err
-			esac;;
+			esac; [[ $INSTRUCTION = *[!$IFS]* ]] || unset INSTRUCTION;
+			;;
 	esac
 
 	#text/chat completions
@@ -5502,10 +5479,8 @@ else
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
 		OPTT="${OPTT:-0.8}";  #!#
-		((MOD_REASON)) || {
-		((ANTHROPICAI)) || OPTA="${OPTA:-0.6}";
-		((MISTRALAI)) && unset OPTA;
-		}
+		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI)) || OPTA="${OPTA:-0.6}";
+		{ [[ $OPENAI_API_HOST = *.ai.azure.com* ]] || ((GITHUBAI)) ;} && unset OPTA OPTAA;
 
 		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
 		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
@@ -5529,9 +5504,9 @@ else
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
 	if ((MTURN+OPTRESUME))
-	then 	INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
+	then 	[[ $INSTRUCTION = *[!$IFS]* ]] && INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		shell_histf "$INSTRUCTION"
-		((OPTC)) && INSTRUCTION="${INSTRUCTION:-$INSTRUCTION_CHAT}"
+		((OPTC)) && INSTRUCTION="${INSTRUCTION-$INSTRUCTION_CHAT}"  #IPC#
 		INSTRUCTION_OLD="$INSTRUCTION"
 		if ((OPTC && OPTRESUME)) || ((OPTCMPL==1 || OPTRESUME==1))
 		then 	unset INSTRUCTION;
@@ -5677,7 +5652,7 @@ else
 								((!GROQAI && WHISPER_GROQ)) && API_HOST=${GROQ_API_HOST:-$GROQ_API_HOST_DEF};
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2=;
 								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
-								context="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-${INSTRUCTION_OLD:-$INSTRUCTION_CHAT}}}")}";
+								context="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}";
 								((${#context})) && set -- "$@" "$context";
 								whisperf "$FILEINW" "$@";
 							)
@@ -5719,7 +5694,6 @@ else
 						REPLY="${REPLY_OLD:-$REPLY}"
 						((REGEN!=1)) || ((OPTV)) || test_cmplsf || printf '\n%s\n' '--- regenerate ---' >&2;
 					else 	((SKIP+EDIT)) || REPLY=;
-						REPLY_CMD="$var";
 					fi; RET= var=; set --; continue 2
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0  #!#
 					[[ ${REPLY: ind} = */ ]]  #preview (mind no trailing spaces)
@@ -5807,9 +5781,10 @@ else
 						*) 	#record prev resp
 							prev_tohistf "$(escapef "${REPLY_CMD:-$REPLY_OLD}")";
 						esac; REPLY_OLD="$REPLY";
+					else 	unset REPLY_CMD;
 					fi
 				else
-					set --
+					set --; unset REPLY_CMD;
 				fi ;set -- "$REPLY"
 				((OPTCTRD==1)) || unset OPTCTRD
 				((CATPR==1)) || unset CATPR
@@ -6021,7 +5996,7 @@ case "$MOD" in o[1-9]*) 	max="max_completion_tokens";; esac
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTBB_OPT $OPTSTOP $OPTSEED_OPT
 $( ((MISTRALAI+GROQAI+ANTHROPICAI)) || echo "\"n\": $OPTN," ) \
-$( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
+$( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
 \"model\": \"$MOD\", \"temperature\": $OPTT${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
 		fi
@@ -6116,15 +6091,17 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			#print error msg and check for OpenAI response length-type error
 			if ((!${#ans})) && ((RET_PRF<120))
 			then
-				REPLY_CMD_DUMP=;
-				((GOOGLEAI && STREAM)) && cat -- "$FILE_PRE" >&2 ||
-				jq -e '(.error?)//(.[]?|.error?)//(..|.error?)//empty' "$FILE" >&2 2>/dev/null ||
-				{ [[ $(<$FILE) = *'"error":'* ]] && cat -- "$FILE" >&2 ;} ||
+				((STREAM)) && file=$FILESTREAM || file=$FILE;
+				((GOOGLEAI && STREAM)) && file=$FILE_PRE;
+
+				jq -e '(.error?)//(.[]?|.error?)//(..|.error?)//empty' "$file" >&2 2>/dev/null ||
+				{ [[ $(<$file) = *'"[Ee]rror":'* ]] && cat -- "$file" >&2 ;} ||
 				((OPTCMPL)) || ! _warmsgf 'Err';
 				_warmsgf "(response empty)";
-				((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI) )) &&
+
+				((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI+GITHUBAI) )) &&
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
-					&& var=$(jq -e '(.error.message?)//(.[]?|.error?)//empty' "$FILE" 2>/dev/null) \
+					&& var=$(jq -e '(.error.message?)//(.[]?|.error?)//empty' "$file" 2>/dev/null) \
 					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]] \
 					&& [[ $ESC != "$ESC_OLD" ]]
 				then 	#[0]modmax [1]resquested [2]prompt [3]cmpl
@@ -6137,6 +6114,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
 				fi  #adjust context err (OpenAI only)
+				unset REPLY_CMD_DUMP file;  
 			fi;
 
 			BAD_RES= PSKIP= ESC_OLD=;

@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.81 | General Commands Manual
+% CHATGPT.SH(1) v0.82 | General Commands Manual
 % mountaineerbr
 % October 2024
 
@@ -29,7 +29,7 @@
 
 This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
 endpoints from multiple service providers such as OpenAI, LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI and Groq AI.
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, and GitHub Models.
 
 With no options set, complete INPUT in single-turn mode of
 the native chat completion.
@@ -387,14 +387,14 @@ may be either "`!`" or "`/`".
        `!i`        `!info`                           Information on model and session settings.
        `!j`        `!jump`                           Jump to request, append start seq primer (text cmpls).
       `!!j`        `!!jump`                          Jump to request, no response priming.
-      `!md`        `!markdown`  \[_SOFTW_]           Toggle markdown rendering in response.
-     `!!md`        `!!markdown` \[_SOFTW_]           Render last response in markdown.
-     `!rep`        `!replay`                         Replay last TTS audio response.
-     `!res`        `!resubmit`                       Resubmit last TTS recorded input from cache.
      `!cat`         \-                               Cat prompter as one-shot, \<_CTRL-D_> flush.
      `!cat`        `!cat:` \[_TXT_|_URL_|_PDF_]      Cat _text_, _PDF_ file, or dump _URL_.
   `!dialog`         \-                               Toggle the "dialog" interface.
      `!img`        `!media` \[_FILE_|_URL_]          Append image, media, or URL to prompt.
+      `!md`        `!markdown`  \[_SOFTW_]           Toggle markdown rendering in response.
+     `!!md`        `!!markdown` \[_SOFTW_]           Render last response in markdown.
+     `!rep`        `!replay`                         Replay last TTS audio response.
+     `!res`        `!resubmit`                       Resubmit last TTS recorded input from cache.
        `!p`        `!pick`,     \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
      `!pdf`        `!pdf:`      \[_FILE_]            Convert PDF and dump text.
    `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux). _‡_
@@ -408,8 +408,7 @@ may be either "`!`" or "`/`".
  --------------    -----------------------    ----------------------------------------------------------
    `!fold`         `!wrap`                    Toggle response wrapping.
       `-g`         `!stream`                  Toggle response streaming.
-      `-h`         `!!h`       \[_REGEX_]     Print help or grep help for regex.
-      `!help`      `!help-assist` \[_QUERY_]  Run the help assistant function.
+      `-h`         `!help`     \[_REGEX_]     Print help or grep help for regex.
       `-l`         `!models`    \[_NAME_]     List language models or show model details.
       `-o`         `!clip`                    Copy responses to clipboard.
       `-u`         `!multi`                   Toggle multiline prompter. \<_CTRL-D_> flush.
@@ -426,20 +425,20 @@ may be either "`!`" or "`/`".
  Model             Settings
  --------------    -----------------------    ------------------------------------------------
    `-Nill`         `!Nill`                    Toggle model max response (chat cmpls).
-      `-M`         `!NUM` `!max` \[_NUM_]     Set maximum response tokens.
-      `-N`         `!modmax`     \[_NUM_]     Set model token capacity.
-      `-a`         `!pre`        \[_VAL_]     Set presence penalty.
-      `-A`         `!freq`       \[_VAL_]     Set frequency penalty.
-      `-b`         `!best`       \[_NUM_]     Set best-of n results.
-      `-j`         `!seed`       \[_NUM_]     Set a seed number (integer).
-      `-K`         `!topk`       \[_NUM_]     Set top_k.
-      `-m`         `!mod`        \[_MOD_]     Set model by name, empty to pick from list.
-      `-n`         `!results`    \[_NUM_]     Set number of results.
-      `-p`         `!topp`       \[_VAL_]     Set top_p.
-      `-r`         `!restart`    \[_SEQ_]     Set restart sequence.
-      `-R`         `!start`      \[_SEQ_]     Set start sequence.
-      `-s`         `!stop`       \[_SEQ_]     Set one stop sequence.
-      `-t`         `!temp`       \[_VAL_]     Set temperature.
+      `-M`         `!NUM` `!max` \[_NUM_]     Maximum response tokens.
+      `-N`         `!modmax`     \[_NUM_]     Model token capacity.
+      `-a`         `!pre`        \[_VAL_]     Presence penalty.
+      `-A`         `!freq`       \[_VAL_]     Frequency penalty.
+      `-b`         `!best`       \[_NUM_]     Best-of n results.
+      `-j`         `!seed`       \[_NUM_]     Seed number (integer).
+      `-K`         `!topk`       \[_NUM_]     Top_k.
+      `-m`         `!mod`        \[_MOD_]     Model by name, empty to pick from list.
+      `-n`         `!results`    \[_NUM_]     Number of results.
+      `-p`         `!topp`       \[_VAL_]     Top_p.
+      `-r`         `!restart`    \[_SEQ_]     Restart sequence.
+      `-R`         `!start`      \[_SEQ_]     Start sequence.
+      `-s`         `!stop`       \[_SEQ_]     One stop sequence.
+      `-t`         `!temp`       \[_VAL_]     Temperature.
       `-w`         `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
       `-z`         `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
      `!ka`         `!keep-alive` \[_NUM_]     Set duration of model load in memory (Ollama).
@@ -765,12 +764,15 @@ follow the Ollama project guidelines and own methods.
 For Google Gemini, set environment variable **$GOOGLE_API_KEY**, and
 run the script with the command line `option --google`.
 
-And for Groq, set the environmental variable `$GROQ_API_KEY`.
+For Groq, set the environmental variable `$GROQ_API_KEY`.
 Run the script with `option --groq`.
 Whisper endpoint available.
 
-And for Anthropic, set envar `$ANTHROPIC_API_KEY` or
-command line `option --anthropic`.
+For Anthropic, set envar `$ANTHROPIC_API_KEY` and run the script
+with command line `option --anthropic`.
+
+And for GitHub Models, `$GITHUB_TOKEN` and invoke the script
+with `option --github`.
 
 
 ### ENVIRONMENT
@@ -816,7 +818,7 @@ command line `option --anthropic`.
 
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**
+**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**
 
 :    Set default model for each endpoint / provider.
 
@@ -831,14 +833,14 @@ command line `option --anthropic`.
 **PROVIDER_API_HOST**
 
 :    API host URL for the providers
-     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, and _GROQ_.
+     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, and _GITHUB_.
 
 
 **OPENAI_API_KEY**
 
 **PROVIDER_API_KEY**
 
-:    Keys for OpenAI, GoogleAI, MistralAI, and Groq APIs.
+:    Keys for OpenAI, GoogleAI, MistralAI, Groq, and GitHub APIs.
 
 
 **OUTDIR**
@@ -985,6 +987,11 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 **\--anthropic**, **\--ant**
 
 : Set Anthropic integration (cmpls/chat).
+
+
+**\--github**, **\--git**
+
+: Set GitHub Models integration (chat).
 
 
 **\--google**, **\-goo**

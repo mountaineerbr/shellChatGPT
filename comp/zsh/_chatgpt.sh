@@ -152,12 +152,13 @@ _chatgpt.sh()
     {-k,--no-colour}'[Disable color output]' \
     {-l,--list-models}'[List models]:model name (optional)' \
     {-L,--log}'[Log file]:log filepath:_files' \
-    '(--localai --mistral --google --groq --anthropic)'{-O,--ollama}'[Ollama integration]' \
-    '(-O --ollama --mistral --google --groq --anthropic)--localai[LocalAI integration]' \
-    '(-O --ollama --localai --google --groq --anthropic)--mistral[Mistral AI integration]' \
-    '(-O --ollama --mistral --localai --groq --anthropic)--google[GoogleAI integration]' \
-    '(-O --ollama --localai --google --mistral --anthropic)--groq[Groq integration]' \
-    '(-O --ollama --localai --google --mistral --groq)--anthropic[Anthropic integration]' \
+    '(--localai --mistral --google --groq --anthropic --github)'{-O,--ollama}'[Ollama integration]' \
+    '(-O --ollama --mistral --google --groq --anthropic --github)--localai[LocalAI integration]' \
+    '(-O --ollama --localai --google --groq --anthropic --github)--mistral[Mistral AI integration]' \
+    '(-O --ollama --mistral --localai --groq --anthropic --github)--google[GoogleAI integration]' \
+    '(-O --ollama --localai --google --mistral --anthropic --github)--groq[Groq integration]' \
+    '(-O --ollama --localai --google --mistral --groq --github)--anthropic[Anthropic integration]' \
+    '(-O --ollama --localai --google --mistral --groq --anthropic)--github[GitHub Models integration]' \
     '--openai[Reset defaults to OpenAI]' \
     {--md,--markdown}'[Enable markdown rendering]' \
     {--md=-,--markdown=-}'[Set markdown software (=cmd)]:markdown command:(bat pygmentize glow mdcat mdless)' \
