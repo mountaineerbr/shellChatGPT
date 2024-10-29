@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.82  oct/2024  by mountaineerbr  GPL+3
+# v0.82.1  oct/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2998,7 +2998,7 @@ function is_docf { 	[[ -f $1 ]] && _is_docf "$1" ;}
 function yt_transf
 {
 	curl -Ls "$1" |
-	grep -o '"baseUrl":"https://www.youtube.com/api/timedtext[^"]*lang=en' |
+	grep -o '"baseUrl":"https://www.youtube.com/api/timedtext[^"]*' |
 	cut -d \" -f4 |
 	sed 's/\\u0026/\&/g' |
 	xargs curl -Ls |
