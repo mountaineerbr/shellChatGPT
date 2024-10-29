@@ -654,7 +654,8 @@ add the following lines to her `~/.zshrc`:
 
 ```
 [[ -d ~/.zfunc ]] && fpath=(~/.zfunc $fpath)
-toload -Uz compinit
+
+autoload -Uz compinit
 compinit
 ```
 
