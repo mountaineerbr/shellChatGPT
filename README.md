@@ -620,16 +620,16 @@ This project includes shell completions to enhance the user command-line experie
 
 **System-wide**
 
-   ```
-   sudo cp comp/bash/chatgpt.sh /usr/share/bash-completion/completions/
-   ```
+```
+sudo cp comp/bash/chatgpt.sh /usr/share/bash-completion/completions/
+```
 
 **User-specific**
 
-   ```
-   mkdir -p ~/.local/share/bash-completion/completions/
-   cp comp/bash/chatgpt.sh ~/.local/share/bash-completion/completions/
-   ```
+```
+mkdir -p ~/.local/share/bash-completion/completions/
+cp comp/bash/chatgpt.sh ~/.local/share/bash-completion/completions/
+```
 
 Visit the [bash-completion repository](https://github.com/scop/bash-completion).
 
@@ -638,9 +638,9 @@ Visit the [bash-completion repository](https://github.com/scop/bash-completion).
 
 **Install** at the **system location**
 
-   ```
-   sudo cp comp/zsh/_chatgpt.sh /usr/share/zsh/site-functions/
-   ```
+```
+sudo cp comp/zsh/_chatgpt.sh /usr/share/zsh/site-functions/
+```
 
 
 **User-specific** location
@@ -652,12 +652,11 @@ The user may create the `~/.zfunc/` directory, for example, and
 add the following lines to her `~/.zshrc`:
 
 
-   ```
-   [[ -d ~/.zfunc ]] && fpath=(~/.zfunc $fpath)
-
-   autoload -Uz compinit
-   compinit
-   ```
+```
+[[ -d ~/.zfunc ]] && fpath=(~/.zfunc $fpath)
+toload -Uz compinit
+compinit
+```
 
 Make sure `compinit` is run **after setting `$fpath`**!
 
@@ -1040,7 +1039,7 @@ Run the script with `option --anthropic` or `--ant`.
 Check the **Claude-3** models! Run the script as:
 
 ```
-    chatgpt.sh --anthropic -cc -m claude-3-5-sonnet-20240620
+chatgpt.sh --anthropic -cc -m claude-3-5-sonnet-20240620
 ```
 
 
@@ -1050,7 +1049,7 @@ The script also works on **text completions** with models such as
 Try:
 
 ```
-    chatgpt.sh --ant -c -m claude-2.1
+chatgpt.sh --ant -c -m claude-2.1
 ```
 
 
@@ -1068,7 +1067,7 @@ or list the available models and their original names with `chatgpt.sh --github 
 
 
 ```
-    chatgpt.sh --github -m Phi-3-small-8k-instruct
+chatgpt.sh --github -m Phi-3-small-8k-instruct
 ```
 
 See also the [GitHub Model Catalog - Getting Started](https://techcommunity.microsoft.com/t5/educator-developer-blog/github-model-catalog-getting-started/ba-p/4212711) page.
