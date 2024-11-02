@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.83.1  nov/2024  by mountaineerbr  GPL+3
+# v0.83.2  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5081,7 +5081,7 @@ bind '"\C-j": "\C-v\C-j"';  #add newline with Ctrl-J
 [[ -t 1 ]] || OPTK=1 ;((OPTK)) || {
   #map colours
   : "${RED:=${Color1:=${Red}}}"       "${BRED:=${Color2:=${BRed}}}"  #warning / error
-  : "${YELLOW:=${Color3}}"            "${BYELLOW:=${Color4:=${Bold}}}"  #response
+  : "${YELLOW:=${Color3:=${Bold}}}"   "${BYELLOW:=${Color4}}"  #response
   : "${PURPLE:=${Color5:=${Purple}}}" "${BPURPLE:=${Color6:=${BPurple}}}" "${ON_PURPLE:=${Color7:=${On_Purple}}}"  #whisper
   : "${CYAN:=${Color8:=${Cyan}}}"     "${BCYAN:=${Color9:=${BCyan}}}"  "${ON_CYAN:=${Color12:=${On_Cyan}}}"  #user, Color12 needs adding to all themes
   : "${WHITE:=${Color10}}"            "${BWHITE:=${Color11:=${Bold}}}"  #system
