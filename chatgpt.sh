@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.83.3  nov/2024  by mountaineerbr  GPL+3
+# v0.83.4  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4927,8 +4927,7 @@ keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
 a:presence-penalty  a:presence  a:pre  A:frequency-penalty  A:frequency \
 A:freq  b:best-of  b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue \
 d:text  e:edit  E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist \
-i:image  'j:synthesi[sz]e'  j:synth  'J:synthesi[sz]e-voice'  J:synth-voice \
-'k:no-colo*'  K:top-k  K:topk  l:list-model  l:list-models  L:log  m:model \
+i:image 'k:no-colo*'  K:top-k  K:topk  l:list-model  l:list-models  L:log  m:model \
 m:mod  n:results  o:clipboard  o:clip  O:ollama  p:top-p  p:topp  q:insert \
 r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
