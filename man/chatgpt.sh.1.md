@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.83 | General Commands Manual
+% CHATGPT.SH(1) v0.83.3 | General Commands Manual
 % mountaineerbr
 % November 2024
 
@@ -881,7 +881,7 @@ with `option --github`.
 :    Audio recorder command, e.g. "_sox -d_".
 
 
-### COLOUR THEMES
+### COLOR THEMES
 
 The colour scheme may be customised. A few themes are available
 in the template configuration file.
@@ -896,7 +896,7 @@ Bold variations are defined as _\$BRed_, _\$BGreen_, etc, and
 background colours can be set with _\$On_Yellow_, _\$On_Blue_, etc.
 
 Alternatively, raw escaped color sequences, such as
-_\\e[0;35m_, and _\\e[1;36m_ may be set.
+_\\u001b[0;35m_, and _\\u001b[1;36m_ may be set.
 
 Theme colours are named variables from `Colour1` to about `Colour11`,
 and may be set with colour-named variables or

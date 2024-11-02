@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2024
-title: CHATGPT.SH(1) v0.83 \| General Commands Manual
+title: CHATGPT.SH(1) v0.83.3 \| General Commands Manual
 ---
 
 ### NAME
@@ -808,7 +808,7 @@ Audio player command, e.g. “*mpv –no-video –vo=null*”.
 **REC_CMD**  
 Audio recorder command, e.g. “*sox -d*”.
 
-### COLOUR THEMES
+### COLOR THEMES
 
 The colour scheme may be customised. A few themes are available in the
 template configuration file.
@@ -823,8 +823,8 @@ The colour palette is composed of *\$Red*, *\$Green*, *\$Yellow*,
 Bold variations are defined as *\$BRed*, *\$BGreen*, etc, and background
 colours can be set with *\$On_Yellow*, *\$On_Blue*, etc.
 
-Alternatively, raw escaped color sequences, such as *\e\[0;35m*, and
-*\e\[1;36m* may be set.
+Alternatively, raw escaped color sequences, such as *\u001b\[0;35m*, and
+*\u001b\[1;36m* may be set.
 
 Theme colours are named variables from `Colour1` to about `Colour11`,
 and may be set with colour-named variables or raw escape sequences

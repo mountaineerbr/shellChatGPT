@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.83.2  nov/2024  by mountaineerbr  GPL+3
+# v0.83.3  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5087,11 +5087,11 @@ bind '"\C-j": "\C-v\C-j"';  #add newline with Ctrl-J
   : "${WHITE:=${Color10}}"            "${BWHITE:=${Color11:=${Bold}}}"  #system
   : "${INV:=${Inv}}" "${ALERT:=${Alert}}" "${BOLD:=${Bold}}" "${NC:=${Nc}}"
   JQCOL="\
-  def red:     \"${RED}\";     \
-  def yellow:  \"${YELLOW}\";  \
-  def byellow: \"${BYELLOW}\"; \
-  def bpurple: \"${BPURPLE}\"; \
-  def reset:   \"${NC}\";"
+  def red:     \"${RED//\\e/\\u001b}\";     \
+  def yellow:  \"${YELLOW//\\e/\\u001b}\";  \
+  def byellow: \"${BYELLOW//\\e/\\u001b}\"; \
+  def bpurple: \"${BPURPLE//\\e/\\u001b}\"; \
+  def reset:   \"${NC//\\e/\\u001b}\";"
 }
 JQCOLNULL="\
 def red:     null; \
