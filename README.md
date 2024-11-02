@@ -1208,16 +1208,19 @@ In order to set Termux access to recording the microphone and playing audio
 
 1. Kill the process with `pulseaudio -k`.
 2. Add `load-module module-sles-source` to _one of the files_:
+
+```
+~/.config/pulse/default.pa
+/data/data/com.termux/files/usr/etc/pulse/default.pa
    ```
-   ~/.config/pulse/default.pa
-   /data/data/com.termux/files/usr/etc/pulse/default.pa
-   ```
+
 3. Restart the server with `pulseaudio -D`.
 
 
 **C.** To create a new user `~/.config/pulse/default.pa`, you may start with the following template:
 
     #!/usr/bin/pulseaudio -nF
+     
     .include /data/data/com.termux/files/usr/etc/pulse/default.pa
     load-module module-sles-source
 
