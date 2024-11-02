@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.83  nov/2024  by mountaineerbr  GPL+3
+# v0.83.1  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5229,7 +5229,7 @@ then
 		curl -L -\# "$GITHUB_BASE_URL/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
 		jq -r '.[].name' | tee -- "$FILEMODEL";
 		[[ -s $FILEMODEL ]] ||
-		curl -\# ${FAIL} -L "https://github.com/marketplace/models" |
+		curl -\# -L -H "$UAG" "https://github.com/marketplace/models" |
 		sed -n 's/"original_name":"[^"]*",/\n&\n/gp' | sed -n 's/"original_name"://p' |
 		sed 's/[",]//g' | tee -- "$FILEMODEL";
 		#https://github.com/marketplace/info
