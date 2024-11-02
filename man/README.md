@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: October 2024
-title: CHATGPT.SH(1) v0.82 \| General Commands Manual
+date: November 2024
+title: CHATGPT.SH(1) v0.83 \| General Commands Manual
 ---
 
 ### NAME
@@ -707,15 +707,15 @@ Setting **temperature** has an effect, the higher the more random.
 ### Provider Integrations
 
 For LocalAI integration, run the script with `option --localai`, or set
-environment **\$OPENAI_API_HOST** with the server URL.
+environment **\$OPENAI_BASE_URL** with the server Base URL.
 
 For Mistral AI set environment variable **\$MISTRAL_API_KEY**, and run
-the script with `option --mistral` or set **\$OPENAI_API_HOST** to
+the script with `option --mistral` or set **\$OPENAI_BASE_URL** to
 “https://api.mistral.ai/”. Prefer setting command line
 `option --mistral` for complete integration.
-<!-- also see: \$MISTRAL_API_HOST -->
+<!-- also see: \$MISTRAL_BASE_URL -->
 
-For Ollama, set `option -O` (`--ollama`), and set **\$OLLAMA_API_HOST**
+For Ollama, set `option -O` (`--ollama`), and set **\$OLLAMA_BASE_URL**
 if the server URL is different from the defaults.
 
 Note that model management (downloading and setting up) must follow the
@@ -767,15 +767,15 @@ Initial initial instruction or system message for chat mode.
 **MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**  
 Set default model for each endpoint / provider.
 
-**OPENAI_API_HOST**
+**OPENAI_BASE_URL**
 
-**OPENAI_API_HOST_STATIC**  
-Custom host URL. The *STATIC* parameter disables endpoint auto
-selection.
+**OPENAI_URL_PATH**  
+Main Base URL setting. Alternatively, provide a *URL_PATH* parameter
+with the full url path to disable endpoint auto selection.
 
-**PROVIDER_API_HOST**  
-API host URL for the providers *LOCALAI*, *OLLAMA*, *MISTRAL*, *GOOGLE*,
-*ANTHROPIC*, *GROQ*, and *GITHUB*.
+**PROVIDER_BASE_URL**  
+Base URLs for each service provider: *LOCALAI*, *OLLAMA*, *MISTRAL*,
+*GOOGLE*, *ANTHROPIC*, *GROQ*, and *GITHUB*.
 
 **OPENAI_API_KEY**
 

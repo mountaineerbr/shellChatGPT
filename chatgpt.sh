@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.82.2  oct/2024  by mountaineerbr  GPL+3
+# v0.83  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -37,7 +37,7 @@ MOD_GROQ="${MOD_GROQ:-llama-3.1-70b-versatile}"
 # Enable Groq Whisper only
 #WHISPER_GROQ=
 # Anthropic model
-MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-20240620}"
+MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-latest}"
 # Github Azure model
 MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
 # Bash readline mode
@@ -156,16 +156,16 @@ HISTCONTROL=erasedups:ignoredups
 SAVEHIST=$HISTSIZE HISTTIMEFORMAT='%F %T '
 
 # API URL / endpoint
-OPENAI_API_HOST_DEF="https://api.openai.com";
-OLLAMA_API_HOST_DEF="http://localhost:11434";
-LOCALAI_API_HOST_DEF="http://127.0.0.1:8080";
-MISTRAL_API_HOST_DEF="https://api.mistral.ai";
-GOOGLE_API_HOST_DEF="https://generativelanguage.googleapis.com/v1beta";
-GROQ_API_HOST_DEF="https://api.groq.com/openai";
-ANTHROPIC_API_HOST_DEF="https://api.anthropic.com";
-GITHUB_API_HOST_DEF="https://models.inference.ai.azure.com";
+OPENAI_BASE_URL_DEF="https://api.openai.com/v1";
+OLLAMA_BASE_URL_DEF="http://localhost:11434";
+LOCALAI_BASE_URL_DEF="http://127.0.0.1:8080/v1";
+MISTRAL_BASE_URL_DEF="https://api.mistral.ai/v1";
+GOOGLE_BASE_URL_DEF="https://generativelanguage.googleapis.com/v1beta";
+GROQ_BASE_URL_DEF="https://api.groq.com/openai/v1";
+ANTHROPIC_BASE_URL_DEF="https://api.anthropic.com/v1";
+GITHUB_BASE_URL_DEF="https://models.inference.ai.azure.com";
 OPENAI_API_KEY_DEF=$OPENAI_API_KEY;
-API_HOST=$OPENAI_API_HOST_DEF;
+BASE_URL=$OPENAI_BASE_URL_DEF;
 
 # Def hist, txt chat types
 Q_TYPE="\\nQ: "
@@ -346,13 +346,13 @@ Environment
 	MOD_AUDIO_GROQ  MOD_ANTHROPIC  MOD_GITHUB
 			Set default model for each endpoint / provider.
 	
-	OPENAI_API_HOST
-	OPENAI_API_HOST_STATIC
-			Custom host URL. The STATIC parameter disables
-			endpoint auto-selection.
+	OPENAI_BASE_URL
+	OPENAI_URL_PATH
+			Main Base URL setting. Alternatively, provide the
+			URL_PATH parameter to disable endpoint auto-selection.
 
-	[PROVIDER]_API_HOST
-			API host URL for the providers LOCALAI, OLLAMA,
+	[PROVIDER]_BASE_URL
+			Base URLs for providers: LOCALAI, OLLAMA,
 			MISTRAL, GOOGLE, GROQ, ANTHROPIC, and GITHUB.
 
 	OPENAI_API_KEY
@@ -674,18 +674,19 @@ Options
 		Print data from the last JSON responses."
 
 ENDPOINTS=(
-	/v1/completions               #0
-	/v1/moderations               #1
-	/v1/edits                     #2  -> chat/completions
-	/v1/images/generations        #3
-	/v1/images/variations         #4
-	/v1/embeddings                #5
-	/v1/chat/completions          #6
-	/v1/audio/transcriptions      #7
-	/v1/audio/translations        #8
-	/v1/images/edits              #9
-	/v1/audio/speech              #10
-	/v1/models                    #11
+	/completions               #0
+	/moderations               #1
+	/edits                     #2  -> chat/completions
+	/images/generations        #3
+	/images/variations         #4
+	/embeddings                #5
+	/chat/completions          #6
+	/audio/transcriptions      #7
+	/audio/translations        #8
+	/images/edits              #9
+	/audio/speech              #10
+	/models                    #11
+	#/realtime                 #12
 )
 #https://platform.openai.com/docs/{deprecations/,models/,model-index-for-researchers/}
 #https://help.openai.com/en/articles/{6779149,6643408}
@@ -792,7 +793,7 @@ function model_capf
 #make cmpls request
 function __promptf
 {
-	if curl "$@" ${FAIL} -L "${MISTRAL_API_HOST:-${GITHUB_API_HOST:-$API_HOST}}${ENDPOINTS[EPN]}" \
+	if curl "$@" ${FAIL} -L "${MISTRAL_BASE_URL:-${GITHUB_BASE_URL:-$BASE_URL}}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
@@ -811,7 +812,7 @@ function _promptf
 	if ((STREAM))
 	then 	set -- -s "$@" -S --no-buffer;
 		  [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
-		__promptf "$@" | tee "$FILESTREAM" |
+		__promptf "$@" | { tee -- "$FILESTREAM" || cat ;} |
 		while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
 			#anthropic sends lots more than only '[DATA]:' fields.
@@ -1141,7 +1142,7 @@ function prompt_audiof
 {
 	((OPTVV)) && _warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTTW:-${OPTT:-unset}}${*:+,  }${*}" >&2
 
-	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: multipart/form-data' \
@@ -1157,8 +1158,8 @@ function prompt_audiof
 
 function list_modelsf
 {
-	((MISTRALAI)) && typeset OPENAI_API_KEY=$MISTRAL_API_KEY API_HOST=$MISTRAL_API_HOST
-	curl -\# ${FAIL} -L "${API_HOST}${ENDPOINTS[11]}${1:+/}${1}" \
+	((MISTRALAI)) && typeset OPENAI_API_KEY=$MISTRAL_API_KEY BASE_URL=$MISTRAL_BASE_URL
+	curl -\# ${FAIL} -L "${BASE_URL}${ENDPOINTS[11]}${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
 	if [[ -n $1 ]]
@@ -1758,17 +1759,17 @@ function cmd_runf
 		-[cC])
 			((OPTC)) && { 	cmd_runf -cc; return ;}
 			OPTC=1 EPN=0 OPTCMPL= ;
-			cmdmsgf "Endpoint[$EPN]:" "Text Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
+			cmdmsgf "Endpoint[$EPN]:" "Text Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		-[cC][cC])
 			((OPTC>1)) && { 	cmd_runf -d; return ;}
 			OPTC=2 EPN=6 OPTCMPL= ;
-			cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
+			cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		-[dD]|-[dD][dD])
 			((!OPTC)) && { 	cmd_runf -c; return ;}
 			OPTC= EPN=0 OPTCMPL=1 ;
-			cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$API_HOST}]";
+			cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		break|br|new)
 			break_sessionf;
@@ -2094,10 +2095,10 @@ function cmd_runf
 			;;
 		i|info)
 			(  unset hurl hurlv modmodal rseq sseq stop
-			((OLLAMA)) && hurl='ollama-url' hurlv=${OLLAMA_API_HOST}${ENDPOINTS[EPN]};
-			((GOOGLEAI)) && hurl='google-url' hurlv=${GOOGLE_API_HOST}${ENDPOINTS[EPN]};
-			((ANTHROPICAI)) && hurl='anthropic-url' hurlv=${ANTHROPIC_API_HOST}${ENDPOINTS[EPN]};
-			((GITHUBAI)) && hurl='github-url' hurlv=${GITHUB_API_HOST}${ENDPOINTS[EPN]};
+			((OLLAMA)) && hurl='ollama-url' hurlv=${OLLAMA_BASE_URL}${ENDPOINTS[EPN]};
+			((GOOGLEAI)) && hurl='google-url' hurlv=${GOOGLE_BASE_URL}${ENDPOINTS[EPN]};
+			((ANTHROPICAI)) && hurl='anthropic-url' hurlv=${ANTHROPIC_BASE_URL}${ENDPOINTS[EPN]};
+			((GITHUBAI)) && hurl='github-url' hurlv=${GITHUB_BASE_URL}${ENDPOINTS[EPN]};
 
 			set_optsf 2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
@@ -2117,7 +2118,7 @@ function cmd_runf
 
 			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
 			$hurl          $hurlv \
-			host-url      "${MISTRAL_API_HOST:-${GITHUB_API_HOST:-$API_HOST}}${ENDPOINTS[EPN]}" \
+			host-url      "${MISTRAL_BASE_URL:-${GITHUB_BASE_URL:-$BASE_URL}}${ENDPOINTS[EPN]}" \
 			model-name    "${MOD:-?}${modmodal}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
@@ -3246,7 +3247,7 @@ function start_compf { ((${#1}+${#START})) && START=$(escapef "$(unescapef "${1:
 function record_confirmf
 {
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
-	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * [e]dit text,  [w]hisper_off * ' \
+	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * [e]dit_text,  [w]hisper_off * ' \
 							      ' * Press ENTER to START record * ' >&2;
 		case "$(read_charf)" in [Q]) 	return 202;; [AaOoqWw]) 	return 196;; [Ee]|$'\e') 	return 199;; esac;
 		_clr_lineupf 33; _clr_lineupf 33;  #!#
@@ -3311,7 +3312,7 @@ function rec_killf
 function read_charrecf
 {
 	typeset atrim min_len tmout rms threshold init var
-	tmout=0.4    #read timeout
+	tmout=0.3    #read timeout
 	atrim=0.26   #audio trim
 	min_len=1.66 #seconds (float)
 	rms=0.0157   #rms amplitude (0.001 to 0.1)
@@ -3509,7 +3510,8 @@ function whisperf
 		#[[ -s $FILE ]] && jq . "$FILE" >&2 2>/dev/null;
 		_warmsgf $'\nerr:' 'whisper response';
 		printf 'Retry request? Y/n ' >&2;
-		case "$( ((!BAD_RES)) && sleep 0.6 || read_charf)" in
+		var=$(if ((!BAD_RES)); then  _printbf 'wait'; sleep 0.6; _printbf '    '; else    read_charf; fi)
+		case "$var" in
 			[Q]) 	return 202;;
 			[AaNnq]) false;;  #no
 			*) 	((rec)) && args+=("$FILEINW")
@@ -3539,7 +3541,7 @@ def seconds_to_time_string:
 #request tts prompt
 function prompt_ttsf
 {
-	curl -N -Ss ${FAIL} -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -N -Ss ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-H 'Content-Type: application/json' \
@@ -3700,11 +3702,11 @@ function _ttsf
 function ttsf
 {
 	if ((CHAT_ENV))
-	then 	typeset API_HOST OPENAI_API_KEY ENDPOINTS EPN MOD;
+	then 	typeset BASE_URL OPENAI_API_KEY ENDPOINTS EPN MOD;
 		ENDPOINTS=(); MOD=$MOD_SPEECH;
-		EPN=10 ENDPOINTS[10]="/v1/audio/speech";
-		API_HOST=$OPENAI_API_HOST_DEF;
-		OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
+		EPN=10 ENDPOINTS[10]="/audio/speech";
+		BASE_URL=$OPENAI_BASE_URL_DEF;
+		OPENAI_API_KEY=$OPENAI_API_KEY_DEF;  #only OpenAI
 	fi
 	_ttsf "$@";
 }
@@ -3713,7 +3715,9 @@ function __set_voicef
 {
 	case "$1" in
 		#alloy|echo|fable|onyx|nova|shimmer
-		[Aa][Ll][Ll][Oo][Yy]|[Ee][Cc][Hh][Oo]|[Ff][Aa][Bb][Ll][Ee]|[Oo][Nn][YyIi][Xx]|[Nn][Oo][Vv][Aa]|[Ss][Hh][Ii][Mm][Mm][Ee][Rr]|sky) 	VOICEZ=$1;;
+		#alloy|ash|ballad|coral|echo|sage|shimmer|verse  #realtime
+		[Aa][Ll][Ll][Oo][Yy]|[Ee][Cc][Hh][Oo]|[Ff][Aa][Bb][Ll][Ee]|[Oo][Nn][YyIi][Xx]|[Nn][Oo][Vv][Aa]|[Ss][Hh][Ii][Mm][Mm][Ee][Rr]|\
+		[Ss][Kk][Yy]|[Aa][Ss][Hh]|[Bb][Aa][Ll][Ll][Aa][Dd]|[Cc][Oo][Rr][Aa][Ll]|[Ss][Aa][Gg][Ee]|[Vv][Ee][Rr][Ss][Ee]) 	VOICEZ=$1;;
 		*) 	false;;
 	esac
 }
@@ -3760,7 +3764,7 @@ function imggenf
 #image variations
 function prompt_imgvarf
 {
-	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${API_HOST}${ENDPOINTS[EPN]}" \
+	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
 		-F response_format="$OPTI_FMT" \
@@ -4695,50 +4699,50 @@ function set_ollamaf
 	function list_modelsf
 	{
 		if ((${#1}))
-		then 	curl -\# -L "${OLLAMA_API_HOST}/api/show" -d "{\"name\": \"$1\"}" -o "$FILE" &&
+		then 	curl -\# -L "${OLLAMA_BASE_URL}/api/show" -d "{\"name\": \"$1\"}" -o "$FILE" &&
 			{ jq . "$FILE" || ! _warmsgf 'Err' ;}; echo >&2;
 			ollama show "$1" --modelfile  2>/dev/null;
 		else 	{
 			  printf '\nName\tFamily\tFormat\tParam\tQLvl\tSize\tModification\n'
-			  curl -s -L "${OLLAMA_API_HOST}/api/tags" -o "$FILE" &&
+			  curl -s -L "${OLLAMA_BASE_URL}/api/tags" -o "$FILE" &&
 			  { jq -r '.models[]|.name?+"\t"+(.details.family)?+"\t"+(.details.format)?+"\t"+(.details.parameter_size)?+"\t"+(.details.quantization_level)?+"\t"+((.size/1000000)|tostring)?+"MB\t"+.modified_at?' "$FILE" || ! _warmsgf 'Err' ;}
 			} | { 	column -t -s $'\t' 2>/dev/null || ! _warmsgf 'Err' ;}  #tsv
 		fi
 	}
 	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
-	((${#OLLAMA_API_HOST})) || OLLAMA_API_HOST=$OLLAMA_API_HOST_DEF;
+	((${#OLLAMA_BASE_URL})) || OLLAMA_BASE_URL=$OLLAMA_BASE_URL_DEF;
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER  #set placeholder as this field is required
 	
-	OLLAMA_API_HOST=${OLLAMA_API_HOST%%*([/$IFS])}; set_model_epnf "$MOD";
-	_sysmsgf "OLLAMA URL / Endpoint:" "$OLLAMA_API_HOST${ENDPOINTS[EPN]}";
+	OLLAMA_BASE_URL=${OLLAMA_BASE_URL%%*([/$IFS])}; set_model_epnf "$MOD";
+	_sysmsgf "OLLAMA URL / Endpoint:" "$OLLAMA_BASE_URL${ENDPOINTS[EPN]}";
 }
 
 #host url / endpoint
 function set_localaif
 {
-	[[ $OPENAI_API_HOST_STATIC = *[!$IFS]* ]] && OPENAI_API_HOST=$OPENAI_API_HOST_STATIC;
-	if [[ $OPENAI_API_HOST = *[!$IFS]* ]] || ((OLLAMA))
+	[[ $OPENAI_URL_PATH = *[!$IFS]* ]] && OPENAI_BASE_URL=$OPENAI_URL_PATH;
+	if [[ $OPENAI_BASE_URL = *[!$IFS]* ]] || ((OLLAMA))
 	then
-		API_HOST=${OPENAI_API_HOST%%*([/$IFS])};
+		BASE_URL=${OPENAI_BASE_URL%%*([/$IFS])};
 		((LOCALAI)) &&
 		function list_modelsf  #LocalAI only
 		{
 			if ((${#1}))
 			then
-				curl -\# -L "${API_HOST}/models/available" -o "$FILE" &&
+				curl -\# -L "${BASE_URL}/models/available" -o "$FILE" &&
 				{ jq ".[] | select(.name | contains(\"$1\"))" "$FILE" || ! _warmsgf 'Err' ;}
 			else
-				curl -\# -L ${FAIL} "${API_HOST}/models/available" -o "$FILE" &&
+				curl -\# -L ${FAIL} "${BASE_URL}/models/available" -o "$FILE" &&
 				{ jq -r '.[]|.gallery.name+"@"+(.name//empty)' "$FILE" || ! _warmsgf 'Err' ;} ||
-				! curl -\# -L "${API_HOST}/models/" | jq .
+				! curl -\# -L "${BASE_URL}/models/" | jq .
 				#bug# https://github.com/mudler/LocalAI/issues/2045
 			fi
 		}  #https://localai.io/models/
 		set_model_epnf "$MOD";
-		((${#OPENAI_API_HOST})) && LOCALAI=1;
-		((${#OPENAI_API_HOST_STATIC})) && unset ENDPOINTS;  #endpoint auto select
+		((${#OPENAI_BASE_URL})) && LOCALAI=1;
+		((${#OPENAI_URL_PATH})) && unset ENDPOINTS;  #endpoint auto select
 		((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
-		((!LOCALAI)) || _sysmsgf "HOST URL / Endpoint:" "${API_HOST}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
+		((!LOCALAI)) || _sysmsgf "HOST URL / Endpoint:" "${BASE_URL}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
 	else 	false;
 	fi
 }
@@ -4747,7 +4751,7 @@ function set_localaif
 function set_googleaif
 {
 	FILE_PRE="${FILE%%.json}.pre.json";
-	GOOGLE_API_HOST="${GOOGLE_API_HOST:-$GOOGLE_API_HOST_DEF}";
+	GOOGLE_BASE_URL="${GOOGLE_BASE_URL:-$GOOGLE_BASE_URL_DEF}";
 	: ${GOOGLE_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
 	((OPTC)) || OPTC=2;
@@ -4755,8 +4759,8 @@ function set_googleaif
 	function list_modelsf
 	{
 		if [[ -z $* ]]
-		then 	curl -\# ${FAIL} -L "$GOOGLE_API_HOST/models?key=$GOOGLE_API_KEY" -o "$FILE"
-		else 	curl -\# ${FAIL} -L "$GOOGLE_API_HOST/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
+		then 	curl -\# ${FAIL} -L "$GOOGLE_BASE_URL/models?key=$GOOGLE_API_KEY" -o "$FILE"
+		else 	curl -\# ${FAIL} -L "$GOOGLE_BASE_URL/models/${1}?key=$GOOGLE_API_KEY" -o "$FILE"
 		fi && {
 		if ((OPTL>1))
 		then 	jq . -- "$FILE";
@@ -4768,7 +4772,7 @@ function set_googleaif
 		typeset epn;
 		epn='generateContent';
 		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
-		if curl "$@" ${FAIL} -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		if curl "$@" ${FAIL} -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$BLOCK" | tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
 		then 	[[ \ $*\  = *\ -s\ * ]] || _clr_lineupf;
@@ -4777,7 +4781,7 @@ function set_googleaif
 	}
 	function embedf
 	{
-		curl ${FAIL} -L "$GOOGLE_API_HOST/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
+		curl ${FAIL} -L "$GOOGLE_BASE_URL/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "{ \"model\": \"models/embedding-001\",
 				\"content\": { \"parts\":[{
@@ -4799,7 +4803,7 @@ function set_googleaif
 		fi
 		printf '%s\b' 'o' >&2;
 		((!${#1})) ||
-		  curl -sS --max-time 10 -L "$GOOGLE_API_HOST/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		  curl -sS --max-time 10 -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$block" | jq -er '.totalTokens//.tokenCount//empty'; ret=$?;
 		printf '%s\b' ' ' >&2;
@@ -4859,8 +4863,8 @@ function set_anthropicf
 {
 	: ${ANTHROPIC_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER;
-	((${#ANTHROPIC_API_HOST})) || ANTHROPIC_API_HOST=$ANTHROPIC_API_HOST_DEF;
-	ENDPOINTS[0]="/v1/complete" ENDPOINTS[6]="/v1/messages" OPTA= OPTAA= ;
+	((${#ANTHROPIC_BASE_URL})) || ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL_DEF;
+	ENDPOINTS[0]="/complete" ENDPOINTS[6]="/messages" OPTA= OPTAA= ;
 	if ((ANTHROPICAI)) && ((EPN==0))
 	then 	[[ -n ${RESTART+1} ]] || RESTART='\n\nHuman: ';
 		[[ -n ${START+1} ]] || START='\n\nAssistant:';
@@ -4871,7 +4875,7 @@ function set_anthropicf
 		[[ $MOD =  claude-3-5-sonnet-20240620 ]] &&  #8192 output tokens is in beta 
 		  set -- "$@" --header "anthropic-beta: max-tokens-3-5-sonnet-2024-07-15";
 
-		if curl "$@" ${FAIL} -L "${ANTHROPIC_API_HOST}${ENDPOINTS[EPN]}" \
+		if curl "$@" ${FAIL} -L "${ANTHROPIC_BASE_URL}${ENDPOINTS[EPN]}" \
 			--header "x-api-key: $ANTHROPIC_API_KEY" \
 			--header "anthropic-version: 2023-06-01" \
 			--header "content-type: application/json" \
@@ -4984,7 +4988,7 @@ github  github:git  version
 		d) 	OPTCMPL=1;;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT API_HOST OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "${BASH_SOURCE[0]:-$0}" "$@" ;exit;;
@@ -5022,7 +5026,7 @@ github  github:git  version
 				command -v "${var%% *}" &>/dev/null
 			then 	MD_CMD=${@: OPTIND:1}; ((++OPTIND));
 			fi; unset var;;
-		no-markdown) 	unset OPTMD;;
+		no-markdown) 	OPTMD=0;;
 		multimodal) 	MULTIMODAL=1 EPN=6;;
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
@@ -5125,7 +5129,7 @@ else
 	then 	MOD=$MOD_OLLAMA
 	elif ((GOOGLEAI))
 	then 	MOD=$MOD_GOOGLE
-	elif ((MISTRALAI)) || [[ $OPENAI_API_HOST = *mistral* ]]
+	elif ((MISTRALAI)) || [[ $OPENAI_BASE_URL = *mistral* ]]
 	then 	MOD=$MOD_MISTRAL
 	elif ((GROQAI))
 	then 	MOD=$MOD_GROQ MOD_AUDIO=$MOD_AUDIO_GROQ
@@ -5176,7 +5180,7 @@ if ((GROQAI))
 then 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
 	((OPTC==1 || OPTCMPL)) && OPTC=2;
 	ENDPOINTS[0]=${ENDPOINTS[6]};
-	API_HOST=${GROQ_API_HOST:-$GROQ_API_HOST_DEF};
+	BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF};
 	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI;
 else 	unset GROQAI;
 fi  #https://console.groq.com/docs/api-reference
@@ -5192,48 +5196,47 @@ fi
 if ((OLLAMA))
 then 	set_ollamaf;
 	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI;
-else  	unset OLLAMA OLLAMA_API_HOST;
+else  	unset OLLAMA OLLAMA_BASE_URL;
 fi
 
 #custom host / localai
-if [[ ${OPENAI_API_HOST_STATIC}${OPENAI_API_HOST} = *[!$IFS]* ]] || ((LOCALAI))
-then 	((${#OPENAI_API_HOST})) || OPENAI_API_HOST=$LOCALAI_API_HOST_DEF;
+if [[ ${OPENAI_URL_PATH}${OPENAI_BASE_URL} = *[!$IFS]* ]] || ((LOCALAI))
+then 	((${#OPENAI_BASE_URL})) || OPENAI_BASE_URL=$LOCALAI_BASE_URL_DEF;
 	set_localaif;
-else 	unset OPENAI_API_HOST OPENAI_API_HOST_STATIC;
+else 	unset OPENAI_BASE_URL OPENAI_URL_PATH;
 fi
 
 #mistral ai api
-if [[ $OPENAI_API_HOST = *mistral* ]] || ((MISTRALAI))
+if [[ $OPENAI_BASE_URL = *mistral* ]] || ((MISTRALAI))
 then 	: ${MISTRAL_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
-	((${#MISTRAL_API_HOST})) || MISTRAL_API_HOST=$MISTRAL_API_HOST_DEF;
+	((${#MISTRAL_BASE_URL})) || MISTRAL_BASE_URL=$MISTRAL_BASE_URL_DEF;
 	if [[ $MOD = *code* ]]
-	then 	ENDPOINTS[0]="/v1/fim/completions"
+	then 	ENDPOINTS[0]="/fim/completions"
 		((OPTSUFFIX)) && ((OPTC)) && OPTC=1;
 	elif [[ $MOD != *embed* ]]
 	then 	OPTSUFFIX= OPTCMPL= OPTC=2;
 	fi; MISTRALAI=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB;
-elif unset MISTRAL_API_KEY MISTRAL_API_HOST MISTRALAI;
+elif unset MISTRAL_API_KEY MISTRAL_BASE_URL MISTRALAI;
 #github azure api
-	[[ $OPENAI_API_HOST = *ai.azure.com* ]] || ((GITHUBAI))
+	[[ $OPENAI_BASE_URL = *ai.azure.com* ]] || ((GITHUBAI))
 then
 	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}
-	((${#GITHUB_API_HOST})) && OPENAI_API_HOST=$GITHUB_API_HOST || GITHUB_API_HOST=$GITHUB_API_HOST_DEF;
-	ENDPOINTS=("${ENDPOINTS[@]//\/v1\//\/}")
+	((${#GITHUB_BASE_URL})) && OPENAI_BASE_URL=$GITHUB_BASE_URL || GITHUB_BASE_URL=$GITHUB_BASE_URL_DEF;
 	function list_modelsf
 	{
-		{ 	curl -\# ${FAIL} -L "https://github.com/marketplace/models" |
-			sed -n 's/"original_name":"[^"]*",/\n&\n/gp' | sed -n 's/"original_name"://p' |
-			sed 's/[",]//g';
-			curl -L -\# "$GITHUB_API_HOST/models" -H "Authorization: Bearer $GUTHUB_TOKEN" |
-			jq -r '.[].name';
-		} | sort | uniq | tee -- "$FILEMODEL";
+		curl -L -\# "$GITHUB_BASE_URL/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
+		jq -r '.[].name' | tee -- "$FILEMODEL";
+		[[ -s $FILEMODEL ]] ||
+		curl -\# ${FAIL} -L "https://github.com/marketplace/models" |
+		sed -n 's/"original_name":"[^"]*",/\n&\n/gp' | sed -n 's/"original_name"://p' |
+		sed 's/[",]//g' | tee -- "$FILEMODEL";
 		#https://github.com/marketplace/info
 	};
 	GITHUBAI=1 OPTC=2;  #chat completions only
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI;
-else 	unset GITHUB_TOKEN GITHUB_API_HOST GITHUB_API_HOST GITHUBAI;
+else 	unset GITHUB_TOKEN GITHUB_BASE_URL GITHUB_BASE_URL GITHUBAI;
 fi
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"
@@ -5526,8 +5529,9 @@ else
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
 		OPTT="${OPTT:-0.8}";  #!#
-		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI)) || OPTA="${OPTA:-0.6}";
-		{ [[ $OPENAI_API_HOST = *ai.azure.com* ]] || ((GITHUBAI)) ;} && unset OPTA OPTAA;
+		#presencePenalty may be incompatible with some models!
+		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI+LOCALAI+OLLAMA+xGROQAIxGOOGLEAI)) || OPTA="${OPTA:-0.6}";
+		{ [[ $OPENAI_BASE_URL = *ai.azure.com* ]] || ((GITHUBAI)) ;} && unset OPTA OPTAA;
 
 		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
 		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
@@ -5695,8 +5699,9 @@ else
 						0) 	if ((RESUBW)) || recordf "$FILEINW"
 							then 	REPLY=$(
 								set --;
+								((GITHUBAI)) && OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
 								((GROQAI+WHISPER_GROQ)) && MOD_AUDIO=$MOD_AUDIO_GROQ;
-								((!GROQAI && WHISPER_GROQ)) && API_HOST=${GROQ_API_HOST:-$GROQ_API_HOST_DEF};
+								((!GROQAI && WHISPER_GROQ)) && BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF};
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2=;
 								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
 								context="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}";
@@ -6057,7 +6062,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 		#request and response prompts
 		SECONDS_REQ=${EPOCHREALTIME:-$SECONDS};
 		((${#START})) && printf "${YELLOW}%b\\n" "$START" >&2;
-		((OLLAMA)) && api_host=$API_HOST API_HOST=$OLLAMA_API_HOST;
+		((OLLAMA)) && base_url=$BASE_URL BASE_URL=$OLLAMA_BASE_URL;
 
 		#move cursor to the end of user input in previous line
 		if test_cmplsf && ((!JUMP))
@@ -6088,8 +6093,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 		fi; RET_PRF=$? RET=;
 		((OPTEXIT>1)) && exit $RET_PRF;
 
-		((OLLAMA)) && API_HOST=$api_host;
-		buff= api_host=;
+		((OLLAMA)) && BASE_URL=$base_url;
+		buff= base_url=;
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
 		if (( (RET_PRF>120 && !STREAM) || (!RET_PRF && PREVIEW==1) ))
 		then 	((${#REPLY_CMD})) && REPLY=$REPLY_CMD;

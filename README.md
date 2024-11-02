@@ -75,7 +75,7 @@ If no suffix is provided, it works as plain text completions.
     - 9.1.2 [Tips](#tips)
     - 9.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
     - 9.1.4 [Installing Models](#installing-models)
-    - 9.1.5 [Host API Configuration](#host-api-configuration)
+    - 9.1.5 [Host API Configuration](#base-url-configuration)
   - 9.2 [Ollama](#ollama)
   - 9.3 [Google AI](#google-ai)
   - 9.4 [Mistral AI](#mistral-ai)
@@ -944,9 +944,9 @@ Gallery defaults to [HuggingFace](https://huggingface.co/).
 -->
 
 
-#### Host API Configuration
+#### BASE URL Configuration
 
-If the host address is different from the defaults, we need editing
+If the service provider Base URL is different from the defaults, we need editing
 the script configuration file `.chatgpt.conf`.
 
     vim ~/.chatgpt.conf
@@ -960,12 +960,12 @@ Set the following variable:
 
     # ~/.chatgpt.conf
     
-    OPENAI_API_HOST="http://127.0.0.1:8080"
+    OPENAI_BASE_URL="http://127.0.0.1:8080/v1"
 
 
-_Alternatively_, set `$OPENAI_API_HOST` on invocation:
+_Alternatively_, set `$OPENAI_BASE_URL` environment on invocation:
 
-    OPENAI_API_HOST="http://127.0.0.1:8080" chatgpt.sh -c -m luna-ai-llama2
+    OPENAI_BASE_URL="http://127.0.0.1:8080/v1" chatgpt.sh -c -m luna-ai-llama2
 
 
 ### Ollama
@@ -985,7 +985,7 @@ edit `chatgpt.sh` configuration file, and set the following variable:
 
     # ~/.chatgpt.conf
     
-    OLLAMA_API_HOST="http://192.168.0.3:11434"
+    OLLAMA_BASE_URL="http://192.168.0.3:11434"
 
 
 ### Google AI
@@ -1009,7 +1009,7 @@ To list all available models, run `chatgpt.sh --google -l`.
 Set up a [Mistral AI account](https://mistral.ai/),
 declare the enviroment variable `$MISTRAL_API_KEY`,
 and run the script with `option --mistral` for complete integration.
-<!-- $MISTRAL_API_HOST -->
+<!-- $MISTRAL_BASE_URL -->
 
 
 ### Groq
@@ -1068,7 +1068,7 @@ or list the available models and their original names with `chatgpt.sh --github 
 
 
 ```
-chatgpt.sh --github -m Phi-3-small-8k-instruct
+chatgpt.sh --github -cc -m Phi-3-small-8k-instruct
 ```
 
 See also the [GitHub Model Catalog - Getting Started](https://techcommunity.microsoft.com/t5/educator-developer-blog/github-model-catalog-getting-started/ba-p/4212711) page.

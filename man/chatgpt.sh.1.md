@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.82 | General Commands Manual
+% CHATGPT.SH(1) v0.83 | General Commands Manual
 % mountaineerbr
-% October 2024
+% November 2024
 
 
 ### NAME
@@ -747,15 +747,15 @@ Setting **temperature** has an effect, the higher the more random.
 ### Provider Integrations
 
 For LocalAI integration, run the script with `option --localai`,
-or set environment **$OPENAI_API_HOST** with the server URL.
+or set environment **$OPENAI_BASE_URL** with the server Base URL.
 
 For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
-and run the script with `option --mistral` or set **$OPENAI_API_HOST**
+and run the script with `option --mistral` or set **$OPENAI_BASE_URL**
 to "https://api.mistral.ai/".
 Prefer setting command line `option --mistral` for complete integration.
-<!-- also see: \$MISTRAL_API_HOST -->
+<!-- also see: \$MISTRAL_BASE_URL -->
 
-For Ollama, set `option -O` (`--ollama`), and set **$OLLAMA_API_HOST**
+For Ollama, set `option -O` (`--ollama`), and set **$OLLAMA_BASE_URL**
 if the server URL is different from the defaults.
 
 Note that model management (downloading and setting up) must
@@ -823,16 +823,16 @@ with `option --github`.
 :    Set default model for each endpoint / provider.
 
 
-**OPENAI_API_HOST**
+**OPENAI_BASE_URL**
 
-**OPENAI_API_HOST_STATIC**
+**OPENAI_URL_PATH**
 
-:    Custom host URL. The _STATIC_ parameter disables endpoint auto selection.
+:    Main Base URL setting. Alternatively, provide a _URL_PATH_ parameter with the full url path to disable endpoint auto selection.
 
 
-**PROVIDER_API_HOST**
+**PROVIDER_BASE_URL**
 
-:    API host URL for the providers
+:    Base URLs for each service provider:
      _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, and _GITHUB_.
 
 

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.82 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.83 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -174,9 +174,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.82 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.83 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">October 2024</p>
+<p class="date">November 2024</p>
 </header>
 <h3 id="name">NAME</h3>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
@@ -1145,15 +1145,15 @@ more random.</p>
 <h3 id="provider-integrations">Provider Integrations</h3>
 <p>For LocalAI integration, run the script with
 <code>option --localai</code>, or set environment
-<strong>$OPENAI_API_HOST</strong> with the server URL.</p>
+<strong>$OPENAI_BASE_URL</strong> with the server Base URL.</p>
 <p>For Mistral AI set environment variable
 <strong>$MISTRAL_API_KEY</strong>, and run the script with
-<code>option --mistral</code> or set <strong>$OPENAI_API_HOST</strong>
+<code>option --mistral</code> or set <strong>$OPENAI_BASE_URL</strong>
 to “https://api.mistral.ai/”. Prefer setting command line
 <code>option --mistral</code> for complete integration.
-<!-- also see: \$MISTRAL_API_HOST --></p>
+<!-- also see: \$MISTRAL_BASE_URL --></p>
 <p>For Ollama, set <code>option -O</code> (<code>--ollama</code>), and
-set <strong>$OLLAMA_API_HOST</strong> if the server URL is different
+set <strong>$OLLAMA_BASE_URL</strong> if the server URL is different
 from the defaults.</p>
 <p>Note that model management (downloading and setting up) must follow
 the Ollama project guidelines and own methods.</p>
@@ -1210,18 +1210,18 @@ script with <code>option --github</code>.</p>
 <p>Set default model for each endpoint / provider.</p>
 </dd>
 </dl>
-<p><strong>OPENAI_API_HOST</strong></p>
+<p><strong>OPENAI_BASE_URL</strong></p>
 <dl>
-<dt><strong>OPENAI_API_HOST_STATIC</strong></dt>
+<dt><strong>OPENAI_URL_PATH</strong></dt>
 <dd>
-<p>Custom host URL. The <em>STATIC</em> parameter disables endpoint auto
-selection.</p>
+<p>Main Base URL setting. Alternatively, provide a <em>URL_PATH</em>
+parameter with the full url path to disable endpoint auto selection.</p>
 </dd>
-<dt><strong>PROVIDER_API_HOST</strong></dt>
+<dt><strong>PROVIDER_BASE_URL</strong></dt>
 <dd>
-<p>API host URL for the providers <em>LOCALAI</em>, <em>OLLAMA</em>,
-<em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>, <em>GROQ</em>,
-and <em>GITHUB</em>.</p>
+<p>Base URLs for each service provider: <em>LOCALAI</em>,
+<em>OLLAMA</em>, <em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>,
+<em>GROQ</em>, and <em>GITHUB</em>.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_API_KEY</strong></p>
