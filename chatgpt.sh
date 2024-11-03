@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.83.7  nov/2024  by mountaineerbr  GPL+3
+# v0.84  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -81,7 +81,7 @@ OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 # TTS voice speed
 #OPTZ_SPEED=   #0.25 - 4.0
 # TTS out file format
-OPTZ_FMT=opus   #mp3, opus, aac, flac
+OPTZ_FMT=opus   #mp3, opus, aac, flac, wav, pcm
 # Recorder command, e.g. "sox -d"
 #REC_CMD=""
 # Media player command, e.g. "cvlc"
@@ -5139,7 +5139,8 @@ else
 	elif ((GITHUBAI))
 	then 	MOD=$MOD_GITHUB
 	elif ((!OPTCMPL))
-	then 	if ((OPTC>1||STURN))  #chat / single-turn
+	then 	if ((OPTC>1)) ||  #chat / single-turn
+			((STURN && !(OPTW+OPTZ+OPTI) ))
 		then 	MOD=$MOD_CHAT
 		elif ((OPTW)) && ((!MTURN))  #whisper endpoint
 		then 	((GROQAI)) && MOD_AUDIO=$MOD_AUDIO_GROQ
