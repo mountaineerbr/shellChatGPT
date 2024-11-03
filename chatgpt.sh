@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.83.5  nov/2024  by mountaineerbr  GPL+3
+# v0.83.6  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5773,8 +5773,8 @@ else
 					((PREVIEW==1)) && REPLY=$(INDEX=160 trim_trailf "$REPLY" $'*([ \t\n])/*([ \t\n/])') REPLY_OLD=$REPLY BCYAN=${Color8};
 			         	REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;  #E#
 				elif case "${REPLY: ind}" in  #cmd: //shell, //sh
-					*?[/!][/!]shell|*?[/!][/!]sh) var=/shell;;
-					*?[/!]shell|*?[/!]sh) var=shell;;
+					*[$IFS][/!][/!]shell|*[$IFS][/!][/!]sh) var=/shell;;
+					*[$IFS][/!]shell|*[$IFS][/!]sh) var=shell;;
 					*) 	false;; esac;
 				then
 					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(/shell|shell|/sh|sh)")";
@@ -5790,9 +5790,9 @@ else
 			    		SKIP=1 EDIT=1 REPLY_CMD=;
 					set -- ; continue 2;
 				elif case "${REPLY: ind}" in  #cmd: /photo, /pick, /save
-					*?[/!]photo|*?[/!]photo[0-9]) var=photo;;
-					*?[/!]pick|*?[/!]p) var=pick;;
-					*?[/!]save|*?[/!]\#) var=save;;
+					*[$IFS][/!]photo|*[$IFS][/!]photo[0-9]) var=photo;;
+					*[$IFS][/!]pick|*[$IFS][/!]p) var=pick;;
+					*[$IFS][/!]save|*[$IFS][/!]\#) var=save;;
 					*) 	false;; esac;
 				then
 					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#)")";
