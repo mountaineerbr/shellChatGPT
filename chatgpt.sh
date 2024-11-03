@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.84  nov/2024  by mountaineerbr  GPL+3
+# v0.84.1  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2098,7 +2098,6 @@ function cmd_runf
 			((OLLAMA)) && hurl='ollama-url' hurlv=${OLLAMA_BASE_URL}${ENDPOINTS[EPN]};
 			((GOOGLEAI)) && hurl='google-url' hurlv=${GOOGLE_BASE_URL}${ENDPOINTS[EPN]};
 			((ANTHROPICAI)) && hurl='anthropic-url' hurlv=${ANTHROPIC_BASE_URL}${ENDPOINTS[EPN]};
-			((GITHUBAI)) && hurl='github-url' hurlv=${GITHUB_BASE_URL}${ENDPOINTS[EPN]};
 
 			set_optsf 2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
@@ -2118,7 +2117,7 @@ function cmd_runf
 
 			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
 			$hurl          $hurlv \
-			host-url      "${MISTRAL_BASE_URL:-${GITHUB_BASE_URL:-$BASE_URL}}${ENDPOINTS[EPN]}" \
+			api-path      "${MISTRAL_BASE_URL:-${GITHUB_BASE_URL:-$BASE_URL}}${ENDPOINTS[EPN]}" \
 			model-name    "${MOD:-?}${modmodal}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
