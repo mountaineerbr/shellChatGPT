@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.83.4  nov/2024  by mountaineerbr  GPL+3
+# v0.83.5  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1174,7 +1174,7 @@ function pick_modelf
 {
 	typeset REPLY mod options
 	set -- "${1// }"; set -- "${1##*(0)}";
-	((${#1}<3)) || return
+	((${#1}<2)) || return  #mind o1 models
 	((${#MOD_LIST[@]})) || MOD_LIST=($(list_modelsf))
 	if [[ ${REPLY:=$1} = +([0-9]) ]] && ((REPLY && REPLY <= ${#MOD_LIST[@]}))
 	then 	mod=${MOD_LIST[REPLY-1]}  #pick model by number from the model list
@@ -5529,7 +5529,8 @@ else
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
 		OPTT="${OPTT:-0.8}";  #!#
 		#presencePenalty may be incompatible with some models!
-		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI+LOCALAI+OLLAMA+xGROQAIxGOOGLEAI)) || OPTA="${OPTA:-0.6}";
+		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI+LOCALAI+OLLAMA+xGROQAIxGOOGLEAI)) ||
+		{ ((${INSTRUCTION+1}0)) && ((!${#INSTRUCTION})) ;} || OPTA="${OPTA:-0.6}";
 		{ [[ $OPENAI_BASE_URL = *ai.azure.com* ]] || ((GITHUBAI)) ;} && unset OPTA OPTAA;
 
 		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
