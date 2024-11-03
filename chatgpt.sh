@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.84.1  nov/2024  by mountaineerbr  GPL+3
+# v0.84.2  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4069,9 +4069,12 @@ function custom_prf
 			INSTRUCTION= list=1
 			_cmdmsgf 'Prompt File' 'LIST'
 			;;
-		,,*)   #edit template prompt file
+		,,?*)   #edit template prompt file
 			INSTRUCTION="${INSTRUCTION##[.,]*( )}"
 			template=1 skip=0 msg='EDIT TEMPLATE'
+			;;
+		,?*) 	INSTRUCTION="${INSTRUCTION##[.,]*( )}"
+			skip=0 msg='LOAD (edit)'
 			;;
 		[.,]) #pick prompt file
 			INSTRUCTION=
@@ -4121,7 +4124,6 @@ function custom_prf
 	_sysmsgf 'Hist   File:' "${FILECHAT/"$HOME"/"~"}"
 	_sysmsgf 'Prompt File:' "${file/"$HOME"/"~"}"
 	_cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
-	#{ 	[[ ! -t 1 ]] || ((OPTEXIT)) || ((!MTURN)) ;} && skip=1
 
 	if { 	[[ $msg = *[Cc][Rr][Ee][Aa][Tt][Ee]* ]] && INSTRUCTION="$*" ret=200 ;} ||
 		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || (( (MTURN+CHAT_ENV) && OPTRESUME!=1 && skip==0))
