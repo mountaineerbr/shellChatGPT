@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.84 | General Commands Manual
+% CHATGPT.SH(1) v0.85 | General Commands Manual
 % mountaineerbr
 % November 2024
 
@@ -127,7 +127,7 @@ at the end of the prompt.
 In chat mode, a PDF, DOC, TXT or URL filepath at the very end of the
 user prompt is appended as text dump to the current user input.
 
-Make sure file paths containing spaces are backslash-escaped.
+Make sure file paths containing spaces are backslash-escaped!
 
 
 #### Model and Capacity
@@ -193,16 +193,16 @@ See **IMAGES section** below for more information on **inpaint** and **outpaint*
 
 #### Speech-To-Text (Whisper)
 
-`Option -w` **transcribes audio** from _mp3_, _mp4_, _mpeg_, _mpga_, _m4a_,
+`Option -w` **transcribes audio speech** from _mp3_, _mp4_, _mpeg_, _mpga_, _m4a_,
 _wav_, _webm_, _flac_ and _ogg_ files. First positional argument must be
 an _AUDIO_ file. Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
 as the second argument. A PROMPT may also be set to guide the model's style,
-or continue a previous audio segment. The text prompt should match the audio language.
+or continue a previous audio segment. The text prompt should match the speech language.
 
-Note that `option -w` can also be set to **translate audio** input to any
+Note that `option -w` can also be set to **translate speech** input to any
 text language to the target language.
 
-`Option -W` **translates audio** stream to **English text**. A PROMPT in
+`Option -W` **translates speech** stream to **English text**. A PROMPT in
 English may be set to guide the model as the second positional
 argument.
 
@@ -222,6 +222,19 @@ the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
 _voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or
 the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_",
 and "_flac_"), or "_-_" for stdout. Set `options -vz` to _not_ play received output.
+
+
+### Audio Models
+
+Audio models, such as `gpt-4o-audio`, deal with audio input and output directly.
+
+To activate the microphone recording function of the script, set command line `option -w`.
+
+Otherwise, the audio model accepts any compatible audio file (such as **mp3**, **wav**, and **opus**).
+These files can be added to be loaded at the very end of the user prompt
+or added with chat command `/audio  path/to/file.mp3`.
+
+To activate the audio synthesis output mode of an audio model, make sure to set command line `option -z`!
 
 
 #### General Considerations
@@ -365,7 +378,10 @@ For _doc_ and _odt_ files, `LibreOffice` is required.
 See the **Optional Packages** section.
 
 Also note that _file paths_ containing white spaces must be
-**blackslash-escaped**.
+**blackslash-escaped**, or the _file path_ must be preceded
+by a pipe `|` character.
+
+Multiple images and audio files may be appended the the prompt in this way!
 
 
 #### 2.7 Command List
@@ -443,7 +459,7 @@ may be either "`!`" or "`/`".
       `-z`         `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
      `!ka`         `!keep-alive` \[_NUM_]     Set duration of model load in memory (Ollama).
     `!blk`         `!block`     \[_ARGS_]     Set and add custom options to JSON request.
-        \-         `!multimodal`              Toggle model as multimodal.
+  `!vision`        `!audio`, `!multimodal`    Toggle multimodality type.
  --------------    -----------------------    ------------------------------------------------
 
  Session           Management
@@ -465,7 +481,7 @@ may be either "`!`" or "`/`".
 
 | _:_ Commands with a *colon* have their output appended to the prompt.
 
-| _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt.
+| _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt (preceded by space).
 
 | E.g.: "`/temp` _0.7_", "`!mod`_gpt-4_", "`-p` _0.2_", "`/session` _HIST_NAME_", "\[_PROMPT_] `/pick`", and "\[_PROMPT_] `/sh`".
 
@@ -504,8 +520,8 @@ is always loaded if the resume `option -C` is set.
 
 #####  Copying and resuming older sessions
 
-To continue from an old session, either **/sub** or **/fork.**
-it as the current session. The shorthand for this feature is **/.**.
+To continue from an old session, either **/sub** or **/fork.** it.
+The dot means the current session. The shorthand for this feature is **/.**.
 
 It is also possible to `/grep [regex]` for a session. This will fork
 the selected session and resume it.
@@ -1191,9 +1207,9 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
 **-w**, **\--transcribe**   \[_AUD_] \[_LANG_] \[_PROMPT_]
 
-:     Transcribe audio file into text. LANG is optional.
-      A prompt that matches the audio language is optional.
-      Audio will be transcribed or translated to the target LANG.
+:     Transcribe audio file speech into text. LANG is optional.
+      A prompt that matches the speech language is optional.
+      Speech will be transcribed or translated to the target LANG.
       
       Set twice to phrase or thrice for word-level timestamps (-www).
 
@@ -1202,7 +1218,7 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
 **-W**, **\--translate**   \[_AUD_] \[_PROMPT-EN_]
 
-:     Translate audio file into English text.
+:     Translate audio file speech into English text.
       
       Set twice to phrase or thrice for word-level timestamps (-WWW).
 
@@ -1284,9 +1300,9 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
       Set _MODEL_ name as "_._" to pick from the list.
 
 
-**\--multimodal**
+**\--multimodal**, **\--vision**, **\--audio**
 
-: Set model as multimodal.
+: Set model multimodal model type.
 
 
 **-n**, **\--results**   \[_NUM_]

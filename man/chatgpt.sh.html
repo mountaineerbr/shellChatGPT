@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.84 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.85 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -168,13 +168,10 @@
     }
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.84 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.85 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2024</p>
 </header>
@@ -291,7 +288,7 @@ prompt), the file is loaded as text PROMPT.</p>
 possibly URLs at the end of the prompt.</p>
 <p>In chat mode, a PDF, DOC, TXT or URL filepath at the very end of the
 user prompt is appended as text dump to the current user input.</p>
-<p>Make sure file paths containing spaces are backslash-escaped.</p>
+<p>Make sure file paths containing spaces are backslash-escaped!</p>
 <h4 id="model-and-capacity">Model and Capacity</h4>
 <p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
 <em>MODEL</em> as its name, or set it as “<em>.</em>” to pick from the
@@ -351,17 +348,17 @@ command line invocation.</p>
 <p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
 <h4 id="speech-to-text-whisper">Speech-To-Text (Whisper)</h4>
-<p><code>Option -w</code> <strong>transcribes audio</strong> from
+<p><code>Option -w</code> <strong>transcribes audio speech</strong> from
 <em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
 <em>wav</em>, <em>webm</em>, <em>flac</em> and <em>ogg</em> files. First
 positional argument must be an <em>AUDIO</em> file. Optionally, set a
 <em>TWO-LETTER</em> input language (<em>ISO-639-1</em>) as the second
 argument. A PROMPT may also be set to guide the model’s style, or
 continue a previous audio segment. The text prompt should match the
-audio language.</p>
+speech language.</p>
 <p>Note that <code>option -w</code> can also be set to <strong>translate
-audio</strong> input to any text language to the target language.</p>
-<p><code>Option -W</code> <strong>translates audio</strong> stream to
+speech</strong> input to any text language to the target language.</p>
+<p><code>Option -W</code> <strong>translates speech</strong> stream to
 <strong>English text</strong>. A PROMPT in English may be set to guide
 the model as the second positional argument.</p>
 <p>Set these options twice to have phrasal-level timestamps, options -ww
@@ -380,6 +377,17 @@ a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>opus</em>”,
 “<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
 <code>options -vz</code> to <em>not</em> play received output.</p>
+<h3 id="audio-models">Audio Models</h3>
+<p>Audio models, such as <code>gpt-4o-audio</code>, deal with audio
+input and output directly.</p>
+<p>To activate the microphone recording function of the script, set
+command line <code>option -w</code>.</p>
+<p>Otherwise, the audio model accepts any compatible audio file (such as
+<strong>mp3</strong>, <strong>wav</strong>, and <strong>opus</strong>).
+These files can be added to be loaded at the very end of the user prompt
+or added with chat command <code>/audio  path/to/file.mp3</code>.</p>
+<p>To activate the audio synthesis output mode of an audio model, make
+sure to set command line <code>option -z</code>!</p>
 <h4 id="general-considerations">General Considerations</h4>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
@@ -490,7 +498,10 @@ Q: Help me study this paper. ~/Downloads/Prigogine\ Perspective\ on\ Nature.pdf<
 For <em>doc</em> and <em>odt</em> files, <code>LibreOffice</code> is
 required. See the <strong>Optional Packages</strong> section.</p>
 <p>Also note that <em>file paths</em> containing white spaces must be
-<strong>blackslash-escaped</strong>.</p>
+<strong>blackslash-escaped</strong>, or the <em>file path</em> must be
+preceded by a pipe <code>|</code> character.</p>
+<p>Multiple images and audio files may be appended the the prompt in
+this way!</p>
 <h4 id="command-list">2.7 Command List</h4>
 <p>While in chat mode, the following commands can be invoked in the new
 prompt to execute a task or set parameters. The command operator may be
@@ -825,9 +836,10 @@ flush.</td>
 <td>Set and add custom options to JSON request.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">-</td>
-<td style="text-align: left;"><code>!multimodal</code></td>
-<td>Toggle model as multimodal.</td>
+<td style="text-align: left;"><code>!vision</code></td>
+<td style="text-align: left;"><code>!audio</code>,
+<code>!multimodal</code></td>
+<td>Toggle multimodality type.</td>
 </tr>
 </tbody>
 </table>
@@ -912,7 +924,8 @@ prompts: “<em>pr</em>”. Awesome: “<em>awe</em>”. All: “<em>.</em>”.<
 <div class="line-block"><em>:</em> Commands with a <em>colon</em> have
 their output appended to the prompt.</div>
 <div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
-may be invoked at the very end of the input prompt.</div>
+may be invoked at the very end of the input prompt (preceded by
+space).</div>
 <div class="line-block">E.g.: “<code>/temp</code> <em>0.7</em>”,
 “<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”,
 “<code>/session</code> <em>HIST_NAME</em>”, “[<em>PROMPT</em>]
@@ -946,8 +959,8 @@ set.</p>
 <h5 id="copying-and-resuming-older-sessions">Copying and resuming older
 sessions</h5>
 <p>To continue from an old session, either <strong>/sub</strong> or
-<strong>/fork.</strong> it as the current session. The shorthand for
-this feature is <strong>/.</strong>.</p>
+<strong>/fork.</strong> it. The dot means the current session. The
+shorthand for this feature is <strong>/.</strong>.</p>
 <p>It is also possible to <code>/grep [regex]</code> for a session. This
 will fork the selected session and resume it.</p>
 <p>If “<code>/copy</code> <em>current</em>” is run, a selector is shown
@@ -1543,9 +1556,9 @@ cache.</p>
 <dt><strong>-w</strong>, <strong>--transcribe</strong> [<em>AUD</em>]
 [<em>LANG</em>] [<em>PROMPT</em>]</dt>
 <dd>
-<p>Transcribe audio file into text. LANG is optional. A prompt that
-matches the audio language is optional. Audio will be transcribed or
-translated to the target LANG.</p>
+<p>Transcribe audio file speech into text. LANG is optional. A prompt
+that matches the speech language is optional. Speech will be transcribed
+or translated to the target LANG.</p>
 <p>Set twice to phrase or thrice for word-level timestamps (-www).</p>
 <p>With <code>options -vv</code>, stop voice recorder on silence auto
 detection.</p>
@@ -1553,7 +1566,7 @@ detection.</p>
 <dt><strong>-W</strong>, <strong>--translate</strong> [<em>AUD</em>]
 [<em>PROMPT-EN</em>]</dt>
 <dd>
-<p>Translate audio file into English text.</p>
+<p>Translate audio file speech into English text.</p>
 <p>Set twice to phrase or thrice for word-level timestamps (-WWW).</p>
 </dd>
 <dt><strong>-z</strong>, <strong>--tts</strong>
@@ -1630,9 +1643,10 @@ Def=<em>1</em>.</p>
 Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
 <p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
 </dd>
-<dt><strong>--multimodal</strong></dt>
+<dt><strong>--multimodal</strong>, <strong>--vision</strong>,
+<strong>--audio</strong></dt>
 <dd>
-<p>Set model as multimodal.</p>
+<p>Set model multimodal model type.</p>
 </dd>
 <dt><strong>-n</strong>, <strong>--results</strong> [<em>NUM</em>]</dt>
 <dd>

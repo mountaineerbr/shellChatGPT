@@ -50,6 +50,7 @@ If no suffix is provided, it works as plain text completions.
     - 3.5.2 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
     - 3.5.3 [File Picker and Shell Dump](#file-picker-and-shell-dump)
     - 3.5.4 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
+    - 3.5.5 [Audio Models](#audio-models)
   - 3.6 [Chat Mode of Text Completions](#chat-mode-of-text-completions)
   - 3.7 [Text Completions](#-text-completions)
     - 3.7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
@@ -68,7 +69,7 @@ If no suffix is provided, it works as plain text completions.
   - 8.3 [Image Edits](#image-edits)
     - 8.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
     - 8.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
-  - 8.4 [Audio Transcriptions / Translations](#-audio-transcriptions--translations)
+  - 8.4 [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
 - 9. [Service Providers](#service-providers)
   - 9.1 [LocalAI](#localai)
     - 9.1.1 [LocalAI Server](#localai-server)
@@ -100,14 +101,15 @@ If no suffix is provided, it works as plain text completions.
 
 ## 🚀 Features
 
-- Text and chat completions, support for [vision](#vision-models-gpt-4-vision) and **reasoning models**
+- Text and chat completions.
+- [Vision](#vision-models-gpt-4-vision), **reasoning** and [**audio models**](#audio-models)
+- **Voice-in** (Whisper) plus **voice out** (TTS) [_chatting mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
 - **Text editor interface**, _Bash readline_, and _multiline/cat_ modes
 - [**Markdown rendering**](#markdown) support in response
 - **Preview** and [**regenerate responses**](#--notes-and-tips)
 - **Manage sessions**, _print out_ previous sessions
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
    easily create and set the initial system prompt
-- **Voice in** (Whisper) plus **voice out** (TTS) [_chat mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
 - Integration with [LocalAI](#localai), [Ollama](#ollama),
    [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), [Anthropic](#anthropic), and [GitHub Models](#github)
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
@@ -366,7 +368,12 @@ For _doc_ and _odt_ files, `LibreOffice` is required.
 See the [Optional Packages](#optional-packages) section.
 
 Also note that file paths containing white spaces must be
-**blackslash-escaped**.
+**blackslash-escaped**, or the filepath must be preceded by a pipe `|` character.
+
+    My text prompt. | path/to the file.jpg
+
+
+Multiple images and audio files may be appended the the prompt in this way!
 
 
 #### File Picker and Shell Dump
@@ -389,7 +396,7 @@ in some functions.
 
 #### Voice In and Out + Chat Completions
 
-🗣️ Chat completion with audio in and out (Whisper plus TTS):
+🗣️ Chat completion with speech in and out (Whisper plus TTS):
 
     chatgpt.sh -ccwz
 
@@ -408,6 +415,21 @@ such as:
     chatgpt.sh -cc -w -z -v
 
     chatgpt.sh -cc -w -z -vv
+
+
+#### Audio Models
+
+Audio models, such as `gpt-4o-audio`, deal with audio input and output directly, thus reducing latency in a conversation turn.
+
+To activate the microphone recording function of the script, set command line `option -w`.
+
+Otherwise, the audio model accepts any compatible audio file (such as **mp3**, **wav**, and **opus**).
+These files can be added to be loaded at the very end of the user prompt
+or added with chat command `/audio  path/to/file.mp3`.
+
+Similarly as described above, to activate the audio output mode of an audio model, do set command line `option -z` to make sure to enable the speech synthesis function! 
+
+    chatgpt.sh -cc -w -z -vv -m "gpt-4o-audio-preview"
 
 
 ### Chat Mode of Text Completions
@@ -778,10 +800,10 @@ In this example, a mask is made from the white colour.
 Adding a bat in the night sky.
 
 
-### 🔊 Audio Transcriptions / Translations
+### 🔊 Speech Transcriptions / Translations
 
-Generate transcription from audio file. A prompt to guide the model's style is optional.
-The prompt should match the audio language:
+Generate transcription from audio file speech. A prompt to guide the model's style is optional.
+The prompt should match the speech language:
 
     chatgpt.sh -w path/to/audio.mp3
 
@@ -796,13 +818,13 @@ The prompt should match the audio language:
 This also works to transcribe from one language to another.
 
 
-**2.** Transcribe any language audio input **to Japanese** (_prompt_ should be in
+**2.** Transcribe any language speech input **to Japanese** (_prompt_ should be in
 the same language as the input audio language, preferably):
 
     chatgpt.sh -w ja "A job interview is currently being done."
 
 
-**3.1** Translate English audio input to Japanese, and generate audio output from text.
+**3.1** Translate English speech input to Japanese, and generate speech output from the text response.
 
     chatgpt.sh -wz ja "Getting directions to famous places in the city."
 
@@ -814,7 +836,7 @@ a Japanese speaker can translate its voice and generate audio in the target lang
     chatgpt.sh -wz en "Providing directions to famous places in the city."
 
 
-**4.** Translate audio file or voice recording from any language to English:
+**4.** Translate speech from any language to English:
 
     chatgpt.sh -W [audio_file]
 
@@ -828,7 +850,7 @@ _audio_file_ as `last` or `retry`.
 For **word-level timestamps**, set option `-www` or `-WWW`.
 
 
-![Transcribe audio with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
+![Transcribe speech with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
 
 
 <!-- 
@@ -921,7 +943,7 @@ the LocalAI and Ollama projects guidelines and methods.
 
 For image generation, install Stable Diffusion from the URL
 `github:go-skynet/model-gallery/stablediffusion.yaml`,
-and for audio transcription, download Whisper from the URL
+and for speech transcription, download Whisper from the URL
 `github:go-skynet/model-gallery/whisper-base.yaml`.
 <!-- LocalAI was only tested with text and chat completion models (vision) -->
 
@@ -1173,7 +1195,7 @@ To set the clipboard, it is required `termux-clipboard-set` from the `termux-api
 
 ### TTS Chat - Removal of Markdown
 
-*Markdown in TTS input* may stutter the model audio generation a little.
+*Markdown in TTS input* may stutter the model speech generation a little.
 If `python` modules `markdown` and `bs4` are available, TTS input will
 be converted to plain text. As fallback, `pandoc` is used if present
 (chat mode only).

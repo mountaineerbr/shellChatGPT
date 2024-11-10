@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2024
-title: CHATGPT.SH(1) v0.84 \| General Commands Manual
+title: CHATGPT.SH(1) v0.85 \| General Commands Manual
 ---
 
 ### NAME
@@ -133,7 +133,7 @@ the end of the prompt.
 In chat mode, a PDF, DOC, TXT or URL filepath at the very end of the
 user prompt is appended as text dump to the current user input.
 
-Make sure file paths containing spaces are backslash-escaped.
+Make sure file paths containing spaces are backslash-escaped!
 
 #### Model and Capacity
 
@@ -195,18 +195,19 @@ See **IMAGES section** below for more information on **inpaint** and
 
 #### Speech-To-Text (Whisper)
 
-`Option -w` **transcribes audio** from *mp3*, *mp4*, *mpeg*, *mpga*,
-*m4a*, *wav*, *webm*, *flac* and *ogg* files. First positional argument
-must be an *AUDIO* file. Optionally, set a *TWO-LETTER* input language
-(*ISO-639-1*) as the second argument. A PROMPT may also be set to guide
-the model’s style, or continue a previous audio segment. The text prompt
-should match the audio language.
+`Option -w` **transcribes audio speech** from *mp3*, *mp4*, *mpeg*,
+*mpga*, *m4a*, *wav*, *webm*, *flac* and *ogg* files. First positional
+argument must be an *AUDIO* file. Optionally, set a *TWO-LETTER* input
+language (*ISO-639-1*) as the second argument. A PROMPT may also be set
+to guide the model’s style, or continue a previous audio segment. The
+text prompt should match the speech language.
 
-Note that `option -w` can also be set to **translate audio** input to
+Note that `option -w` can also be set to **translate speech** input to
 any text language to the target language.
 
-`Option -W` **translates audio** stream to **English text**. A PROMPT in
-English may be set to guide the model as the second positional argument.
+`Option -W` **translates speech** stream to **English text**. A PROMPT
+in English may be set to guide the model as the second positional
+argument.
 
 Set these options twice to have phrasal-level timestamps, options -ww
 and -WW. Set thrice for word-level timestamps.
@@ -224,6 +225,22 @@ as the *voice speed* (*0.25* - *4.0*), and, finally the *output file
 name* or the *format*, such as “*./new_audio.mp3*” (“*mp3*”, “*opus*”,
 “*aac*”, and “*flac*”), or “*-*” for stdout. Set `options -vz` to *not*
 play received output.
+
+### Audio Models
+
+Audio models, such as `gpt-4o-audio`, deal with audio input and output
+directly.
+
+To activate the microphone recording function of the script, set command
+line `option -w`.
+
+Otherwise, the audio model accepts any compatible audio file (such as
+**mp3**, **wav**, and **opus**). These files can be added to be loaded
+at the very end of the user prompt or added with chat command
+`/audio  path/to/file.mp3`.
+
+To activate the audio synthesis output mode of an audio model, make sure
+to set command line `option -z`!
 
 #### General Considerations
 
@@ -358,7 +375,11 @@ For PDF text dump support, `poppler/abiword` is required. For *doc* and
 section.
 
 Also note that *file paths* containing white spaces must be
-**blackslash-escaped**.
+**blackslash-escaped**, or the *file path* must be preceded by a pipe
+`|` character.
+
+Multiple images and audio files may be appended the the prompt in this
+way!
 
 #### 2.7 Command List
 
@@ -411,28 +432,28 @@ either “`!`” or “`/`”.
 | `-y`    | `!tik`               | Toggle python tiktoken use.                              |
 | `!q`    | `!quit`              | Exit. Bye.                                               |
 
-| Model   | Settings                |                                                |
-|:--------|:------------------------|------------------------------------------------|
-| `-Nill` | `!Nill`                 | Toggle model max response (chat cmpls).        |
-| `-M`    | `!NUM` `!max` \[*NUM*\] | Maximum response tokens.                       |
-| `-N`    | `!modmax` \[*NUM*\]     | Model token capacity.                          |
-| `-a`    | `!pre` \[*VAL*\]        | Presence penalty.                              |
-| `-A`    | `!freq` \[*VAL*\]       | Frequency penalty.                             |
-| `-b`    | `!best` \[*NUM*\]       | Best-of n results.                             |
-| `-j`    | `!seed` \[*NUM*\]       | Seed number (integer).                         |
-| `-K`    | `!topk` \[*NUM*\]       | Top_k.                                         |
-| `-m`    | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.        |
-| `-n`    | `!results` \[*NUM*\]    | Number of results.                             |
-| `-p`    | `!topp` \[*VAL*\]       | Top_p.                                         |
-| `-r`    | `!restart` \[*SEQ*\]    | Restart sequence.                              |
-| `-R`    | `!start` \[*SEQ*\]      | Start sequence.                                |
-| `-s`    | `!stop` \[*SEQ*\]       | One stop sequence.                             |
-| `-t`    | `!temp` \[*VAL*\]       | Temperature.                                   |
-| `-w`    | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
-| `-z`    | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
-| `!ka`   | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
-| `!blk`  | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
-| \-      | `!multimodal`           | Toggle model as multimodal.                    |
+| Model     | Settings                |                                                |
+|:----------|:------------------------|------------------------------------------------|
+| `-Nill`   | `!Nill`                 | Toggle model max response (chat cmpls).        |
+| `-M`      | `!NUM` `!max` \[*NUM*\] | Maximum response tokens.                       |
+| `-N`      | `!modmax` \[*NUM*\]     | Model token capacity.                          |
+| `-a`      | `!pre` \[*VAL*\]        | Presence penalty.                              |
+| `-A`      | `!freq` \[*VAL*\]       | Frequency penalty.                             |
+| `-b`      | `!best` \[*NUM*\]       | Best-of n results.                             |
+| `-j`      | `!seed` \[*NUM*\]       | Seed number (integer).                         |
+| `-K`      | `!topk` \[*NUM*\]       | Top_k.                                         |
+| `-m`      | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.        |
+| `-n`      | `!results` \[*NUM*\]    | Number of results.                             |
+| `-p`      | `!topp` \[*VAL*\]       | Top_p.                                         |
+| `-r`      | `!restart` \[*SEQ*\]    | Restart sequence.                              |
+| `-R`      | `!start` \[*SEQ*\]      | Start sequence.                                |
+| `-s`      | `!stop` \[*SEQ*\]       | One stop sequence.                             |
+| `-t`      | `!temp` \[*VAL*\]       | Temperature.                                   |
+| `-w`      | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
+| `-z`      | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
+| `!ka`     | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
+| `!blk`    | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
+| `!vision` | `!audio`, `!multimodal` | Toggle multimodality type.                     |
 
 | Session | Management                             |                                                                                                     |
 |:--------|:---------------------------------------|-----------------------------------------------------------------------------------------------------|
@@ -452,7 +473,7 @@ either “`!`” or “`/`”.
 *:* Commands with a *colon* have their output appended to the prompt.
 
 *‡* Commands with *double dagger* may be invoked at the very end of the
-input prompt.
+input prompt (preceded by space).
 
 E.g.: “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”, “`/session`
 *HIST_NAME*”, “\[*PROMPT*\] `/pick`”, and “\[*PROMPT*\] `/sh`”.
@@ -490,8 +511,8 @@ session) is always loaded if the resume `option -C` is set.
 
 ##### Copying and resuming older sessions
 
-To continue from an old session, either **/sub** or **/fork.** it as the
-current session. The shorthand for this feature is **/.**.
+To continue from an old session, either **/sub** or **/fork.** it. The
+dot means the current session. The shorthand for this feature is **/.**.
 
 It is also possible to `/grep [regex]` for a session. This will fork the
 selected session and resume it.
@@ -1048,16 +1069,16 @@ Set the model or encoding with `option -m`.
 It heeds `options -ccm`.
 
 **-w**, **--transcribe** \[*AUD*\] \[*LANG*\] \[*PROMPT*\]  
-Transcribe audio file into text. LANG is optional. A prompt that matches
-the audio language is optional. Audio will be transcribed or translated
-to the target LANG.
+Transcribe audio file speech into text. LANG is optional. A prompt that
+matches the speech language is optional. Speech will be transcribed or
+translated to the target LANG.
 
 Set twice to phrase or thrice for word-level timestamps (-www).
 
 With `options -vv`, stop voice recorder on silence auto detection.
 
 **-W**, **--translate** \[*AUD*\] \[*PROMPT-EN*\]  
-Translate audio file into English text.
+Translate audio file speech into English text.
 
 Set twice to phrase or thrice for word-level timestamps (-WWW).
 
@@ -1113,8 +1134,8 @@ Set language *MODEL* name. Def=*gpt-3.5-turbo-instruct*/*gpt-4o*.
 
 Set *MODEL* name as “*.*” to pick from the list.
 
-**--multimodal**  
-Set model as multimodal.
+**--multimodal**, **--vision**, **--audio**  
+Set model multimodal model type.
 
 **-n**, **--results** \[*NUM*\]  
 Set number of results. Def=*1*.
