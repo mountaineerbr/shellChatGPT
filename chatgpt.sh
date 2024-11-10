@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.85.3  nov/2024  by mountaineerbr  GPL+3
+# v0.85.4  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2343,6 +2343,7 @@ function cmd_runf
 					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break;;  #no need to edit
 				esac; set --;
 			done; _clr_lineupf $((12+1+47));  #!#
+
 			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
 			((${#args[@]})) && shell_histf "!${args[*]}";
 			((RET==200)) || REPLY_CMD_BLOCK=1 SKIP_SH_HIST=1;
@@ -2434,7 +2435,7 @@ function cmd_runf
 			fi
 			;;
 		replay|rep)
-			if ((${#REPLAY_FILES[@]})) || [[ -s $FILEOUT_TTS ]]
+			if ((${#REPLAY_FILES[@]})) || [[ -f $FILEOUT_TTS ]]
 			then 	for var in "${REPLAY_FILES[@]:-$FILEOUT_TTS}"
 				do 	[[ -f $var ]] || continue
 					du -h "$var" >&2 2>/dev/null;
@@ -2589,7 +2590,7 @@ function edf
 			[Rr])  return 200;;  #redo
 			[Ee]|$'\e'|*) _edf "$FILETXT";;  #edit
 		esac
-	done
+	done; printf '\n---\n\n' >&2;
 
 	ind=320 sub="${pos:${#pre}:${ind}}"
 	if ((OPTCMPL))
@@ -2709,7 +2710,7 @@ function fmt_ccf
 			case "$var" in \~\/*) 	var="$HOME/${var:2}";; esac;
 			if [[ $var != *[!$IFS]* ]]
 			then 	continue;
-			elif [[ -f $var ]] && is_audiof "$var"
+			elif [[ -s $var ]] && is_audiof "$var"
 			then 	ext=${var##*.};
 				((${#ext}<7)) || ext=;
 				case "$ext" in mp3|opus|aac|flac|wav|pcm16) :;;
@@ -2717,7 +2718,7 @@ function fmt_ccf
 				esac
 				((${#1})) && printf ',';
 				printf '\n{ "type": "input_audio", "input_audio": { "data": "%s", "format": "%s" } }' "$(base64 "$var" | tr -d $'\n')" "${ext:-mp3}" ;
-			elif [[ -f $var ]]
+			elif [[ -s $var ]]
 			then 	ext=${var##*.} ext=${ext/[Jj][Pp][Gg]/jpeg};
 				((${#ext}<7)) || ext=;
 				case "$ext" in jpeg|png|gif|webp) :;;  #20MB per image
@@ -2943,7 +2944,7 @@ function _mediachatf
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
 			
-			((${#1}-ind >= 0)) || { 	_warmsgf 'Err: _mediachatf():' "negative index -- $((${#1}-ind))"; break ;}
+			((${#1}-ind < 0)) && { 	_warmsgf 'Err: _mediachatf():' "negative index -- $((${#1}-ind))"; break ;}
 			set -- "$(trim_trailf "${1: 0: ${#1}-ind}" $'*(\\[tnr]|[ \t\n\r|])')";
 		else
 			((OPTV>99)) || [[ $var = *[[\]\<\>{}\(\)*?=%\&^\$\#\ ]* ]] ||
@@ -3030,7 +3031,7 @@ function is_txturl
 	((${#1}>320)) && set -- "${1: ${#1}-320}"
 	
 	set -- "$1" "$(INDEX=64 trimf "$1" "$SPC")";
-	if [[ -s ${2:-$1} ]]
+	if [[ -f ${2:-$1} ]]
 	then 	set -- "${2:-$1}";
 	else 	set -- "$(trim_leadf "$(trim_trailf "$1" "$SPC")" $'*[!\\\\][ \t\n]')";
 		[[ ${1:0:1} = [$IFS] ]] && set -- "${1:1}";
@@ -3185,6 +3186,7 @@ function foldf
 		do
 			r=$REPLY;
 			r=${r//$'\t'/        };  #fix for tabs
+
 			((OPTK)) || {  #delete ansi codes
 			  text="$r" result=""
 			  while [[ "$text" = *$'\e'*[mG]* ]]
@@ -4942,7 +4944,7 @@ function set_googleaif
 		do
 			if [[ $var != *[!$IFS]* ]]
 			then 	continue;
-			elif [[ -f $var ]]
+			elif [[ -s $var ]]
 			then 	ext=${var##*.}; ((${#ext}<7)) && ext=${ext/[Jj][Pp][Gg]/jpeg} || ext=;
 				((${#1})) && printf ',';
 				printf '
@@ -5886,11 +5888,12 @@ else
 					
 					#check whether last arg is url or directory
 					var=$(INDEX=64 trimf "${REPLY: ind}" "$SPC")
-					if [[ -s $var ]]
+					if [[ -s ${var//\\} ]]
 					then 	:;
 					else 	var=$(trim_leadf "$(trim_trailf "${REPLY: ind}" "$SPC")" $'*[!\\\\][ \t\n]');
 						[[ ${var:0:1} = [$IFS] ]] && var=${var:1};
 					fi  #C#
+					[[ $var = *\\* ]] && var=${var//\\};
 					case "$var" in \~\/*) 	var="$HOME/${var:2}";; esac;
 
 					if { _is_linkf "$var" && ! _is_imagef "$var" && ! _is_videof "$var" && [[ $var != *\/\/ ]] ;} ||
@@ -6445,7 +6448,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 				fi >/dev/null 2>&1 || ! _warmsgf 'Err:' 'ffmpeg/sox/lame -- pcm16 to wav';
 				
 				[[ -s $var ]] && FILEOUT_TTS=$var;
-				[[ ! -s $var ]] || du -h "$var" >&2 2>/dev/null || _sysmsgf 'TTS File:' "${var/"$HOME"/"~"}";
+				[[ ! -e $var ]] || du -h "$var" >&2 2>/dev/null || _sysmsgf 'TTS File:' "${var/"$HOME"/"~"}";
 			fi
 			#Audio formats
 			#    raw 16 bit PCM audio at 24kHz, 1 channel, little-endian

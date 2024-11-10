@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2024
-title: CHATGPT.SH(1) v0.85 \| General Commands Manual
+title: CHATGPT.SH(1) v0.85.4 \| General Commands Manual
 ---
 
 ### NAME
@@ -879,8 +879,13 @@ Bash “read command” may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
 
-File paths containing spaces may not work correctly with some script
-features.
+File paths containing spaces may not work correctly in the chat
+interface. Make sure to backslash-escape filepaths with white spaces.
+
+Folding the response at white spaces may not worked correctly if the
+user has changed his terminal tabstop setting. Reset it with command
+`tabs -8` or `reset` before starting the script, or set one of these in
+the script configuration file.
 
 Bash truncates input on “\000” (null).
 
