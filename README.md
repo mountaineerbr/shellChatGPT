@@ -361,7 +361,7 @@ This is a basic text feature that works with any model.
     Q: Help me study this paper. ~/Downloads/Prigogine\ Perspective\ on\ Nature.pdf
 
 
-In the **second example**, the _PDF_ will be dumped as text.
+In the **second example** above, the _PDF_ will be dumped as text (interactive mode).
 
 For PDF text dump support, `poppler/abiword` is required.
 For _doc_ and _odt_ files, `LibreOffice` is required.

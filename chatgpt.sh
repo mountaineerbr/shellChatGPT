@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.85.1  nov/2024  by mountaineerbr  GPL+3
+# v0.85.2  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -823,9 +823,9 @@ function _promptf
 		__promptf "$@" | { tee -- "$FILESTREAM" || cat ;} |
 		if ((GOOGLEAI))
 		then 	cat;
-		elif ((ANTHROPIC))
+		elif ((ANTHROPICAI))
 		then 	sed -n -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//p';
-		else 	sed -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//' -e '/^[[:space:]]*\[[A-Z][A-Z]*\]/d' -e '/^[[:space:]]*$/d';
+		else 	sed -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//' -e '/^[[:space:]]*[A-Za-z][A-Za-z]*:/d' -e '/^[[:space:]]*\[[A-Za-z][A-Za-z]*\]/d' -e '/^[[:space:]]*$/d';
 		fi |
 		while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
@@ -859,7 +859,7 @@ function _promptf
 
 function promptf
 {
-	typeset pid
+	typeset pid ret
 
 	if ((OPTVV)) && ((!OPTII))
 	then 	block_printf || {
@@ -869,11 +869,12 @@ function promptf
 	fi
 
 	if ((STREAM))
-	then 	if ((PREVIEW>1))
+	then 	: >"$FILETXT"; RET_APRF=;
+		if ((PREVIEW>1))
 		then 	cat -- "$FILE"
 		else 	test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%s\\b${NC}" "X" >&2;
 			_promptf || exit;  #!#
-		fi | prompt_printf
+		fi | { 	prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILETXT"; exit $ret ;}
 	else
 		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
 		((PREVIEW>1)) || COLUMNS=$((COLUMNS-1)) _promptf || exit;  #!#
@@ -886,7 +887,8 @@ function promptf
 	
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2;" INT;
 	wait $pid; echo >&2;
-	trap 'exit' INT;
+	trap 'exit' INT; RET_APRF=;
+	[[ -s $FILETXT ]] && { 	RET_APRF=$(<$FILETXT); : >"$FILETXT" ;}
 
 	if ((OPTCLIP)) || [[ ! -t 1 ]]
 	then 	typeset out; out=$(
@@ -2435,7 +2437,7 @@ function cmd_runf
 			if ((${#REPLAY_FILES[@]})) || [[ -s $FILEOUT_TTS ]]
 			then 	for var in "${REPLAY_FILES[@]:-$FILEOUT_TTS}"
 				do 	[[ -f $var ]] || continue
-					du -h "$var" 2>/dev/null
+					du -h "$var" >&2 2>/dev/null;
 					[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
 					${PLAY_CMD} "$var" >&2 & pid=$! PIDS+=($!);
 					trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
@@ -3737,7 +3739,7 @@ function _ttsf
 		esac
 
 	[[ $FOUT = "-"* ]] || [[ ! -e $FOUT ]] || { 
-		du -h "$FOUT" 2>/dev/null || _sysmsgf 'TTS File:' "$FOUT"; 
+		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS File:' "$FOUT"; 
 		((OPTV && !CHAT_ENV)) || [[ ! -s $FOUT ]] || {
 			((CHAT_ENV)) || sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
 			case "$PLAY_CMD" in false) 	return $ret;; esac;
@@ -6268,7 +6270,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
 		if (( (RET_PRF>120 && !STREAM) || (!RET_PRF && PREVIEW==1) ))
 		then 	((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
-			PSKIP= JUMP= OPTE= SKIP=1 EDIT=1; set --; continue;  #B#
+			PSKIP= JUMP= OPTE= SKIP=1 EDIT=1 RET_PRF= RET_APRF=; set --; continue;  #B#
 		fi
 		((RET_PRF>120)) && INT_RES='#';
 		((RET_PRF)) || REPLY_OLD="${REPLY:-${REPLY_OLD:-$*}}";  #I#
@@ -6392,7 +6394,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 		HIST_G= SKIP_SH_HIST=;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)
-		((RET_PRF>120)) && { 	PSKIP= JUMP= SKIP=1 EDIT=1; set --; continue ;}  #B# record whatever has been received by streaming
+		((RET_PRF>120)) && { 	PSKIP= JUMP= SKIP=1 EDIT=1 RET_PRF= RET_APRF=; set --; continue ;}  #B# record whatever has been received by streaming
 
 		#auto detect markdown in response
 		if ((!NO_OPTMD_AUTO)) && ((!OPTMD)) && ((!OPTEXIT)) &&
@@ -6445,7 +6447,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 				fi >/dev/null 2>&1 || ! _warmsgf 'Err:' 'ffmpeg/sox/lame -- pcm16 to wav';
 				
 				[[ -s $var ]] && FILEOUT_TTS=$var;
-				[[ ! -s $var ]] || du -h "$var" 2>/dev/null || _sysmsgf 'TTS File:' "${var/"$HOME"/"~"}";
+				[[ ! -s $var ]] || du -h "$var" >&2 2>/dev/null || _sysmsgf 'TTS File:' "${var/"$HOME"/"~"}";
 			fi
 			#Audio formats
 			#    raw 16 bit PCM audio at 24kHz, 1 channel, little-endian
@@ -6458,7 +6460,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 				_warmsgf $'\nReplay?' 'N/y/[w]ait ' '';  #!# #F#
 				for ((n=var;n>-1;n--))
 				do 	printf '%s\b' "$n" >&2
-					if ((!STREAM && !ok)) && var="y" ||
+					if (( (!STREAM && !ok) || RET_APRF)) && { 	RET_APRF= var="y"; printf 'y\n' >&2 ;} ||
 						var=$(NO_CLR=1 read_charf -t 1 </dev/tty)
 					then 	case "$var" in
 						[Q]) 	echo '[bye]' >&2; exit 202;;
@@ -6477,7 +6479,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 				else 	rm -vf -- "$FILEOUT_TTS";
 					_warmsgf 'Err:' $'audio-model output\n';
 				fi
-			done; unset ok var m n;
+			done; unset RET_APRF ok var m n;
 		elif ((OPTZ))
 		then
 			ans=${ans##"${A_TYPE##$SPC1}"};
@@ -6506,7 +6508,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 
 		((++MAIN_LOOP)) ;set --
 		role= rest= tkn_ans= ans_tts= ans= buff= glob= out= pid= s= n=;
-		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= WSKIP= PSKIP= SKIP= EDIT=;
+		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= WSKIP= PSKIP= SKIP= EDIT=;
 		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE PREVIEW BAD_RES INT_RES var tkn;
 		((MTURN && !OPTEXIT)) || break
 	done

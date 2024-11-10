@@ -236,8 +236,8 @@ line `option -w`.
 
 Otherwise, the audio model accepts any compatible audio file (such as
 **mp3**, **wav**, and **opus**). These files can be added to be loaded
-at the very end of the user prompt or added with chat command
-`/audio  path/to/file.mp3`.
+at the very end of the user prompt or added with chat command */audio
+path/to/file.mp3*.
 
 To activate the audio synthesis output mode of an audio model, make sure
 to set command line `option -z`!
