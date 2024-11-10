@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.85.2  nov/2024  by mountaineerbr  GPL+3
+# v0.85.3  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2921,17 +2921,14 @@ function _mediachatf
 	
 	while [[ $1 = *[[:alnum:]]* ]] && ((m<128))
 	do
-		((++m));
+		((++m)); var=;
 		set -- "$(trim_leadf "$1" $'*([ \n\t\r|]|\\\\[ntr])')";
 		if [[ -f $1 ]]
 		then 	var=$1;
-		else 	var=$(sed 's/^.*[|][[:space:]|]*//' <<<"$1");
+		else 	[[ $1 = *[\|]* ]]   && var=$(sed 's/^.*[|][[:space:]|]*//' <<<"$1");
+			[[ -f ${var//\\} ]] || var=$(sed 's/^.*[^\\][[:space:]]//; s/^[[:space:]|]*//' <<<"$1");
 		fi; ind=${#var};
 		[[ $var = *\\* ]] && var=${var//\\};
-		[[ -f $var ]] || {
-			var=$(sed 's/^.*[^\\][[:space:]]//; s/^[[:space:]|]*//' <<<"$1");
-			ind=${#var}; [[ $var = *\\* ]] && var=${var//\\};
-		};
 		case "$var" in \~\/*) 	var="$HOME/${var:2}";; esac;
 
 		#check if file or url and add to array (max 20MB)
@@ -2945,7 +2942,8 @@ function _mediachatf
 			else 	MEDIA=("$var" "${MEDIA[@]}");  #read by fmt_ccf()
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
-
+			
+			((${#1}-ind >= 0)) || { 	_warmsgf 'Err: _mediachatf():' "negative index -- $((${#1}-ind))"; break ;}
 			set -- "$(trim_trailf "${1: 0: ${#1}-ind}" $'*(\\[tnr]|[ \t\n\r|])')";
 		else
 			((OPTV>99)) || [[ $var = *[[\]\<\>{}\(\)*?=%\&^\$\#\ ]* ]] ||
