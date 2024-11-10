@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.85.4  nov/2024  by mountaineerbr  GPL+3
+# v0.85.5  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1357,7 +1357,7 @@ function set_histf
 
 			#vision
 			if ((!OPTHH)) && { is_visionf "$MOD" || is_amodelf "$MOD" ;}
-			then 	MEDIA=(); OPTV=100 _mediachatf "$stringc"
+			then 	MEDIA=(); OPTV=100 media_pathf "$stringc"
 			fi
 
 			#print commented out lines ( $OPTHH > 2 )
@@ -1990,7 +1990,7 @@ function cmd_runf
 		media*|img*|audio*|aud*)
 			set -- "${*##@(media|img|audio|aud)*([$IFS])}";
 			set -- "$(trim_trailf "$*" $'*([ \t\n])')";
-			CMD_CHAT=1 _mediachatf "$1" && {
+			CMD_CHAT=1 media_pathf "$1" && {
 			  [[ -f $1 ]] && set -- "$(duf "$1")";
 			  var=$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}))
 			  out=$(is_audiof "$1" && echo aud || echo img)
@@ -2914,7 +2914,7 @@ function ollama_mediaf
 
 #process files and urls from input
 #filenames with spaces must be blackslash-quoted
-function _mediachatf
+function media_pathf
 {
 	typeset var ind m n
 	#process only the last line of input
@@ -2944,7 +2944,7 @@ function _mediachatf
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
 			
-			((${#1}-ind < 0)) && { 	_warmsgf 'Err: _mediachatf():' "negative index -- $((${#1}-ind))"; break ;}
+			((${#1}-ind < 0)) && { 	_warmsgf 'Err: media_pathf():' "negative index -- $((${#1}-ind))"; break ;}
 			set -- "$(trim_trailf "${1: 0: ${#1}-ind}" $'*(\\[tnr]|[ \t\n\r|])')";
 		else
 			((OPTV>99)) || [[ $var = *[[\]\<\>{}\(\)*?=%\&^\$\#\ ]* ]] ||
@@ -6077,7 +6077,7 @@ else
 		#vision / audio-model
 		elif is_visionf "$MOD" || is_amodelf "$MOD"
 		then
-			_mediachatf "$1";
+			media_pathf "$1";
 			((MTURN)) &&
 			for var in "${MEDIA_CMD[@]}"
 			do 	[[ $var = *\ * ]] && [[ $var != *\\\ * ]] && var=${var// /\\ };  #escape spaces
@@ -6327,6 +6327,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 				{ [[ $(<$file) = *'"[Ee]rror":'* ]] && cat -- "$file" >&2 ;} ||
 				((OPTCMPL)) || ! _warmsgf 'Err';
 				_warmsgf "(response empty)";
+				((${#REPLY}<1640)) || read_charf -t 1.6 >/dev/null 2>&1;
 
 				((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI+GITHUBAI) )) &&
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
@@ -6387,7 +6388,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
 			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD=;
 			unset PSKIP JUMP REGEN PREVIEW REPLY_CMD REPLY_CMD_DUMP INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX OPTE;
-			((OPTX)) && read_charf >/dev/null
+			((OPTX)) && read_charf -t 6 >/dev/null
 			set -- ;continue
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_CMD_IND[@]}));
