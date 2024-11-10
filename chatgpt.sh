@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.85  nov/2024  by mountaineerbr  GPL+3
+# v0.85.1  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1084,7 +1084,7 @@ function prompt_printf
 	else
 		#audio-models
 		if ((MULTIMODAL>1)) && ((OPTZ)) && ((STREAM)) && if [[ -n $TERMUX_VERSION ]]
-			then 	set_termuxpulsef;
+			then 	OPTV=2 set_termuxpulsef;
 			else 	:; fi;
 		then
 			splayerf "$FILEFIFO" & pid=$! PIDS+=($!);

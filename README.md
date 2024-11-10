@@ -432,6 +432,9 @@ Similarly as described above, to activate the audio output mode of an audio mode
     chatgpt.sh -cc -w -z -vv -m "gpt-4o-audio-preview"
 
 
+Mind that this _does not_ implement the _realtime models_.
+
+
 ### Chat Mode of Text Completions
 
 When text completions is set for chatting with `option -c`,
