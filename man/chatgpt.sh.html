@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.85.4 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.85.5 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.85.4 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.85.5 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2024</p>
 </header>
@@ -247,8 +247,7 @@ invocation.</p>
 “<em>[insert]</em>” must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.</p>
-<p>Insert mode works with <code>instruct</code> and Mistral
-<code>code</code> models.</p>
+<p>Insert mode works with `instruct’ and Mistral `code’ models.</p>
 <h4 id="instruction-prompts">Instruction Prompts</h4>
 <p>Positional arguments are read as a single <strong>PROMPT</strong>.
 Model <strong>INSTRUCTION</strong> is optional but recommended and can
@@ -278,8 +277,8 @@ instruction was set with command line options.</p>
 <h4 id="commands">Commands</h4>
 <p>If the first positional argument of the script starts with the
 command operator forward slash “<code>/</code>” and a history file name,
-the command “<code>/session</code> [<em>HIST_NAME</em>]” is assumed.
-This will change to or create a new history file (with
+the command ``/session [<em>HIST_NAME</em>]’’ is assumed. This will
+change to or create a new history file (with
 <code>options -ccCdPP</code>).</p>
 <p>If a plain text or PDF file path is set as the last positional
 parameter or as an argument to <code>option -S</code> (set instruction
@@ -290,9 +289,9 @@ possibly URLs at the end of the prompt.</p>
 user prompt is appended as text dump to the current user input.</p>
 <p>Make sure file paths containing spaces are backslash-escaped!</p>
 <h4 id="model-and-capacity">Model and Capacity</h4>
-<p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
-<em>MODEL</em> as its name, or set it as “<em>.</em>” to pick from the
-model list. List available models with <code>option -l</code>.</p>
+<p>Set model with ``-m [<em>MODEL</em>]’’, with <em>MODEL</em> as its
+name, or set it as “<em>.</em>” to pick from the model list. List
+available models with <code>option -l</code>.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
 defaults to <em>1024</em> tokens and <em>25000</em> for reasoning
@@ -378,14 +377,14 @@ a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
 <code>options -vz</code> to <em>not</em> play received output.</p>
 <h3 id="audio-models">Audio Models</h3>
-<p>Audio models, such as <code>gpt-4o-audio</code>, deal with audio
-input and output directly.</p>
+<p>Audio models, such as `gpt-4o-audio’, deal with audio input and
+output directly.</p>
 <p>To activate the microphone recording function of the script, set
 command line <code>option -w</code>.</p>
 <p>Otherwise, the audio model accepts any compatible audio file (such as
 <strong>mp3</strong>, <strong>wav</strong>, and <strong>opus</strong>).
 These files can be added to be loaded at the very end of the user prompt
-or added with chat command <em>/audio path/to/file.mp3</em>.</p>
+or added with chat command ``/audio path/to/file.mp3’’.</p>
 <p>To activate the audio synthesis output mode of an audio model, make
 sure to set command line <code>option -z</code>!</p>
 <h4 id="general-considerations">General Considerations</h4>
@@ -417,8 +416,8 @@ class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
 <h3 id="text-completion-modes-1">1. Text Completion Modes</h3>
 <p>Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language model will
-try completing it until probable “<code>&lt;|endoftext|&gt;</code>”, or
-other stop sequences (stops may be set with <code>-s</code>).</p>
+try completing it until probable “<code>&lt;|endoftext|&gt;</code>”,</p>
+<p>or other stop sequences (stops may be set with `-s [stop]’).</p>
 <p><strong>Restart</strong> and <strong>start sequences</strong> may be
 optionally set. Restart and start sequences are not set automatically if
 the chat mode of text completions is not activated with
@@ -473,8 +472,8 @@ option argument:</p>
 <h4 id="vision-and-multimodal-models">2.5 Vision and Multimodal
 Models</h4>
 <p>To send an <em>image</em> or <em>url</em> to <strong>vision
-models</strong>, either set the image with the <code>!img</code> command
-with one or more <em>filepaths</em> / <em>urls</em>.</p>
+models</strong>, either set the image with the ``!img’’ command with one
+or more <em>filepaths</em> / <em>urls</em>.</p>
 <pre><code>chatgpt.sh -cc -m gpt-4-vision-preview &#39;!img path/to/image.jpg&#39;</code></pre>
 <p>Alternatively, set the <em>image paths</em> / <em>urls</em> at the
 end of the text prompt interactively:</p>
@@ -499,7 +498,7 @@ For <em>doc</em> and <em>odt</em> files, <code>LibreOffice</code> is
 required. See the <strong>Optional Packages</strong> section.</p>
 <p>Also note that <em>file paths</em> containing white spaces must be
 <strong>blackslash-escaped</strong>, or the <em>file path</em> must be
-preceded by a pipe <code>|</code> character.</p>
+preceded by a pipe `|’ character.</p>
 <p>Multiple images and audio files may be appended the the prompt in
 this way!</p>
 <h4 id="command-list">2.7 Command List</h4>
@@ -952,7 +951,7 @@ existing one changed to with command “<code>/session</code>
 file.</p>
 <p>When the first positional argument to the script is the command
 operator forward slash followed by a history file name, the command
-<code>/session</code> is assumed.</p>
+`/session’ is assumed.</p>
 <p>A history file can contain many sessions. The last one (the tail
 session) is always loaded if the resume <code>option -C</code> is
 set.</p>
@@ -961,8 +960,8 @@ sessions</h5>
 <p>To continue from an old session, either <strong>/sub</strong> or
 <strong>/fork.</strong> it. The dot means the current session. The
 shorthand for this feature is <strong>/.</strong>.</p>
-<p>It is also possible to <code>/grep [regex]</code> for a session. This
-will fork the selected session and resume it.</p>
+<p>It is also possible to `/grep [regex]’ for a session. This will fork
+the selected session and resume it.</p>
 <p>If “<code>/copy</code> <em>current</em>” is run, a selector is shown
 to choose and copy a session to the tail of the current history file,
 and resume it. This is equivalent to running “<code>/fork</code>”.</p>
@@ -974,10 +973,10 @@ history file.</p>
 <h5 id="changing-session">Changing session</h5>
 <p>To load an older session from a history file that is different from
 the defaults, there are some options.</p>
-<p>Change to it with command <code>!session [name]</code>, and then
-<code>!fork</code> the older session to the active session.</p>
-<p>Or, <code>!copy [orign] [dest]</code> the session from a history file
-to the current or other history file.</p>
+<p>Change to it with command `!session <a href="#name">name</a>‘, and
+then `!fork’ the older session to the active session.</p>
+<p>Or, `!copy [orign] [dest]’ the session from a history file to the
+current or other history file.</p>
 <p>In these cases, a pickup interface should open to let the user choose
 the correct session from the history file.</p>
 <h5 id="history-file-editing">History file editing</h5>
@@ -1004,8 +1003,8 @@ set by the user.</p>
 <p>On chat mode, if no INSTRUCTION is set, minimal instruction is given,
 and some options auto set, such as increasing temp and presence penalty,
 in order to un-lobotomise the bot. With cheap and fast models of text
-cmpls, such as Curie, the <code>best_of</code> option may be worth
-setting (to 2 or 3).</p>
+cmpls, such as Curie, the `best_of’ option may be worth setting (to 2 or
+3).</p>
 <p>Prompt engineering is an art on itself. Study carefully how to craft
 the best prompts to get the most out of text, code and chat cmpls
 models.</p>
@@ -1019,8 +1018,8 @@ its dictionary of tokens.</p>
 <p>Note that the model’s steering and capabilities require prompt
 engineering to even know that it should answer the questions.</p>
 <p>It is also worth trying to sample 3 - 5 times (increasing the number
-of responses with option <code>-n 3</code>, for example) in order to
-obtain a good response.</p>
+of responses with `option -n 3’, for example) in order to obtain a good
+response.</p>
 <p>For more on prompt design, see:</p>
 <ul>
 <li><a
@@ -1110,11 +1109,10 @@ Fuzz</h4>
 <p>A transparent colour must be set with
 “<code>-@</code>[<em>COLOUR</em>]” to create the mask.
 Defaults=<em>black</em>.</p>
-<p>By defaults, the <em>COLOUR</em> must be exact. Use the
-<code>fuzz option</code> to match colours that are close to the target
-colour. This can be set with “<code>-@</code>[<em>VALUE%</em>]” as a
-percentage of the maximum possible intensity, for example
-“<code>-@</code><em>10%black</em>”.</p>
+<p>By defaults, the <em>COLOUR</em> must be exact. Use the `fuzz option’
+to match colours that are close to the target colour. This can be set
+with “<code>-@</code>[<em>VALUE%</em>]” as a percentage of the maximum
+possible intensity, for example “<code>-@</code><em>10%black</em>”.</p>
 <p>See also:</p>
 <ul>
 <li><a href="https://imagemagick.org/script/color.php"
@@ -1135,7 +1133,7 @@ prompt.</p>
 script. Paint a portion of the outer area of an image with
 <em>alpha</em>, or a defined <em>transparent</em> <em>colour</em> which
 will be used as the mask, and set the same <em>colour</em> in the script
-with <code>-@</code>. Choose the best result amongst many results to
+with `option -@’. Choose the best result amongst many results to
 continue the out-painting process step-wise.</p>
 <h3 id="audio-whisper">AUDIO / WHISPER</h3>
 <h3 id="transcriptions">1. Transcriptions</h3>
@@ -1332,8 +1330,10 @@ interface. Make sure to backslash-escape filepaths with white
 spaces.</p>
 <p>Folding the response at white spaces may not worked correctly if the
 user has changed his terminal tabstop setting. Reset it with command
-<code>tabs -8</code> or <code>reset</code> before starting the script,
-or set one of these in the script configuration file.</p>
+``tabs -8’’ or ``reset’’ before starting the script, or set one of these
+in the script configuration file.</p>
+<p>If folding does not work well at all, try exporting envar
+<code>$COLUMNS</code> before script execution.</p>
 <p>Bash truncates input on “\000” (null).</p>
 <p>The script logic resembles a bowl of spaghetti code after a cat
 fight.</p>
@@ -1518,8 +1518,7 @@ response.</p>
 <p>Insert text rather than completing only. May be set twice for
 multi-turn.</p>
 <p>Use “<em>[insert]</em>” to indicate where the language model should
-insert text (<code>instruct</code> and Mistral <code>code</code>
-models).</p>
+insert text (`instruct’ and Mistral `code models’).</p>
 </dd>
 </dl>
 <p><strong>-S</strong> <strong>.</strong>[<em>PROMPT_NAME</em>],

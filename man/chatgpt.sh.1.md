@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.85.4 | General Commands Manual
+% CHATGPT.SH(1) v0.85.5 | General Commands Manual
 % mountaineerbr
 % November 2024
 
@@ -76,7 +76,7 @@ in the middle of the input prompt. Insert mode works completing
 between the end of the text preceding the flag, and ends completion
 with the succeeding text after the flag.
 
-Insert mode works with `instruct` and Mistral `code` models.
+Insert mode works with \`instruct' and Mistral \`code' models.
 
 
 #### Instruction Prompts
@@ -114,7 +114,7 @@ was set with command line options.
 
 If the first positional argument of the script starts with the
 command operator forward slash "`/`" and a history file name, the
-command "`/session` \[_HIST_NAME_]" is assumed. This will
+command \`\`/session \[_HIST_NAME_]'' is assumed. This will
 change to or create a new history file (with `options -ccCdPP`).
 
 If a plain text or PDF file path is set as the last positional parameter
@@ -132,7 +132,7 @@ Make sure file paths containing spaces are backslash-escaped!
 
 #### Model and Capacity
 
-Set model with "`-m` \[_MODEL_]", with _MODEL_ as its name,
+Set model with \`\`-m \[_MODEL_]'', with _MODEL_ as its name,
 or set it as "_._" to pick from the model list.
 List available models with `option -l`.
 
@@ -226,13 +226,13 @@ and "_flac_"), or "_-_" for stdout. Set `options -vz` to _not_ play received out
 
 ### Audio Models
 
-Audio models, such as `gpt-4o-audio`, deal with audio input and output directly.
+Audio models, such as \`gpt-4o-audio', deal with audio input and output directly.
 
 To activate the microphone recording function of the script, set command line `option -w`.
 
 Otherwise, the audio model accepts any compatible audio file (such as **mp3**, **wav**, and **opus**).
 These files can be added to be loaded at the very end of the user prompt
-or added with chat command _/audio  path/to/file.mp3_.
+or added with chat command \`\`/audio  path/to/file.mp3''.
 
 To activate the audio synthesis output mode of an audio model, make sure to set command line `option -z`!
 
@@ -274,7 +274,8 @@ See the online man page and `chatgpt.sh` usage examples at:
 Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language
 model will try completing it until probable "`<|endoftext|>`",
-or other stop sequences (stops may be set with `-s`).
+
+or other stop sequences (stops may be set with \`-s \[stop]').
 
 **Restart** and **start sequences** may be optionally set. Restart and start
 sequences are not set automatically if the chat mode of text completions
@@ -342,7 +343,7 @@ Set chat mode, plus Whisper language and prompt, and the TTS voice option argume
 #### 2.5 Vision and Multimodal Models
 
 To send an _image_ or _url_ to **vision models**, either set the image
-with the `!img` command with one or more _filepaths_ / _urls_.
+with the \`\`!img'' command with one or more _filepaths_ / _urls_.
 
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
 
@@ -379,7 +380,7 @@ See the **Optional Packages** section.
 
 Also note that _file paths_ containing white spaces must be
 **blackslash-escaped**, or the _file path_ must be preceded
-by a pipe `|` character.
+by a pipe \`|' character.
 
 Multiple images and audio files may be appended the the prompt in this way!
 
@@ -512,7 +513,7 @@ or path to, a history file.
 
 When the first positional argument to the script is the command operator
 forward slash followed by a history file name,
-the command `/session` is assumed.
+the command \`/session' is assumed.
 
 A history file can contain many sessions. The last one (the tail session)
 is always loaded if the resume `option -C` is set.
@@ -523,7 +524,7 @@ is always loaded if the resume `option -C` is set.
 To continue from an old session, either **/sub** or **/fork.** it.
 The dot means the current session. The shorthand for this feature is **/.**.
 
-It is also possible to `/grep [regex]` for a session. This will fork
+It is also possible to \`/grep [regex]' for a session. This will fork
 the selected session and resume it.
 
 If "`/copy` _current_" is run, a selector is shown to choose and copy
@@ -541,10 +542,10 @@ as file name means the current history file.
 To load an older session from a history file that is different from the
 defaults, there are some options.
 
-Change to it with command `!session [name]`, and then `!fork` the older
+Change to it with command \`!session [name]', and then \`!fork' the older
 session to the active session.
 
-Or, `!copy [orign] [dest]` the session from a history file to the current
+Or, \`!copy [orign] [dest]' the session from a history file to the current
 or other history file.
 
 In these cases, a pickup interface should open to let the user choose
@@ -578,7 +579,7 @@ chat `options -cc`, unless otherwise explicitly set by the user.
 On chat mode, if no INSTRUCTION is set, minimal instruction is given,
 and some options auto set, such as increasing temp and presence penalty,
 in order to un-lobotomise the bot. With cheap and fast models of
-text cmpls, such as Curie, the `best_of` option may be worth
+text cmpls, such as Curie, the \`best_of' option may be worth
 setting (to 2 or 3).
 
 Prompt engineering is an art on itself. Study carefully how to
@@ -598,7 +599,7 @@ Note that the model's steering and capabilities require prompt
 engineering to even know that it should answer the questions.
 
 It is also worth trying to sample 3 - 5 times (increasing the number
-of responses with option `-n 3`, for example) in order to obtain
+of responses with \`option -n 3', for example) in order to obtain
 a good response.
 
 For more on prompt design, see:
@@ -706,7 +707,7 @@ and processed to fit dimensions and other requirements.
 A transparent colour must be set with "`-@`\[_COLOUR_]" to create the
 mask. Defaults=_black_.
 
-By defaults, the _COLOUR_ must be exact. Use the `fuzz option` to match
+By defaults, the _COLOUR_ must be exact. Use the \`fuzz option' to match
 colours that are close to the target colour. This can be set with
 "`-@`\[_VALUE%_]" as a percentage of the maximum possible intensity,
 for example "`-@`_10%black_".
@@ -730,7 +731,7 @@ In-painting is achieved setting an image with a MASK and a prompt.
 Out-painting can also be achieved manually with the aid of this
 script. Paint a portion of the outer area of an image with _alpha_,
 or a defined _transparent_ _colour_ which will be used as the mask, and set the
-same _colour_ in the script with `-@`. Choose the best result amongst
+same _colour_ in the script with \`option -@'. Choose the best result amongst
 many results to continue the out-painting process step-wise.
 
 
@@ -952,9 +953,12 @@ File paths containing spaces may not work correctly in the chat interface.
 Make sure to backslash-escape filepaths with white spaces.
 
 Folding the response at white spaces may not worked correctly if the user
-has changed his terminal tabstop setting. Reset it with command `tabs -8`
-or `reset` before starting the script, or set one of these in the
+has changed his terminal tabstop setting. Reset it with command \`\`tabs -8''
+or \`\`reset'' before starting the script, or set one of these in the
 script configuration file.
+
+If folding does not work well at all, try exporting envar `$COLUMNS`
+before script execution.
 
 Bash truncates input on "\\000" (null).
 
@@ -1171,7 +1175,7 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
       for multi-turn.
 
       Use "_\[insert]_" to indicate where the language model
-      should insert text (`instruct` and Mistral `code` models).
+      should insert text (\`instruct' and Mistral \`code models').
 
 
 **-S** **.**\[_PROMPT_NAME_], **-.**\[_PROMPT_NAME_]

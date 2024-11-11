@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2024
-title: CHATGPT.SH(1) v0.85.4 \| General Commands Manual
+title: CHATGPT.SH(1) v0.85.5 \| General Commands Manual
 ---
 
 ### NAME
@@ -82,7 +82,7 @@ present in the middle of the input prompt. Insert mode works completing
 between the end of the text preceding the flag, and ends completion with
 the succeeding text after the flag.
 
-Insert mode works with `instruct` and Mistral `code` models.
+Insert mode works with \`instruct’ and Mistral \`code’ models.
 
 #### Instruction Prompts
 
@@ -120,8 +120,8 @@ set with command line options.
 
 If the first positional argument of the script starts with the command
 operator forward slash “`/`” and a history file name, the command
-“`/session` \[*HIST_NAME*\]” is assumed. This will change to or create a
-new history file (with `options -ccCdPP`).
+\`\`/session \[*HIST_NAME*\]’’ is assumed. This will change to or create
+a new history file (with `options -ccCdPP`).
 
 If a plain text or PDF file path is set as the last positional parameter
 or as an argument to `option -S` (set instruction prompt), the file is
@@ -137,7 +137,7 @@ Make sure file paths containing spaces are backslash-escaped!
 
 #### Model and Capacity
 
-Set model with “`-m` \[*MODEL*\]”, with *MODEL* as its name, or set it
+Set model with \`\`-m \[*MODEL*\]’’, with *MODEL* as its name, or set it
 as “*.*” to pick from the model list. List available models with
 `option -l`.
 
@@ -228,7 +228,7 @@ play received output.
 
 ### Audio Models
 
-Audio models, such as `gpt-4o-audio`, deal with audio input and output
+Audio models, such as \`gpt-4o-audio’, deal with audio input and output
 directly.
 
 To activate the microphone recording function of the script, set command
@@ -236,8 +236,8 @@ line `option -w`.
 
 Otherwise, the audio model accepts any compatible audio file (such as
 **mp3**, **wav**, and **opus**). These files can be added to be loaded
-at the very end of the user prompt or added with chat command */audio
-path/to/file.mp3*.
+at the very end of the user prompt or added with chat command \`\`/audio
+path/to/file.mp3’’.
 
 To activate the audio synthesis output mode of an audio model, make sure
 to set command line `option -z`!
@@ -278,8 +278,9 @@ See the online man page and `chatgpt.sh` usage examples at:
 
 Given a prompt, the model will return one or more predicted completions.
 For example, given a partial input, the language model will try
-completing it until probable “`<|endoftext|>`”, or other stop sequences
-(stops may be set with `-s`).
+completing it until probable “`<|endoftext|>`”,
+
+or other stop sequences (stops may be set with \`-s \[stop\]’).
 
 **Restart** and **start sequences** may be optionally set. Restart and
 start sequences are not set automatically if the chat mode of text
@@ -343,7 +344,7 @@ option argument:
 #### 2.5 Vision and Multimodal Models
 
 To send an *image* or *url* to **vision models**, either set the image
-with the `!img` command with one or more *filepaths* / *urls*.
+with the \`\`!img’’ command with one or more *filepaths* / *urls*.
 
     chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
 
@@ -376,7 +377,7 @@ section.
 
 Also note that *file paths* containing white spaces must be
 **blackslash-escaped**, or the *file path* must be preceded by a pipe
-`|` character.
+\`\|’ character.
 
 Multiple images and audio files may be appended the the prompt in this
 way!
@@ -503,8 +504,8 @@ one changed to with command “`/session` \[*HIST_FILE*\]”, in which
 or path to, a history file.
 
 When the first positional argument to the script is the command operator
-forward slash followed by a history file name, the command `/session` is
-assumed.
+forward slash followed by a history file name, the command \`/session’
+is assumed.
 
 A history file can contain many sessions. The last one (the tail
 session) is always loaded if the resume `option -C` is set.
@@ -514,8 +515,8 @@ session) is always loaded if the resume `option -C` is set.
 To continue from an old session, either **/sub** or **/fork.** it. The
 dot means the current session. The shorthand for this feature is **/.**.
 
-It is also possible to `/grep [regex]` for a session. This will fork the
-selected session and resume it.
+It is also possible to \`/grep \[regex\]’ for a session. This will fork
+the selected session and resume it.
 
 If “`/copy` *current*” is run, a selector is shown to choose and copy a
 session to the tail of the current history file, and resume it. This is
@@ -531,10 +532,10 @@ dot as file name means the current history file.
 To load an older session from a history file that is different from the
 defaults, there are some options.
 
-Change to it with command `!session [name]`, and then `!fork` the older
-session to the active session.
+Change to it with command \`!session [name](#name)‘, and then \`!fork’
+the older session to the active session.
 
-Or, `!copy [orign] [dest]` the session from a history file to the
+Or, \`!copy \[orign\] \[dest\]’ the session from a history file to the
 current or other history file.
 
 In these cases, a pickup interface should open to let the user choose
@@ -565,8 +566,8 @@ Minimal **INSTRUCTION** to behave like a chatbot is given with chat
 On chat mode, if no INSTRUCTION is set, minimal instruction is given,
 and some options auto set, such as increasing temp and presence penalty,
 in order to un-lobotomise the bot. With cheap and fast models of text
-cmpls, such as Curie, the `best_of` option may be worth setting (to 2 or
-3).
+cmpls, such as Curie, the \`best_of’ option may be worth setting (to 2
+or 3).
 
 Prompt engineering is an art on itself. Study carefully how to craft the
 best prompts to get the most out of text, code and chat cmpls models.
@@ -584,7 +585,7 @@ Note that the model’s steering and capabilities require prompt
 engineering to even know that it should answer the questions.
 
 It is also worth trying to sample 3 - 5 times (increasing the number of
-responses with option `-n 3`, for example) in order to obtain a good
+responses with \`option -n 3’, for example) in order to obtain a good
 response.
 
 For more on prompt design, see:
@@ -675,7 +676,7 @@ checked and processed to fit dimensions and other requirements.
 A transparent colour must be set with “`-@`\[*COLOUR*\]” to create the
 mask. Defaults=*black*.
 
-By defaults, the *COLOUR* must be exact. Use the `fuzz option` to match
+By defaults, the *COLOUR* must be exact. Use the \`fuzz option’ to match
 colours that are close to the target colour. This can be set with
 “`-@`\[*VALUE%*\]” as a percentage of the maximum possible intensity,
 for example “`-@`*10%black*”.
@@ -698,8 +699,8 @@ In-painting is achieved setting an image with a MASK and a prompt.
 Out-painting can also be achieved manually with the aid of this script.
 Paint a portion of the outer area of an image with *alpha*, or a defined
 *transparent* *colour* which will be used as the mask, and set the same
-*colour* in the script with `-@`. Choose the best result amongst many
-results to continue the out-painting process step-wise.
+*colour* in the script with \`option -@’. Choose the best result amongst
+many results to continue the out-painting process step-wise.
 
 ### AUDIO / WHISPER
 
@@ -884,8 +885,11 @@ interface. Make sure to backslash-escape filepaths with white spaces.
 
 Folding the response at white spaces may not worked correctly if the
 user has changed his terminal tabstop setting. Reset it with command
-`tabs -8` or `reset` before starting the script, or set one of these in
-the script configuration file.
+\`\`tabs -8’’ or \`\`reset’’ before starting the script, or set one of
+these in the script configuration file.
+
+If folding does not work well at all, try exporting envar `$COLUMNS`
+before script execution.
 
 Bash truncates input on “\000” (null).
 
@@ -1039,7 +1043,7 @@ Insert text rather than completing only. May be set twice for
 multi-turn.
 
 Use “*\[insert\]*” to indicate where the language model should insert
-text (`instruct` and Mistral `code` models).
+text (\`instruct’ and Mistral \`code models’).
 
 **-S** **.**\[*PROMPT_NAME*\], **-.**\[*PROMPT_NAME*\]
 
