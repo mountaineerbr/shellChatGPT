@@ -242,14 +242,16 @@ first response (even in multi turn mode).</p>
 <h4 id="text-completion-modes">Text Completion Modes</h4>
 <p><code>Option -d</code> starts a multi-turn session in <strong>plain
 text completions</strong> with history support. This does not set
-further options automatically, such as instructions or temperature.</p>
-<p>To run the script in text completion in single turn mode, set a text
-completion model such as <em>gpt-3.5-turbo-instruct</em> and other
-options (such as temperature and stops) at the command line
-invocation.</p>
+further options automatically, such as instruction or temperature.</p>
+<p>To run the script in text completion in single turn mode, set command
+line <code>options -dE</code>, a text completion model such as
+<em>gpt-3.5-turbo-instruct</em> and other options (such as temperature
+and stops). <code>Option -E</code> will make the script exit after the
+first turn.</p>
 <h4 id="insert-modes-fill-in-the-middle">Insert Modes
 (Fill-In-the-Middle)</h4>
-<p>Set <code>option -q</code> for <strong>insert mode</strong>. The flag
+<p>Set <code>option -q</code> for <strong>insert mode</strong> in
+single-turn and <code>option -qq</code> for multiturn. The flag
 “<em>[insert]</em>” must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.</p>

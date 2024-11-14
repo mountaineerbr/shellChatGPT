@@ -116,14 +116,17 @@ response (even in multi turn mode).
 .SS Text Completion Modes
 \f[CR]Option \-d\f[R] starts a multi\-turn session in \f[B]plain text
 completions\f[R] with history support.
-This does not set further options automatically, such as instructions or
+This does not set further options automatically, such as instruction or
 temperature.
 .PP
-To run the script in text completion in single turn mode, set a text
-completion model such as \f[I]gpt\-3.5\-turbo\-instruct\f[R] and other
-options (such as temperature and stops) at the command line invocation.
+To run the script in text completion in single turn mode, set command
+line \f[CR]options \-dE\f[R], a text completion model such as
+\f[I]gpt\-3.5\-turbo\-instruct\f[R] and other options (such as
+temperature and stops).
+\f[CR]Option \-E\f[R] will make the script exit after the first turn.
 .SS Insert Modes (Fill\-In\-the\-Middle)
-Set \f[CR]option \-q\f[R] for \f[B]insert mode\f[R].
+Set \f[CR]option \-q\f[R] for \f[B]insert mode\f[R] in single\-turn and
+\f[CR]option \-qq\f[R] for multiturn.
 The flag \[lq]\f[I][insert]\f[R]\[rq] must be present in the middle of
 the input prompt.
 Insert mode works completing between the end of the text preceding the

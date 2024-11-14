@@ -64,18 +64,20 @@ Text Completion Modes
 
 Option -d starts a multi-turn session in plain text completions with
 history support. This does not set further options automatically, such
-as instructions or temperature.
+as instruction or temperature.
 
-To run the script in text completion in single turn mode, set a text
-completion model such as gpt-3.5-turbo-instruct and other options (such
-as temperature and stops) at the command line invocation.
+To run the script in text completion in single turn mode, set command
+line options -dE, a text completion model such as gpt-3.5-turbo-instruct
+and other options (such as temperature and stops). Option -E will make
+the script exit after the first turn.
 
 Insert Modes (Fill-In-the-Middle)
 
-Set option -q for insert mode. The flag “[insert]” must be present in
-the middle of the input prompt. Insert mode works completing between the
-end of the text preceding the flag, and ends completion with the
-succeeding text after the flag.
+Set option -q for insert mode in single-turn and option -qq for
+multiturn. The flag “[insert]” must be present in the middle of the
+input prompt. Insert mode works completing between the end of the text
+preceding the flag, and ends completion with the succeeding text after
+the flag.
 
 Insert mode works with `instruct’ and Mistral `code’ models.
 
