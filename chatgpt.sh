@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.85.5  nov/2024  by mountaineerbr  GPL+3
+# v0.86  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -11,6 +11,7 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 #GROQ_API_KEY=
 #ANTHROPIC_API_KEY=
 #GITHUB_TOKEN=
+#NOVITA_API_KEY=
 
 # DEFAULTS
 # Text cmpls model
@@ -27,7 +28,7 @@ MOD_SPEECH="${MOD_SPEECH:-tts-1}"
 # LocalAI model
 MOD_LOCALAI="${MOD_LOCALAI:-phi-2}"
 # Ollama model
-MOD_OLLAMA="${MOD_OLLAMA:-llama3}"
+MOD_OLLAMA="${MOD_OLLAMA:-llama3.2}"
 # Google AI model
 MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.5-pro-latest}"
 # Mistral AI model
@@ -40,6 +41,8 @@ MOD_GROQ="${MOD_GROQ:-llama-3.1-70b-versatile}"
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-latest}"
 # Github Azure model
 MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
+# Novita AI model
+MOD_NOVITA="${MOD_NOVITA:-qwen/qwen-2.5-72b-instruct}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -165,6 +168,7 @@ GOOGLE_BASE_URL_DEF="https://generativelanguage.googleapis.com/v1beta";
 GROQ_BASE_URL_DEF="https://api.groq.com/openai/v1";
 ANTHROPIC_BASE_URL_DEF="https://api.anthropic.com/v1";
 GITHUB_BASE_URL_DEF="https://models.inference.ai.azure.com";
+NOVITA_BASE_URL_DEF="https://api.novita.ai/v3/openai";
 OPENAI_API_KEY_DEF=$OPENAI_API_KEY;
 BASE_URL=$OPENAI_BASE_URL_DEF;
 
@@ -508,6 +512,8 @@ Options
 		Set LocalAI integration (cmpls/chat).
 	--mistral
 		Set Mistral AI integration (chat).
+	--novita
+		Set Novita AI integration (cmpls/chat).
 	--openai
 		Reset service integrations.
 	-O, --ollama
@@ -696,7 +702,8 @@ ENDPOINTS=(
 function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ EPN6 MULTIMODAL
-	typeset -l model; model=$1; set -- "$model";
+	typeset -l model; model=${1##*/};
+	set -- "${model##ft:}";
 
 	if is_amodelf "$1"
 	then 	set -- "audio";
@@ -762,31 +769,53 @@ function set_model_epnf
 #set ``model capacity''
 function model_capf
 {
-	typeset -l model; model=$1;
+	typeset -l model; model=${1##*/};
 	case "${model##ft:}" in  #ft: fine-tune models
-		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct) MODMAX=256000;;
-		open-mixtral-8x22b) MODMAX=64000;;
-		claude-[3-9]*|claude-2.1*) MODMAX=200000;;
-		claude-2.0*|claude-instant*) MODMAX=100000;;
-		*moderation*) 	MODMAX=32768;;
-		llama3*|gemma-*|text-embedding-ada-002|*embedding*-002|*search*-002) MODMAX=8191;;
-		davinci|curie|babbage|ada) 	MODMAX=2049;;
+		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct)
+			MODMAX=256000;;
+		open-mixtral-8x22b)
+			MODMAX=64000;;
+		claude-[3-9]*|claude-2.1*)
+			MODMAX=200000;;
+		claude-2.0*|claude-instant*)
+			MODMAX=100000;;
+		llama3*|gemma-*|text-embedding-ada-002|*embedding*-002|*search*-002)
+			MODMAX=8191;;
+		davinci|curie|babbage|ada)
+			MODMAX=2049;;
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
-		code-davinci-00[2-9]*|mistral-embed*|-8k*) 	MODMAX=8001;;
-		gemini*-flash*) 	MODMAX=1048576;;  #standard: 128000
-		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*) 	MODMAX=2097152;;  #standard: 128000
+		code-davinci-00[2-9]*|mistral-embed*|-8k*)
+			MODMAX=8001;;
+		gemini*-flash*)
+			MODMAX=1048576;;  #std: 128000
+		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*)
+			MODMAX=2097152;;  #std: 128000
+		*llama-3-8b-instruct|*llama-3-70b-instruct|*gemma-2-9b-it|*hermes-2-pro-llama-3-8b)
+			MODMAX=8192;;
+		*qwen-2.5-72b-instruct)
+			MODMAX=32000;;
+		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
+			MODMAX=16000;;
+		*llama-3.1-8b-instruct|davinci-00[2-9]|babbage-00[2-9]|gpt-3.5*16k*|\
+		*turbo*16k*|gpt-3.5-turbo-1106|gemini*-vision*|*-16k*)
+			MODMAX=16384;;
+		*llama-3.1-70b-instruct|*llama-3.1-405b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
+		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*moderation*)
+			MODMAX=32768;;
 		o[1-9]*|gpt-4[a-z]*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
 		mistral-3b*|*mistral-nemo*|*mistral-large*|open-mistral-nemo*|phi-3.5-mini-instruct|\
 		phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
 		cohere-command-r*|*llama-[3-9].[1-9]*|*llama[4-9]-*|\
-		*llama[4-9]*|*ministral*|*-128k*) 	MODMAX=128000;;  #131072
-		davinci-00[2-9]|babbage-00[2-9]|gpt-3.5*16k*|*turbo*16k*|\
-		gpt-3.5-turbo-1106|gemini*-vision*|*-16k*) 	MODMAX=16384;;
-		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small) MODMAX=32768;;
+		*llama[4-9]*|*ministral*|*-128k*)
+			MODMAX=128000;;  #131072
+		*openchat-7b|*mythomax-l2-13b|*airoboros-l2-70b|*lzlv_70b|*nous-hermes-llama2-13b|\
+		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
 		gpt-4*|*-bison*|*-unicorn|text-davinci-002-render-sha|\
-		*turbo*|*davinci*) 	MODMAX=4096;;
+		*wizardlm-2-8x22b)
+			MODMAX=65535;;
 		gemini*-pro*) 	MODMAX=32760;;
+		*turbo*|*davinci*) 	MODMAX=4096;;
 		cohere-embed-v3-*) 	MODMAX=1000;;
 		*embedding-gecko*) 	MODMAX=3072;;
 		*embed*|*search*) 	MODMAX=2046;;
@@ -795,13 +824,14 @@ function model_capf
 		*) 	MODMAX=4000;;
 	esac
 }
+#novita: model names: [provider]/[model]
 #groq: 3.1 models to max_tokens of 8k and 405b to 16k input tokens.
 #https://blog.google/technology/ai/google-gemini-next-generation-model-february-2024/
 
 #make cmpls request
 function __promptf
 {
-	if curl "$@" ${FAIL} -L "${MISTRAL_BASE_URL:-${GITHUB_BASE_URL:-$BASE_URL}}${ENDPOINTS[EPN]}" \
+	if curl "$@" ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${MISTRAL_API_KEY:-$OPENAI_API_KEY}" \
@@ -824,14 +854,16 @@ function _promptf
 		if ((GOOGLEAI))
 		then 	cat;
 		elif ((ANTHROPICAI))
-		then 	sed -n -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//p';
-		else 	sed -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//' -e '/^[[:space:]]*[A-Za-z][A-Za-z]*:/d' -e '/^[[:space:]]*\[[A-Za-z][A-Za-z]*\]/d' -e '/^[[:space:]]*$/d';
+		then 	sed -n -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//p' -e '/^[[:space:]]*\[[A-Za-z_][A-Za-z_]*\]/d' -e '/^[[:space:]]*$/d';
+		else 	sed -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//' -e '/^[[:space:]]*[A-Za-z_][A-Za-z_]*:/d' -e '/^[[:space:]]*\[[A-Za-z_][A-Za-z_]*\]/d' -e '/^[[:space:]]*$/d';
 		fi |
 		while IFS=  read -r chunk  #|| [[ -n $chunk ]]
 		do
-			## Anthropic sends lots more than only '[DATA]:' fields.
-			## Google hack does not pass '[DATA]:'.
+			## Anthropic sends lots more than only '[DATA]:' fields:
+			### 'event: message_start'  
+			## Google hack does not pass 'DATA:'.
 			#((ANTHROPICAI)) && { [[ ${chunk:0:128} = [Dd][Aa][Tt][Aa]:* ]] || continue ;}
+			## 'DATA: {json}', 'data: [DONE]'
 			#chunk=${chunk##*(\ )[Dd][Aa][Tt][Aa]:*(\ )}
 			#[[ ${chunk:0:256} = *[!$IFS]* ]] || continue
 			#[[ ${chunk:0:256} = \[+([A-Z])\] ]] && continue
@@ -1006,16 +1038,23 @@ function new_prompt_confirmf
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
 	REPLY=$(read_charf); _clr_lineupf $((8+1+40+${#extra}))  #!#
 	case "$REPLY" in
-		[Q]) 		return 202;;  #exit
-		[aq]) 		return 201;;  #abort
-		[Rr]) 		return 200;;  #redo
+		[Q]) 	return 202;;  #exit
+		[aq]) 	return 201;;  #abort
+		[Rr]) 	return 200;;  #redo
 		[Ee]|$'\e') 	return 199;;  #edit
-		[VvXx]) 	return 198;;  #text editor
-		[UuMm]) 	return 197;;  #multiline
-		[w]) 		return 196;;  #whisper off
-		[WAPp]) 	return 195;;  #whisper append
-		[HhTt]) 	return 194;;  #whisper retry request
-		[NnOo]) 	REC_OUT=; return 1;;  #no
+		[VvXx]) return 198;;  #text editor
+		[UuMm]) return 197;;  #multiline
+		[w]) 	return 196;;  #whisper off
+		[WAPp]) return 195;;  #whisper append
+		[HhTt]) return 194;;  #whisper retry request
+		[NnOo]) REC_OUT=; return 1;;  #no
+		[-/!]) 	echo >&2; read_mainf -i "$REPLY" REPLY; echo >&2;
+			BLOCK_USR= BREAK_SET= EDIT= ENDPOINTS= HERR= JUMP= \
+			MAIN_LOOP= PREVIEW= REGEN= REPLAY_FILES= REPLY= \
+			REPLY_CMD_BLOCK= REPLY_CMD_DUMP= REPLY_OLD= RESTART= START= \
+			RESUBW= RET= SKIP= SKIP_SH_HIST=  BCYAN= CYAN= ON_CYAN= \
+			cmd_runf "$REPLY";
+			new_prompt_confirmf "$@";;
 	esac  #yes
 }
 
@@ -1213,14 +1252,14 @@ function prompt_audiof
 
 function list_modelsf
 {
-	((MISTRALAI)) && typeset OPENAI_API_KEY=$MISTRAL_API_KEY BASE_URL=$MISTRAL_BASE_URL
 	curl -\# ${FAIL} -L "${BASE_URL}${ENDPOINTS[11]}${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! _warmsgf 'Err';
 	else 	{   jq -r '.data[].id' "$FILE" | sort &&
-		    {    ((MISTRALAI+GROQAI+ANTHROPICAI)) || printf '%s\n' text-moderation-latest text-moderation-stable omni-moderation-latest omni-moderation-2024-09-26 ;}
+		    {    ((LOCALAI+OLLAMA+MISTRALAI+GOOGLEAI+GROQAI+ANTHROPICAI+GITHUBAI+NOVITAAI)) || [[ $BASE_URL != "$OPENAI_BASE_URL_DEF" ]] ||
+		    printf '%s\n' text-moderation-latest text-moderation-stable omni-moderation-latest ;}
 		} | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
 	fi || ! _warmsgf 'Err:' 'Model list'
 }
@@ -1722,7 +1761,8 @@ function _model_costf
 	case "${MOD_PRICE[*]}" in
 	*[0-9]*[$IFS]*[0-9]*) 	echo ${MOD_PRICE[@]:0:2}; return;;
 	esac;
-	case "${1##ft:}" in
+	typeset model; model=${1};
+	case "${model##ft:}" in
 		claude-3-opus*) 	echo 15 75;;
 		claude-3-sonnet*|claude-3-5-sonnet*) echo 3 15;;
 		claude-3-haiku*) 	echo 0.25 1.25;;
@@ -1757,6 +1797,26 @@ function _model_costf
 		gemini-1.0-pro*) 	echo 0.5 1.5;;
 		gemini-1.5-flash*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 0.15 0.6 || echo 0.075 0.3;;
 		gemini-1.5*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 7 21 || echo 3.5 10.5;;
+		# Novita Models
+		meta-llama/llama-3.1-8b-instruct|qwen/qwen-2-7b-instruct) 	echo 0.05 0.05;;
+		meta-llama/llama-3.1-70b-instruct) 	echo 0.34 0.39;;
+		meta-llama/llama-3.1-405b-instruct) 	echo 2.75 2.75;;
+		mistralai/mistral-7b-instruct|microsoft/wizardlm-2-7b|openchat/openchat-7b) 	echo 0.06 0.06;;
+		qwen/qwen-2-72b-instruct) 	echo 0.34 0.39;;
+		meta-llama/llama-3-8b-instruct) 	echo 0.04 0.04;;
+		meta-llama/llama-3-70b-instruct) 	echo 0.51 0.74;;
+		google/gemma-2-9b-it) 	echo 0.08 0.08;;
+		nousresearch/hermes-2-pro-llama-3-8b) 	echo 0.14 0.14;;
+		mistralai/mistral-nemo) 	echo 0.17 0.17;;
+		microsoft/wizardlm-2-8x22b) 	echo 0.62 0.62;;
+		gryphe/mythomax-l2-13b) 	echo 0.09 0.09;;
+		jondurbin/airoboros-l2-70b) 	echo 0.50 0.50;;
+		lzlv_70b) 	echo 0.58 0.78;;
+		nousresearch/nous-hermes-llama2-13b|teknium/openhermes-2.5-mistral-7b) 	echo 0.17 0.17;;
+		sophosympatheia/midnight-rose-70b) 	echo 0.80 0.80;;
+		qwen/qwen-2.5-72b-instruct) 	echo 0.38 0.40;;
+		sao10k/l3*-70b-euryale-v2.[1-9]) 	echo 1.48 1.48;;
+		cognitivecomputations/dolphin-mixtral-8x22b) 	echo 0.90 0.90;;
 		*) 	echo 0 0; false;;
 	esac;
 }
@@ -1973,7 +2033,8 @@ function cmd_runf
 			set -- "$(trimf "$(trim_leadf "$*" '@(url|[/!]url)*(:)')" "$SPC")";
 
 			if case "$*" in *youtube.com/watch*|*youtu.be/*) 	:;; *) 	! :;; esac
-			then 	yt_transf "$*" > "$FILEFIFO";
+			then
+				{ yt_descf "$*"; yt_transf "$*" ;} >"$FILEFIFO";
 				[[ -s  "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO" ||
 				  _warmsgf 'Err:' 'YouTube transcript dump fail / unavailable';
 			elif var=$(set_browsercmdf)
@@ -2181,7 +2242,7 @@ function cmd_runf
 
 			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
 			$hurl          $hurlv \
-			api-path      "${MISTRAL_BASE_URL:-${GITHUB_BASE_URL:-$BASE_URL}}${ENDPOINTS[EPN]}" \
+			api-path      "${BASE_URL}${ENDPOINTS[EPN]}" \
 			model-name    "${MOD:-?}${modmodal}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
@@ -2208,7 +2269,10 @@ function cmd_runf
 			restart-seq   "${rseq}" \
 			start-seq     "${sseq}" \
 			stop-seqs     "${stop}" \
-			history-file  "${FILECHAT/"$HOME"/"~"}"  >&2  )
+			history-file  "${FILECHAT/"$HOME"/"~"}"  >&2;
+			
+			((!NOVITAAI)) || {  _printbf 'wait';  #credit_balance
+			curl -L -s "https://api.novita.ai/v3/user" --header "Authorization: Bearer ${NOVITA_API_KEY}"; echo >&2 ;}  )
 			;;
 		-u|multi|multiline|-uu*(u)|[/!]multi|[/!]multiline)
 			case "$*" in
@@ -3047,7 +3111,7 @@ function is_txturl
 #check for multimodal (vision) model
 function is_visionf
 {
-	typeset -l model; model=$1;
+	typeset -l model; model=${1##*/};
 	case "${model##ft:}" in 
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
@@ -3060,7 +3124,7 @@ function is_visionf
 #check for audio-model
 function is_amodelf
 {
-	typeset -l model; model=$1;
+	typeset -l model; model=${1##*/};
 	case "${model##ft:}" in 
 	*audio*|*speech*|*speaker*|*bark*|*lalm*|*music*|*yi-vl*) :;;
 	*) 	((MULTIMODAL>1));;
@@ -3152,6 +3216,15 @@ function yt_transf
 	awk 1 | sed 's/^00://';
 }
 #https://stackoverflow.com/questions/9611397
+
+#dump youtube video description
+function yt_descf
+{
+	curl -Ls "$1" | grep -o -e '"videoDetails":{[^}]*}' | grep -oe '":"[^"]*"' | { sedhtmlf || cat ;};
+}
+#"shortDescription",'eow-description'
+#https://stackoverflow.com/questions/72354649/
+#https://stackoverflow.com/questions/76876281/
 
 #alternative to du
 function duf
@@ -4813,8 +4886,9 @@ function set_ollamaf
 			} | { 	column -t -s $'\t' 2>/dev/null || ! _warmsgf 'Err' ;}  #tsv
 		fi
 	}
+	
 	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
-	((${#OLLAMA_BASE_URL})) || OLLAMA_BASE_URL=$OLLAMA_BASE_URL_DEF;
+	((${#OLLAMA_BASE_URL})) || OLLAMA_BASE_URL=${OPENAI_BASE_URL:-$OLLAMA_BASE_URL_DEF};
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER  #set placeholder as this field is required
 	
 	OLLAMA_BASE_URL=${OLLAMA_BASE_URL%%*([/$IFS])}; set_model_epnf "$MOD";
@@ -4824,7 +4898,6 @@ function set_ollamaf
 #host url / endpoint
 function set_localaif
 {
-	[[ $OPENAI_URL_PATH = *[!$IFS]* ]] && OPENAI_BASE_URL=$OPENAI_URL_PATH;
 	if [[ $OPENAI_BASE_URL = *[!$IFS]* ]] || ((OLLAMA))
 	then
 		BASE_URL=${OPENAI_BASE_URL%%*([/$IFS])};
@@ -4844,7 +4917,6 @@ function set_localaif
 		}  #https://localai.io/models/
 		set_model_epnf "$MOD";
 		((${#OPENAI_BASE_URL})) && LOCALAI=1;
-		((${#OPENAI_URL_PATH})) && unset ENDPOINTS;  #endpoint auto select
 		((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
 		((!LOCALAI)) || _sysmsgf "HOST URL / Endpoint:" "${BASE_URL}${ENDPOINTS[EPN]}${ENDPOINTS[*]:+ [auto-select]}";
 	else 	false;
@@ -4855,9 +4927,9 @@ function set_localaif
 function set_googleaif
 {
 	FILE_PRE="${FILE%%.json}.pre.json";
-	GOOGLE_BASE_URL="${GOOGLE_BASE_URL:-$GOOGLE_BASE_URL_DEF}";
 	: ${GOOGLE_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
+	((${#GOOGLE_BASE_URL})) || GOOGLE_BASE_URL=${OPENAI_BASE_URL:-$GOOGLE_BASE_URL_DEF};
 	((OPTC)) || OPTC=2;
 
 	function list_modelsf
@@ -4970,7 +5042,7 @@ function set_anthropicf
 {
 	: ${ANTHROPIC_API_KEY:?Required}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER;
-	((${#ANTHROPIC_BASE_URL})) || ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL_DEF;
+	((${#ANTHROPIC_BASE_URL})) || ANTHROPIC_BASE_URL=${OPENAI_BASE_URL:-$ANTHROPIC_BASE_URL_DEF};
 	ENDPOINTS[0]="/complete" ENDPOINTS[6]="/messages" OPTA= OPTAA= ;
 	if ((ANTHROPICAI)) && ((EPN==0))
 	then 	[[ -n ${RESTART+1} ]] || RESTART='\n\nHuman: ';
@@ -5040,7 +5112,7 @@ r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
 u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
 w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  \
-github  github:git  version 
+github  github:git  novita  novita:nov  version 
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -5094,7 +5166,7 @@ github  github:git  version
 		d) 	OPTCMPL=1;;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "${BASH_SOURCE[0]:-$0}" "$@" ;exit;;
@@ -5138,14 +5210,15 @@ github  github:git  version
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		o) 	OPTCLIP=1;;
-		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= ;;
-		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= ;;
-		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= GITHUBAI= ;;
+		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= ;;
+		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= ;;
+		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= ;;
 		localai) LOCALAI=1;;
-		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= WHISPER_GROQ= GITHUBAI= ;;
-		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 GITHUBAI= ;;
-		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= ;;
-		github) GITHUBAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ;;
+		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= WHISPER_GROQ= GITHUBAI= NOVITAAI= ;;
+		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 GITHUBAI= NOVITAAI= ;;
+		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= NOVITAAI= ;;
+		github) GITHUBAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= NOVITAAI= ;;
+		novita) NOVITAAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= ;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
@@ -5246,6 +5319,8 @@ else
 	then 	MOD=$MOD_LOCALAI
 	elif ((GITHUBAI))
 	then 	MOD=$MOD_GITHUB
+	elif ((NOVITAAI))
+	then 	MOD=$MOD_NOVITA
 	elif ((!OPTCMPL))
 	then 	if ((OPTC>1)) ||  #chat / single-turn
 			((STURN && !(OPTW+OPTZ+OPTI) ))
@@ -5277,64 +5352,70 @@ then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url;
 fi
 
 #google integration
-if ((GOOGLEAI))
+if case "${GOOGLE_BASE_URL:-$OPENAI_BASE_URL}" in *googleapis.com*) :;; *) ((GOOGLEAI));; esac
 then 	set_googleaif;
-	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI;
+	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI;
 else 	unset GOOGLEAI;
 fi
 
 #groq integration
-if ((GROQAI))
-then 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
+if case "${GROQ_BASE_URL:-$OPENAI_BASE_URL}" in *api.groq.com*) :;; *) ((GROQAI));; esac
+then
+	BASE_URL=${GROQ_BASE_URL:-${OPENAI_BASE_URL:-$GROQ_BASE_URL_DEF}};
+	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
 	((OPTC==1 || OPTCMPL)) && OPTC=2;
 	ENDPOINTS[0]=${ENDPOINTS[6]};
-	BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF};
-	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI;
+	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI;
 else 	unset GROQAI;
 fi  #https://console.groq.com/docs/api-reference
 
 #anthropic integration
-if ((ANTHROPICAI))
+if case "${ANTHROPIC_BASE_URL:-$OPENAI_BASE_URL}" in *api.anthropic.com*) :;; *) ((ANTHROPICAI));; esac
 then 	set_anthropicf;
-	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI;
+	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI NOVITAAI;
 else 	unset ANTHROPICAI;
 fi
 
 #ollama integration
-if ((OLLAMA))
+if case "${OPENAI_BASE_URL}" in *localhost:11434*) :;; *) ((OLLAMA));; esac
 then 	set_ollamaf;
-	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI;
+	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI;
 else  	unset OLLAMA OLLAMA_BASE_URL;
 fi
 
 #custom host / localai
-if [[ ${OPENAI_URL_PATH}${OPENAI_BASE_URL} = *[!$IFS]* ]] || ((LOCALAI))
-then 	((${#OPENAI_BASE_URL})) || OPENAI_BASE_URL=$LOCALAI_BASE_URL_DEF;
+if case "${OPENAI_URL_PATH}${OPENAI_BASE_URL}" in *[!$IFS]*) :;; *) ((LOCALAI));; esac
+then
+	[[ ${OPENAI_URL_PATH} = *[!$IFS]* ]] && OPENAI_BASE_URL=$OPENAI_URL_PATH ENDPOINTS=();  #endpoint auto select
+	[[ ${OPENAI_BASE_URL} = *[!$IFS]* ]] || OPENAI_BASE_URL=;
+	((${#OPENAI_BASE_URL})) || OPENAI_BASE_URL=$LOCALAI_BASE_URL_DEF;
 	set_localaif;
-else 	unset OPENAI_BASE_URL OPENAI_URL_PATH;
+else 	unset OPENAI_URL_PATH;
 fi
 
 #mistral ai api
-if [[ $OPENAI_BASE_URL = *mistral* ]] || ((MISTRALAI))
-then 	: ${MISTRAL_API_KEY:?Required}
-	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
-	((${#MISTRAL_BASE_URL})) || MISTRAL_BASE_URL=$MISTRAL_BASE_URL_DEF;
+if case "${MISTRAL_BASE_URL:-$OPENAI_BASE_URL}" in *api.mistral.ai*) :;; *) ((MISTRALAI));; esac
+then
+	OPENAI_API_KEY=${MISTRAL_API_KEY:?Required};
+	BASE_URL=${MISTRAL_BASE_URL:-${OPENAI_BASE_URL:-$MISTRAL_BASE_URL_DEF}};
+
 	if [[ $MOD = *code* ]]
 	then 	ENDPOINTS[0]="/fim/completions"
 		((OPTSUFFIX)) && ((OPTC)) && OPTC=1;
 	elif [[ $MOD != *embed* ]]
 	then 	OPTSUFFIX= OPTCMPL= OPTC=2;
 	fi; MISTRALAI=1;
-	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB NOVITAAI;
 elif unset MISTRAL_API_KEY MISTRAL_BASE_URL MISTRALAI;
 #github azure api
-	[[ $OPENAI_BASE_URL = *ai.azure.com* ]] || ((GITHUBAI))
+	case "${GITHUB_BASE_URL:-$OPENAI_BASE_URL}" in *ai.azure.com*) :;; *) ((GITHUBAI));; esac
 then
 	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}
-	((${#GITHUB_BASE_URL})) && OPENAI_BASE_URL=$GITHUB_BASE_URL || GITHUB_BASE_URL=$GITHUB_BASE_URL_DEF;
+	BASE_URL=${GITHUB_BASE_URL:-${OPENAI_BASE_URL:-$GITHUB_BASE_URL_DEF}};
+
 	function list_modelsf
 	{
-		curl -L -\# "$GITHUB_BASE_URL/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
+		curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
 		jq -r '.[].name' | tee -- "$FILEMODEL";
 		[[ -s $FILEMODEL ]] ||
 		curl -\# -L -H "$UAG" "https://github.com/marketplace/models" |
@@ -5343,8 +5424,16 @@ then
 		#https://github.com/marketplace/info
 	};
 	GITHUBAI=1 OPTC=2;  #chat completions only
-	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI;
-else 	unset GITHUB_TOKEN GITHUB_BASE_URL GITHUB_BASE_URL GITHUBAI;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI;
+elif unset GITHUB_TOKEN GITHUB_BASE_URL GITHUBAI;
+	case "${NOVITA_BASE_URL:-$OPENAI_BASE_URL}" in *api.novita.ai*) :;; *) ((NOVITAAI));; esac
+then
+	OPENAI_API_KEY=${NOVITA_API_KEY:?Required};
+	BASE_URL=${NOVITA_BASE_URL:-${OPENAI_BASE_URL:-$NOVITA_BASE_URL_DEF}};
+	NOVITAAI=1;
+	# add NOVITAAI refs througout the script
+else 	
+	unset NAVITA_API_KEY NAVITA_BASE_URL NOVITAAI;
 fi
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"
@@ -5640,7 +5729,7 @@ else
 		#presencePenalty may be incompatible with some models!
 		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI+LOCALAI+OLLAMA+xGROQAIxGOOGLEAI)) ||
 		{ ((${INSTRUCTION+1}0)) && ((!${#INSTRUCTION})) ;} || OPTA="${OPTA:-0.6}";
-		{ [[ $OPENAI_BASE_URL = *ai.azure.com* ]] || ((GITHUBAI)) ;} && unset OPTA OPTAA;
+		((GITHUBAI)) && unset OPTA OPTAA;
 
 		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
 		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
@@ -6323,8 +6412,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 				((STREAM)) && file=$FILESTREAM || file=$FILE;
 				((GOOGLEAI && STREAM)) && file=$FILE_PRE;
 
-				jq -e '(.error?)//(.[]?|.error?)//(..|.error?)//empty' "$file" >&2 2>/dev/null ||
-				{ [[ $(<$file) = *'"[Ee]rror":'* ]] && cat -- "$file" >&2 ;} ||
+				jq -e '.' "$file" >&2 2>/dev/null || cat -- "$file" >&2 ||
 				((OPTCMPL)) || ! _warmsgf 'Err';
 				_warmsgf "(response empty)";
 				((${#REPLY}<1640)) || read_charf -t 1.6 >/dev/null 2>&1;

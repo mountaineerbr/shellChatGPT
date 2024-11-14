@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.85.5 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.86 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.85.5 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.86 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2024</p>
 </header>
@@ -211,14 +211,17 @@ Whisper / TTS</div>
    <strong>chatgpt.sh</strong> <code>-HPw</code></div>
 <h3 id="description">DESCRIPTION</h3>
 <p>This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
-endpoints from multiple service providers such as OpenAI, LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, and GitHub Models.</p>
+endpoints from OpenAI. Additional service providers such as LocalAI,
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, and
+Novita APIs are also available.</p>
 <p>With no options set, complete INPUT in single-turn mode of the native
 chat completion.</p>
-<p>Handles single-turn and multi-turn modes, pure text completions,
-image generation/editing, speech-to-text, and text-to-speech.</p>
-<p>Accepts prompts, text files, PDFs, and image files as input. Supports
-various options for model selection, parameters, and output formats.</p>
+<p>Handles single-turn and multi-turn modes, pure text and native chat
+completions, image generation and editing, speech-to-text, and
+text-to-speech.</p>
+<p>Accepts prompts, text files, PDFs, image, and audio files as input
+(as per model). Supports various options for model selection,
+parameters, and output formats.</p>
 <h4 id="chat-completion-modes">Chat Completion Modes</h4>
 <p>Set <code>option -c</code> to start a multi-turn chat mode via
 <strong>text completions</strong> with command line history support.
@@ -230,6 +233,9 @@ This option works with instruct models, defaults to
 <em>chatgpt-4o-latest</em> for a model optimised for chatting.</p>
 <p>In chat mode, some options are automatically set to un-lobotomise the
 bot.</p>
+<p>While using other providers, mind that <code>options -c</code> and
+<code>-cc</code> set different endpoints! This setting must be set
+according to the model capabilities!</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session, and set <code>option -E</code> to exit on the
 first response (even in multi turn mode).</p>
@@ -1176,8 +1182,10 @@ Run the script with <code>option --groq</code>. Whisper endpoint
 available.</p>
 <p>For Anthropic, set envar <code>$ANTHROPIC_API_KEY</code> and run the
 script with command line <code>option --anthropic</code>.</p>
-<p>And for GitHub Models, <code>$GITHUB_TOKEN</code> and invoke the
-script with <code>option --github</code>.</p>
+<p>For GitHub Models, <code>$GITHUB_TOKEN</code> and invoke the script
+with <code>option --github</code>.</p>
+<p>And for Novita AI, set envar <code>$NOVITA_API_KEY</code> and run the
+script with command line <code>option --novita</code>.</p>
 <h3 id="environment">ENVIRONMENT</h3>
 <p><strong>BLOCK_USR</strong></p>
 <dl>
@@ -1216,7 +1224,7 @@ script with <code>option --github</code>.</p>
 <strong>MOD_GROQ</strong>,</p>
 <dl>
 <dt><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_ANTHROPIC</strong>,
-<strong>MOD_GITHUB</strong></dt>
+<strong>MOD_GITHUB</strong>, <strong>MOD_NOVITA</strong></dt>
 <dd>
 <p>Set default model for each endpoint / provider.</p>
 </dd>
@@ -1232,14 +1240,15 @@ parameter with the full url path to disable endpoint auto selection.</p>
 <dd>
 <p>Base URLs for each service provider: <em>LOCALAI</em>,
 <em>OLLAMA</em>, <em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>,
-<em>GROQ</em>, and <em>GITHUB</em>.</p>
+<em>GROQ</em>, <em>GITHUB</em>, and <em>NOVITA</em>.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_API_KEY</strong></p>
 <dl>
 <dt><strong>PROVIDER_API_KEY</strong></dt>
 <dd>
-<p>Keys for OpenAI, GoogleAI, MistralAI, Groq, and GitHub APIs.</p>
+<p>Keys for OpenAI, GoogleAI, MistralAI, Groq, GitHub and Novita AI
+APIs.</p>
 </dd>
 <dt><strong>OUTDIR</strong></dt>
 <dd>
@@ -1394,6 +1403,10 @@ version 1 but not all endpoints or options will be covered.</p>
 <dt><strong>--mistral</strong></dt>
 <dd>
 <p>Set Mistral AI integration (chat).</p>
+</dd>
+<dt><strong>--novita</strong></dt>
+<dd>
+<p>Set Novita AI integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--openai</strong></dt>
 <dd>

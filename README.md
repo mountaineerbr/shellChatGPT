@@ -9,6 +9,8 @@ Chat completions with streaming by defaults.
 <details>
   <summary>Expand Markdown Processing</summary>
 
+Markdown processing on response is triggered automatically for some time now!
+
 ![Chat with Markdown rendering](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_md.gif)
 
 Markdown rendering of chat response (_optional_).
@@ -83,6 +85,7 @@ If no suffix is provided, it works as plain text completions.
   - 9.5 [Groq](#groq)
   - 9.6 [Anthropic](#anthropic)
   - 9.7 [GitHub](#github)
+  - 9.8 [Novita AI](#novita-ai)
 - 10. [Arch Linux Users](#arch-linux-users)
 - 11. [Termux Users](#termux-users)
   - 11.1 [Dependencies](#dependencies-termux)
@@ -1099,6 +1102,36 @@ chatgpt.sh --github -cc -m Phi-3-small-8k-instruct
 See also the [GitHub Model Catalog - Getting Started](https://techcommunity.microsoft.com/t5/educator-developer-blog/github-model-catalog-getting-started/ba-p/4212711) page.
 
 
+### Novita AI
+
+Novita AI offers a range of LLM models at exceptional value!
+
+Create an API key as per the
+[Quick Start Guide](https://novita.ai/docs/get-started/quickstart.html)
+and export your key as `$NOVITA_API_KEY` to your environment.
+
+Next, run the script such as `chatgpt.sh --novita -cc`.
+
+Check the [model list web page](https://novita.ai/model-api/product/llm-api)
+and the [price of each model tokens](https://novita.ai/model-api/pricing).
+
+To list all available models, run `chatgpt.sh --novita -l`. Optionally set a model name with with `option -l` to dump model details.
+
+Some models work with the `/completions` endpoint, while others
+work with the `/chat/completions` endpoint, so the script _does not set the endpoint automatically_! Check model details and web pages to understand their capabilities, and then either run the script with `option -c` (**text completions**) or `options -cc` (**chat completions**).
+
+
+As an example, to set Novita AI integration manually instead:
+
+
+```
+export OPENAI_API_KEY=novita-api-key
+export OPENAI_BASE_URL="https://api.novita.ai/v3/openai"
+
+chatgpt.sh -cc -m meta-llama/llama-3.1-405b-instruct
+```
+
+
 <!--
 ## 🌎 Environment
 
@@ -1349,7 +1382,12 @@ Alternatively, a help page snippet can be printed with `chatgpt.sh -h`.
 
 - [edshamis](https://www.github.com/edshamis)
 - [johnd0e](https://github.com/johnd0e)
+- [Novita A's Staff Leo](https://novita.ai/model-api/product/llm-api)
 
+
+<br />
+
+Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mountaineerbr/shellChatGPT/discussions/1)!
 
 ## Acknowledgements
 
@@ -1391,10 +1429,6 @@ https://github.com/mudler/LocalAI/issues/921
 
 -->
 
-
-<br />
-
-Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mountaineerbr/shellChatGPT/discussions/1)!
 
 --- 
 

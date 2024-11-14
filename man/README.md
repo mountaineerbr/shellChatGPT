@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2024
-title: CHATGPT.SH(1) v0.85.5 \| General Commands Manual
+title: CHATGPT.SH(1) v0.86 \| General Commands Manual
 ---
 
 ### NAME
@@ -36,17 +36,20 @@ title: CHATGPT.SH(1) v0.85.5 \| General Commands Manual
 ### DESCRIPTION
 
 This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
-endpoints from multiple service providers such as OpenAI, LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, and GitHub Models.
+endpoints from OpenAI. Additional service providers such as LocalAI,
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, and
+Novita APIs are also available.
 
 With no options set, complete INPUT in single-turn mode of the native
 chat completion.
 
-Handles single-turn and multi-turn modes, pure text completions, image
-generation/editing, speech-to-text, and text-to-speech.
+Handles single-turn and multi-turn modes, pure text and native chat
+completions, image generation and editing, speech-to-text, and
+text-to-speech.
 
-Accepts prompts, text files, PDFs, and image files as input. Supports
-various options for model selection, parameters, and output formats.
+Accepts prompts, text files, PDFs, image, and audio files as input (as
+per model). Supports various options for model selection, parameters,
+and output formats.
 
 #### Chat Completion Modes
 
@@ -61,6 +64,10 @@ optimised for chatting.
 
 In chat mode, some options are automatically set to un-lobotomise the
 bot.
+
+While using other providers, mind that `options -c` and `-cc` set
+different endpoints! This setting must be set according to the model
+capabilities!
 
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
@@ -752,8 +759,11 @@ with `option --groq`. Whisper endpoint available.
 For Anthropic, set envar `$ANTHROPIC_API_KEY` and run the script with
 command line `option --anthropic`.
 
-And for GitHub Models, `$GITHUB_TOKEN` and invoke the script with
+For GitHub Models, `$GITHUB_TOKEN` and invoke the script with
 `option --github`.
+
+And for Novita AI, set envar `$NOVITA_API_KEY` and run the script with
+command line `option --novita`.
 
 ### ENVIRONMENT
 
@@ -786,7 +796,7 @@ Initial initial instruction or system message for chat mode.
 
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**  
+**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**, **MOD_NOVITA**  
 Set default model for each endpoint / provider.
 
 **OPENAI_BASE_URL**
@@ -797,12 +807,12 @@ with the full url path to disable endpoint auto selection.
 
 **PROVIDER_BASE_URL**  
 Base URLs for each service provider: *LOCALAI*, *OLLAMA*, *MISTRAL*,
-*GOOGLE*, *ANTHROPIC*, *GROQ*, and *GITHUB*.
+*GOOGLE*, *ANTHROPIC*, *GROQ*, *GITHUB*, and *NOVITA*.
 
 **OPENAI_API_KEY**
 
 **PROVIDER_API_KEY**  
-Keys for OpenAI, GoogleAI, MistralAI, Groq, and GitHub APIs.
+Keys for OpenAI, GoogleAI, MistralAI, Groq, GitHub and Novita AI APIs.
 
 **OUTDIR**  
 Output directory for received image and audio.
@@ -950,6 +960,9 @@ Set LocalAI integration (cmpls/chat).
 
 **--mistral**  
 Set Mistral AI integration (chat).
+
+**--novita**  
+Set Novita AI integration (cmpls/chat).
 
 **--openai**  
 Reset service integrations.
