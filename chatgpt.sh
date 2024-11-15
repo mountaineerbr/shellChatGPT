@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.86  nov/2024  by mountaineerbr  GPL+3
+# v0.86.1  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2034,9 +2034,10 @@ function cmd_runf
 
 			if case "$*" in *youtube.com/watch*|*youtu.be/*) 	:;; *) 	! :;; esac
 			then
-				{ yt_descf "$*"; yt_transf "$*" ;} >"$FILEFIFO";
-				[[ -s  "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO" ||
-				  _warmsgf 'Err:' 'YouTube transcript dump fail / unavailable';
+				{ yt_descf "$*" || _warmsgf 'YouTube:' 'Description unavailable';
+				  yt_transf "$*" || _warmsgf 'YouTube:' 'Transcript dump fail / unavailable';
+				} >"$FILEFIFO";
+				[[ -s "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO";
 			elif var=$(set_browsercmdf)
 			then 	((OPTV)) || _printbf "${var%% *}";
 				case "$var" in
