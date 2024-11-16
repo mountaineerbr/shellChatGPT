@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.86 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.86.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.86 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.86.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2024</p>
 </header>
@@ -1186,8 +1186,12 @@ available.</p>
 script with command line <code>option --anthropic</code>.</p>
 <p>For GitHub Models, <code>$GITHUB_TOKEN</code> and invoke the script
 with <code>option --github</code>.</p>
-<p>And for Novita AI, set envar <code>$NOVITA_API_KEY</code> and run the
-script with command line <code>option --novita</code>.</p>
+<p>For Novita AI integration, set the environment variable
+<code>$NOVITA_API_KEY</code> and use the <code>--novita</code> option.
+Novita AI offers a range of LLM models, including the highly recommended
+<strong>Llama 3.1</strong> model. For an uncensored model, consider
+<strong>sao10k/l3-70b-euryale-v2.1</strong> or
+<strong>cognitivecomputations/dolphin-mixtral-8x22b</strong>.</p>
 <h3 id="environment">ENVIRONMENT</h3>
 <p><strong>BLOCK_USR</strong></p>
 <dl>

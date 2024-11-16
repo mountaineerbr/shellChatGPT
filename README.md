@@ -1104,7 +1104,12 @@ See also the [GitHub Model Catalog - Getting Started](https://techcommunity.micr
 
 ### Novita AI
 
-Novita AI offers a range of LLM models at exceptional value!
+Novita AI offers a range of LLM models at exceptional value, including the
+highly recommended **Llama 3.1** model, which provides the best balance
+of price and performance!
+
+For an uncensored model, consider **sao10k/l3-70b-euryale-v2.1**
+(good for role-playing) or **cognitivecomputations/dolphin-mixtral-8x22b**.
 
 Create an API key as per the
 [Quick Start Guide](https://novita.ai/docs/get-started/quickstart.html)
@@ -1130,6 +1135,9 @@ export OPENAI_BASE_URL="https://api.novita.ai/v3/openai"
 
 chatgpt.sh -cc -m meta-llama/llama-3.1-405b-instruct
 ```
+
+We are grateful to Novita AI for their support and collaboration. For more
+information, visit [Novita AI](https://novita.ai/).
 
 
 <!--
@@ -1382,7 +1390,8 @@ Alternatively, a help page snippet can be printed with `chatgpt.sh -h`.
 
 - [edshamis](https://www.github.com/edshamis)
 - [johnd0e](https://github.com/johnd0e)
-- [Novita A's Staff Leo](https://novita.ai/model-api/product/llm-api)
+- [Novita AI's GTM Leo](https://novita.ai/model-api/product/llm-api)
+  <!-- Growth Tech Market -->
 
 
 <br />

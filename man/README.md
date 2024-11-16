@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2024
-title: CHATGPT.SH(1) v0.86 \| General Commands Manual
+title: CHATGPT.SH(1) v0.86.2 \| General Commands Manual
 ---
 
 ### NAME
@@ -764,8 +764,11 @@ command line `option --anthropic`.
 For GitHub Models, `$GITHUB_TOKEN` and invoke the script with
 `option --github`.
 
-And for Novita AI, set envar `$NOVITA_API_KEY` and run the script with
-command line `option --novita`.
+For Novita AI integration, set the environment variable
+`$NOVITA_API_KEY` and use the `--novita` option. Novita AI offers a
+range of LLM models, including the highly recommended **Llama 3.1**
+model. For an uncensored model, consider **sao10k/l3-70b-euryale-v2.1**
+or **cognitivecomputations/dolphin-mixtral-8x22b**.
 
 ### ENVIRONMENT
 

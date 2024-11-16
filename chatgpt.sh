@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.86.1  nov/2024  by mountaineerbr  GPL+3
+# v0.86.2  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -42,7 +42,7 @@ MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-latest}"
 # Github Azure model
 MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
 # Novita AI model
-MOD_NOVITA="${MOD_NOVITA:-qwen/qwen-2.5-72b-instruct}"
+MOD_NOVITA="${MOD_NOVITA:-sao10k/l3-70b-euryale-v2.1}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -5725,16 +5725,24 @@ else
 		#chatbot must sound like a human, shouldnt be lobotomised
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
+		((NOVITAAI)) && [[ $MOD = sao10k/*euryale* ]] &&
+		  OPTT=${OPTT:-1.17} OPTA=${OPTA:-0} BLOCK_USR='"min_p":0.075,"repetition_penalty":1.10'
+		#https://huggingface.co/Sao10K/L3-70B-Euryale-v2.1
+
+		#temperature
 		OPTT="${OPTT:-0.8}";  #!#
+
 		#presencePenalty may be incompatible with some models!
 		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI+LOCALAI+OLLAMA+xGROQAIxGOOGLEAI)) ||
 		{ ((${INSTRUCTION+1}0)) && ((!${#INSTRUCTION})) ;} || OPTA="${OPTA:-0.6}";
 		((GITHUBAI)) && unset OPTA OPTAA;
-
+		
+		#stop sequences
 		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
 		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
 		  STOPS+=("${RESTART-$Q_TYPE}" "${START-$A_TYPE}")
-	else 	sysmsgf 'Text Completions'
+	else
+		sysmsgf 'Text Completions'
 	fi
 	((MULTIMODAL)) ||
 	if is_amodelf "$MOD"
