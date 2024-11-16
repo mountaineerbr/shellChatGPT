@@ -113,8 +113,7 @@ If no suffix is provided, it works as plain text completions.
 - **Manage sessions**, _print out_ previous sessions
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
    easily create and set the initial system prompt
-- Integration with [LocalAI](#localai), [Ollama](#ollama),
-   [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), [Anthropic](#anthropic), and [GitHub Models](#github)
+- Integration with [various service providers](#service-providers) and [custom BaseUrl](#base-url-configuration).
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) & the
    [Chinese variant](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 - [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
@@ -123,6 +122,7 @@ If no suffix is provided, it works as plain text completions.
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
 - **Fast** shell code for a responsive experience! ⚡️ 
 
+<!-- - Integration with [LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), [Anthropic](#anthropic), [GitHub Models](#github), and [Novita AI](#novita-ai) -->
 <!-- _Tiktoken_ for accurate tokenization (optional) -->
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
 <!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
@@ -976,26 +976,34 @@ Gallery defaults to [HuggingFace](https://huggingface.co/).
 
 #### BASE URL Configuration
 
-If the service provider Base URL is different from the defaults, we need editing
-the script configuration file `.chatgpt.conf`.
+If the service provider Base URL is different from the defaults.
+
+The environment varible `$OPENAI_BASE_URL` is read at invocation.
+
+    export OPENAI_BASE_URL="http://127.0.0.1:8080/v1"
+
+    chatgpt.sh -c -m luna-ai-llama2
+
+
+
+To set it a in a more permanet fashion, edit the script
+configuration file `.chatgpt.conf`.
+
+Use vim:
 
     vim ~/.chatgpt.conf
 
-    # Or
+
+Or edit the configuration with a comamnd line option.
 
     chatgpt.sh -F
 
 
-Set the following variable:
+And set the following variable:
 
     # ~/.chatgpt.conf
     
     OPENAI_BASE_URL="http://127.0.0.1:8080/v1"
-
-
-_Alternatively_, set `$OPENAI_BASE_URL` environment on invocation:
-
-    OPENAI_BASE_URL="http://127.0.0.1:8080/v1" chatgpt.sh -c -m luna-ai-llama2
 
 
 ### Ollama
@@ -1141,6 +1149,7 @@ chatgpt.sh -cc -m meta-llama/llama-3.1-405b-instruct
 
 We are grateful to Novita AI for their support and collaboration. For more
 information, visit [Novita AI](https://novita.ai/).
+
 
 
 <!--
