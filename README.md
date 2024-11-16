@@ -38,7 +38,7 @@ If no suffix is provided, it works as plain text completions.
 ## Index
 
 <details>
-  <summary>★Click to expand!★</summary>
+  <summary>★ Click to expand! ★</summary>
 
 - 1. [Index](#index)
 - 2. [Features](#-features)
@@ -161,7 +161,7 @@ If no suffix is provided, it works as plain text completions.
 Packages required for specific features.
 
 <details>
-  <summary>_Click to expand!_</summary>
+  <summary>Click to expand!</summary>
 
 - `Base64` - Image endpoint, multimodal models
 - `Python` - Modules tiktoken, markdown, bs4
