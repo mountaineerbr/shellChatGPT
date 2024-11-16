@@ -7,7 +7,7 @@ Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, 
 Chat completions with streaming by defaults.
 
 <details>
-  <summary>_Expand Markdown Processing_</summary>
+  <summary>Expand Markdown Processing</summary>
 
 Markdown processing on response is triggered automatically for some time now!
 
@@ -17,7 +17,7 @@ Markdown rendering of chat response (_optional_).
 </details>
 
 <details>
-  <summary>_Expand Text Completions_</summary>
+  <summary>Expand Text Completions</summary>
 
 ![Plain Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_cpls.gif)
 
@@ -25,7 +25,7 @@ In pure text completions, start by typing some text that is going to be complete
 </details>
 
 <details>
-  <summary>_Expand Insert Mode_</summary>
+  <summary>Expand Insert Mode</summary>
 
 ![Insert Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_insert.gif)
 
@@ -38,7 +38,7 @@ If no suffix is provided, it works as plain text completions.
 ## Index
 
 <details>
-  <summary>**Click to expand!**</summary>
+  <summary>★Click to expand!★</summary>
 
 - 1. [Index](#index)
 - 2. [Features](#-features)
