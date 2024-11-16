@@ -222,7 +222,7 @@ text-to-speech.</p>
 <p>Accepts prompts, text files, PDFs, image, and audio files as input
 (as per model). Supports various options for model selection,
 parameters, and output formats.</p>
-<h4 id="chat-completion-modes">Chat Completion Modes</h4>
+<h3 id="chat-completion-modes">Chat Completion Modes</h3>
 <p>Set <code>option -c</code> to start a multi-turn chat mode via
 <strong>text completions</strong> with command line history support.
 This option works with instruct models, defaults to
@@ -239,7 +239,7 @@ according to the model capabilities!</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session, and set <code>option -E</code> to exit on the
 first response (even in multi turn mode).</p>
-<h4 id="text-completion-modes">Text Completion Modes</h4>
+<h3 id="text-completion-modes">Text Completion Modes</h3>
 <p><code>Option -d</code> starts a multi-turn session in <strong>plain
 text completions</strong> with history support. This does not set
 further options automatically, such as instruction or temperature.</p>
@@ -248,15 +248,15 @@ line <code>options -dE</code>, a text completion model such as
 <em>gpt-3.5-turbo-instruct</em> and other options (such as temperature
 and stops). <code>Option -E</code> will make the script exit after the
 first turn.</p>
-<h4 id="insert-modes-fill-in-the-middle">Insert Modes
-(Fill-In-the-Middle)</h4>
+<h3 id="insert-modes-fill-in-the-middle">Insert Modes
+(Fill-In-the-Middle)</h3>
 <p>Set <code>option -q</code> for <strong>insert mode</strong> in
 single-turn and <code>option -qq</code> for multiturn. The flag
 “<em>[insert]</em>” must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.</p>
 <p>Insert mode works with `instruct’ and Mistral `code’ models.</p>
-<h4 id="instruction-prompts">Instruction Prompts</h4>
+<h3 id="instruction-prompts">Instruction Prompts</h3>
 <p>Positional arguments are read as a single <strong>PROMPT</strong>.
 Model <strong>INSTRUCTION</strong> is optional but recommended and can
 be set with <code>option -S</code>.</p>
@@ -282,7 +282,7 @@ respectively-named history file.</p>
 and the prompt name after any command line options, such as
 “<code>.[_prompt_name_]</code>”. This loads the prompt file unless
 instruction was set with command line options.</p>
-<h4 id="commands">Commands</h4>
+<h3 id="commands">Commands</h3>
 <p>If the first positional argument of the script starts with the
 command operator forward slash “<code>/</code>” and a history file name,
 the command ``/session [<em>HIST_NAME</em>]’’ is assumed. This will
@@ -296,7 +296,7 @@ possibly URLs at the end of the prompt.</p>
 <p>In chat mode, a PDF, DOC, TXT or URL filepath at the very end of the
 user prompt is appended as text dump to the current user input.</p>
 <p>Make sure file paths containing spaces are backslash-escaped!</p>
-<h4 id="model-and-capacity">Model and Capacity</h4>
+<h3 id="model-and-capacity">Model and Capacity</h3>
 <p>Set model with ``-m [<em>MODEL</em>]’’, with <em>MODEL</em> as its
 name, or set it as “<em>.</em>” to pick from the model list. List
 available models with <code>option -l</code>.</p>
@@ -331,8 +331,8 @@ script hack to preview token count. This option makes token count
 preview accurate fast (we fork tiktoken as a coprocess for fast token
 queries). Useful for rebuilding history context independently from the
 original model used to generate responses.</p>
-<h4 id="image-generations-and-edits-dall-e">Image Generations and Edits
-(Dall-E)</h4>
+<h3 id="image-generations-and-edits-dall-e">Image Generations and Edits
+(Dall-E)</h3>
 <p><code>Option -i</code> <strong>generates images</strong> according to
 text PROMPT. If the first positional argument is an <em>IMAGE</em> file,
 then <strong>generate variations</strong> of it. If the first positional
@@ -354,7 +354,7 @@ Defaults=<em>1024x1024</em>.</p>
 command line invocation.</p>
 <p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
-<h4 id="speech-to-text-whisper">Speech-To-Text (Whisper)</h4>
+<h3 id="speech-to-text-whisper">Speech-To-Text (Whisper)</h3>
 <p><code>Option -w</code> <strong>transcribes audio speech</strong> from
 <em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
 <em>wav</em>, <em>webm</em>, <em>flac</em> and <em>ogg</em> files. First
@@ -374,7 +374,7 @@ and -WW. Set thrice for word-level timestamps.</p>
 <code>options -cc</code> to start <strong>chat with voice input</strong>
 (Whisper) support. Additionally, set <code>option -z</code> to enable
 <strong>text-to-speech</strong> (TTS) models and voice out.</p>
-<h4 id="tts-text-to-voice">TTS (Text-To-Voice)</h4>
+<h3 id="tts-text-to-voice">TTS (Text-To-Voice)</h3>
 <p><code>Option -z</code> synthesises voice from text (TTS models). Set
 a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>echo</em>”, “<em>fable</em>”, “<em>onyx</em>”, “<em>nova</em>”, or
@@ -395,7 +395,7 @@ These files can be added to be loaded at the very end of the user prompt
 or added with chat command ``/audio path/to/file.mp3’’.</p>
 <p>To activate the audio synthesis output mode of an audio model, make
 sure to set command line <code>option -z</code>!</p>
-<h4 id="general-considerations">General Considerations</h4>
+<h3 id="general-considerations">General Considerations</h3>
 <p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
 cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
 <p>The moderation endpoint can be accessed by setting the model name to

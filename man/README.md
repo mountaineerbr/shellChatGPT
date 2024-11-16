@@ -51,7 +51,7 @@ Accepts prompts, text files, PDFs, image, and audio files as input (as
 per model). Supports various options for model selection, parameters,
 and output formats.
 
-#### Chat Completion Modes
+### Chat Completion Modes
 
 Set `option -c` to start a multi-turn chat mode via **text completions**
 with command line history support. This option works with instruct
@@ -72,7 +72,7 @@ capabilities!
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
 
-#### Text Completion Modes
+### Text Completion Modes
 
 `Option -d` starts a multi-turn session in **plain text completions**
 with history support. This does not set further options automatically,
@@ -83,7 +83,7 @@ line `options -dE`, a text completion model such as
 *gpt-3.5-turbo-instruct* and other options (such as temperature and
 stops). `Option -E` will make the script exit after the first turn.
 
-#### Insert Modes (Fill-In-the-Middle)
+### Insert Modes (Fill-In-the-Middle)
 
 Set `option -q` for **insert mode** in single-turn and `option -qq` for
 multiturn. The flag “*\[insert\]*” must be present in the middle of the
@@ -93,7 +93,7 @@ the flag.
 
 Insert mode works with \`instruct’ and Mistral \`code’ models.
 
-#### Instruction Prompts
+### Instruction Prompts
 
 Positional arguments are read as a single **PROMPT**. Model
 **INSTRUCTION** is optional but recommended and can be set with
@@ -125,7 +125,7 @@ the prompt name after any command line options, such as
 “`.[_prompt_name_]`”. This loads the prompt file unless instruction was
 set with command line options.
 
-#### Commands
+### Commands
 
 If the first positional argument of the script starts with the command
 operator forward slash “`/`” and a history file name, the command
@@ -144,7 +144,7 @@ user prompt is appended as text dump to the current user input.
 
 Make sure file paths containing spaces are backslash-escaped!
 
-#### Model and Capacity
+### Model and Capacity
 
 Set model with \`\`-m \[*MODEL*\]’’, with *MODEL* as its name, or set it
 as “*.*” to pick from the model list. List available models with
@@ -180,7 +180,7 @@ preview token count. This option makes token count preview accurate fast
 rebuilding history context independently from the original model used to
 generate responses.
 
-#### Image Generations and Edits (Dall-E)
+### Image Generations and Edits (Dall-E)
 
 `Option -i` **generates images** according to text PROMPT. If the first
 positional argument is an *IMAGE* file, then **generate variations** of
@@ -202,7 +202,7 @@ or “*vivid*” as a positional parameter in the command line invocation.
 See **IMAGES section** below for more information on **inpaint** and
 **outpaint**.
 
-#### Speech-To-Text (Whisper)
+### Speech-To-Text (Whisper)
 
 `Option -w` **transcribes audio speech** from *mp3*, *mp4*, *mpeg*,
 *mpga*, *m4a*, *wav*, *webm*, *flac* and *ogg* files. First positional
@@ -225,7 +225,7 @@ Combine `options -wW` **with** `options -cc` to start **chat with voice
 input** (Whisper) support. Additionally, set `option -z` to enable
 **text-to-speech** (TTS) models and voice out.
 
-#### TTS (Text-To-Voice)
+### TTS (Text-To-Voice)
 
 `Option -z` synthesises voice from text (TTS models). Set a *voice* as
 the first positional parameter (“*alloy*”, “*echo*”, “*fable*”,
@@ -251,7 +251,7 @@ path/to/file.mp3’’.
 To activate the audio synthesis output mode of an audio model, make sure
 to set command line `option -z`!
 
-#### General Considerations
+### General Considerations
 
 User configuration is kept at “*~/.chatgpt.conf*”. Script cache is kept
 at “*~/.cache/chatgptsh/*”.

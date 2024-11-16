@@ -43,7 +43,7 @@ Supports various options for model selection, parameters,
 and output formats.
 
 
-#### Chat Completion Modes
+### Chat Completion Modes
 	
 Set `option -c` to start a multi-turn chat mode via **text completions**
 with command line history support. This option works with instruct models,
@@ -62,7 +62,7 @@ Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
 
 
-#### Text Completion Modes
+### Text Completion Modes
 
 `Option -d` starts a multi-turn session in **plain text completions**
 with history support. This does not set further options automatically,
@@ -74,7 +74,7 @@ and other options (such as temperature and stops). `Option -E` will make
 the script exit after the first turn.
 
 
-#### Insert Modes (Fill-In-the-Middle)
+### Insert Modes (Fill-In-the-Middle)
 
 Set `option -q` for **insert mode** in single-turn and `option -qq` for multiturn.
 The flag "_[insert]_" must be present in the middle of the input prompt.
@@ -84,7 +84,7 @@ and ends completion with the succeeding text after the flag.
 Insert mode works with \`instruct' and Mistral \`code' models.
 
 
-#### Instruction Prompts
+### Instruction Prompts
 
 Positional arguments are read as a single **PROMPT**. Model **INSTRUCTION**
 is optional but recommended and can be set with `option -S`.
@@ -115,7 +115,7 @@ and the prompt name after any command line options, such as
 was set with command line options.
 
 
-#### Commands
+### Commands
 
 If the first positional argument of the script starts with the
 command operator forward slash "`/`" and a history file name, the
@@ -135,7 +135,7 @@ user prompt is appended as text dump to the current user input.
 Make sure file paths containing spaces are backslash-escaped!
 
 
-#### Model and Capacity
+### Model and Capacity
 
 Set model with \`\`-m \[_MODEL_]'', with _MODEL_ as its name,
 or set it as "_._" to pick from the model list.
@@ -174,7 +174,7 @@ Useful for rebuilding history context independently from the original
 model used to generate responses.
 
 
-#### Image Generations and Edits (Dall-E)
+### Image Generations and Edits (Dall-E)
 
 `Option -i` **generates images** according to text PROMPT. If the first
 positional argument is an _IMAGE_ file, then **generate variations** of
@@ -196,7 +196,7 @@ or "_vivid_" as a positional parameter in the command line invocation.
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 
 
-#### Speech-To-Text (Whisper)
+### Speech-To-Text (Whisper)
 
 `Option -w` **transcribes audio speech** from _mp3_, _mp4_, _mpeg_, _mpga_, _m4a_,
 _wav_, _webm_, _flac_ and _ogg_ files. First positional argument must be
@@ -219,7 +219,7 @@ Combine `options -wW` **with** `options -cc` to start **chat with voice input**
 Additionally, set `option -z` to enable **text-to-speech** (TTS) models and voice out.
 
 
-#### TTS (Text-To-Voice)
+### TTS (Text-To-Voice)
 
 `Option -z` synthesises voice from text (TTS models). Set a _voice_ as
 the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
@@ -242,7 +242,7 @@ or added with chat command \`\`/audio  path/to/file.mp3''.
 To activate the audio synthesis output mode of an audio model, make sure to set command line `option -z`!
 
 
-#### General Considerations
+### General Considerations
 
 User configuration is kept at "_~/.chatgpt.conf_".
 Script cache is kept at "_~/.cache/chatgptsh/_".
@@ -525,7 +525,7 @@ A history file can contain many sessions. The last one (the tail session)
 is always loaded if the resume `option -C` is set.
 
 
-#####  Copying and resuming older sessions
+##### Copying and resuming older sessions
 
 To continue from an old session, either **/sub** or **/fork.** it.
 The dot means the current session. The shorthand for this feature is **/.**.
