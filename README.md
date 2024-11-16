@@ -1109,7 +1109,8 @@ highly recommended **Llama 3.1** model, which provides the best balance
 of price and performance!
 
 For an uncensored model, consider **sao10k/l3-70b-euryale-v2.1**
-(good for role-playing) or **cognitivecomputations/dolphin-mixtral-8x22b**.
+(creative assistant and role-playing) or
+**cognitivecomputations/dolphin-mixtral-8x22b**.
 
 Create an API key as per the
 [Quick Start Guide](https://novita.ai/docs/get-started/quickstart.html)
