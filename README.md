@@ -7,7 +7,7 @@ Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, 
 Chat completions with streaming by defaults.
 
 <details>
-  <summary>Expand Markdown Processing</summary>
+  <summary>_Expand Markdown Processing_</summary>
 
 Markdown processing on response is triggered automatically for some time now!
 
@@ -17,7 +17,7 @@ Markdown rendering of chat response (_optional_).
 </details>
 
 <details>
-  <summary>Expand Text Completions</summary>
+  <summary>_Expand Text Completions_</summary>
 
 ![Plain Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_cpls.gif)
 
@@ -25,7 +25,7 @@ In pure text completions, start by typing some text that is going to be complete
 </details>
 
 <details>
-  <summary>Expand Insert Mode</summary>
+  <summary>_Expand Insert Mode_</summary>
 
 ![Insert Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_insert.gif)
 
@@ -38,7 +38,7 @@ If no suffix is provided, it works as plain text completions.
 ## Index
 
 <details>
-  <summary>Click to expand!</summary>
+  <summary>**Click to expand!**</summary>
 
 - 1. [Index](#index)
 - 2. [Features](#-features)
@@ -47,57 +47,57 @@ If no suffix is provided, it works as plain text completions.
   - 3.2 [Optional Packages](#optional-packages)
   - 3.3 [Installation](#-installation)
   - 3.4 [Usage Examples](#-usage-examples-)
-  - 3.5 [Native Chat Completions](#-native-chat-completions)
-    - 3.5.1 [Vision and Multimodal Models](#vision-and-multimodal-models)
-    - 3.5.2 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
-    - 3.5.3 [File Picker and Shell Dump](#file-picker-and-shell-dump)
-    - 3.5.4 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
-    - 3.5.5 [Audio Models](#audio-models)
-  - 3.6 [Chat Mode of Text Completions](#chat-mode-of-text-completions)
-  - 3.7 [Text Completions](#-text-completions)
-    - 3.7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
-- 4. [Markdown](#markdown)
-- 5. [Prompts](#-prompts)
-  - 5.1 [Custom Prompts](#-custom-prompts)
-  - 5.2 [Awesome Prompts](#-awesome-prompts)
-- 6. [Shell Completion](#shell-completion)
-  - 6.1 [Bash](#bash)
-  - 6.2 [Zsh](#zsh)
-  - 6.3 [Troubleshoot](#troubleshoot-shell)
-- 7. [Notes and Tips](#-notes-and-tips)
-- 8. [More Script Modes](#more-script-modes)
-  - 8.1 [Image Generations](#-image-generations)
-  - 8.2 [Image Variations](#image-variations)
-  - 8.3 [Image Edits](#image-edits)
-    - 8.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
-    - 8.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
-  - 8.4 [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
-- 9. [Service Providers](#service-providers)
-  - 9.1 [LocalAI](#localai)
-    - 9.1.1 [LocalAI Server](#localai-server)
-    - 9.1.2 [Tips](#tips)
-    - 9.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
-    - 9.1.4 [Installing Models](#installing-models)
-    - 9.1.5 [Host API Configuration](#base-url-configuration)
-  - 9.2 [Ollama](#ollama)
-  - 9.3 [Google AI](#google-ai)
-  - 9.4 [Mistral AI](#mistral-ai)
-  - 9.5 [Groq](#groq)
-  - 9.6 [Anthropic](#anthropic)
-  - 9.7 [GitHub](#github)
-  - 9.8 [Novita AI](#novita-ai)
-- 10. [Arch Linux Users](#arch-linux-users)
-- 11. [Termux Users](#termux-users)
-  - 11.1 [Dependencies](#dependencies-termux)
-  - 11.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
-  - 11.3 [Tiktoken](#tiktoken)
-  - 11.4 [Troubleshoot](#troubleshoot-termux)
-- 12. [Project Objectives](#-project-objectives)
-- 13. [Limitations](#%EF%B8%8F-limitations)
-- 14. [Bug report](#bug-report)
-- 15. [Help Pages](#-help-pages)
-- 16. [Contributors](#-contributors)
-- 17. [Acknowledgements](#acknowledgements)
+- 4. [Native Chat Completions](#-native-chat-completions)
+  - 4.1 [Vision and Multimodal Models](#vision-and-multimodal-models)
+  - 4.2 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
+  - 4.3 [File Picker and Shell Dump](#file-picker-and-shell-dump)
+  - 4.4 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
+  - 4.5 [Audio Models](#audio-models)
+- 5. [Chat Mode of Text Completions](#chat-mode-of-text-completions)
+- 6. [Text Completions](#-text-completions)
+  - 6.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
+- 7. [Markdown](#markdown)
+- 8. [Prompts](#-prompts)
+  - 8.1 [Custom Prompts](#-custom-prompts)
+  - 8.2 [Awesome Prompts](#-awesome-prompts)
+- 9. [Shell Completion](#shell-completion)
+  - 9.1 [Bash](#bash)
+  - 9.2 [Zsh](#zsh)
+  - 9.3 [Troubleshoot](#troubleshoot-shell)
+- 10. [Notes and Tips](#-notes-and-tips)
+- 11. [More Script Modes](#more-script-modes)
+  - 11.1 [Image Generations](#-image-generations)
+  - 11.2 [Image Variations](#image-variations)
+  - 11.3 [Image Edits](#image-edits)
+    - 11.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
+    - 11.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
+  - 11.4 [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
+- 12. [Service Providers](#service-providers)
+  - 12.1 [LocalAI](#localai)
+    - 12.1.1 [LocalAI Server](#localai-server)
+    - 12.1.2 [Tips](#tips)
+    - 12.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
+    - 12.1.4 [Installing Models](#installing-models)
+    - 12.1.5 [Host API Configuration](#base-url-configuration)
+  - 12.2 [Ollama](#ollama)
+  - 12.3 [Google AI](#google-ai)
+  - 12.4 [Mistral AI](#mistral-ai)
+  - 12.5 [Groq](#groq)
+  - 12.6 [Anthropic](#anthropic)
+  - 12.7 [GitHub](#github)
+  - 12.8 [Novita AI](#novita-ai)
+- 13. [Arch Linux Users](#arch-linux-users)
+- 14. [Termux Users](#termux-users)
+  - 14.1 [Dependencies](#dependencies-termux)
+  - 14.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
+  - 14.3 [Tiktoken](#tiktoken)
+  - 14.4 [Troubleshoot](#troubleshoot-termux)
+- 15. [Project Objectives](#-project-objectives)
+- 16. [Limitations](#%EF%B8%8F-limitations)
+- 17. [Bug report](#bug-report)
+- 18. [Help Pages](#-help-pages)
+- 19. [Contributors](#-contributors)
+- 20. [Acknowledgements](#acknowledgements)
 
 </details>
 
@@ -161,7 +161,7 @@ If no suffix is provided, it works as plain text completions.
 Packages required for specific features.
 
 <details>
-  <summary>Click to expand!</summary>
+  <summary>_Click to expand!_</summary>
 
 - `Base64` - Image endpoint, multimodal models
 - `Python` - Modules tiktoken, markdown, bs4
@@ -226,7 +226,7 @@ and make it executable:
 ![Chat cmpls with prompt confirmation](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_verb.gif)
 
 
-### 💬  Native Chat Completions
+## 💬  Native Chat Completions
 
 With command line `options -cc`, some properties are set automatically to create a chat bot.
 Start a new session in chat mode, and set a different temperature (*gpt-3.5 and gpt-4+ models*):
@@ -328,7 +328,7 @@ Print out last session, optionally set the history name:
 <!-- The same as `chatgpt.sh -HH` -->
 
 
-#### Vision and Multimodal Models
+### Vision and Multimodal Models
 
 To send an `image` / `url` to vision models, start the script and then either
 set the image with the `!img` chat command with one or more filepaths / URLs.
@@ -350,7 +350,7 @@ Alternatively, set the image paths / URLs at the end of the prompt:
 **DEBUG:** Set `option -V` to see the raw JSON request body.
 
 
-#### Text, PDF, Doc, and URL Dumps
+### Text, PDF, Doc, and URL Dumps
 
 To make an easy workfow, the user may add a filepath or URL to the end
 of the prompt. The file is then read and the text content appended to the user prompt.
@@ -379,7 +379,7 @@ Also note that file paths containing white spaces must be
 Multiple images and audio files may be appended the the prompt in this way!
 
 
-#### File Picker and Shell Dump
+### File Picker and Shell Dump
 
 The `/pick` command opens a file picker (usually a command-line
 file manager). The selected file's path will be appended to the
@@ -397,7 +397,7 @@ _File paths_ that contain white spaces need backslash-escaping
 in some functions.
 
 
-#### Voice In and Out + Chat Completions
+### Voice In and Out + Chat Completions
 
 🗣️ Chat completion with speech in and out (Whisper plus TTS):
 
@@ -420,7 +420,7 @@ such as:
     chatgpt.sh -cc -w -z -vv
 
 
-#### Audio Models
+### Audio Models
 
 Audio models, such as `gpt-4o-audio`, deal with audio input and output directly, thus reducing latency in a conversation turn.
 
@@ -438,7 +438,7 @@ Similarly as described above, to activate the audio output mode of an audio mode
 Mind that this _does not_ implement the _realtime models_.
 
 
-### Chat Mode of Text Completions
+## Chat Mode of Text Completions
 
 When text completions is set for chatting with `option -c`,
 some properties are configured automatically to instruct the bot.
@@ -479,7 +479,7 @@ These unexpected use cases demonstrate the versatility of the `chatgpt.sh` scrip
 -->
 
 
-### 📜 Text Completions
+## 📜 Text Completions
 
 This is the pure text completions endpoint. It is typically used to
 complete input text, such as for completing part of an essay.
@@ -501,7 +501,7 @@ Set an instruction prompt for better results:
     chatgpt.sh -d -S'You are an AI assistant.'  "The list below contain the 10 biggest cities in the w"
 
 
-#### Insert Mode of Text Completions
+### Insert Mode of Text Completions
 
 Set `option -q` (or `-qq` for multiturn) to enable insert mode and add the
 string `[insert]` where the model should insert text:
@@ -519,8 +519,9 @@ works with model `instruct models`.
 Mistral AI has a nice FIM (fill-in-the-middle) endpoint that works
 with `code` models and is really good!
 
+
 <!--
-### Text Edits  _(discontinued)_
+## Text Edits  _(discontinued)_
 
 Choose an `edit` model or set `option -e` to use this endpoint.
 Two prompts are accepted, an instruction prompt and
@@ -550,6 +551,7 @@ While in chat mode, type the command `/help [question]`, in which the question
 is related to script features and your current chat settings, and how
 you can change them or invoke the script with the right syntax!
 -->
+
 
 ## Markdown
 
