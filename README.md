@@ -115,8 +115,8 @@ If no suffix is provided, it works as plain text completions.
    easily create and set the initial system prompt
 - Integration with [LocalAI](#localai), [Ollama](#ollama),
    [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), [Anthropic](#anthropic), and [GitHub Models](#github)
-- Support for [awesome-chatgpt-prompts](#-awesome-prompts) and
-   [Chinese awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+- Support for [awesome-chatgpt-prompts](#-awesome-prompts) & the
+   [Chinese variant](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 - [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
 - Colour scheme personalisation 🎨 and a configuration file
 - Stdin and text file input support
