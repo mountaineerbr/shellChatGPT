@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.86.2  nov/2024  by mountaineerbr  GPL+3
+# v0.86.3  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2220,7 +2220,7 @@ function cmd_runf
 			fi
 			;;
 		i|info)
-			(  unset hurl hurlv modmodal rseq sseq stop
+			(  unset blku hurl hurlv modmodal rseq sseq stop
 			((OLLAMA)) && hurl='ollama-url' hurlv=${OLLAMA_BASE_URL}${ENDPOINTS[EPN]};
 			((GOOGLEAI)) && hurl='google-url' hurlv=${GOOGLE_BASE_URL}${ENDPOINTS[EPN]};
 			((ANTHROPICAI)) && hurl='anthropic-url' hurlv=${ANTHROPIC_BASE_URL}${ENDPOINTS[EPN]};
@@ -2230,6 +2230,8 @@ function cmd_runf
 			{ is_visionf "$MOD" || is_amodelf "$MOD" ;} && modmodal=' / multimodal'
 			((MTURN+OPTRESUME)) &&
 			OPTC= OLLAMA= GOOGLEAI= OPTHH=1 EPN=0 set_histf >/dev/null;
+
+			((${#BLOCK_USR})) && blku="user-json ${BLOCK_USR:+set}";
 
 			if ((EPN==6))
 			then 	rseq='unavailable'
@@ -2270,6 +2272,7 @@ function cmd_runf
 			restart-seq   "${rseq}" \
 			start-seq     "${sseq}" \
 			stop-seqs     "${stop}" \
+			$blku \
 			history-file  "${FILECHAT/"$HOME"/"~"}"  >&2;
 			
 			((!NOVITAAI)) || {  _printbf 'wait';  #credit_balance
@@ -5726,7 +5729,7 @@ else
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
 		((NOVITAAI)) && [[ $MOD = sao10k/*euryale* ]] &&
-		  OPTT=${OPTT:-1.17} OPTA=${OPTA:-0} BLOCK_USR='"min_p":0.075,"repetition_penalty":1.10'
+		  OPTT=${OPTT:-1.17} OPTA=${OPTA:-0} BLOCK_USR=${BLOCK_USR:-\"min_p\":0.075,\"repetition_penalty\":1.10}
 		#https://huggingface.co/Sao10K/L3-70B-Euryale-v2.1
 
 		#temperature
