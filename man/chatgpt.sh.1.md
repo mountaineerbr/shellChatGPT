@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.86.2 | General Commands Manual
+% CHATGPT.SH(1) v0.86.4 | General Commands Manual
 % mountaineerbr
 % November 2024
 
@@ -252,12 +252,13 @@ to _omni-moderation-latest_ (or _text-moderation-latest_).
 
 Stdin text is appended to PROMPT, to set a single PROMPT.
 
-While _cURL_ is in the middle of transmitting a request or receiving
-a response, \<_CTRL-C_> may be pressed once to interrupt the call.
+Press \<_CTRL-X_ _CTRL-E_> to edit command line in text editor from readline.
 
-Press \<_CTRL-X_ _CTRL-E_> to edit command line in text editor (readline).
+Press \<_CTRL-J_> or \<_CTRL-V_ _CTRL-J_> for newline in readline.
 
-Press \<_CTRL-J_> or \<_CTRL-V_ _CTRL-J_> for newline (readline).
+Press \<_CTRL-L_> to redraw readline buffer (user input) on screen.
+
+During _cURL_ requests, press \<_CTRL-C_> once to interrupt the call.
 
 Press \<_CTRL-\\_> to exit from the script (send _QUIT_ signal),
 or "_Q_" in user confirmation prompts.
@@ -958,6 +959,9 @@ Optional packages for specific features.
 Bash "read command" may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
+
+If readline screws up your currrent input buffer, try pressing \<_CTRL-L_>
+to force it to redisplay and refresh the prompt properly on screen.
 
 File paths containing spaces may not work correctly in the chat interface.
 Make sure to backslash-escape filepaths with white spaces.

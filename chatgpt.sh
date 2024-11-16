@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.86.3  nov/2024  by mountaineerbr  GPL+3
+# v0.86.4  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -398,7 +398,7 @@ Command List
       !i      !info             Info on model and session settings.
       !j      !jump             Jump to request, append response primer.
      !!j     !!jump             Jump to request, no response priming.
-     !cat     -                 Cat prompter (one-shot, ctrd-d).
+     !cat     -                 Cat prompter (one-shot, ctrl-d).
      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL.
      !dialog  -                 Toggle the \`dialog' interface.
      !img     !media [FILE|URL] Append image, media, or URL to prompt.
@@ -495,6 +495,8 @@ Command List
 
 	Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
 	Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
+	Press <CTRL-L> to redraw readline buffer (user input) on screen.
+	Press <CTRL-C> during cURL requests to interrupt the call.
 	Press <CTRL-\\> to terminate the script at any time (QUIT signal),
 	or \`Q' in user confirmation prompts.
 
@@ -5436,7 +5438,7 @@ then
 	BASE_URL=${NOVITA_BASE_URL:-${OPENAI_BASE_URL:-$NOVITA_BASE_URL_DEF}};
 	NOVITAAI=1;
 else 	
-	unset NAVITA_API_KEY NAVITA_BASE_URL NOVITAAI;
+	unset NOVITA_API_KEY NOVITA_BASE_URL NOVITAAI;
 fi
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"

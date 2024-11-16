@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2024
-title: CHATGPT.SH(1) v0.86.2 \| General Commands Manual
+title: CHATGPT.SH(1) v0.86.4 \| General Commands Manual
 ---
 
 ### NAME
@@ -261,13 +261,14 @@ The moderation endpoint can be accessed by setting the model name to
 
 Stdin text is appended to PROMPT, to set a single PROMPT.
 
-While *cURL* is in the middle of transmitting a request or receiving a
-response, \<*CTRL-C*\> may be pressed once to interrupt the call.
+Press \<*CTRL-X* *CTRL-E*\> to edit command line in text editor from
+readline.
 
-Press \<*CTRL-X* *CTRL-E*\> to edit command line in text editor
-(readline).
+Press \<*CTRL-J*\> or \<*CTRL-V* *CTRL-J*\> for newline in readline.
 
-Press \<*CTRL-J*\> or \<*CTRL-V* *CTRL-J*\> for newline (readline).
+Press \<*CTRL-L*\> to redraw readline buffer (user input) on screen.
+
+During *cURL* requests, press \<*CTRL-C*\> once to interrupt the call.
 
 Press \<*CTRL-\\*\> to exit from the script (send *QUIT* signal), or
 “*Q*” in user confirmation prompts.
@@ -894,6 +895,10 @@ Optional packages for specific features.
 Bash “read command” may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
+
+If readline screws up your currrent input buffer, try pressing
+\<*CTRL-L*\> to force it to redisplay and refresh the prompt properly on
+screen.
 
 File paths containing spaces may not work correctly in the chat
 interface. Make sure to backslash-escape filepaths with white spaces.

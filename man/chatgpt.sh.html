@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.86.2 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.86.4 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.86.2 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.86.4 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2024</p>
 </header>
@@ -402,13 +402,14 @@ cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
 <em>omni-moderation-latest</em> (or
 <em>text-moderation-latest</em>).</p>
 <p>Stdin text is appended to PROMPT, to set a single PROMPT.</p>
-<p>While <em>cURL</em> is in the middle of transmitting a request or
-receiving a response, &lt;<em>CTRL-C</em>&gt; may be pressed once to
-interrupt the call.</p>
 <p>Press &lt;<em>CTRL-X</em> <em>CTRL-E</em>&gt; to edit command line in
-text editor (readline).</p>
+text editor from readline.</p>
 <p>Press &lt;<em>CTRL-J</em>&gt; or &lt;<em>CTRL-V</em>
-<em>CTRL-J</em>&gt; for newline (readline).</p>
+<em>CTRL-J</em>&gt; for newline in readline.</p>
+<p>Press &lt;<em>CTRL-L</em>&gt; to redraw readline buffer (user input)
+on screen.</p>
+<p>During <em>cURL</em> requests, press &lt;<em>CTRL-C</em>&gt; once to
+interrupt the call.</p>
 <p>Press &lt;<em>CTRL-\</em>&gt; to exit from the script (send
 <em>QUIT</em> signal), or “<em>Q</em>” in user confirmation prompts.</p>
 <p>A personal OpenAI API is required, set it with
@@ -1340,6 +1341,9 @@ input (Whisper)</li>
 <p>Bash “read command” may not correctly display input buffers larger
 than the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.</p>
+<p>If readline screws up your currrent input buffer, try pressing
+&lt;<em>CTRL-L</em>&gt; to force it to redisplay and refresh the prompt
+properly on screen.</p>
 <p>File paths containing spaces may not work correctly in the chat
 interface. Make sure to backslash-escape filepaths with white
 spaces.</p>
