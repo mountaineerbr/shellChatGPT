@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.86.4  nov/2024  by mountaineerbr  GPL+3
+# v0.87  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -84,7 +84,7 @@ OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 # TTS voice speed
 #OPTZ_SPEED=   #0.25 - 4.0
 # TTS out file format
-OPTZ_FMT=opus   #mp3, opus, aac, flac, wav, pcm16
+#OPTZ_FMT=opus   #mp3, opus, aac, flac, wav, pcm16
 # Recorder command, e.g. "sox -d"
 #REC_CMD=""
 # Media player command, e.g. "cvlc"
@@ -148,9 +148,9 @@ FILEWHISPER="${FILECHAT%/*}/whisper.json"
 FILEWHISPERLOG="${OUTDIR%/*}/whisper_log.txt"
 FILETXT="${CACHEDIR%/}/chatgpt.txt"
 FILEOUT="${OUTDIR%/}/dalle_out.png"
-FILEOUT_TTS="${OUTDIR%/}/tts.${OPTZ_FMT:=mp3}"
+FILEOUT_TTS="${OUTDIR%/}/tts.${OPTZ_FMT:=opus}"
 FILEIN="${CACHEDIR%/}/dalle_in.png"
-FILEINW="${CACHEDIR%/}/whisper_in.mp3"
+FILEINW="${CACHEDIR%/}/whisper_in.${REC_FMT:=mp3}"
 FILEAWE="${CACHEDIR%/}/awesome-prompts.csv"
 FILEFIFO="${CACHEDIR%/}/fifo.buff"
 FILEMODEL="${CACHEDIR%/}/models.txt"
@@ -1086,6 +1086,7 @@ function splayerf
 	trap 'exit' INT TERM;
 	: > "${1}" || exit;
 	
+	((${#TERMUX_VERSION})) && sleep 0.8;
 	for ((n=0;n<12;n++))  #wait for buffer
 	do 	sleep 0.6; [[ -s "${1}" ]] &&
 		(( $(wc -c <${1}) > 64000)) && break;
@@ -1144,7 +1145,7 @@ function prompt_printf
 		if ((OPTMD))
 		then 	printf "${NC}\\n" >&2;
 			prompt_pf -r ${STREAM:+-j --unbuffered} "$@" "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
-		fi
+		fi; ((!ret));
 	fi || prompt_pf -r ${STREAM:+-j --unbuffered} "$@" "$FILE" 2>/dev/null;
 	return $ret;
 }
@@ -3438,11 +3439,16 @@ function recordf
 		termux*) termux=1;;
 		false) 	return 196;;
 	esac
-
+	
 	#move out file before writing
 	[[ -s $1 ]] && mv -f -- "$1" "${1%.*}.2.${1##*.}";
 	
-	[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
+	[[ -n $TERMUX_VERSION ]] &&
+	if is_amodelf "$MOD"
+	then 	OPTV=2 set_termuxpulsef;
+		case "$REC_CMD" in *termux*) 	_warmsgf 'Warning:' 'Audio-models require SoX or FFmpeg';; esac;
+	else 	set_termuxpulsef;
+	fi
 
 	$REC_CMD "$1" >&2 & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; ret=199;" INT;
@@ -4352,7 +4358,8 @@ function set_playcmdf
 	((${#PLAY_CMD})) && return;
 
 	if [[ -n $TERMUX_VERSION ]]
-	then 	set_termuxpulsef ||
+	then 	is_amodelf "$MOD" && typeset OPTV=2;
+		set_termuxpulsef ||
 		if command -v play-audio
 		then 	PLAY_CMD='play-audio';
 			return 0;
@@ -4388,10 +4395,11 @@ function set_reccmdf
 	((${#REC_CMD})) && return;
 
 	if [[ -n $TERMUX_VERSION ]]
-	then 	set_termuxpulsef ||
+	then 	is_amodelf "$MOD" && typeset OPTV=2;
+		set_termuxpulsef ||
 		if command -v termux-microphone-record
 		then 	REC_CMD='termux-microphone-record -r 16000 -c 1 -l 0 -f';
-			is_amodelf "$MOD" && ((STREAM)) ||
+			is_amodelf "$MOD" ||  #termux-mic encodes m4a only
 			FILEINW="${FILEINW%.*}.m4a";  #encoder aac
 			return 0;
 		fi >/dev/null 2>&1
@@ -4423,7 +4431,7 @@ function set_termuxpulsef
 		[Nn]) 	return 1;;
 		*) 	command -v pulseaudio >/dev/null 2>&1 &&
 			command -v pactl >/dev/null 2>&1;;
-	esac;
+	   esac;
 	then
 		case "$(pactl list modules 2>&1)" in
 		  *module-sles-source*)  :;;
@@ -6317,7 +6325,7 @@ $OPTB_OPT $OPTBB_OPT $OPTSTOP $OPTSEED_OPT
 $(
 is_amodelf "$MOD" &&
 if ((OPTW+OPTZ))
-then  printf '"modalities": ["text", "audio"], "audio": { "voice": "%s", "format": "%s" },' "${OPTZ_VOICE:-echo}" "${OPTZ_FMT:-mp3}"
+then  printf '"modalities": ["text", "audio"], "audio": { "voice": "%s", "format": "%s" },' "${OPTZ_VOICE:-echo}" "${OPTZ_FMT:-pcm16}"
 else  printf '"modalities": ["text"],'
 fi ) \
 $( ((MISTRALAI+GROQAI+ANTHROPICAI)) || echo "\"n\": $OPTN," ) \
@@ -6414,9 +6422,11 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 			then 	tkn=($(jq -r -s '.[-1]|.prompt_eval_count//"0", .eval_count//"0", "0", .created_at//"0", (.eval_duration/1000000000)?, (.eval_count/(.eval_duration/1000000000)?)?' "$FILE") )
 				((STREAM)) && ((MAX_PREV+=tkn[1]));
 			fi
-			if ((OPTZ)) && ((!${#ans})) && is_amodelf "$MOD"  #response is audio only
-			then 	read ans < <(jq -r '(.message|select(.audio.data != null)|.audio.id)//(.choices|.[]?|select(.delta.audio.data != null)|.delta.audio.id)//empty' "$FILE");
-				((${#ans})) || ans="audio-in";  #not implemented, testing
+
+			#audio-model: audio only response
+			if ((OPTZ)) && ((!${#ans})) && is_amodelf "$MOD"  #((!RET_APRF))
+			then 	read ans < <(jq -r '(.message|select(.audio.data != null)|.audio.id)//(.choices|.[]?|select(.delta.audio.data != null)|.delta.audio.id)//empty' "$FILE" 2>/dev/null);
+				#audio-id is not implemented, testing
 			fi
 
 			#print error msg and check for OpenAI response length-type error
@@ -6559,7 +6569,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 
 			ok=-1;
 			for ((m=1;m<2;++m))
-			do 	((++ok)); ((ok<10)) || break; var=3;  #3+1 secs
+			do 	((++ok)); ((ok<10)) || break;
+				((RET_APRF)) && var=8 || var=3;  #3+1 secs
 				_warmsgf $'\nReplay?' 'N/y/[w]ait ' '';  #!# #F#
 				for ((n=var;n>-1;n--))
 				do 	printf '%s\b' "$n" >&2

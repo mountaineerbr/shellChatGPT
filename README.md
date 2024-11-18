@@ -985,7 +985,6 @@ The environment varible `$OPENAI_BASE_URL` is read at invocation.
     chatgpt.sh -c -m luna-ai-llama2
 
 
-
 To set it a in a more permanet fashion, edit the script
 configuration file `.chatgpt.conf`.
 
