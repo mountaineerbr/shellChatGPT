@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87  nov/2024  by mountaineerbr  GPL+3
+# v0.87.1  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -802,14 +802,14 @@ function model_capf
 		*turbo*16k*|gpt-3.5-turbo-1106|gemini*-vision*|*-16k*)
 			MODMAX=16384;;
 		*llama-3.1-70b-instruct|*llama-3.1-405b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
-		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*moderation*)
+		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*)
 			MODMAX=32768;;
 		o[1-9]*|gpt-4[a-z]*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
 		mistral-3b*|*mistral-nemo*|*mistral-large*|open-mistral-nemo*|phi-3.5-mini-instruct|\
 		phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
 		cohere-command-r*|*llama-[3-9].[1-9]*|*llama[4-9]-*|\
-		*llama[4-9]*|*ministral*|*-128k*)
+		*llama[4-9]*|*ministral*|*pixtral*|*-128k*)
 			MODMAX=128000;;  #131072
 		*openchat-7b|*mythomax-l2-13b|*airoboros-l2-70b|*lzlv_70b|*nous-hermes-llama2-13b|\
 		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
@@ -828,6 +828,7 @@ function model_capf
 }
 #novita: model names: [provider]/[model]
 #groq: 3.1 models to max_tokens of 8k and 405b to 16k input tokens.
+#pixtral: maximum number images per request is 8.
 #https://blog.google/technology/ai/google-gemini-next-generation-model-february-2024/
 
 #make cmpls request
@@ -1773,12 +1774,15 @@ function _model_costf
 		claude-2.1*|claude-2*) 	echo 8 24;;
 		claude-instant-1.2*) 	echo 0.8 2.4;;
 		open-mistral-nemo*) 	echo 0.3 0.3;;
-		mistral-large*) 	echo 3 9;;
-		codestral*|mistral-small*) echo 1 3;;
+		mistral-large*) 	echo 2 6;;
+		codestral*|mistral-small*) echo 0.2 0.6;;
 		open-mistral-7b*) 	echo 0.25 0.25;;
 		open-mixtral-8x7b*) 	echo 0.7 0.7;;
-		open-mixtral-8x22b*) 	echo 2 6;;
+		open-mixtral-8x22b*|pixtral-large*) 	echo 2 6;;
+		pixtral-12b*) 	echo 0.15 0.15;;
 		mistral-medium*) 	echo 2.75 8.1;;
+		ministral-8b*) 	echo 0.1 0.1;;
+		ministral-3b*) 	echo 0.04 0.04;;
 		gpt-4o-audio-preview|gpt-4o-audio-preview-2024-10-01) echo 2.5 10;;  #text only
 		o1-mini*|o1-mini-2024-09-12) echo 3 12;;
 		o1*|o1-preview-2024-09-12) echo 15 60;;
@@ -1787,7 +1791,7 @@ function _model_costf
 		gpt-4o-2024-08-06|gpt-4o*) echo 2.5 10;;
 		text-embedding-3-small) 	echo 0.02 0;;
 		text-embedding-3-large) 	echo 0.13 0;;
-		text-embedding-ada-002|mistral-embed*) 	echo 0.1 0;;
+		text-embedding-ada-002|mistral-embed*|mistral-moderation*) 	echo 0.1 0;;
 		gpt-4) 	echo 30 60;;
 		gpt-4-32k) 	echo 60 120;;
 		gpt-4-turbo*|gpt-4-*preview) 	echo 10 30;;
@@ -1810,7 +1814,7 @@ function _model_costf
 		meta-llama/llama-3-70b-instruct) 	echo 0.51 0.74;;
 		google/gemma-2-9b-it) 	echo 0.08 0.08;;
 		nousresearch/hermes-2-pro-llama-3-8b) 	echo 0.14 0.14;;
-		mistralai/mistral-nemo) 	echo 0.17 0.17;;
+		mistralai/mistral-nemo) 	echo 0.15 0.15;;
 		microsoft/wizardlm-2-8x22b) 	echo 0.62 0.62;;
 		gryphe/mythomax-l2-13b) 	echo 0.09 0.09;;
 		jondurbin/airoboros-l2-70b) 	echo 0.50 0.50;;
@@ -3071,7 +3075,7 @@ function is_pdff { 	[[ -f $1 ]] && _is_pdff "$1" ;}
 function _is_imagef
 {
 	case "$1" in
-		*?.[Pp][Nn][Gg] | *?.[Jj][Pp][Gg] | *?.[Jj][Pp][Ee][Gg] | *?.[Ww][Ee][Bb][Pp] | *?.[Gg][Ii][Ff] | *?.[Hh][Ee][Ii][CcFf] ) :;;
+		*?.[Pp][Nn][Gg] | *?.[Jj][Pp][Gg] | *?.[Jj][Pp][Ee][Gg] | *?.[Ww][Ee][Bb][Pp] | *?.[Gg][Ii][Ff] | *?.[Hh][Ee][Ii][CcFf] | *?.[Gg][Ii][Ff] ) :;;
 		*) false;;
 	esac;
 }
