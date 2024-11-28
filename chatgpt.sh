@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87.1  nov/2024  by mountaineerbr  GPL+3
+# v0.87.2  nov/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -907,11 +907,11 @@ function promptf
 	then 	: >"$FILETXT"; RET_APRF=;
 		if ((PREVIEW>1))
 		then 	cat -- "$FILE"
-		else 	test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%s\\b${NC}" "X" >&2;
+		else 	test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%s\\b${NC}" "C" >&2;
 			_promptf || exit;  #!#
 		fi | { 	prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILETXT"; exit $ret ;}
 	else
-		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "X" >&2;
+		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "C" >&2;
 		((PREVIEW>1)) || COLUMNS=$((COLUMNS-1)) _promptf || exit;  #!#
 		printf "${NC}" >&2;
 		if ((OPTI))
@@ -1261,9 +1261,11 @@ function list_modelsf
 
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! _warmsgf 'Err';
-	else 	{   jq -r '.data[].id' "$FILE" | sort &&
+	else 	{   jq -r '.data[].id' "$FILE" | sort && {
 		    {    ((LOCALAI+OLLAMA+MISTRALAI+GOOGLEAI+GROQAI+ANTHROPICAI+GITHUBAI+NOVITAAI)) || [[ $BASE_URL != "$OPENAI_BASE_URL_DEF" ]] ||
 		    printf '%s\n' text-moderation-latest text-moderation-stable omni-moderation-latest ;}
+		    ((!MISTRALAI)) || printf '%s\n' mistral-moderation-latest;
+		  }
 		} | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
 	fi || ! _warmsgf 'Err:' 'Model list'
 }
@@ -2611,7 +2613,7 @@ function edf
 	ed_msg=",,,,,,(edit below this line),,,,,,"
 	((OPTC)) && rest="${RESTART-$Q_TYPE}" || rest="${RESTART}"
 	rest="$(_unescapef "$rest")"
-	instruction=${GINSTRUCTION:-$INSTRUCTION};
+	instruction=${GINSTRUCTION:-${INSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}};
 
 	if ((CHAT_ENV)) && ((MTURN+OPTRESUME))  #G#
 	then 	MAIN_LOOP=1 Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" MOD= \
@@ -5939,7 +5941,8 @@ else
 							is_amodelf "$MOD" && _sysmsgf $'\nWhisper:' 'Transcript generation..';
 							REPLY=$(
 								set --;
-								((GITHUBAI)) && OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
+								((MISTRALAI+NOVITAAI+GITHUBAI+xANTHROPICAI+xGOOGLEAI)) &&
+								  BASE_URL=$OPENAI_BASE_URL_DEF OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
 								((GROQAI+WHISPER_GROQ)) && MOD_AUDIO=$MOD_AUDIO_GROQ;
 								((!GROQAI && WHISPER_GROQ)) && BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF};
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= JQCOL2= MULTIMODAL=;
