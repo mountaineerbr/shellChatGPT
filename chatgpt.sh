@@ -5839,7 +5839,7 @@ else
 		then 	OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
 		fi
 	fi
-	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;
+	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;  #needs review#
 	((OPTRESUME)) && fix_breakf "$FILECHAT";
 
 	if ((${#})) && ((!(OPTE+OPTX) )) && [[ ! -e $1 && ! -e ${@:${#}} ]]
