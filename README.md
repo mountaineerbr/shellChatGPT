@@ -1128,15 +1128,17 @@ and export your key as `$NOVITA_API_KEY` to your environment.
 Next, run the script such as `chatgpt.sh --novita -cc`.
 
 Check the [model list web page](https://novita.ai/model-api/product/llm-api)
-and the [price of each model tokens](https://novita.ai/model-api/pricing).
+and the [price of each model](https://novita.ai/model-api/pricing).
 
 To list all available models, run `chatgpt.sh --novita -l`. Optionally set a model name with with `option -l` to dump model details.
 
 Some models work with the `/completions` endpoint, while others
 work with the `/chat/completions` endpoint, so the script _does not set the endpoint automatically_! Check model details and web pages to understand their capabilities, and then either run the script with `option -c` (**text completions**) or `options -cc` (**chat completions**).
 
+---
 
-As an example, to set Novita AI integration manually instead:
+As an exercise, instead of setting command-line `option --novita`,
+set Novita AI integration manually instead:
 
 
 ```
