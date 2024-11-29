@@ -152,14 +152,14 @@ _chatgpt.sh()
     {-k,--no-colour}'[Disable color output]' \
     {-l,--list-models}'[List models]:model name (optional)' \
     {-L,--log}'[Log file]:log filepath:_files' \
-    '(--localai --mistral --google --groq --anthropic --github --novita)'{-O,--ollama}'[Ollama integration]' \
-    '(-O --ollama --mistral --google --groq --anthropic --github --novita)--localai[LocalAI integration]' \
-    '(-O --ollama --localai --google --groq --anthropic --github --novita)--mistral[Mistral AI integration]' \
-    '(-O --ollama --mistral --localai --groq --anthropic --github --novita)--google[GoogleAI integration]' \
-    '(-O --ollama --localai --google --mistral --anthropic --github --novita)--groq[Groq integration]' \
-    '(-O --ollama --localai --google --mistral --groq --github --novita)--anthropic[Anthropic integration]' \
-    '(-O --ollama --localai --google --mistral --groq --anthropic --novita)--github[GitHub Models integration]' \
-    '(-O --ollama --localai --google --mistral --groq --anthropic --github)--novita[Novita AI integration]' \
+    {-O,--ollama}'[Ollama integration]' \
+    '--localai[LocalAI integration]' \
+    '--mistral[Mistral AI integration]' \
+    '--google[GoogleAI integration]' \
+    '--groq[Groq integration]' \
+    '--anthropic[Anthropic integration]' \
+    '--github[GitHub Models integration]' \
+    '--novita[Novita AI integration]' \
     '--openai[Reset defaults to OpenAI]' \
     {--md,--markdown}'[Enable markdown rendering]' \
     {--md=-,--markdown=-}'[Set markdown software (=cmd)]:markdown command:(bat pygmentize glow mdcat mdless)' \
