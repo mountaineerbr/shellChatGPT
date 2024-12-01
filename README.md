@@ -1347,7 +1347,7 @@ are not worth developer efforts in these poor circumstances. The models
 are not worth the value or expectations.
 - The warper is deemed finished in the sense any further updates must
 not change the user interface.
-- We expect to go **aptosis**.
+- We expect to go **apoptosis**.
 
 ---
 
