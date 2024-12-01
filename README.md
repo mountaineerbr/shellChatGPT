@@ -93,11 +93,12 @@ If no suffix is provided, it works as plain text completions.
   - 14.3 [Tiktoken](#tiktoken)
   - 14.4 [Troubleshoot](#troubleshoot-termux)
 - 15. [Project Objectives](#-project-objectives)
-- 16. [Limitations](#%EF%B8%8F-limitations)
-- 17. [Bug report](#bug-report)
-- 18. [Help Pages](#-help-pages)
-- 19. [Contributors](#-contributors)
-- 20. [Acknowledgements](#acknowledgements)
+- 16. [Roadmap](#roadmap)
+- 17. [Limitations](#%EF%B8%8F-limitations)
+- 18. [Bug report](#bug-report)
+- 19. [Help Pages](#-help-pages)
+- 20. [Contributors](#-contributors)
+- 21. [Acknowledgements](#acknowledgements)
 
 </details>
 
@@ -1337,6 +1338,32 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 - Première of `chatgpt.sh version 1.0` should occur at the time
   when OpenAI launches its next major API version update.
+
+
+## Roadmap
+
+- We shall halt development frequency in 2025. LLM models in general
+are not worth developer efforts in these poor circumstances. The models
+are not worth the value or expectations.
+- The warper is deemed finished in the sense any further updates must
+not change the user interface.
+- We expect to go **aptosis**.
+
+---
+
+Every project, much like living organisms, follows a lifecycle.
+As this initiative reaches its natural maturity, we are prepared
+to fail as best as we can. Major usage breaks should follow
+new and backward-incompatible API changes (incompatible models).
+
+We plan to gradually wind down active development of this project
+soon.
+
+
+Happy 2024 [Grav Mass!](https://stallman.org/grav-mass.html)
+
+
+![Newton](https://stallman.org/grav-mass.png)
 
 
 <!--
