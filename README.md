@@ -1360,7 +1360,7 @@ We plan to gradually wind down active development of this project
 soon.
 
 
-Happy 2024 [Grav Mass!](https://stallman.org/grav-mass.html)
+Merry 2024 [Grav Mass!](https://stallman.org/grav-mass.html)
 
 
 ![Newton](https://stallman.org/grav-mass.png)
