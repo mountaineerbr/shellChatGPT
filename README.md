@@ -1347,14 +1347,14 @@ are not worth developer efforts in these poor circumstances. The models
 are not worth the value or expectations.
 - The warper is deemed finished in the sense any further updates must
 not change the user interface.
-- We expect to go **apoptosis**.
+- We expect to **go apoptosis**.
 
 ---
 
 Every project, much like living organisms, follows a lifecycle.
 As this initiative reaches its natural maturity, we are prepared
-to fail as best as we can. Major usage breaks should follow
-new and backward-incompatible API changes (incompatible models).
+to fail as gracefully as we can. Major usage breaks should follow
+new and backwards-incompatible API changes (incompatible models).
 
 We plan to gradually wind down active development of this project
 soon.

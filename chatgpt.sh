@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87.2  nov/2024  by mountaineerbr  GPL+3
+# v0.87.3  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3338,7 +3338,7 @@ function set_optsf
 			STREAM= OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=;
 		}
 		;;
-		llava-v1.5-7b-4096-preview)  #groq vision
+		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
 		INSTRUCTION_CHAT= INSTRUCTION=;
 		;;
 		*) ((MOD_REASON)) && STREAM=$STREAM_REASON OPTA=$OPTA_REASON OPTAA=$OPTAA_REASON OPTT=$OPTT_REASON OPTMAX=${OPTMAX_REASON:-$OPTMAX} INSTRUCTION_CHAT=$INSTRUCTION_CHAT_REASON INSTRUCTION=$INSTRUCTION_REASON MOD_REASON= CURLTIMEOUT=;
