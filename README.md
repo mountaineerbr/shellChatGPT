@@ -1354,7 +1354,7 @@ not change the user interface.
 Every project, much like living organisms, follows a lifecycle.
 As this initiative reaches its natural maturity, we are prepared
 to fail as gracefully as we can. Major usage breaks should follow
-new and backwards-incompatible API changes (incompatible models).
+new and backward-incompatible API changes (incompatible models).
 
 We plan to gradually wind down active development of this project
 soon.
