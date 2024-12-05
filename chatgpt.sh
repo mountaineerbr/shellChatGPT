@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87.3  dec/2024  by mountaineerbr  GPL+3
+# v0.87.4  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -957,8 +957,8 @@ function __clr_dialogf { 	((DIALOG_CLR)) && _clr_dialogf ;}
 function _clr_ttystf
 {
 	typeset REPLY n;
-	while IFS= read -r -n 1 -t 0.1;
-	do 	((++n)); ((n<16384)) || break;
+	while IFS= read -r -n 1 -t 0.08;
+	do 	((++n)); ((n<8192)) || break;
 	done </dev/tty;
 }
 
