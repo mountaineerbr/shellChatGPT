@@ -160,6 +160,7 @@ _chatgpt.sh()
     '--anthropic[Anthropic integration]' \
     '--github[GitHub Models integration]' \
     '--novita[Novita AI integration]' \
+    '--xai[xAI integration]' \
     '--openai[Reset defaults to OpenAI]' \
     {--md,--markdown}'[Enable markdown rendering]' \
     {--md=-,--markdown=-}'[Set markdown software (=cmd)]:markdown command:(bat pygmentize glow mdcat mdless)' \

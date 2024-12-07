@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87.4  dec/2024  by mountaineerbr  GPL+3
+# v0.87.5  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -12,6 +12,7 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 #ANTHROPIC_API_KEY=
 #GITHUB_TOKEN=
 #NOVITA_API_KEY=
+#XAI_API_KEY=
 
 # DEFAULTS
 # Text cmpls model
@@ -43,6 +44,8 @@ MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-latest}"
 MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
 # Novita AI model
 MOD_NOVITA="${MOD_NOVITA:-sao10k/l3-70b-euryale-v2.1}"
+# xAI model
+MOD_XAI="${MOD_XAI:-grok-beta}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -169,6 +172,7 @@ GROQ_BASE_URL_DEF="https://api.groq.com/openai/v1";
 ANTHROPIC_BASE_URL_DEF="https://api.anthropic.com/v1";
 GITHUB_BASE_URL_DEF="https://models.inference.ai.azure.com";
 NOVITA_BASE_URL_DEF="https://api.novita.ai/v3/openai";
+XAI_BASE_URL_DEF="https://api.x.ai/v1";
 OPENAI_API_KEY_DEF=$OPENAI_API_KEY;
 BASE_URL=$OPENAI_BASE_URL_DEF;
 
@@ -520,6 +524,7 @@ Options
 		Reset service integrations.
 	-O, --ollama
 		Set and request to Ollama server (cmpls/chat).
+	--xai 	Set xAI integration (cmpls/chat).
 
 	Configuration File
 	-f, --no-conf
@@ -788,7 +793,7 @@ function model_capf
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
 		code-davinci-00[2-9]*|mistral-embed*|-8k*)
 			MODMAX=8001;;
-		gemini*-flash*)
+		gemini*-flash*|grok)
 			MODMAX=1048576;;  #std: 128000
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*)
 			MODMAX=2097152;;  #std: 128000
@@ -801,16 +806,18 @@ function model_capf
 		*llama-3.1-8b-instruct|davinci-00[2-9]|babbage-00[2-9]|gpt-3.5*16k*|\
 		*turbo*16k*|gpt-3.5-turbo-1106|gemini*-vision*|*-16k*)
 			MODMAX=16384;;
-		*llama-3.1-70b-instruct|*llama-3.1-405b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
+		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*)
 			MODMAX=32768;;
 		o[1-9]*|gpt-4[a-z]*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
-		mistral-3b*|*mistral-nemo*|*mistral-large*|open-mistral-nemo*|phi-3.5-mini-instruct|\
-		phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
-		cohere-command-r*|*llama-[3-9].[1-9]*|*llama[4-9]-*|\
+		mistral-3b*|*mistral-nemo*|*mistral-large*|open-mistral-nemo*|\
+		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
+		*llama-[3-9].[1-9]*|*llama[4-9]-*|\
 		*llama[4-9]*|*ministral*|*pixtral*|*-128k*)
-			MODMAX=128000;;  #131072
+			MODMAX=128000;;
+		grok*|*llama-3.1-405b-instruct|cohere-command-r*)
+			MODMAX=131072;;
 		*openchat-7b|*mythomax-l2-13b|*airoboros-l2-70b|*lzlv_70b|*nous-hermes-llama2-13b|\
 		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
 		gpt-4*|*-bison*|*-unicorn|text-davinci-002-render-sha|\
@@ -1826,6 +1833,7 @@ function _model_costf
 		qwen/qwen-2.5-72b-instruct) 	echo 0.38 0.40;;
 		sao10k/l3*-70b-euryale-v2.[1-9]) 	echo 1.48 1.48;;
 		cognitivecomputations/dolphin-mixtral-8x22b) 	echo 0.90 0.90;;
+		grok-beta|grok-vision-beta) 	echo 5 15;;
 		*) 	echo 0 0; false;;
 	esac;
 }
@@ -5121,7 +5129,7 @@ do
 		for opt in api-key  multimodal  vision  audio  markdown  markdown:md  \
 no-markdown  no-markdown:no-md  fold  fold:wrap  no-fold  no-fold:no-wrap \
 localai  localai:local-ai  localai:local  google  google:goo  mistral \
-openai  groq  groq:grok  anthropic  anthropic:ant  j:seed  keep-alive \
+openai  groq  grok grok:xai  anthropic  anthropic:ant  j:seed  keep-alive \
 keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
 a:presence-penalty  a:presence  a:pre  A:frequency-penalty  A:frequency \
 A:freq  b:best-of  b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue \
@@ -5186,7 +5194,7 @@ github  github:git  novita  novita:nov  version
 		d) 	OPTCMPL=1;;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "${BASH_SOURCE[0]:-$0}" "$@" ;exit;;
@@ -5230,15 +5238,16 @@ github  github:git  novita  novita:nov  version
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		o) 	OPTCLIP=1;;
-		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= ;;
-		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= ;;
-		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= ;;
+		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= ;;
+		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= ;;
+		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= ;;
 		localai) LOCALAI=1;;
-		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= WHISPER_GROQ= GITHUBAI= NOVITAAI= ;;
-		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 GITHUBAI= NOVITAAI= ;;
-		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= NOVITAAI= ;;
-		github) GITHUBAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= NOVITAAI= ;;
-		novita) NOVITAAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= ;;
+		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= WHISPER_GROQ= GITHUBAI= NOVITAAI= XAI= ;;
+		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 GITHUBAI= NOVITAAI= XAI= ;;
+		grok) 	XAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 GITHUBAI= NOVITAAI= ;;
+		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= NOVITAAI= XAI= ;;
+		github) GITHUBAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= NOVITAAI= XAI= ;;
+		novita) NOVITAAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= XAI= ;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
@@ -5333,6 +5342,8 @@ else
 	then 	MOD=$MOD_MISTRAL
 	elif ((GROQAI))
 	then 	MOD=$MOD_GROQ MOD_AUDIO=$MOD_AUDIO_GROQ
+	elif ((XAI))
+	then 	MOD=$MOD_XAI
 	elif ((ANTHROPICAI))
 	then 	MOD=$MOD_ANTHROPIC
 	elif ((LOCALAI))
@@ -5374,7 +5385,7 @@ fi
 #google integration
 if case "${GOOGLE_BASE_URL:-$OPENAI_BASE_URL}" in *googleapis.com*) :;; *) ((GOOGLEAI));; esac
 then 	set_googleaif;
-	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI;
+	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI;
 else 	unset GOOGLEAI;
 fi
 
@@ -5385,21 +5396,30 @@ then
 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
 	((OPTC==1 || OPTCMPL)) && OPTC=2;
 	ENDPOINTS[0]=${ENDPOINTS[6]};
-	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI;
+	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI XAI;
 else 	unset GROQAI;
 fi  #https://console.groq.com/docs/api-reference
+
+#grok integration
+if case "${XAI_BASE_URL:-$OPENAI_BASE_URL}" in *api.x.ai*) :;; *) ((XAI));; esac
+then
+	BASE_URL=${XAI_BASE_URL:-${OPENAI_BASE_URL:-$XAI_BASE_URL_DEF}};
+	OPENAI_API_KEY=${XAI_API_KEY:?Required};
+	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI GROQAI;
+else 	unset XAI;
+fi  #https://docs.x.ai/api
 
 #anthropic integration
 if case "${ANTHROPIC_BASE_URL:-$OPENAI_BASE_URL}" in *api.anthropic.com*) :;; *) ((ANTHROPICAI));; esac
 then 	set_anthropicf;
-	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI NOVITAAI;
+	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI NOVITAAI XAI;
 else 	unset ANTHROPICAI;
 fi
 
 #ollama integration
 if case "${OPENAI_BASE_URL}" in *localhost:11434*) :;; *) ((OLLAMA));; esac
 then 	set_ollamaf;
-	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI;
+	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI;
 else  	unset OLLAMA OLLAMA_BASE_URL;
 fi
 
@@ -5425,7 +5445,7 @@ then
 	elif [[ $MOD != *embed* ]]
 	then 	OPTSUFFIX= OPTCMPL= OPTC=2;
 	fi; MISTRALAI=1;
-	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB NOVITAAI;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB NOVITAAI XAI;
 elif unset MISTRAL_API_KEY MISTRAL_BASE_URL MISTRALAI;
 #github azure api
 	case "${GITHUB_BASE_URL:-$OPENAI_BASE_URL}" in *ai.azure.com*) :;; *) ((GITHUBAI));; esac
@@ -5444,7 +5464,7 @@ then
 		#https://github.com/marketplace/info
 	};
 	GITHUBAI=1 OPTC=2;  #chat completions only
-	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI;
 elif unset GITHUB_TOKEN GITHUB_BASE_URL GITHUBAI;
 	case "${NOVITA_BASE_URL:-$OPENAI_BASE_URL}" in *api.novita.ai*) :;; *) ((NOVITAAI));; esac
 then

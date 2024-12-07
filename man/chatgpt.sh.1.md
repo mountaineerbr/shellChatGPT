@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.87 | General Commands Manual
+% CHATGPT.SH(1) v0.87.5 | General Commands Manual
 % mountaineerbr
-% November 2024
+% December 2024
 
 
 ### NAME
@@ -29,8 +29,8 @@
 
 This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
 endpoints from OpenAI. Additional service providers such as LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, and Novita
-APIs are also available.
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
+and xAI APIs are also available.
 
 With no options set, complete INPUT in single-turn mode of
 the native chat completion.
@@ -803,6 +803,14 @@ the highly recommended **Llama 3.1** model. For an uncensored model, consider
 **sao10k/l3-70b-euryale-v2.1** or **cognitivecomputations/dolphin-mixtral-8x22b**.
 
 
+And for xAI's Grok, set environment `$XAI_API_KEY` with your API key.
+
+Run the script with `option --xai` and also with `option -cc` (chat completions.).
+
+Some models also work with native text completions. For that,
+set command-line `option -c` instead.
+
+
 ### ENVIRONMENT
 
 **BLOCK_USR**
@@ -1067,6 +1075,11 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 **-O**, **\--ollama**
 
 : Set and make requests to Ollama server (cmpls/chat).
+
+
+**\--xai**
+
+: Set xAI integrations (cmpls/chat).
 
 
 #### Configuration File

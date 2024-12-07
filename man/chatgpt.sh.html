@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.87 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.87.5 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.87 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.87.5 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">November 2024</p>
+<p class="date">December 2024</p>
 </header>
 <h3 id="name">NAME</h3>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
@@ -212,8 +212,8 @@ Whisper / TTS</div>
 <h3 id="description">DESCRIPTION</h3>
 <p>This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
 endpoints from OpenAI. Additional service providers such as LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, and
-Novita APIs are also available.</p>
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
+and xAI APIs are also available.</p>
 <p>With no options set, complete INPUT in single-turn mode of the native
 chat completion.</p>
 <p>Handles single-turn and multi-turn modes, pure text and native chat
@@ -1193,6 +1193,12 @@ Novita AI offers a range of LLM models, including the highly recommended
 <strong>Llama 3.1</strong> model. For an uncensored model, consider
 <strong>sao10k/l3-70b-euryale-v2.1</strong> or
 <strong>cognitivecomputations/dolphin-mixtral-8x22b</strong>.</p>
+<p>And for xAI’s Grok, set environment <code>$XAI_API_KEY</code> with
+your API key.</p>
+<p>Run the script with <code>option --xai</code> and also with
+<code>option -cc</code> (chat completions.).</p>
+<p>Some models also work with native text completions. For that, set
+command-line <code>option -c</code> instead.</p>
 <h3 id="environment">ENVIRONMENT</h3>
 <p><strong>BLOCK_USR</strong></p>
 <dl>
@@ -1425,6 +1431,10 @@ version 1 but not all endpoints or options will be covered.</p>
 <dt><strong>-O</strong>, <strong>--ollama</strong></dt>
 <dd>
 <p>Set and make requests to Ollama server (cmpls/chat).</p>
+</dd>
+<dt><strong>--xai</strong></dt>
+<dd>
+<p>Set xAI integrations (cmpls/chat).</p>
 </dd>
 </dl>
 <h4 id="configuration-file">Configuration File</h4>

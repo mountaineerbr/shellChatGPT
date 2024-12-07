@@ -84,8 +84,9 @@ If no suffix is provided, it works as plain text completions.
   - 12.4 [Mistral AI](#mistral-ai)
   - 12.5 [Groq](#groq)
   - 12.6 [Anthropic](#anthropic)
-  - 12.7 [GitHub](#github)
+  - 12.7 [GitHub Models](#github-models)
   - 12.8 [Novita AI](#novita-ai)
+  - 12.9 [xAI](#xai)
 - 13. [Arch Linux Users](#arch-linux-users)
 - 14. [Termux Users](#termux-users)
   - 14.1 [Dependencies](#dependencies-termux)
@@ -123,7 +124,7 @@ If no suffix is provided, it works as plain text completions.
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
 - **Fast** shell code for a responsive experience! ⚡️ 
 
-<!-- - Integration with [LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), [Anthropic](#anthropic), [GitHub Models](#github), and [Novita AI](#novita-ai) -->
+<!-- - Integration with [LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), [Anthropic](#anthropic), [GitHub Models](#github-models), and [Novita AI](#novita-ai) -->
 <!-- _Tiktoken_ for accurate tokenization (optional) -->
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
 <!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
@@ -1060,14 +1061,6 @@ Run the script with `option --groq`.
 Currently, **llamma3.1** models are available at lightening speeds!
 
 
-<!--
-### Grok
-
-Visit [Grok](https://x.ai/) and
-check the [eligible countries and regions](https://x.ai/regions).
--->
-
-
 ### Anthropic
 
 Sign in to [Antropic AI](https://docs.anthropic.com/).
@@ -1092,7 +1085,7 @@ chatgpt.sh --ant -c -m claude-2.1
 ```
 
 
-### GitHub
+### GitHub Models
 
 GitHub has partnered with Azure to use its infratructure.
 
@@ -1152,6 +1145,17 @@ chatgpt.sh -cc -m meta-llama/llama-3.1-405b-instruct
 We are grateful to Novita AI for their support and collaboration. For more
 information, visit [Novita AI](https://novita.ai/).
 
+
+
+### xAI
+
+Visit [xAI Grok](https://docs.x.ai/docs/quickstart#creating-api-key)
+to generate an API key (environment `$XAI_API_KEY`).
+
+Run the script with `option --xai` and also with `option -cc` (chat completions.).
+
+Some models also work with native text completions. For that,
+set command-line `option -c` instead.
 
 
 <!--
@@ -1452,8 +1456,10 @@ They were studied during development of this script and used as referencial code
 7. [Google Gemini](https://gemini.google.com/)
 8. [Groq](https://console.groq.com/docs/api-reference)
 9. [Antropic AI](https://docs.anthropic.com/)
-10. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-11. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+10. [Novita AI](https://novita.ai/)
+11. [xAI](https://docs.x.ai/docs/quickstart)
+12. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+13. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 <!-- https://huggingface.co/ -->
 
 
