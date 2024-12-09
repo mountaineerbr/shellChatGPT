@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: December 2024
-title: CHATGPT.SH(1) v0.87.5 \| General Commands Manual
+title: CHATGPT.SH(1) v0.87.6 \| General Commands Manual
 ---
 
 ### NAME
@@ -1212,6 +1212,9 @@ Set or unset response folding (wrap at white spaces).
 
 **-h**, **--help**  
 Print the help page.
+
+**–info**  
+Print OpenAI usage status (requires envar `$OPENAI_ADMIN_KEY`).
 
 **-k**, **--no-colour**  
 Disable colour output. Def=*auto*.

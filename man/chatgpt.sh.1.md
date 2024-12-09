@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.87.5 | General Commands Manual
+% CHATGPT.SH(1) v0.87.6 | General Commands Manual
 % mountaineerbr
 % December 2024
 
@@ -1397,6 +1397,11 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 **-h**, **\--help**
 
 : Print the help page.
+
+
+**--info**
+
+: Print OpenAI usage status (requires envar `$OPENAI_ADMIN_KEY`).
 
 
 **-k**, **\--no-colour**

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87.5  dec/2024  by mountaineerbr  GPL+3
+# v0.87.6  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -660,6 +660,7 @@ Options
 		Set or unset response folding (wrap at white spaces).
 	-h, --help
 		Print this help page.
+	--info  Print OpenAI usage status (envar \`\$OPENAI_ADMIN_KEY\`).
 	-k, --no-colour
 		Disable colour output. Def=auto.
 	-l, --list-models  [MOD]
@@ -700,7 +701,8 @@ ENDPOINTS=(
 	/images/edits              #9
 	/audio/speech              #10
 	/models                    #11
-	#/realtime                 #12
+	/organization/usage/completions  #12
+	#/realtime                 #
 )
 #https://platform.openai.com/docs/{deprecations/,models/,model-index-for-researchers/}
 #https://help.openai.com/en/articles/{6779149,6643408}
@@ -795,11 +797,11 @@ function model_capf
 			MODMAX=8001;;
 		gemini*-flash*|grok)
 			MODMAX=1048576;;  #std: 128000
-		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*)
+		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|gemini-exp*)
 			MODMAX=2097152;;  #std: 128000
 		*llama-3-8b-instruct|*llama-3-70b-instruct|*gemma-2-9b-it|*hermes-2-pro-llama-3-8b)
 			MODMAX=8192;;
-		*qwen-2.5-72b-instruct)
+		*qwen-2.5-72b-instruct|learnlm-1.5-pro*)
 			MODMAX=32000;;
 		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
 			MODMAX=16000;;
@@ -830,7 +832,7 @@ function model_capf
 		*embed*|*search*) 	MODMAX=2046;;
 		aqa) 	MODMAX=7168;;
 		*-4k*) 	MODMAX=4000;;
-		*) 	MODMAX=4000;;
+		*) 	MODMAX=8192;;
 	esac
 }
 #novita: model names: [provider]/[model]
@@ -1270,7 +1272,7 @@ function list_modelsf
 	then  	jq . "$FILE" || ! _warmsgf 'Err';
 	else 	{   jq -r '.data[].id' "$FILE" | sort && {
 		    {    ((LOCALAI+OLLAMA+MISTRALAI+GOOGLEAI+GROQAI+ANTHROPICAI+GITHUBAI+NOVITAAI)) || [[ $BASE_URL != "$OPENAI_BASE_URL_DEF" ]] ||
-		    printf '%s\n' text-moderation-latest text-moderation-stable omni-moderation-latest ;}
+		    printf '%s\n' text-moderation-latest text-moderation-stable ;}
 		    ((!MISTRALAI)) || printf '%s\n' mistral-moderation-latest;
 		  }
 		} | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
@@ -1305,6 +1307,25 @@ function pick_modelf
 			[[ \ ${MOD_LIST[*]:-err}\  = *\ "$REPLY"\ * ]] && mod=$REPLY && break;
 		done;  #pick model by number or name
 	fi; MOD=${mod:-$MOD};
+}
+
+#get usage stats from *start of month* to *now*
+function get_infof
+{
+	typeset unix
+	
+	# 1:Y 2:m 3:d 4:h 5:min 6:s  7:Y 8:m 9:d 10:h 11:min 12:s  # now  month_start
+	set -- $(printf '%(%Y %m %d %H %M %S)T' -1) $(printf '%(%Y %m 01 00 00 00)T' -1);
+	set -- $(( ( (10#${3}-10#${9}) * 24*60*60) + ( (10#${4}-10#${10}) * 60*60) + ( (10#${5}-10#${11}) * 60) + 10#${6}));
+	set -- $(printf '%(%s)T' -1) "$@";
+	unix=$(printf '%(%s)T' $((${1} - ${2})) );
+
+	[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"
+
+	curl ${FAIL} -\# -L "${BASE_URL}${ENDPOINTS[12]}?start_time=${unix}&limit=31" \
+	  -H "Authorization: Bearer ${OPENAI_ADMIN_KEY:?required}" -H "Content-Type: application/json" -o "$FILE" &&
+
+	  jq -r '"date    \treqs\tinput\toutput\tsubtotal",(.data | map({start_time: (.start_time | strftime("%Y-%m-%d")), num_model_requests: (.results[0].num_model_requests // 0), input_tokens: (.results[0].input_tokens // 0), output_tokens: (.results[0].output_tokens // 0)}) | reduce .[] as $item ({sum: 0, results: []}; .sum += $item.input_tokens + $item.output_tokens | .results += [{start_time: $item.start_time, num_model_requests: $item.num_model_requests, input_tokens: $item.input_tokens, output_tokens: $item.output_tokens, sum: .sum}]) | .results[] | [.start_time, .num_model_requests, .input_tokens, .output_tokens, .sum] | @tsv)' "$FILE" >&2 || jq . "$FILE" >&2;
 }
 
 function lastjsonf
@@ -3338,12 +3359,12 @@ function set_optsf
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
 				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
-			((STREAM)) && _warmsgf 'Warning:' 'Reasoning models do not support streaming yet';
+			#((STREAM)) && _warmsgf 'Warning:' 'Reasoning models do not support streaming yet';
 			((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'Reasoning models do not support system messages yet';
 			#[[ -n $OPTA ]] && _warmsgf 'Warning:' 'Resetting presence_penalty';
 			#[[ -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency_penalty';
 			STREAM_REASON=$STREAM OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTT_REASON=$OPTT INSTRUCTION_CHAT_REASON=$INSTRUCTION_CHAT INSTRUCTION_REASON=$INSTRUCTION;
-			STREAM= OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=;
+			OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=; #STREAM= 
 		}
 		;;
 		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
@@ -5140,7 +5161,7 @@ r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
 u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
 w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  \
-github  github:git  novita  novita:nov  version 
+github  github:git  novita  novita:nov  version  info
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -5194,7 +5215,7 @@ github  github:git  novita  novita:nov  version
 		d) 	OPTCMPL=1;;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "${BASH_SOURCE[0]:-$0}" "$@" ;exit;;
@@ -5208,6 +5229,7 @@ github  github:git  novita  novita:nov  version
 		H) 	((++OPTHH));;
 		P) 	((OPTHH)) && ((++OPTHH)) || OPTHH=2;;
 		i) 	OPTI=1 EPN=3;;
+		info) 	OPTINFO=1 OPTL=1;;
 		keep-alive)
 			if [[ $OPTARG != @(keep-alive|ka) ]]
 			then 	OPT_KEEPALIVE=$OPTARG;
@@ -5611,6 +5633,8 @@ trap 'exit' HUP QUIT TERM KILL
 
 if ((OPTZZ))  #last response json
 then 	lastjsonf;
+elif ((OPTINFO))
+then 	get_infof;
 elif ((OPTL))  #model list
 then 	#(shell completion script)
 	((OPTL>2)) && [[ -s $FILEMODEL ]] && cat -- "$FILEMODEL" ||
