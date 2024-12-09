@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87.6  dec/2024  by mountaineerbr  GPL+3
+# v0.87.7  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -701,7 +701,7 @@ ENDPOINTS=(
 	/images/edits              #9
 	/audio/speech              #10
 	/models                    #11
-	/organization/usage/completions  #12
+	/organization              #12
 	#/realtime                 #
 )
 #https://platform.openai.com/docs/{deprecations/,models/,model-index-for-researchers/}
@@ -1322,10 +1322,17 @@ function get_infof
 
 	[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"
 
-	curl ${FAIL} -\# -L "${BASE_URL}${ENDPOINTS[12]}?start_time=${unix}&limit=31" \
+	curl ${FAIL} -\# -L "${BASE_URL}${ENDPOINTS[12]}/costs?start_time=${unix}&limit=31" \
 	  -H "Authorization: Bearer ${OPENAI_ADMIN_KEY:?required}" -H "Content-Type: application/json" -o "$FILE" &&
 
-	  jq -r '"date    \treqs\tinput\toutput\tsubtotal",(.data | map({start_time: (.start_time | strftime("%Y-%m-%d")), num_model_requests: (.results[0].num_model_requests // 0), input_tokens: (.results[0].input_tokens // 0), output_tokens: (.results[0].output_tokens // 0)}) | reduce .[] as $item ({sum: 0, results: []}; .sum += $item.input_tokens + $item.output_tokens | .results += [{start_time: $item.start_time, num_model_requests: $item.num_model_requests, input_tokens: $item.input_tokens, output_tokens: $item.output_tokens, sum: .sum}]) | .results[] | [.start_time, .num_model_requests, .input_tokens, .output_tokens, .sum] | @tsv)' "$FILE" >&2 || jq . "$FILE" >&2;
+	  jq -r '.data | map({start_time: (.start_time | strftime("%Y-%m-%d")), value: (.results[0].amount.value // 0)}) | reduce .[] as $item ({sum: 0, results: []}; .sum += $item.value | .results += [{start_time: $item.start_time, value: $item.value, sum: .sum}]) | .results[] | [.start_time, .value, .sum] | @tsv' "$FILE" |
+	  column -t -Ndate,price,subtotal;
+
+	curl ${FAIL} -\# -L "${BASE_URL}${ENDPOINTS[12]}/usage/completions?start_time=${unix}&limit=31" \
+	  -H "Authorization: Bearer ${OPENAI_ADMIN_KEY:?required}" -H "Content-Type: application/json" -o "$FILE" &&
+
+	  jq -r '"date    \treqs\tinput\toutput\tsubtotal",(.data | map({start_time: (.start_time | strftime("%Y-%m-%d")), num_model_requests: (.results[0].num_model_requests // 0), input_tokens: (.results[0].input_tokens // 0), output_tokens: (.results[0].output_tokens // 0)}) | reduce .[] as $item ({sum: 0, results: []}; .sum += $item.input_tokens + $item.output_tokens | .results += [{start_time: $item.start_time, num_model_requests: $item.num_model_requests, input_tokens: $item.input_tokens, output_tokens: $item.output_tokens, sum: .sum}]) | .results[] | [.start_time, .num_model_requests, .input_tokens, .output_tokens, .sum] | @tsv)' "$FILE" ||
+	  jq . "$FILE" >&2 || cat -- "$FILE" >&2;
 }
 
 function lastjsonf
