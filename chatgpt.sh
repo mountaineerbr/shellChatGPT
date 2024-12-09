@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87.7  dec/2024  by mountaineerbr  GPL+3
+# v0.87.8  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -400,6 +400,7 @@ Command List
        !      !r, !regen        Regenerate last response.
       !!      !rr               Regenerate response, edit prompt first.
       !i      !info             Info on model and session settings.
+     !!i     !!info             Monthly usage stats (OpenAI).
       !j      !jump             Jump to request, append response primer.
      !!j     !!jump             Jump to request, no response priming.
      !cat     -                 Cat prompter (one-shot, ctrl-d).
@@ -2264,6 +2265,7 @@ function cmd_runf
 				fi
 			fi
 			;;
+		[/!]i|[/!]info) 	get_infof;;
 		i|info)
 			(  unset blku hurl hurlv modmodal rseq sseq stop
 			((OLLAMA)) && hurl='ollama-url' hurlv=${OLLAMA_BASE_URL}${ENDPOINTS[EPN]};
@@ -3372,6 +3374,7 @@ function set_optsf
 			#[[ -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency_penalty';
 			STREAM_REASON=$STREAM OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTT_REASON=$OPTT INSTRUCTION_CHAT_REASON=$INSTRUCTION_CHAT INSTRUCTION_REASON=$INSTRUCTION;
 			OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=; #STREAM= 
+			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 		}
 		;;
 		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
