@@ -236,14 +236,14 @@ Start a new session in chat mode, and set a different temperature (*gpt-3.5 and 
     chatgpt.sh -cc -t0.7
 
 
-Change the maximum response token length 4k tokens:
+Change the maximum response length to 4k tokens:
 
     chatgpt.sh -cc -4000
     
     chatgpt.sh -cc -M 4000
 
 
-Or to change a model token capacity to 200k tokens:
+Or change a model token capacity to 200k tokens:
 
     chatgpt.sh -cc -4000-200000
 
