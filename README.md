@@ -236,14 +236,14 @@ Start a new session in chat mode, and set a different temperature (*gpt-3.5 and 
     chatgpt.sh -cc -t0.7
 
 
-Change the maximum response token length:
+Change the maximum response token length 4k tokens:
 
     chatgpt.sh -cc -4000
     
     chatgpt.sh -cc -M 4000
 
 
-Or to change and (unknown) model token capacity:
+Or to change a model token capacity to 200k tokens:
 
     chatgpt.sh -cc -4000-200000
 
@@ -1365,7 +1365,7 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 ## Roadmap
 
 - We shall decrease development frequency in 2025, hopefully. LLM models
-in general are not really worth developer efforts soemtimes, it is frustating!
+in general are not really worth developer efforts sometimes, it is frustating!
 <!-- in these poor circumstances. The models
 are not worth the value or expectations. -->
 - The warper is deemed finished in the sense any further updates must
