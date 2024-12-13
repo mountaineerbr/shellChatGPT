@@ -236,6 +236,20 @@ Start a new session in chat mode, and set a different temperature (*gpt-3.5 and 
     chatgpt.sh -cc -t0.7
 
 
+Change the maximum response token length:
+
+    chatgpt.sh -cc -4000
+    
+    chatgpt.sh -cc -M 4000
+
+
+Or to change and (unknown) model token capacity:
+
+    chatgpt.sh -cc -4000-200000
+
+    chatgpt.sh -cc -M 4000-200000
+
+
 Create **Marv, the sarcastic bot** manually:
 
     chatgpt.sh -60 -cc --frequency-penalty=0.5 --temp=0.5 --top_p=0.3 --restart-seq='\nYou: ' --start-seq='\nMarv:' --stop='You:' --stop='Marv:' -S'Marv is a factual chatbot that reluctantly answers questions with sarcastic responses.'
@@ -712,6 +726,10 @@ the completion files correctly.
 
 
 ## 💡  Notes and Tips
+
+- YouTube feature will get only YouTube videos heading title and its transcripts (when available).
+
+- PDF support feature extracts the PDF text ([_no images_](https://docs.anthropic.com/en/docs/build-with-claude/pdf-support#how-pdf-support-works)) and appends it to the user request.
 
 - Run chat commands with either _operator_ `!` or `/`.
 
@@ -1346,22 +1364,25 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 ## Roadmap
 
-- We shall halt development frequency in 2025. LLM models in general
-are not worth developer efforts in these poor circumstances. The models
-are not worth the value or expectations.
+- We shall decrease development frequency in 2025, hopefully. LLM models
+in general are not really worth developer efforts soemtimes, it is frustating!
+<!-- in these poor circumstances. The models
+are not worth the value or expectations. -->
 - The warper is deemed finished in the sense any further updates must
 not change the user interface.
-- We expect to **go apoptosis**.
 
----
+<!--
+- We expect to **go apoptosis**.
 
 Every project, much like living organisms, follows a lifecycle.
 As this initiative reaches its natural maturity, we are prepared
 to fail as gracefully as we can. Major usage breaks should follow
 new and backward-incompatible API changes (incompatible models).
+-->
 
-We plan to gradually wind down active development of this project
-soon.
+We plan to gradually wind down development of new features in the near future.
+The project will enter a maintenance phase from 2025 onwards, focusing primarily
+on bug fixes and stability.
 
 
 Merry 2024 [Grav Mass!](https://stallman.org/grav-mass.html)

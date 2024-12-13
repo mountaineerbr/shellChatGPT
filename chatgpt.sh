@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.87.8  dec/2024  by mountaineerbr  GPL+3
+# v0.87.9  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -31,7 +31,7 @@ MOD_LOCALAI="${MOD_LOCALAI:-phi-2}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-llama3.2}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-gemini-1.5-pro-latest}"
+MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.0-flash-exp}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Groq model
@@ -1446,13 +1446,20 @@ function set_histf
 			
 			HIST="${rest}${stringc}${nl}${HIST}"
 			stringd=$(fmt_ccf "${stringc}" "${role}") && ((${#HIST_C}&&${#stringc})) && stringd=${stringd},${NL};
-			if ((GOOGLEAI)) && [[ $role = @(system|user) && $role_last = @(system|user) ]] \
-			    #&& [[ $stringd != *\"inline_data\":* ]]
-			then 	# must fail with inline image objects?!
-				#{"role": "%s", "parts": [ {"text": "%s"} ] }
-				HIST_C=$(SMALLEST=1 trim_leadf "$HIST_C" $'*"text":?( )"')
-				stringd=$(SMALLEST=1 trim_trailf "$stringd" $'"}*')"\\n\\n"
-			fi
+			
+			((GOOGLEAI)) && {
+			  case "$role" in system)
+			    GINSTRUCTION=$(unescapef "${stringc:-$GINSTRUCTION}");
+			    continue;;
+			  esac;
+			  case "$role" in system|user)
+			    case "$role_last" in system|user)  #[[ $stringd != *\"inline_data\":* ]]
+			      HIST_C=$(SMALLEST=1 trim_leadf "$HIST_C" $'*"text":?( )"')
+			      stringd=$(SMALLEST=1 trim_trailf "$stringd" $'"}*')"\\n\\n";;
+			    esac;;
+			  esac;
+			}
+			
 			((EPN==6)) && HIST_C="${stringd}${HIST_C}"
 		else 	break
 		fi
@@ -5065,8 +5072,9 @@ function set_googleaif
 		var= ext= role=;
 		
 		case "$2" in
+			system) 	role=system; return 1;;
 			assistant) 	role=model;;
-			''|system|user|*) 	role=user;;
+			''|user|*) 	role=user;;
 		esac;
 		printf '{"role": "%s", "parts": [ ' "${role}";
 		((${#1})) &&
@@ -5806,7 +5814,7 @@ else
 		OPTT="${OPTT:-0.8}";  #!#
 
 		#presencePenalty may be incompatible with some models!
-		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI+LOCALAI+OLLAMA+xGROQAIxGOOGLEAI)) ||
+		((MOD_REASON+ANTHROPICAI+MISTRALAI+GITHUBAI+LOCALAI+OLLAMA)) ||
 		{ ((${INSTRUCTION+1}0)) && ((!${#INSTRUCTION})) ;} || OPTA="${OPTA:-0.6}";
 		((GITHUBAI)) && unset OPTA OPTAA;
 		
@@ -5995,7 +6003,7 @@ else
 							is_amodelf "$MOD" && _sysmsgf $'\nWhisper:' 'Transcript generation..';
 							REPLY=$(
 								set --;
-								((MISTRALAI+NOVITAAI+GITHUBAI+xANTHROPICAI+xGOOGLEAI)) &&
+								((MISTRALAI+NOVITAAI+GITHUBAI+xANTHROPICAI)) &&
 								  BASE_URL=$OPENAI_BASE_URL_DEF OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
 								((GROQAI+WHISPER_GROQ)) && MOD_AUDIO=$MOD_AUDIO_GROQ;
 								((!GROQAI && WHISPER_GROQ)) && BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF};
@@ -6291,7 +6299,7 @@ else
 				((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
 			fi
 			((JUMP)) && set -- && rest=;
-			var="$(escapef "${INSTRUCTION:-$GINSTRUCTION}")${INSTRUCTION:+\\n\\n}${GINSTRUCTION:+\\n\\n}";
+			var="$(escapef "${INSTRUCTION}")${INSTRUCTION:+\\n\\n}";
 			ESC="${HIST}${HIST:+${var:+\\n\\n}}${var}${rest}$(escapef "${*}")";
 			ESC=$(INDEX=32 trim_leadf "$ESC" "\\n");
 			
@@ -6305,8 +6313,7 @@ else
 					MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");
 				fi
 				var=$(unset MEDIA MEDIA_CMD; fmt_ccf "$(escapef "$INSTRUCTION")" system;) && var="${var}${INSTRUCTION:+,${NL}}";  #mind anthropic
-				set -- "${HIST_C}${HIST_C:+,${NL}}${var}$(
-					fmt_ccf "${HIST_G}$(escapef "${GINSTRUCTION}${GINSTRUCTION:+$NL$NL}${*}")" "$role")";
+				set -- "${HIST_C}${HIST_C:+,${NL}}${var}$(fmt_ccf "${HIST_G}$(escapef "${*}")" "$role")";
 			else 	#text cmpls
 				if { 	((OPTC)) || [[ -n "${START}" ]] ;} && ((JUMP<2))
 				then 	set -- "${ESC}${START-$A_TYPE}"
@@ -6348,6 +6355,9 @@ else
     \"threshold\": \"BLOCK_NONE\"}
     ],"
 			BLOCK="{
+$(
+  case "$MOD" in *gemini-1.0*) 	((MAIN_LOOP)) || _warmsgf 'gemini-1.0:' 'system instruction unsupported'; exit;; esac;  #gemini-1.0 series deprecation: 15/feb/2015
+  ((${#GINSTRUCTION})) && echo "\"systemInstruction\": { \"role\": \"system\", \"parts\": [ { \"text\": \"$(escapef "${GINSTRUCTION}")\" } ] }," )
 $BLOCK
 $BLOCK_SAFETY
 \"generationConfig\": {
