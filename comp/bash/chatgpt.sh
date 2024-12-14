@@ -78,6 +78,7 @@ _chatgptsh()
         -S --instruction
         -. -, -,,
         -t --temperature
+	--time  --no-time
         -c --chat -cc
         -C --continue
         -d --text

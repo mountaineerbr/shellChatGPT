@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.87.8 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.88 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.87.8 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.88 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">December 2024</p>
 </header>
@@ -219,9 +219,9 @@ chat completion.</p>
 <p>Handles single-turn and multi-turn modes, pure text and native chat
 completions, image generation and editing, speech-to-text, and
 text-to-speech.</p>
-<p>Accepts prompts, text files, PDFs, image, and audio files as input
-(as per model). Supports various options for model selection,
-parameters, and output formats.</p>
+<p>Positional arguments are read as a single PROMPT, but some functions
+such as Whisper and TTS may handle optional positional parameters before
+the prompt itself.</p>
 <h3 id="chat-completion-modes">Chat Completion Modes</h3>
 <p>Set <code>option -c</code> to start a multi-turn chat mode via
 <strong>text completions</strong> with command line history support.
@@ -257,9 +257,9 @@ Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.</p>
 <p>Insert mode works with `instruct’ and Mistral `code’ models.</p>
 <h3 id="instruction-prompts">Instruction Prompts</h3>
-<p>Positional arguments are read as a single <strong>PROMPT</strong>.
-Model <strong>INSTRUCTION</strong> is optional but recommended and can
-be set with <code>option -S</code>.</p>
+<p>The SYSTEM INSTRUCTION prompt may be set with <code>option -S</code>
+or via envars <code>$INSTRUCTION</code> and
+<code>$INSTRUCTION_CHAT</code>.</p>
 <p><code>Option -S</code> sets an INSTRUCTION prompt (the initial
 prompt) for text cmpls, and chat cmpls. A text file path may be supplied
 as the single argument. Also see <em>CUSTOM / AWESOME PROMPTS</em>
@@ -282,6 +282,8 @@ respectively-named history file.</p>
 and the prompt name after any command line options, such as
 “<code>.[_prompt_name_]</code>”. This loads the prompt file unless
 instruction was set with command line options.</p>
+<p>To insert the current date and time to the instruction prompt, set
+command line <code>option --time</code>.</p>
 <h3 id="commands">Commands</h3>
 <p>If the first positional argument of the script starts with the
 command operator forward slash “<code>/</code>” and a history file name,
@@ -328,9 +330,9 @@ Gallery defaults to HuggingFace.
 <!-- LocalAI only tested with text and chat completion models (vision) -->
 <p><code>Option -y</code> sets python tiktoken instead of the default
 script hack to preview token count. This option makes token count
-preview accurate fast (we fork tiktoken as a coprocess for fast token
-queries). Useful for rebuilding history context independently from the
-original model used to generate responses.</p>
+preview accurate and fast (we fork tiktoken as a coprocess for fast
+token queries). Useful for rebuilding history context independently from
+the original model used to generate responses.</p>
 <h3 id="image-generations-and-edits-dall-e">Image Generations and Edits
 (Dall-E)</h3>
 <p><code>Option -i</code> <strong>generates images</strong> according to
@@ -998,17 +1000,11 @@ the correct session from the history file.</p>
 edited with the “<code>/hist</code>” command (also for context
 injection). Delete history entries or comment them out with
 “<code>#</code>”.</p>
-<h4 id="completion-preview-regeneration">2.9 Completion Preview /
-Regeneration</h4>
-<p>To preview a prompt completion before committing it to history,
-append a forward slash “<code>/</code>” to the prompt as the last
-character. Regenerate it again or flush/accept the prompt and
-response.</p>
-<p>After a response has been written to the history file,
-<strong>regenerate</strong> it with command “<code>!regen</code>” or
-type in a single exclamation mark or forward slash “<code>/</code>” in
-the new empty prompt (twice “<code>//</code>” for editing the prompt
-before new request).</p>
+<h4 id="completion-regeneration">2.9 Completion Regeneration</h4>
+<p>To <strong>regenerate response</strong>, type in the command
+“<code>!regen</code>” or a single exclamation mark or forward slash in
+the new empty prompt. In order to edit the prompt before the request,
+try “<code>!!</code>” (or “<code>//</code>”).</p>
 <h3 id="prompt-engineering-and-design">3. Prompt Engineering and
 Design</h3>
 <p>Minimal <strong>INSTRUCTION</strong> to behave like a chatbot is
@@ -1666,11 +1662,11 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
 </dd>
-<dt><strong>-j</strong>, <strong>–seed</strong> [<em>NUM</em>]</dt>
+<dt><strong>-j</strong>, <strong>--seed</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Set a seed for deterministic sampling (integer).</p>
 </dd>
-<dt><strong>-K</strong>, <strong>–top-k</strong> [<em>NUM</em>]</dt>
+<dt><strong>-K</strong>, <strong>--top-k</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Set Top_k value (local-ai, ollama, google).</p>
 </dd>
@@ -1715,6 +1711,11 @@ Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
 <dd>
 <p>Set an instruction text prompt. It may be a text file.</p>
 </dd>
+<dt><strong>--time</strong>, <strong>--no-time</strong></dt>
+<dd>
+<p>Insert the current date and time (timestamp) to the instruction
+prompt.</p>
+</dd>
 <dt><strong>-t</strong>, <strong>--temperature</strong>
 [<em>VAL</em>]</dt>
 <dd>
@@ -1737,7 +1738,7 @@ Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
 <dd>
 <p>Print the help page.</p>
 </dd>
-<dt><strong>–info</strong></dt>
+<dt><strong>--info</strong></dt>
 <dd>
 <p>Print OpenAI usage status (requires envar
 <code>$OPENAI_ADMIN_KEY</code>).</p>

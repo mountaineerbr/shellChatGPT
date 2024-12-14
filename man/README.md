@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: December 2024
-title: CHATGPT.SH(1) v0.87.8 \| General Commands Manual
+title: CHATGPT.SH(1) v0.88 \| General Commands Manual
 ---
 
 ### NAME
@@ -47,9 +47,9 @@ Handles single-turn and multi-turn modes, pure text and native chat
 completions, image generation and editing, speech-to-text, and
 text-to-speech.
 
-Accepts prompts, text files, PDFs, image, and audio files as input (as
-per model). Supports various options for model selection, parameters,
-and output formats.
+Positional arguments are read as a single PROMPT, but some functions
+such as Whisper and TTS may handle optional positional parameters before
+the prompt itself.
 
 ### Chat Completion Modes
 
@@ -95,9 +95,8 @@ Insert mode works with \`instruct’ and Mistral \`code’ models.
 
 ### Instruction Prompts
 
-Positional arguments are read as a single **PROMPT**. Model
-**INSTRUCTION** is optional but recommended and can be set with
-`option -S`.
+The SYSTEM INSTRUCTION prompt may be set with `option -S` or via envars
+`$INSTRUCTION` and `$INSTRUCTION_CHAT`.
 
 `Option -S` sets an INSTRUCTION prompt (the initial prompt) for text
 cmpls, and chat cmpls. A text file path may be supplied as the single
@@ -124,6 +123,9 @@ Alternatively, set the first positional argument with the operator and
 the prompt name after any command line options, such as
 “`.[_prompt_name_]`”. This loads the prompt file unless instruction was
 set with command line options.
+
+To insert the current date and time to the instruction prompt, set
+command line `option --time`.
 
 ### Commands
 
@@ -175,10 +177,10 @@ Gallery defaults to HuggingFace.
 <!-- LocalAI only tested with text and chat completion models (vision) -->
 
 `Option -y` sets python tiktoken instead of the default script hack to
-preview token count. This option makes token count preview accurate fast
-(we fork tiktoken as a coprocess for fast token queries). Useful for
-rebuilding history context independently from the original model used to
-generate responses.
+preview token count. This option makes token count preview accurate and
+fast (we fork tiktoken as a coprocess for fast token queries). Useful
+for rebuilding history context independently from the original model
+used to generate responses.
 
 ### Image Generations and Edits (Dall-E)
 
@@ -558,16 +560,11 @@ To change the chat context at run time, the history file may be edited
 with the “`/hist`” command (also for context injection). Delete history
 entries or comment them out with “`#`”.
 
-#### 2.9 Completion Preview / Regeneration
+#### 2.9 Completion Regeneration
 
-To preview a prompt completion before committing it to history, append a
-forward slash “`/`” to the prompt as the last character. Regenerate it
-again or flush/accept the prompt and response.
-
-After a response has been written to the history file, **regenerate** it
-with command “`!regen`” or type in a single exclamation mark or forward
-slash “`/`” in the new empty prompt (twice “`//`” for editing the prompt
-before new request).
+To **regenerate response**, type in the command “`!regen`” or a single
+exclamation mark or forward slash in the new empty prompt. In order to
+edit the prompt before the request, try “`!!`” (or “`//`”).
 
 ### 3. Prompt Engineering and Design
 
@@ -1164,10 +1161,10 @@ Set best of, must be greater than `option -n` (cmpls). Def=*1*.
 **-B**, **--logprobs** \[*NUM*\]  
 Request log probabilities, also see -Z (cmpls, 0 - 5),
 
-**-j**, **–seed** \[*NUM*\]  
+**-j**, **--seed** \[*NUM*\]  
 Set a seed for deterministic sampling (integer).
 
-**-K**, **–top-k** \[*NUM*\]  
+**-K**, **--top-k** \[*NUM*\]  
 Set Top_k value (local-ai, ollama, google).
 
 **--keep-alive**, **--ka**=\[*NUM*\]  
@@ -1199,6 +1196,9 @@ Set stop sequences, up to 4. Def="*\<\|endoftext\|\>*".
 **-S**, **--instruction** \[*INSTRUCTION*\|*FILE*\]  
 Set an instruction text prompt. It may be a text file.
 
+**--time**, **--no-time**  
+Insert the current date and time (timestamp) to the instruction prompt.
+
 **-t**, **--temperature** \[*VAL*\]  
 Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
 1.0). Def=*0*.
@@ -1214,7 +1214,7 @@ Set or unset response folding (wrap at white spaces).
 **-h**, **--help**  
 Print the help page.
 
-**–info**  
+**--info**  
 Print OpenAI usage status (requires envar `$OPENAI_ADMIN_KEY`).
 
 **-k**, **--no-colour**  

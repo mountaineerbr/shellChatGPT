@@ -162,6 +162,8 @@ _chatgpt.sh()
     '--novita[Novita AI integration]' \
     '--xai[xAI integration]' \
     '--openai[Reset defaults to OpenAI]' \
+    '--time[Instruction timestamp]' \
+    '--no-time[Unset instruction timestamp]' \
     {--md,--markdown}'[Enable markdown rendering]' \
     {--md=-,--markdown=-}'[Set markdown software (=cmd)]:markdown command:(bat pygmentize glow mdcat mdless)' \
     {--no-md,--no-markdown}'[Disable markdown rendering]' \

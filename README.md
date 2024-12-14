@@ -111,7 +111,7 @@ If no suffix is provided, it works as plain text completions.
 - **Voice-in** (Whisper) plus **voice out** (TTS) [_chatting mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
 - **Text editor interface**, _Bash readline_, and _multiline/cat_ modes
 - [**Markdown rendering**](#markdown) support in response
-- **Preview** and [**regenerate responses**](#--notes-and-tips)
+- Easily [**regenerate responses**](#--notes-and-tips)
 - **Manage sessions**, _print out_ previous sessions
 - [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
    easily create and set the initial system prompt
@@ -735,10 +735,11 @@ the completion files correctly.
 
 - Edit live history entries with command `!hist`, for context injection.
 
-- Add operator forward slash `/` to the end of prompt to trigger **preview mode**.
+<!-- (deprecated)
+- Add operator forward slash `/` to the end of prompt to trigger **preview mode**. -->
 
-- One can regenerate a response typing in a new prompt a single slash `/`,
-or `//` to have last prompt edited before new request.
+- One can **regenerate a response** by typing in a new prompt a single slash `/`,
+or `//` to have last prompt edited before the new request.
 
 <!--
 - There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh),
@@ -1366,10 +1367,12 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 - We shall decrease development frequency in 2025, hopefully. LLM models
 in general are not really worth developer efforts sometimes, it is frustating!
-<!-- in these poor circumstances. The models
-are not worth the value or expectations. -->
+<!-- in these poor circumstances. The models are not worth the value or expectations. -->
 - The warper is deemed finished in the sense any further updates must
 not change the user interface.
+- We plan to gradually wind down development of new features in the near future.
+The project will enter a maintenance phase from 2025 onwards, focusing primarily
+on bug fixes and stability.
 
 <!--
 - We expect to **go apoptosis**.
@@ -1379,11 +1382,6 @@ As this initiative reaches its natural maturity, we are prepared
 to fail as gracefully as we can. Major usage breaks should follow
 new and backward-incompatible API changes (incompatible models).
 -->
-
-We plan to gradually wind down development of new features in the near future.
-The project will enter a maintenance phase from 2025 onwards, focusing primarily
-on bug fixes and stability.
-
 
 Merry 2024 [Grav Mass!](https://stallman.org/grav-mass.html)
 
