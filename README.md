@@ -1127,7 +1127,7 @@ See also the [GitHub Model Catalog - Getting Started](https://techcommunity.micr
 ### Novita AI
 
 Novita AI offers a range of LLM models at exceptional value, including the
-highly recommended **Llama 3.1** model, which provides the best balance
+highly recommended **Llama 3.3** model, which provides the best balance
 of price and performance!
 
 For an uncensored model, consider **sao10k/l3-70b-euryale-v2.1**
@@ -1367,13 +1367,13 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 - We shall decrease development frequency in 2025, hopefully. LLM models
 in general are not really worth developer efforts sometimes, it is frustating!
-<!-- in these poor circumstances. The models are not worth the value or expectations. -->
 - The warper is deemed finished in the sense any further updates must
 not change the user interface.
 - We plan to gradually wind down development of new features in the near future.
 The project will enter a maintenance phase from 2025 onwards, focusing primarily
 on bug fixes and stability.
 
+<!-- in these poor circumstances. The models are not worth the value or expectations. -->
 <!--
 - We expect to **go apoptosis**.
 

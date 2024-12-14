@@ -244,8 +244,8 @@ Description
 	Text Completion Modes
 
 	Option -d initiates a multi-turn text completion session with history.
-	Further options (e.g., instructions, temperature) must be specified
-	explicitly. 
+	Further options (e.g., instructions, temperature, stop sequences)
+	must be specified explicitly. 
 
 	For single-turn text completion, provide the model (e.g.,
 	gpt-3.5-turbo-instruct) and other parameters (e.g., temperature,
