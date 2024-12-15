@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.88 | General Commands Manual
+% CHATGPT.SH(1) v0.88.2 | General Commands Manual
 % mountaineerbr
 % December 2024
 
@@ -10,7 +10,7 @@
 
 ### SYNOPSIS
 
-|    **chatgpt.sh** \[`-cc`|`-d`|`-qq`] \[`opt`..] \[_PROMPT_|_TEXT_FILE_|_PDF_FILE_]
+|    **chatgpt.sh** \[`-cc`|`-dd`|`-qq`] \[`opt`..] \[_PROMPT_|_TEXT_FILE_|_PDF_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_hd_] \[_PROMPT_]  #Dall-E-3
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PROMPT_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_] \[_PNG_FILE_]
@@ -64,14 +64,14 @@ set `option -E` to exit on the first response (even in multi turn mode).
 
 ### Text Completion Modes
 
-`Option -d` starts a multi-turn session in **plain text completions**
-with history support. This does not set further options automatically,
+`Option -d` starts a single-turn session in **plain text completions**,
+no history support. This does not set further options automatically,
 such as instruction or temperature.
 
-To run the script in text completion in single turn mode, set command line
-`options -dE`, a text completion model such as _gpt-3.5-turbo-instruct_
-and other options (such as temperature and stops). `Option -E` will make
-the script exit after the first turn.
+To run the script in text completion in multi-turn mode and history support,
+set command line `options -dd`.
+
+Set text completion models such as _gpt-3.5-turbo-instruct_.
 
 
 ### Insert Modes (Fill-In-the-Middle)
@@ -1159,7 +1159,12 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
  
 **-d**, **\--text**
 
-: Start new multi-turn session in plain text completions.
+: Single-turn session of plain text completions.
+
+
+**-dd**
+
+: Multi-turn session of plain text completions with history support.
 
 
 **-e**, **\--edit**

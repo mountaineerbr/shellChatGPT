@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: December 2024
-title: CHATGPT.SH(1) v0.88 \| General Commands Manual
+title: CHATGPT.SH(1) v0.88.2 \| General Commands Manual
 ---
 
 ### NAME
@@ -11,7 +11,7 @@ title: CHATGPT.SH(1) v0.88 \| General Commands Manual
 
 ### SYNOPSIS
 
-   **chatgpt.sh** \[`-cc`\|`-d`\|`-qq`\] \[`opt`..\]
+   **chatgpt.sh** \[`-cc`\|`-dd`\|`-qq`\] \[`opt`..\]
 \[*PROMPT*\|*TEXT_FILE*\|*PDF_FILE*\]  
    **chatgpt.sh** `-i` \[`opt`..\] \[*X*\|*L*\|*P*\]\[*hd*\]
 \[*PROMPT*\] \#Dall-E-3  
@@ -74,14 +74,14 @@ set `option -E` to exit on the first response (even in multi turn mode).
 
 ### Text Completion Modes
 
-`Option -d` starts a multi-turn session in **plain text completions**
-with history support. This does not set further options automatically,
+`Option -d` starts a single-turn session in **plain text completions**,
+no history support. This does not set further options automatically,
 such as instruction or temperature.
 
-To run the script in text completion in single turn mode, set command
-line `options -dE`, a text completion model such as
-*gpt-3.5-turbo-instruct* and other options (such as temperature and
-stops). `Option -E` will make the script exit after the first turn.
+To run the script in text completion in multi-turn mode and history
+support, set command line `options -dd`.
+
+Set text completion models such as *gpt-3.5-turbo-instruct*.
 
 ### Insert Modes (Fill-In-the-Middle)
 
@@ -1045,7 +1045,10 @@ Chat mode in chat completions (used with `options -wzvv`).
 Continue from (resume) last session (cmpls/chat).
 
 **-d**, **--text**  
-Start new multi-turn session in plain text completions.
+Single-turn session of plain text completions.
+
+**-dd**  
+Multi-turn session of plain text completions with history support.
 
 **-e**, **--edit**  
 Edit first input from stdin or file (cmpls/chat).

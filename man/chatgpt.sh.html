@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.88 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.88.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.88 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.88.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">December 2024</p>
 </header>
@@ -180,7 +180,8 @@
 Whisper / TTS</div>
 <h3 id="synopsis">SYNOPSIS</h3>
 <div class="line-block">   <strong>chatgpt.sh</strong>
-[<code>-cc</code>|<code>-d</code>|<code>-qq</code>] [<code>opt</code>..]
+[<code>-cc</code>|<code>-dd</code>|<code>-qq</code>]
+[<code>opt</code>..]
 [<em>PROMPT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
 [<em>X</em>|<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
@@ -240,14 +241,13 @@ according to the model capabilities!</p>
 last history session, and set <code>option -E</code> to exit on the
 first response (even in multi turn mode).</p>
 <h3 id="text-completion-modes">Text Completion Modes</h3>
-<p><code>Option -d</code> starts a multi-turn session in <strong>plain
-text completions</strong> with history support. This does not set
-further options automatically, such as instruction or temperature.</p>
-<p>To run the script in text completion in single turn mode, set command
-line <code>options -dE</code>, a text completion model such as
-<em>gpt-3.5-turbo-instruct</em> and other options (such as temperature
-and stops). <code>Option -E</code> will make the script exit after the
-first turn.</p>
+<p><code>Option -d</code> starts a single-turn session in <strong>plain
+text completions</strong>, no history support. This does not set further
+options automatically, such as instruction or temperature.</p>
+<p>To run the script in text completion in multi-turn mode and history
+support, set command line <code>options -dd</code>.</p>
+<p>Set text completion models such as
+<em>gpt-3.5-turbo-instruct</em>.</p>
 <h3 id="insert-modes-fill-in-the-middle">Insert Modes
 (Fill-In-the-Middle)</h3>
 <p>Set <code>option -q</code> for <strong>insert mode</strong> in
@@ -1510,7 +1510,12 @@ first user input.</p>
 </dd>
 <dt><strong>-d</strong>, <strong>--text</strong></dt>
 <dd>
-<p>Start new multi-turn session in plain text completions.</p>
+<p>Single-turn session of plain text completions.</p>
+</dd>
+<dt><strong>-dd</strong></dt>
+<dd>
+<p>Multi-turn session of plain text completions with history
+support.</p>
 </dd>
 <dt><strong>-e</strong>, <strong>--edit</strong></dt>
 <dd>

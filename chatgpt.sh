@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.88.1  dec/2024  by mountaineerbr  GPL+3
+# v0.88.2  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -201,7 +201,7 @@ HELP="Name
 
 
 Synopsis
-	${0##*/} [-cc|-d|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
+	${0##*/} [-cc|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
 	${0##*/} -i [opt..] [X|L|P][hd] [PROMPT]  #dall-e-3
 	${0##*/} -i [opt..] [S|M|L] [PROMPT]
 	${0##*/} -i [opt..] [S|M|L] [PNG_FILE]
@@ -243,13 +243,12 @@ Description
 
 	Text Completion Modes
 
-	Option -d initiates a multi-turn text completion session with history.
+	Option -d initiates a single-turn session of plain text completions.
 	Further options (e.g., instructions, temperature, stop sequences)
-	must be specified explicitly. 
+	must be set explicitly at the command line.
 
-	For single-turn text completion, provide the model (e.g.,
-	gpt-3.5-turbo-instruct) and other parameters (e.g., temperature,
-	stop sequences) on the command line.
+	Text completions in multi-turn mode with history support is set
+	with options -dd. Use models as gpt-3.5-turbo-instruct.
 
 
 	Insert Modes
@@ -563,7 +562,8 @@ Options
 	-C, --continue, --resume
 		Continue from (resume) last session (cmpls/chat).
 	-d, --text
-		Start new multi-turn session in plain text completions.
+		Single-turn session of plain text completions.
+	-dd 	Same as -d, multi-turn and history support.
 	-e, --edit
 		Edit the first input before request. (cmpls/chat).
 		With options -eex, edit the last text editor buffer.
@@ -3104,9 +3104,18 @@ function _is_linkf
 function is_linkf
 {
 	[[ ! -f $1 ]] || return;
-	_is_linkf "$1" || [[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] || {
-	  curl --output /dev/null --max-time 10 --silent --head ${FAIL} --location -H "$UAG" -- "$1" 2>/dev/null &&
-	  LINK_CACHE="$LINK_CACHE $1" ;}
+	
+	_is_linkf "$1" || [[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] ||
+	  case "$1" in
+	  *[$IFS]*) false;;
+	  *[[:alnum:]][-[:alnum:]]*.[[:alnum:]][-[:alnum:]]*|*[0-9]*.*[0-9]*.*[0-9]*.*[0-9]*)
+	      [[ \ $LINK_CACHE_BAD\  != *\ "${1:-empty}"\ * ]] &&
+	      if curl --output /dev/null --max-time 4 --silent --head --fail --location -H "$UAG" -- "$1" 2>/dev/null
+	      then  LINK_CACHE="$LINK_CACHE $1";
+	      else  ! LINK_CACHE_BAD="$LINK_CACHE_BAD $1";
+	      fi;;
+	  *) false;;
+	  esac
 }
 
 function is_txtfilef
@@ -5240,7 +5249,7 @@ github  github:git  novita  novita:nov  version  info  time no-time
 		B) 	OPTBB="$OPTARG";;
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
-		d) 	OPTCMPL=1;;
+		d) 	((OPTCMPL)) && OPTCMPL=1 || OPTCMPL=-1;;  #-1: single-turn, 1: multi-turn
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
 		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME;
@@ -5330,7 +5339,7 @@ github  github:git  novita  novita:nov  version  info  time no-time
 done
 shift $((OPTIND -1))
 unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON STURN init buff var tkn n s
-typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
+typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS LINK_CACHE LINK_CACHE_BAD
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
 set -o ${READLINEOPT:-emacs};
@@ -5361,7 +5370,11 @@ def byellow: null; \
 def bpurple: null; \
 def reset:   null;"
 
-((!(OPTCMPL+OPTC+OPTZZ+OPTL+OPTI+OPTTIKTOKEN+OPTFF) )) && OPTT=${OPTT:-0.8} STURN=1;  #single-turn no-hist demo
+if ((OPTCMPL<0))
+then 	OPTCMPL=;  #single-turn text completions -d
+elif ((!(OPTCMPL+OPTC+OPTZZ+OPTL+OPTI+OPTTIKTOKEN+OPTFF) ))
+then 	OPTT=${OPTT:-0.8} STURN=1;  #single-turn chat completions demo
+fi
 ((OPTL+OPTZZ)) && unset OPTX
 ((OPTZ && OPTW)) && unset OPTX
 ((OPTI)) && unset OPTC
