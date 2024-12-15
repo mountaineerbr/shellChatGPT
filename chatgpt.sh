@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.88  dec/2024  by mountaineerbr  GPL+3
+# v0.88.1  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5656,7 +5656,7 @@ then 	function jq { 	false ;}
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 ((!(OPTHH+OPTFF+OPTZZ) )) &&
-[[ $(curl --help all 2>&1) = *"fail-with-body"* ]] && FAIL="--fail-with-body" || FAIL="--fail";
+[[ $(curl --help all 2>&1) = *"fail-with-body"* ]] && FAIL="--fail-with-body" || unset FAIL;
 
 trap 'cleanupf; exit;' EXIT
 trap 'exit' HUP QUIT TERM KILL
