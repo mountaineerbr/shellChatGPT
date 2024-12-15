@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.88.3  dec/2024  by mountaineerbr  GPL+3
+# v0.88.4  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3108,7 +3108,7 @@ function is_linkf
 	_is_linkf "$1" || [[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] ||
 	  case "$1" in
 	  *[$IFS]*) false;;
-	  *[[:alnum:]][-[:alnum:]]*.[[:alnum:]][-[:alnum:]]*|*[0-9]*.*[0-9]*.*[0-9]*.*[0-9]*)
+	  *[[:alnum:]][-[:alnum:]]*.[[:alnum:]][-[:alnum:]]*|[0-9]*.[0-9]*.[0-9]*.[0-9]*)
 	      [[ \ $LINK_CACHE_BAD\  != *\ "${1:-empty}"\ * ]] &&
 	      if curl --output /dev/null --max-time 4 --silent --head --fail --location -H "$UAG" -- "$1" 2>/dev/null
 	      then  LINK_CACHE="$LINK_CACHE $1";
