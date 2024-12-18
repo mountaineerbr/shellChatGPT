@@ -303,7 +303,7 @@ The command below starts a chat session, loads the "unix" instruction, and chang
 -->
 
 
-There is a shortcut to load an older session from the current (defaults)
+There is a shortcut to load an older session from the current
 history file. This opens a basic interative interface.
 
     chatgpt.sh -cc .
@@ -318,7 +318,7 @@ history file. This opens a basic interative interface.
     chatgpt.sh -cc "/fork current"
 -->
 
-Technically, this copies a old session from the target history file to the tail of it, so we can resume the session.
+Technically, this copies an old session from the target history file to the tail of it, so we can resume the session.
 
 <!--
 In chat mode, simple run `!sub` or the equivalent command `!fork current`.
@@ -1386,7 +1386,7 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 - Première of `chatgpt.sh version 1.0` should occur at the time
   when OpenAI launches its next major API version update.
 
-<!--  I think Ksh developers used to commonly say an invalid options were "illegal" because they developed software a little like games, so the user ought to follow the rules right, otherwise he would incur in an illegal input or command. That seems fairly reasonable to me!  -->
+<!--  I think Ksh developers used to commonly say invalid options were "illegal" because they developed software a little like games, so the user ought to follow the rules right, otherwise he would incur in an illegal input or command. That seems fairly reasonable to me!  -->
 
 
 ## Roadmap
