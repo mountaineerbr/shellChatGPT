@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: December 2024
-title: CHATGPT.SH(1) v0.88.2 \| General Commands Manual
+title: CHATGPT.SH(1) v0.89 \| General Commands Manual
 ---
 
 ### NAME
@@ -404,7 +404,8 @@ either “`!`” or “`/`”.
 |:----------|:--------------------------------|---------------------------------------------------------|
 | `-S`      | `:`, `::` \[*PROMPT*\]          | Append user or system prompt to request buffer.         |
 | `-S.`     | `-.` \[*NAME*\]                 | Load and edit custom prompt.                            |
-| `-S/`     | `-S%` \[*NAME*\]                | Load and edit awesome prompt (zh).                      |
+| `-S/`     | `!awesome` \[*NAME*\]           | Load and edit awesome prompt (english).                 |
+| `-S%`     | `!awesome-zh` \[*NAME*\]        | Load and edit awesome prompt (chinese).                 |
 | `-Z`      | `!last`                         | Print last response JSON.                               |
 | `!#`      | `!save` \[*PROMPT*\]            | Save current prompt to shell history. *‡*               |
 | `!`       | `!r`, `!regen`                  | Regenerate last response.                               |
@@ -517,7 +518,7 @@ one changed to with command “`/session` \[*HIST_FILE*\]”, in which
 or path to, a history file.
 
 When the first positional argument to the script is the command operator
-forward slash followed by a history file name, the command \`/session’
+forward slash followed by a history file name, the command “`/session`”
 is assumed.
 
 A history file can contain many sessions. The last one (the tail
@@ -525,31 +526,39 @@ session) is always loaded if the resume `option -C` is set.
 
 ##### Copying and resuming older sessions
 
-To continue from an old session, either **/sub** or **/fork.** it. The
-dot means the current session. The shorthand for this feature is **/.**.
+To continue from an old session type in a dot “`.`” as the first
+positional argument from the command line. This is a shortcut for the
+“`/sub`” command, which really copies an old session to the tail the
+history file so we can resume it.
 
-It is also possible to \`/grep \[regex\]’ for a session. This will fork
-the selected session and resume it.
+If you want to change to a custom history file, type in as the first
+positional argument at the command line “`/session` \[*NAME*\]” or
+simply “`/`\[*NAME*\]”.
 
-If “`/copy` *current*” is run, a selector is shown to choose and copy a
-session to the tail of the current history file, and resume it. This is
-equivalent to running “`/fork`”.
+Once the history file is set, the user can resume from an older session
+with “`/grep` \[*REGEX*\]”, “`/copy` *current*” or simply “`/sub`”.
+
+<!--
+If "`/copy` _current_" is run, a selector is shown to choose and copy
+a session to the tail of the current history file, and resume it.
+This is equivalent to running "`/fork`". 
+-->
 
 It is also possible to copy sessions of a history file to another file
 when a second argument is given to the command with the history file
-name, such as “`/copy` \[*SRC_HIST_FILE*\] \[*DEST_HIST_FILE*\]”, and a
-dot as file name means the current history file.
+name, such as “`/copy` \[*SRC_HIST_FILE*\] \[*DEST_HIST_FILE*\]”. A dot
+as file name means the current history file.
 
 ##### Changing session
 
 To load an older session from a history file that is different from the
 defaults, there are some options.
 
-Change to it with command \`!session [name](#name)‘, and then \`!fork’
+Change to it with command “`!session` \[*NAME*\]”, and then “`!fork`”
 the older session to the active session.
 
-Or, \`!copy \[orign\] \[dest\]’ the session from a history file to the
-current or other history file.
+Or, “`!copy` \[*ORIGN*\] \[*DEST*\]” the session from a history file to
+the current or other history file.
 
 In these cases, a pickup interface should open to let the user choose
 the correct session from the history file.
@@ -1093,11 +1102,10 @@ Set `,,`\[*PROMPT*\] to edit the prompt template file.
 
 Set `.`*?*, or `.`*list* to list all prompt files.
 
-**-S** **/**\[*AWESOME_PROMPT_NAME*\]
+**-S**, **–awesome** **/**\[*AWESOME_PROMPT_NAME*\]
 
-**-S** **%**\[*AWESOME_PROMPT_NAME_ZH*\]  
-Set or search for an *awesome-chatgpt-prompt(-zh)*. *Davinci* and
-*gpt3.5+* models.
+**-S**, **–awesome-zh** **%**\[*AWESOME_PROMPT_NAME_ZH*\]  
+Set or search for an *awesome-chatgpt-prompt(-zh)*.
 
 Set **//** or **%%** instead to refresh cache.
 

@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.88.2 | General Commands Manual
+% CHATGPT.SH(1) v0.89 | General Commands Manual
 % mountaineerbr
 % December 2024
 
@@ -405,7 +405,8 @@ may be either "`!`" or "`/`".
  --------------    ------------------------------    ----------------------------------------------------------
        `-S`        `:`, `::`    \[_PROMPT_]          Append user or system prompt to request buffer.
       `-S.`        `-.`         \[_NAME_]            Load and edit custom prompt.
-      `-S/`        `-S%`        \[_NAME_]            Load and edit awesome prompt (zh).
+      `-S/`        `!awesome`    \[_NAME_]           Load and edit awesome prompt (english).
+      `-S%`        `!awesome-zh` \[_NAME_]           Load and edit awesome prompt (chinese).
        `-Z`        `!last`                           Print last response JSON.
        `!#`        `!save`       \[_PROMPT_]         Save current prompt to shell history. _‡_
         `!`        `!r`, `!regen`                    Regenerate last response.
@@ -523,7 +524,7 @@ or path to, a history file.
 
 When the first positional argument to the script is the command operator
 forward slash followed by a history file name,
-the command \`/session' is assumed.
+the command "`/session`" is assumed.
 
 A history file can contain many sessions. The last one (the tail session)
 is always loaded if the resume `option -C` is set.
@@ -531,20 +532,26 @@ is always loaded if the resume `option -C` is set.
 
 ##### Copying and resuming older sessions
 
-To continue from an old session, either **/sub** or **/fork.** it.
-The dot means the current session. The shorthand for this feature is **/.**.
+To continue from an old session type in a dot "`.`" as the first positional
+argument from the command line. This is a shortcut for the "`/sub`" command,
+which really copies an old session to the tail the history file so we can resume it.
 
-It is also possible to \`/grep [regex]' for a session. This will fork
-the selected session and resume it.
+If you want to change to a custom history file, type in as the first positional
+argument at the command line "`/session` [_NAME_]" or simply "`/`[_NAME_]".
 
+Once the history file is set, the user can resume from an older session with
+"`/grep` [_REGEX_]", "`/copy` _current_" or simply "`/sub`".
+
+<!--
 If "`/copy` _current_" is run, a selector is shown to choose and copy
 a session to the tail of the current history file, and resume it.
 This is equivalent to running "`/fork`". 
+-->
 
 It is also possible to copy sessions of a history file to another file
 when a second argument is given to the command with the history file name,
-such as "`/copy` \[_SRC_HIST_FILE_] \[_DEST_HIST_FILE_]", and a dot
-as file name means the current history file.
+such as "`/copy` \[_SRC_HIST_FILE_] \[_DEST_HIST_FILE_]".
+A dot as file name means the current history file.
 
 
 ##### Changing session
@@ -552,10 +559,10 @@ as file name means the current history file.
 To load an older session from a history file that is different from the
 defaults, there are some options.
 
-Change to it with command \`!session [name]', and then \`!fork' the older
+Change to it with command "`!session` [_NAME_]", and then "`!fork`" the older
 session to the active session.
 
-Or, \`!copy [orign] [dest]' the session from a history file to the current
+Or, "`!copy` [_ORIGN_] [_DEST_]" the session from a history file to the current
 or other history file.
 
 In these cases, a pickup interface should open to let the user choose
@@ -1229,11 +1236,11 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
       Set `.`_?_, or `.`_list_ to list all prompt files.
 
 
-**-S** **/**\[_AWESOME_PROMPT_NAME_]
+**-S**, **--awesome**  **/**\[_AWESOME_PROMPT_NAME_]
 
-**-S** **%**\[_AWESOME_PROMPT_NAME_ZH_]
+**-S**, **--awesome-zh**  **%**\[_AWESOME_PROMPT_NAME_ZH_]
 
-:     Set or search for an *awesome-chatgpt-prompt(-zh)*. _Davinci_ and _gpt3.5+_ models.
+:     Set or search for an *awesome-chatgpt-prompt(-zh)*.
       
       Set **//** or **%%** instead to refresh cache.
 

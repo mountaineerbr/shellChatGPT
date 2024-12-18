@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.88.4  dec/2024  by mountaineerbr  GPL+3
+# v0.89  dec/2024  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -402,7 +402,8 @@ Command List
    --- Misc Commands ------------------------------------------------
       -S      :, ::   [PROMPT]  Append user/system prompt to request.
       -S.     -.       [NAME]   Load and edit custom prompt.
-      -S/     -S%      [NAME]   Load and edit awesome prompt (zh).
+      -S/    !awe      [NAME]   Load and edit awesome prompt (en).
+      -S%    !awe-zh   [NAME]   Load and edit awesome prompt (zh).
       -Z      !last             Print last response JSON.
       !#      !save   [PROMPT]  Save current prompt to shell history. ‡
        !      !r, !regen        Regenerate last response.
@@ -492,8 +493,11 @@ Command List
 
 	To continue from an old session, either \`/copy . .\` or \`/fork.\` it.
 	The dot means the current session. The shorthand for this feature
-	is \`/.\`. It is also possible to execute \`/grep [regex]\` for a
-	session and resume it.
+	is \`/.', or simply \`.' as the first positional argument at the
+	command line.
+	
+	It is also possible to execute the command \`/grep [regex]\` for
+	a session and resume it.
 
 	To regenerate a response, type in the command \`!regen' or a single
 	exclamation mark or forward slash in the new empty prompt. In order
@@ -593,10 +597,10 @@ Options
 		Set \`,[prompt]' to single-shot edit prompt.
 		Set \`,,[prompt]' to edit the prompt template.
 		Set \`.?' to list all prompt template files.
-	-S /[AWESOME_PROMPT_NAME]
-	-S %[AWESOME_PROMPT_NAME_ZH]
+	-S, --awesome  /[AWESOME_PROMPT_NAME]
+	-S, --awesome-zh  %[AWESOME_PROMPT_NAME_ZH]
 		Set or search an awesome-chatgpt-prompt(-zh).
-		Set \`//' or \`%%' to refresh cache. Davinci+ models.
+		Set \`//' or \`%%' to refresh cache.
 	-T, -TT, -TTT, --tiktoken
 		Count input tokens with Tiktoken. Set twice to print
 		tokens, thrice to available encodings. Set the model
@@ -834,7 +838,7 @@ function model_capf
 		*wizardlm-2-8x22b)
 			MODMAX=65535;;
 		gemini*-pro*) 	MODMAX=32760;;
-		*turbo*|*davinci*) 	MODMAX=4096;;
+		*turbo*|*davinci*|teknium/openhermes-2.5-mistral-7b|openchat/openchat-7b) 	MODMAX=4096;;
 		cohere-embed-v3-*) 	MODMAX=1000;;
 		*embedding-gecko*) 	MODMAX=3072;;
 		*embed*|*search*) 	MODMAX=2046;;
@@ -1936,12 +1940,15 @@ function cmd_runf
 			OPTB="${*:-$OPTB}"
 			cmdmsgf 'Best_Of' "$OPTB"
 			;;
-		-[cC])
+		-C) 	((OPTRESUME)) && BREAK_SET=1 OPTRESUME= || BREAK_SET= OPTRESUME=1;
+			cmdmsgf "Session Continue:" $(_onoff ${OPTRESUME:-0})
+			;;
+		-c)
 			((OPTC)) && { 	cmd_runf -cc; return ;}
 			OPTC=1 EPN=0 OPTCMPL= ;
 			cmdmsgf "Endpoint[$EPN]:" "Text Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
-		-[cC][cC])
+		-cc)
 			((OPTC>1)) && { 	cmd_runf -d; return ;}
 			OPTC=2 EPN=6 OPTCMPL= ;
 			cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
@@ -4275,7 +4282,7 @@ function awesomef
 		fi ;set -- "$act"; glob= n= a= l=;
 	done
 	fi
-
+	
 	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
 	((CMD_CHAT)) ||
 	if _clr_ttystf; ((OPTX))  #edit chosen awesome prompt
@@ -4811,11 +4818,11 @@ function session_copyf
 	dest="${dest:-$FILECHAT}"; case "$dest" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo '[abort]' >&2; return 201;; esac
 
 	buff=$(session_sub_printf "$src") \
-	&& if [[ -f "$dest" ]] ;then 	[[ "$(<"$dest")" != *"${buff}" ]] || return 0 ;fi \
+	&& if [[ -f "$dest" ]] ;then 	[[ "$(tail -- "$dest")" != *"${buff}" ]] || return 0 ;fi \
 	&& { FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
 	     FILECHAT="${dest}" _break_sessionf; OLD_DEST="${dest}";
 	     #check if dest is the same as current
-	     [[ "$dest" = "$FILECHAT" ]] && BREAK_SET= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= MAX_PREV= ;} \
+	     [[ "$dest" != "$FILECHAT" ]] || OPTRESUME=1 BREAK_SET= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= MAX_PREV= ;} \
 	&& _sysmsgf 'SESSION FORK' \
 	&& printf '%s\n' "$buff" >> "$dest" \
 	&& printf '%s\n' "$dest"
@@ -4893,7 +4900,7 @@ function session_mainf
 	then
 		session_copyf "$@" >/dev/null || unset file
 		[[ "${OLD_DEST}" = "${FILECHAT}" ]] &&  #check if target is the same as current
-		INSTRUCTION_OLD=${GINSTRUCTION:-${INSTRUCTION:-$INSTRUCTION_OLD}} INSTRUCTION= GINSTRUCTION= OPTRESUME=1;
+		INSTRUCTION_OLD=${GINSTRUCTION:-${INSTRUCTION:-$INSTRUCTION_OLD}} INSTRUCTION= GINSTRUCTION= BREAK_SET= OPTRESUME=1;
 		unset OLD_DEST;
 	#change to hist file
 	else
@@ -5198,7 +5205,7 @@ r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
 u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
 w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  \
-github  github:git  novita  novita:nov  version  info  time no-time
+github  github:git  novita  novita:nov  version  info  time no-time awesome-zh awesome
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -5313,6 +5320,8 @@ github  github:git  novita  novita:nov  version  info  time no-time
 		R) 	START="$OPTARG";;
 		j) 	OPTSEED=$OPTARG;;
 		s) 	STOPS=("$OPTARG" "${STOPS[@]}");;
+		awesome-zh) INSTRUCTION=%$INSTRUCTION;;
+		awesome) INSTRUCTION=/$INSTRUCTION;;
 		S|.|,) 	if [[ $opt == S ]] && [[ -f "$OPTARG" ]]
 			then 	INSTRUCTION="${opt##S}$(<"$OPTARG")"
 			else 	INSTRUCTION="${opt##S}$OPTARG"
@@ -5622,7 +5631,8 @@ do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
 done; unset arg init;
 
-if ((OPTW+OPTZ))  #handle options of combined modes in chat + whisper + tts
+#handle options of combined modes: chat + whisper + tts
+if ((OPTW+OPTZ)) && ((${#}))
 then 	typeset -a argn; argn=();
 	n=1; for arg
 	do 	case "${arg:0:4}" in --) argn=(${argn[@]} $n);; esac; ((++n));
@@ -5642,12 +5652,14 @@ then 	typeset -a argn; argn=();
 	elif ((${#argn[@]})) && ((OPTZ))
 	then 	ZARGS=("${@: argn[0]+1}");
 		set -- "${@:1: argn[0]-1}";
-	elif ((MTURN))
-	then 	if ((OPTW))
+	elif ((MTURN||STURN)) && [[ ! -e $1 && ! -e ${@:${#}} ]]
+	then 	if ((OPTW)) && ((${#}<=2 && ${#1}+${#2}+${#3}<18))
 		then 	WARGS=("$@");
-		elif ((OPTZ))
+			set -- ;
+		elif ((OPTZ)) && ((${#}<=3 && ${#1}+${#2}+${#3}+${#4}<34))
 		then 	ZARGS=("$@");
-		fi; set -- ;
+			set -- ;
+		fi;  #best-effort divination
 	fi
 	[[ -z ${WARGS[*]} ]] && unset WARGS;
 	[[ -z ${ZARGS[*]} ]] && unset ZARGS;
@@ -5700,7 +5712,7 @@ then  #whisper log
 	else 	_edf "$FILEWHISPERLOG"
 	fi; _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
 elif ((OPTHH))  #edit history/pretty print last session
-then 	OPTRESUME=1 
+then 	OPTRESUME=1 BREAK_SET=
 	[[ -z $INSTRUCTION && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
 	if [[ $INSTRUCTION = [.,]* ]]
 	then 	custom_prf
@@ -5803,7 +5815,9 @@ else
 	((OPTC+OPTCMPL)) && ((!OPTEXIT)) && test_dialogf;
 
 	#custom / awesome prompts
-	[[ -z $INSTRUCTION && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
+	case "$1" in
+		[.,][[:alpha:]]*) 	((${#INSTRUCTION})) || INSTRUCTION=$1 && shift;;
+	esac;
 	case "$INSTRUCTION" in
 		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
 			awesomef || case $? in 	210|202|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
@@ -5916,7 +5930,10 @@ else
 	fi
 	
 	#session and chat cmds
-	[[ $1 = [/!]. ]] && set -- '/fork current' "${@:2}";
+	case "$1" in
+		[.]|[/!.][/.]) 	set -- '/fork current' "${@:2}";;
+		[/!]) 	set -- '/session' "${@:2}";;
+	esac;
 	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
 	then 	case "$1" in
 			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )
@@ -5931,7 +5948,7 @@ else
 		fi
 	fi
 	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;  #needs review#
-	((OPTRESUME)) && fix_breakf "$FILECHAT";
+	((OPTRESUME)) && BREAK_SET= && fix_breakf "$FILECHAT";
 
 	if ((${#})) && ((!(OPTE+OPTX) )) && [[ ! -e $1 && ! -e ${@:${#}} ]]
 	then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"

@@ -101,6 +101,8 @@ If no suffix is provided, it works as plain text completions.
 - 20. [Contributors](#-contributors)
 - 21. [Acknowledgements](#acknowledgements)
 
+<!-- - 9. [Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
+
 </details>
 
 
@@ -301,8 +303,12 @@ The command below starts a chat session, loads the "unix" instruction, and chang
 -->
 
 
-Load an older session from the current (defaults) history file.
+There is a shortcut to load an older session from the current (defaults)
+history file. This opens a basic interative interface.
 
+    chatgpt.sh -cc .
+
+<!--
     chatgpt.sh -cc /sub
 
     chatgpt.sh -cc /.
@@ -310,17 +316,25 @@ Load an older session from the current (defaults) history file.
     chatgpt.sh -cc /fork.
 
     chatgpt.sh -cc "/fork current"
+-->
 
+Technically, this copies a old session from the target history file to the tail of it, so we can resume the session.
 
+<!--
 In chat mode, simple run `!sub` or the equivalent command `!fork current`.
+-->
 
 To load an older session from a history file that is different from the defaults,
 there are some options.
 
-Change to it with command `!session [name]`.
+In order to grep for sessions with a regex, it is easier to enter chat mode
+and then type in the chat command `/grep [regex]`.
 
-To copy a previous session, run `/sub` or `/grep [regex]` to load that
-session and resume from it.
+To only change to a defined history file name, run command `!session [name]`.
+
+<!--
+To copy a previous session to the tail of the current history file, run `/sub` or `/grep [regex]` to load that session and resume from it.
+-->
 
 <!--
 Optionally `!fork` the older session to the active session.
@@ -1371,6 +1385,8 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 - Première of `chatgpt.sh version 1.0` should occur at the time
   when OpenAI launches its next major API version update.
+
+<!--  I think Ksh developers used to commonly say an invalid options were "illegal" because they developed software a little like games, so the user ought to follow the rules right, otherwise he would incur in an illegal input or command. That seems fairly reasonable to me!  -->
 
 
 ## Roadmap
