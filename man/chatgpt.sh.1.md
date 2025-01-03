@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.89 | General Commands Manual
+% CHATGPT.SH(1) v0.89.1 | General Commands Manual
 % mountaineerbr
-% December 2024
+% January 2025
 
 
 ### NAME
@@ -990,9 +990,9 @@ before script execution.
 
 Bash truncates input on "\\000" (null).
 
-The script logic resembles a bowl of spaghetti code after a cat fight.
-
 Garbage in, garbage out. An idiot savant.
+
+The script logic resembles a bowl of spaghetti code after a cat fight.
 
 <!-- NOT ANYMORE
 Input sequences _\\n_, and _\\t_ must be double escaped to be treated

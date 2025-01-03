@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.89  dec/2024  by mountaineerbr  GPL+3
+# v0.89.1  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -586,10 +586,6 @@ Options
 	-q, -qq, --insert
 		Insert text mode. Use \`[insert]' tag within the prompt.
 		Set twice for multi-turn (\`instruct', Mistral \`code' models).
-	-q, -qq, --insert
-		Insert text rather than completing. Use \`[insert]' within the
-		user prompt to indicate where the model should insert text.
-		Set twice for multi-turn (\`instruct' and Mistral \`code' models).
 	-S .[PROMPT_NAME],  -.[PROMPT_NAME]
 	-S ,[PROMPT_NAME],  -,[PROMPT_NAME]
 		Load, search for, or create custom prompt.
@@ -627,7 +623,7 @@ Options
 		Set maximum number of \`response tokens'. Def=$OPTMAX.
 		A second number in the argument sets model capacity.
 	-N, --modmax    [NUM]
-		Set \`model capacity' tokens. Def=_auto_, Fallback=4000.
+		Set \`model capacity' tokens. Def=_auto_, Fallback=8000.
 	-a, --presence-penalty   [VAL]
 		Set presence penalty  (cmpls/chat, -2.0 - 2.0).
 	-A, --frequency-penalty  [VAL]
@@ -1392,7 +1388,9 @@ function set_histf
 		sub="${string:0:32}" sub="${sub##@("${q_type}"|"${a_type}"|":")}"
 		stringc="${sub}${string:32}"  #del lead seqs `\nQ: ' and `\nA:'
 
-		((MOD_REASON)) && case "${string}" in :*) 	continue;; esac;
+		((MOD_REASON)) && case "$MOD" in o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
+			case "${string}" in :*) 	continue;; esac;;
+		esac;
 
 		if ((OPTTIK || token<1))
 		then 	((token<1 && OPTVV)) && _warmsgf "Warning:" "Zero/Neg token in history"
@@ -1426,9 +1424,11 @@ function set_histf
 			role_last=$role role= rest= nl=
 			case "${string}" in
 				::*) 	role=system rest=  #[DEPRECATED]
+					((MOD_REASON)) && role=developer;
 					stringc=$(INDEX=32 trim_leadf "$stringc" :)  #append (txt cmpls)
 					;;
-				:*) 	role=system
+				:*) 	role=system;
+					((MOD_REASON)) && role=developer;
 					((OPTC)) && rest="$S_TYPE" nl="\\n"  #system message
 					;;
 				"${a_type:-%#}"*|"${START:-%#}"*)
@@ -1478,11 +1478,13 @@ function set_histf
 	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns 
 	
 	#first system/instruction: add extra newlines and delete $S_TYPE  (txt cmpls) 
-	[[ $role = system ]] &&	if ((OLLAMA))
-	then 	((OPTC && EPN==0)) && [[ $rest = \\n* ]] && rest="xx${rest}"  #!#del \n at start of string
-		HIST="${HIST:${#rest}+${#stringc}}"  #delete first system message for ollama
-	else 	HIST="${HIST:${#rest}:${#stringc}}\\n${HIST:${#rest}+${#stringc}}"
-	fi
+	case "$role" in system|developer)
+		if ((OLLAMA))
+		then 	((OPTC && EPN==0)) && [[ $rest = \\n* ]] && rest="xx${rest}"  #!#del \n at start of string
+			HIST="${HIST:${#rest}+${#stringc}}"  #delete first system message for ollama
+		else 	HIST="${HIST:${#rest}:${#stringc}}\\n${HIST:${#rest}+${#stringc}}"
+		fi;;
+	esac;
 
 	((!OPTC)) || [[ $HIST = "$stringc"*(\\n) ]] ||  #hist contains only one/system prompt?
 	HIST=$(trim_trailf "$HIST" "*(\\\\[ntrvf])")  #del multiple trailing nl
@@ -3396,24 +3398,31 @@ function set_optsf
 	typeset -a pids
 
 	case "$MOD" in
-		o[1-9]*) ((MOD_REASON)) || {
+		o[1-9]*|o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
+		((MOD_REASON)) || {
 			((OPTMM<1024*3 && OPTMAX<1024*4)) && {
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
 				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
-			#((STREAM)) && _warmsgf 'Warning:' 'Reasoning models do not support streaming yet';
-			((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'Reasoning models do not support system messages yet';
-			#[[ -n $OPTA ]] && _warmsgf 'Warning:' 'Resetting presence_penalty';
-			#[[ -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency_penalty';
-			STREAM_REASON=$STREAM OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTT_REASON=$OPTT INSTRUCTION_CHAT_REASON=$INSTRUCTION_CHAT INSTRUCTION_REASON=$INSTRUCTION;
-			OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=; #STREAM= 
+			case "$MOD" in o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
+			  ((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'Reasoning models do not support system messages yet';
+			  INSTRUCTION_CHAT_REASON=$INSTRUCTION_CHAT INSTRUCTION_REASON=$INSTRUCTION;;
+			esac;
+			[[ -n $OPTA || -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency and presence penalties';
+			OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTT_REASON=$OPTT;
+			OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=;
 			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 		}
 		;;
 		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
 		INSTRUCTION_CHAT= INSTRUCTION=;
 		;;
-		*) ((MOD_REASON)) && STREAM=$STREAM_REASON OPTA=$OPTA_REASON OPTAA=$OPTAA_REASON OPTT=$OPTT_REASON OPTMAX=${OPTMAX_REASON:-$OPTMAX} INSTRUCTION_CHAT=$INSTRUCTION_CHAT_REASON INSTRUCTION=$INSTRUCTION_REASON MOD_REASON= CURLTIMEOUT=;
+		*) ((MOD_REASON)) && {
+			case "$MOD" in o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
+			  INSTRUCTION_CHAT=$INSTRUCTION_CHAT_REASON INSTRUCTION=$INSTRUCTION_REASON;;
+			esac;
+			OPTA=$OPTA_REASON OPTAA=$OPTAA_REASON OPTT=$OPTT_REASON OPTMAX=${OPTMAX_REASON:-$OPTMAX} MOD_REASON= CURLTIMEOUT=;
+		}
 		;;
 	esac
 	((GITHUBAI)) && [[ $OPTA$OPTAA = *[1-9]* ]] &&
@@ -4817,15 +4826,16 @@ function session_copyf
 	dest="$(session_globf "$@" || session_name_choosef "$@")"; echo "${dest:-err}" >&2
 	dest="${dest:-$FILECHAT}"; case "$dest" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	echo '[abort]' >&2; return 201;; esac
 
-	buff=$(session_sub_printf "$src") \
-	&& if [[ -f "$dest" ]] ;then 	[[ "$(tail -- "$dest")" != *"${buff}" ]] || return 0 ;fi \
-	&& { FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
-	     FILECHAT="${dest}" _break_sessionf; OLD_DEST="${dest}";
-	     #check if dest is the same as current
-	     [[ "$dest" != "$FILECHAT" ]] || OPTRESUME=1 BREAK_SET= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= MAX_PREV= ;} \
-	&& _sysmsgf 'SESSION FORK' \
-	&& printf '%s\n' "$buff" >> "$dest" \
-	&& printf '%s\n' "$dest"
+	buff=$(session_sub_printf "$src") && {
+		[[ -f "$dest" ]] && { 	[[ $(tail -- "$dest") != *"$buff" ]] || return 0 ;}
+		FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
+		FILECHAT="${dest}" _break_sessionf; OLD_DEST="${dest}";
+		#check if dest is the same as current
+		[[ "$dest" != "$FILECHAT" ]] || OPTRESUME=1 BREAK_SET= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= MAX_PREV=;
+		_sysmsgf 'SESSION FORK';
+		printf '%s\n' "$buff" >> "$dest" &&
+		printf '%s\n' "$dest";
+	}
 }
 #create or copy a session, search for and change to a session file.
 function session_mainf
@@ -5575,6 +5585,7 @@ then 	set_mdcmdf "$MD_CMD";
 	((OPTMD)) || OPTMD=1;
 fi
 ((${#OPTMD}+${#MD_CMD})) && NO_OPTMD_AUTO=1  #disable markdown auto detect
+#o1 models in the API will avoid generating responses with markdown formatting
 
 #stdin and stderr filepaths
 if [[ -n $TERMUX_VERSION ]]
@@ -6310,16 +6321,24 @@ else
 		
 		if ((EPN==6))
 		then 	#chat cmpls
-			[[ ${*} = *([$IFS]):* ]] && role=system || role=user
+			if [[ ${*} = *([$IFS]):* ]]
+			then 	role=system;
+				((!MOD_REASON)) || role=developer;
+			else 	role=user;
+			fi
+
 			((GOOGLEAI)) &&  [[ $MOD = *gemini*-pro-vision* && $MOD != *gemini*-1.5-* ]] &&  #gemini-1.0-pro-vision cannot take it multiturn
 			if ((REGEN<0 && MAIN_LOOP<1 && ${#INSTRUCTION_OLD})) || is_visionf "$MOD"
 			then 	HIST_G=${HIST}${HIST:+\\n\\n} HIST_C= ;
 				((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
 				MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");
 			fi
-			var=$(unset MEDIA MEDIA_CMD; fmt_ccf "$(escapef "$INSTRUCTION")" system;) && var="${var}${INSTRUCTION:+,${NL}}";  #mind anthropic
+			
+			((MOD_REASON)) && var=developer || var=system;
+			var=$(unset MEDIA MEDIA_CMD; fmt_ccf "$(escapef "$INSTRUCTION")" "${var}";) && var="${var}${INSTRUCTION:+,${NL}}";  #mind anthropic
 			set -- "${HIST_C}${HIST_C:+,${NL}}${var}$(fmt_ccf "${HIST_G}$(escapef "${*}")" "$role")";
-		else 	#text cmpls
+		else
+			#text cmpls
 			if { 	((OPTC)) || [[ -n "${START}" ]] ;} && ((JUMP<2))
 			then 	set -- "${ESC}${START-$A_TYPE}"
 			else 	set -- "${ESC}"

@@ -1409,11 +1409,12 @@ to fail as gracefully as we can. Major usage breaks should follow
 new and backward-incompatible API changes (incompatible models).
 -->
 
+<!--
 Merry 2024 [Grav Mass!](https://stallman.org/grav-mass.html)
 
 
 ![Newton](https://stallman.org/grav-mass.png)
-
+-->
 
 <!--
 ## Distinct Features
@@ -1448,9 +1449,9 @@ Not all features of the API will be covered.
 the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
 
-- The script logic resembles a bowl of spaghetti code after a cat fight.
-
 - Garbage in, garbage out. An idiot savant.
+
+- The script logic resembles a bowl of spaghetti code after a cat fight.
 
 - See _BUGS AND LIMITS_ section in the [man page](man/README.md#bugs).
 
