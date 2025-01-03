@@ -918,6 +918,13 @@ or ask it in comments to optimise the following code, for example.
 
 ## Service Providers
 
+Other than [Ollama](#ollama) and [LocalAI](#localai) local servers,
+the free service providers are
+[GitHub Models](#github-models),
+[Google Vertex](#google-ai), and 
+[Groq](#groq).
+
+
 ### LocalAI
 
 #### LocalAI Server
