@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.89.1  jan/2025  by mountaineerbr  GPL+3
+# v0.89.2  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -45,7 +45,7 @@ MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
 # Novita AI model
 MOD_NOVITA="${MOD_NOVITA:-sao10k/l3-70b-euryale-v2.1}"
 # xAI model
-MOD_XAI="${MOD_XAI:-grok-beta}"
+MOD_XAI="${MOD_XAI:-grok-2-latest}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -796,19 +796,19 @@ function model_capf
 			MODMAX=200000;;
 		claude-2.0*|claude-instant*)
 			MODMAX=100000;;
-		llama3*|gemma-*|text-embedding-ada-002|*embedding*-002|*search*-002)
-			MODMAX=8191;;
+		*llama-3-8b-instruct|*llama-3-70b-instruct|*gemma-2-9b-it|\
+		*hermes-2-pro-llama-3-8b|llama3*|gemma-*|text-embedding-ada-002|\
+		*embedding*-002|*search*-002|grok-2-vision-1212|grok-vision-beta)
+			MODMAX=8191;;  #8192
 		davinci|curie|babbage|ada)
 			MODMAX=2049;;
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
 		code-davinci-00[2-9]*|mistral-embed*|-8k*)
 			MODMAX=8001;;
-		gemini*-flash*|grok)
+		gemini*-flash*)
 			MODMAX=1048576;;  #std: 128000
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|gemini-exp*)
 			MODMAX=2097152;;  #std: 128000
-		*llama-3-8b-instruct|*llama-3-70b-instruct|*gemma-2-9b-it|*hermes-2-pro-llama-3-8b)
-			MODMAX=8192;;
 		*qwen-2.5-72b-instruct|learnlm-1.5-pro*)
 			MODMAX=32000;;
 		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
@@ -826,7 +826,7 @@ function model_capf
 		*llama-[3-9].[1-9]*|*llama[4-9]-*|\
 		*llama[4-9]*|*ministral*|*pixtral*|*-128k*)
 			MODMAX=128000;;
-		grok*|*llama-3.1-405b-instruct|cohere-command-r*)
+		grok*|*llama-3.1-405b-instruct|cohere-command-r*|grok-beta|grok-2-1212|grok-2*)
 			MODMAX=131072;;
 		*openchat-7b|*mythomax-l2-13b|*airoboros-l2-70b|*lzlv_70b|*nous-hermes-llama2-13b|\
 		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
@@ -1886,6 +1886,7 @@ function _model_costf
 		sao10k/l3*-70b-euryale-v2.[1-9]) 	echo 1.48 1.48;;
 		cognitivecomputations/dolphin-mixtral-8x22b) 	echo 0.90 0.90;;
 		grok-beta|grok-vision-beta) 	echo 5 15;;
+		grok-2-*-1212|grok-*) 	echo 2 10;;
 		*) 	echo 0 0; false;;
 	esac;
 }
@@ -5320,7 +5321,7 @@ github  github:git  novita  novita:nov  version  info  time no-time awesome-zh a
 		localai) LOCALAI=1;;
 		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= WHISPER_GROQ= GITHUBAI= NOVITAAI= XAI= ;;
 		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 GITHUBAI= NOVITAAI= XAI= ;;
-		grok) 	XAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= WHISPER_GROQ=1 GITHUBAI= NOVITAAI= ;;
+		grok) 	XAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= GITHUBAI= NOVITAAI= ;;
 		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= NOVITAAI= XAI= ;;
 		github) GITHUBAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= NOVITAAI= XAI= ;;
 		novita) NOVITAAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= XAI= ;;
@@ -6059,10 +6060,12 @@ else
 							is_amodelf "$MOD" && _sysmsgf $'\nWhisper:' 'Transcript generation..';
 							REPLY=$(
 								set --;
-								((MISTRALAI+NOVITAAI+GITHUBAI+xANTHROPICAI)) &&
+								((MISTRALAI+NOVITAAI+GITHUBAI+XAI)) &&
 								  BASE_URL=$OPENAI_BASE_URL_DEF OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
+								
 								((GROQAI+WHISPER_GROQ)) && MOD_AUDIO=$MOD_AUDIO_GROQ;
 								((!GROQAI && WHISPER_GROQ)) && BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF};
+
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= MULTIMODAL=;
 								
 								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
