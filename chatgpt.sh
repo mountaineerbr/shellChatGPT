@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.2  jan/2025  by mountaineerbr  GPL+3
+# v0.90.3  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1459,6 +1459,7 @@ function set_histf
 			
 			((GOOGLEAI)) && {
 			  case "$role" in system)
+			    ((${#GINSTRUCTION_PERM})) ||
 			    GINSTRUCTION_PERM=$(unescapef "${stringc:-$GINSTRUCTION}");
 			    continue;;
 			  esac;
@@ -1969,7 +1970,7 @@ function cmd_runf
 			break_sessionf;
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
-			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} INSTRUCTION= ||
+			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} GINSTRUCTION_PERM=$GINSTRUCTION INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; CKSUM_OLD= MAX_PREV= WCHAT_C= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= xskip=1;
 			;;
