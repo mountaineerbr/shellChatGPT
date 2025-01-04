@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.1  jan/2025  by mountaineerbr  GPL+3
+# v0.90.2  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1459,11 +1459,11 @@ function set_histf
 			
 			((GOOGLEAI)) && {
 			  case "$role" in system)
-			    GINSTRUCTION=$(unescapef "${stringc:-$GINSTRUCTION}");
+			    GINSTRUCTION_PERM=$(unescapef "${stringc:-$GINSTRUCTION}");
 			    continue;;
 			  esac;
-			  case "$role" in system|user)
-			    case "$role_last" in system|user)  #[[ $stringd != *\"inline_data\":* ]]
+			  case "$role" in system|user)  #[UNNEEDED]
+			    case "$role_last" in system|user)
 			      HIST_C=$(SMALLEST=1 trim_leadf "$HIST_C" $'*"text":?( )"')
 			      stringd=$(SMALLEST=1 trim_trailf "$stringd" $'"}*')"\\n\\n";;
 			    esac;;
@@ -5401,7 +5401,7 @@ github  github:git  novita  novita:nov  version  info  time no-time awesome-zh a
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON STURN LINK_CACHE LINK_CACHE_BAD HARGS  init buff var tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM  init buff var tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -6267,9 +6267,10 @@ else
 				case "${var:0:32}" in ::*)
 					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=added || v=set;
 					_sysmsgf "System Prompt $v";
-					if ((GOOGLEAI))
+					if ((GOOGLEAI))  #[UNNEEDED]
 					then 	RINSERT=${RINSERT}${var:1}${NL}${NL};
-					else 	INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD}
+					else
+						INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD}
 						INSTRUCTION=${INSTRUCTION}${INSTRUCTION:+${NL}${NL}}${var:1}
 					fi;
 				;;
@@ -6432,7 +6433,7 @@ else
 			BLOCK="{
 $(
   case "$MOD" in *gemini-1.0*) 	((MAIN_LOOP)) || _warmsgf 'gemini-1.0:' 'system instruction unsupported'; exit;; esac;  #gemini-1.0 series deprecation: 15/feb/2015
-  ((${#GINSTRUCTION})) && echo "\"systemInstruction\": { \"role\": \"system\", \"parts\": [ { \"text\": \"$(escapef "${GINSTRUCTION}")\" } ] }," )
+  ((${#GINSTRUCTION}+${#GINSTRUCTION_PERM})) && echo "\"systemInstruction\": { \"role\": \"system\", \"parts\": [ { \"text\": \"$(escapef "${GINSTRUCTION:-$GINSTRUCTION_PERM}")\" } ] }," )
 $BLOCK
 $BLOCK_SAFETY
 \"generationConfig\": {
