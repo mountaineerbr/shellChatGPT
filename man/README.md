@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2025
-title: CHATGPT.SH(1) v0.89.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.90 \| General Commands Manual
 ---
 
 ### NAME
@@ -410,6 +410,7 @@ either “`!`” or “`/`”.
 | `!#`      | `!save` \[*PROMPT*\]            | Save current prompt to shell history. *‡*               |
 | `!`       | `!r`, `!regen`                  | Regenerate last response.                               |
 | `!!`      | `!rr`                           | Regenerate response, edit prompt first.                 |
+| `!g`      | `!!g` \[*PROMPT*\]              | Ground user prompt with search results. *‡*             |
 | `!i`      | `!info`                         | Information on model and session settings.              |
 | `!!i`     | `!!info`                        | Monthly usage stats (OpenAI).                           |
 | `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).  |
@@ -422,7 +423,7 @@ either “`!`” or “`/`”.
 | `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                       |
 | `!rep`    | `!replay`                       | Replay last TTS audio response.                         |
 | `!res`    | `!resubmit`                     | Resubmit last TTS recorded input from cache.            |
-| `!p`      | `!pick`, \[*PROPMT*\]           | File picker, appends filepath to user prompt. *‡*       |
+| `!p`      | `!pick` \[*PROPMT*\]            | File picker, appends filepath to user prompt. *‡*       |
 | `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text.                              |
 | `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux). *‡* |
 | `!sh`     | `!shell` \[*CMD*\]              | Run shell or *command*, and edit output. *‡*            |
@@ -449,9 +450,9 @@ either “`!`” or “`/`”.
 
 | Model     | Settings                |                                                |
 |:----------|:------------------------|------------------------------------------------|
-| `-Nill`   | `!Nill`                 | Toggle model max response (chat cmpls).        |
-| `-M`      | `!NUM` `!max` \[*NUM*\] | Maximum response tokens.                       |
-| `-N`      | `!modmax` \[*NUM*\]     | Model token capacity.                          |
+| `!Nill`   | `-Nill`                 | Unset max response tkns (chat cmpls).          |
+| `!NUM`    | `-M` \[*NUM*\]          | Maximum response tokens.                       |
+| `!!NUM`   | `-N` \[*NUM*\]          | Model token capacity.                          |
 | `-a`      | `!pre` \[*VAL*\]        | Presence penalty.                              |
 | `-A`      | `!freq` \[*VAL*\]       | Frequency penalty.                             |
 | `-b`      | `!best` \[*NUM*\]       | Best-of n results.                             |
@@ -484,6 +485,8 @@ either “`!`” or “`/`”.
 | `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                                                                         |
 | `!s`    | `!session` \[*HIST_FILE*\]             | Change to, search for, or create history file.                                                      |
 | `!!s`   | `!!session` \[*HIST_FILE*\]            | Same as `!session`, break session.                                                                  |
+
+<!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
 
 *:* Commands with a *colon* have their output appended to the prompt.
 
@@ -1148,7 +1151,7 @@ Set transparent colour of image mask. Def=*black*.
 Fuzz intensity can be set with \[*VAL%*\]. Def=*0%*.
 
 **-Nill**  
-Unset model max response (chat cmpls only).
+Unset model max response tokens (chat cmpls only).
 
 **-NUM**
 

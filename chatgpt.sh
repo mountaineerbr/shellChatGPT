@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.89.3  jan/2025  by mountaineerbr  GPL+3
+# v0.90  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -408,6 +408,7 @@ Command List
       !#      !save   [PROMPT]  Save current prompt to shell history. ‡
        !      !r, !regen        Regenerate last response.
       !!      !rr               Regenerate response, edit prompt first.
+      !g      !!g     [PROMPT]  Ground prompt, insert search results. ‡
       !i      !info             Info on model and session settings.
      !!i     !!info             Monthly usage stats (OpenAI).
       !j      !jump             Jump to request, append response primer.
@@ -420,7 +421,7 @@ Command List
     !!md     !!markdown [SOFTW] Render last response in markdown.
      !rep     !replay           Replay last TTS audio response.
      !res     !resubmit         Resubmit last TTS recorded input.
-     !p       !pick,  [PROMPT]  File picker, appends filepath to prompt. ‡
+     !p       !pick  [PROMPT]   File picker, appends filepath to prompt. ‡
      !pdf     !pdf:    [FILE]   Dump PDF text.
     !photo   !!photo   [INDEX]  Take a photo, camera index (Termux). ‡
      !sh      !shell    [CMD]   Run shell or command, and edit output. ‡
@@ -443,9 +444,9 @@ Command List
       -y      !tik              Toggle python tiktoken use.
       !q      !quit             Exit. Bye.
    --- Model Settings -----------------------------------------------
-     -Nill    !Nill             Toggle model max response (chat cmpls).
-      -M      !NUM !max [NUM]   Max response tokens.
-      -N      !modmax   [NUM]   Model token capacity.
+     !Nill    -Nill             Unset max response tkns (chat cmpls).
+      !NUM    -M        [NUM]   Max response tokens.
+     !!NUM    -N        [NUM]   Model token capacity.
       -a      !pre      [VAL]   Presence penalty.
       -A      !freq     [VAL]   Frequency penalty.
       -b      !best     [NUM]   Best-of n results.
@@ -617,7 +618,7 @@ Options
 		Set transparent colour of image mask. Def=black.
 		Fuzz intensity can be set with [VAL%]. Def=0%.
 	-Nill
-		Unset model max response (chat cmpls only).
+		Unset model max response tokens (chat cmpls only).
 	-NUM
 	-M, --max  [NUM[-NUM]]
 		Set maximum number of \`response tokens'. Def=$OPTMAX.
@@ -819,7 +820,7 @@ function model_capf
 		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*)
 			MODMAX=32768;;
-		o[1-9]*|gpt-4[a-z]*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
+		o[1-9]*|gpt-4o*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
 		mistral-3b*|*mistral-nemo*|*mistral-large*|open-mistral-nemo*|\
 		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
@@ -1796,7 +1797,7 @@ function set_browsercmdf
 	typeset cmd;
 	if ((${#BROWSER})) && command -v "${BROWSER%% *}" &>/dev/null
 	then 	_set_browsercmdf "$BROWSER";
-	else 	for cmd in "w3m" "lynx" "elinks" "links" "curl"
+	else 	for cmd in "w3m" "elinks" "links" "lynx" "curl"
 		do 	command -v $cmd &>/dev/null || continue;
 			_set_browsercmdf $cmd && return;
 		done; false;
@@ -1805,12 +1806,12 @@ function set_browsercmdf
 function _set_browsercmdf
 {
 	case "$1" in
-		w3m*) 	printf '%s' "w3m -T text/html";;
-		lynx*) 	printf '%s' "lynx -force_html -nolist";;
-		elinks*) printf '%s' "elinks -force-html -no-references";;
-		links*) printf '%s' "links -force-html";;
+		w3m*) 	printf '%s' "w3m -T text/html -dump";;
+		lynx*) 	printf '%s' "lynx -force_html -nolist -dump -stdin";;
+		elinks*) printf '%s' "elinks -force-html -no-references -dump";;
+		links*) printf '%s' "links -force-html -dump";;
 		google-chrome*|chromium*) printf '%s' "${1%% *} --disable-gpu --headless --dump-dom";;
-		*) 	printf '%s' "curl -L ${FAIL} --progress-bar";;
+		*) 	printf '%s' "curl -f -L --compressed --insecure --cookie non-existing --header \"$UAG\"";;
 	esac;
 }
 
@@ -1898,8 +1899,9 @@ function _model_costf
 #check input and run a chat command  #tags: cmdrunf, runcmdf, run_cmdf
 function cmd_runf
 {
-	typeset opt_append filein fileinq outdir out var wc xskip pid n
-	typeset -a args arr
+	((CMDRUN)) || HARGS=;
+	typeset CMDRUN append filein fileinq onutdir out var wc xskip pid n
+	typeset -a args arr; CMDRUN=1;
 	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]* ]] || return;
 	((${#1}+${#2}<1024)) || return;
 	printf "${NC}" >&2;
@@ -1910,21 +1912,23 @@ function cmd_runf
 	case "$*" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
 			set_maxtknf nill
-			cmdmsgf 'Max Response' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} tkns"
+			cmdmsgf 'Response' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} tkns"
 			;;
 		-[0-9]*|[0-9]*|-M*|[Mm]ax*|\
-		-N*|[Mm]odmax*)
-			if [[ $* = -N* ]] || [[ $* = -[Mm]odmax* ]]
-			then  #model capacity
-				set -- "${*##@([Mm]odmax|-N)*([$IFS])}";
-				[[ $* = *[!0-9]* ]] && set_maxtknf "$*" || MODMAX="$*"
-			else  #response max
+		-N*|[Mm]odmax*|[/!][0-9]*|--[0-9]*)
+			case "$*" in -N*|-[Mm]odmax*|[/!]*|--*)
+				#model capacity
+				set -- "${*##@([Mm]odmax|-N|[/!]|--)*([$IFS])}";
+				[[ $* = *[!0-9]* ]] && set_maxtknf "$*" || MODMAX="$*";
+				;;
+			*) 	#response max
 				set_maxtknf "${*##?([Mm]ax|-M)*([$IFS])}";
-			fi
+				;;
+			esac;
 			if ((HERR))
 			then 	unset HERR
 				_sysmsgf 'Context Length:' 'error reset'
-			fi ;cmdmsgf 'Max Response / Capacity' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
+			fi ;cmdmsgf 'Response / Capacity' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
 			set -- "${*//[!0-9.]}"
@@ -2078,7 +2082,7 @@ function cmd_runf
 			is_visionf "$MOD" && MULTIMODAL=1;
 			send_tiktokenf '/END_TIKTOKEN/'
 			cmdmsgf 'Model Name' "$MOD$( ((MULTIMODAL)) && printf ' / %s' 'multimodal')"
-			cmdmsgf 'Max Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
+			cmdmsgf 'Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 			;;
 		markdown*|md*)
 			((OPTMD)) || (OPTMD=1 cmd_runf //"${args[@]}");
@@ -2101,8 +2105,8 @@ function cmd_runf
 			printf "${NC}\\n\\n" >&2;
 			;;
 		url*|[/!]url*)
-			xskip=1;
-			[[ $* = ?([/!])url:* ]] && opt_append=1;  #append as user
+			HARGS=${HARGS:-$*} xskip=1;
+			case "$*" in [/!]url:*|url:*) 	append=1;; esac;  #append as user
 			set -- "$(trimf "$(trim_leadf "$*" '@(url|[/!]url)*(:)')" "$SPC")";
 
 			if case "$*" in *youtube.com/watch*|*youtu.be/*) 	:;; *) 	! :;; esac
@@ -2111,16 +2115,54 @@ function cmd_runf
 				  yt_transf "$*" || _warmsgf 'YouTube:' 'Transcript dump fail / unavailable';
 				} >"$FILEFIFO";
 				[[ -s "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO";
-			elif var=$(set_browsercmdf)
-			then 	((OPTV)) || _printbf "${var%% *}";
+				return 0;
+			elif ((${#1}))
+			then 	var=$(set_browsercmdf);
+				((OPTV)) || _printbf "${var%% *}";
 				case "$var" in
-				curl*|google-chrome*|chromium*)
-				    cmd_runf /sh${opt_append:+:} "${var} ${1// /%20} | sed '/</{ :loop ;s/<[^<]*>//g ;/</{ N ;b loop } }'";  #curl+sed
+				  google-chrome*|chromium*)  #html filter hack
+				    cmd_runf /sh${append:+:} "${var} \"${1// /%20}\" | $(BROWSER= set_browsercmdf)";
 				    ;;
-				*)  cmd_runf /sh${opt_append:+:} "${var} -dump" "${1// /%20}"
+				  *)  cmd_runf /sh${append:+:} "${var}" "\"${1// /%20}\"";
 				    ;;
-				esac; return;
-			fi
+				esac;
+				return 0;
+			fi;
+			;;
+		[/!]g*|g*)  #ground context (on-line)
+			HARGS=${HARGS:-$*};
+			case "$*" in [/!]g:*|g:*) 	append=1;; esac;  #append as user
+			set -- "${*##?([/!])g*(:)$SPC}";
+
+			case "${args[*]:-$*}" in
+			  [/!]*)
+			    n=50; var=$(
+			      printf 'Search Engine:\n' >&2;
+			      select var in google duckduckgo brave abort
+			      do 	break;
+			      done </dev/tty;
+			      echo "${var:-$REPLY}")
+
+			    case "$var" in
+			      abort|[AaQq]*|[$'\e\t ']*) EDIT=1; return 0;;
+			      brave|b*) out=Brave;
+			        var="https://search.brave.com/search?q=${*//[&?]/+}&source=web";;
+			      duckduckgo|d*) out=DuckDuckGo;
+			        var="https://html.duckduckgo.com/html/?q=${*//[&?]/+}&kl=wt-wt&kj=wt-wt&k1=-1&kv=${n}";;
+			      google|g*|*)
+			        var="https://www.google.com/search?q=${*//[&?]/+}&num=${n}";;
+			    esac;
+			    ;;
+			    *)
+			    n=50;
+			    var="https://www.google.com/search?num=${n}&q=${*//[&?]/+}";
+			    ;;
+			esac;
+			
+			((OPTV)) || _printbf "${out:-Google}";
+			cmd_runf /url${append:+:} "${var:-err}";
+			REPLY="$REPLY"$'\n\n'"$*";
+			return 0;
 			;;
 		media*|img*|audio*|aud*)
 			set -- "${*##@(media|img|audio|aud)*([$IFS])}";
@@ -2180,7 +2222,7 @@ function cmd_runf
 			SKIP=1 PSKIP=1 REPLY="::${*}"
 			unset INSTRUCTION GINSTRUCTION
 			;;
-		-t*|temperature*|temp*)
+		-t*|temperature*|temp*)  #randomness
 			set -- "${*//[!0-9.]}"
 			OPTT="${*:-$OPTT}"
 			fix_dotf OPTT
@@ -2327,6 +2369,7 @@ function cmd_runf
 			token-rate    "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
 			session-cost  "${SESSION_COST:-0} \$" \
 			turn-cost-max "$(costf ${MAX_PREV:-0} ${OPTMAX:-0} $(_model_costf "$MOD") 6 ) \$" \
+			browser-cli   "${BROWSER:-auto}" \
 			seed          "${OPTSEED:-unset}" \
 			tiktoken      "${OPTTIK:-0}" \
 			keep-alive    "${OPT_KEEPALIVE:-unset}" \
@@ -2371,7 +2414,7 @@ function cmd_runf
 			esac
 			;;
 		cat*)
-			set -- "${*}";
+			set -- "${*}"; HARGS=${HARGS:-$*};
 			filein=$(trimf "${1##cat*(:)}" "$SPC") fileinq=$filein;
 			if [[ $filein = *\\* ]]
 			then 	filein=${filein//\\};
@@ -2397,7 +2440,7 @@ function cmd_runf
 			fi; return;
 			;;
 		pdf*)
-			set -- "${*}";
+			set -- "${*}"; HARGS=${HARGS:-$*};
 			filein=$(trimf "${1##pdf*(:)}" "$SPC");
 			[[ $filein = *\\* ]] || filein=$(printf '%q' "${filein}");
 			
@@ -2422,7 +2465,7 @@ function cmd_runf
 			esac; return;
 			;;
 		doc*)
-			set -- "${*}";
+			set -- "${*}"; HARGS=${HARGS:-$*};
 			filein=$(trimf "${1##doc*(:)}" "$SPC");
 			[[ $filein = *\\* ]] || filein=$(printf '%q' "${filein}");
 			outdir=$(printf '%q' "${OUTDIR}");
@@ -2457,7 +2500,7 @@ function cmd_runf
 			fi  </dev/tty  >&2;  #>/dev/tty
 			;;
 		shell*|sh*)
-			[[ $* = @(shell|sh):* ]] && opt_append=1;  #append as user
+			case "$*" in shell:*|sh:*) 	append=1;; esac;  #append as user
 			set -- "${*##@(shell|sh)*([:$IFS])}";
 			[[ -n $* ]] || set --; xskip=1;
 			while :
@@ -2486,9 +2529,9 @@ function cmd_runf
 				esac; set --;
 			done; _clr_lineupf $((12+1+47));  #!#
 
-			((opt_append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
-			((${#args[@]})) && shell_histf "!${args[*]}";
-			((RET==200)) || REPLY_CMD_BLOCK=1 SKIP_SH_HIST=1;
+			((append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
+			shell_histf "!${HARGS[*]:-${args[*]}}"; SKIP_SH_HIST=1 HARGS=;
+			((RET==200)) || REPLY_CMD_BLOCK=1;
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
 			echo Session and History >&2; [[ $* = . ]] && args=('fork current');
@@ -3201,7 +3244,7 @@ function is_visionf
 	typeset -l model; model=${1##*/};
 	case "${model##ft:}" in 
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
-	gpt-4[a-z]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
+	gpt-4o*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*|\
 	claude-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
 	*) 	((MULTIMODAL));;
@@ -5358,7 +5401,7 @@ github  github:git  novita  novita:nov  version  info  time no-time awesome-zh a
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON STURN LINK_CACHE LINK_CACHE_BAD init buff var tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON STURN LINK_CACHE LINK_CACHE_BAD CMDRUN HARGS  init buff var tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -5631,7 +5674,7 @@ fi; REPLY= RET=;
 #tips and warnings
 if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH))
-	then 	sysmsgf "Max Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
+	then 	sysmsgf "Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 	elif ((OPTHH>1))
 	then 	sysmsgf 'Language Model:' "$MOD"
 	fi
@@ -5938,7 +5981,8 @@ else
 				*) 	REPLY_OLD=$(trim_leadf "$(fc -ln -1)" "*([$IFS])");;
 			esac;
 		fi
-		shell_histf "$*";
+		((${#1}+${#2}+${#3}+${#4}+${#5}+${#6}+${#7}+${#8}>8192)) ||
+		  shell_histf "$*";
 	fi
 	
 	#session and chat cmds
@@ -6001,7 +6045,7 @@ else
 				200) 	set --; REPLY=;
 					REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 					continue;;  #redo
-				201) 	set --; OPTX=; false;;   #abort
+				201) 	set --; OPTX= SKIP_SH_HIST=; false;;   #abort
 				202) 	exit 202;;  #exit
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
@@ -6014,15 +6058,16 @@ else
 					} || new_prompt_confirmf
 						case $? in
 							202) 	exit 202;;  #exit
-							201) 	set --; OPTX=; break 1;;  #abort
+							201) 	set --; OPTX= SKIP_SH_HIST=; break 1;;  #abort
 							200) 	set --; REPLY=;
 								REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 								continue 2;;  #redo
 							19[6789]) 	edf "${REPLY:-$*}" || break 1;;  #edit
-							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY; ((OPTW)) || cmd_runf -ww;
+							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY;
+								((OPTW)) || cmd_runf -ww;
 								set --; break;;  #whisper append (hidden option)
 							0) 	set -- "$REPLY" ; break;;  #yes
-							*) 	set -- ; break;;  #no
+							*) 	set -- ; SKIP_SH_HIST=; break;;  #no
 						esac
 					done;
 					((OPTX>1)) && OPTX=;
@@ -6112,7 +6157,7 @@ else
 					set -- ;continue  #A#
 				elif var="$REPLY" RET=
 					cmd_runf "$REPLY"
-				then 	((SKIP_SH_HIST)) || shell_histf "$REPLY"; SKIP_SH_HIST=;
+				then 	((SKIP_SH_HIST)) || shell_histf "$REPLY";
 					if ((REGEN>0))
 					then 	((MAIN_LOOP)) || [[ ! -s $FILECHAT ]] || REPLY_OLD=$(grep_usr_lastlinef);
 						REPLY="${REPLY_OLD:-$REPLY}"
@@ -6133,19 +6178,20 @@ else
 					)
 					if ((${#REPLY_CMD_DUMP}))
 					then 	REPLY="${*} ${REPLY_CMD_DUMP}";
-						((SKIP_SH_HIST)) || shell_histf "$REPLY";
+						#((SKIP_SH_HIST)) || shell_histf "$REPLY";
 					fi
 			    		SKIP=1 EDIT=1 REPLY_CMD=;
 					set -- ; continue 2;
-				elif case "${REPLY: ind}" in  #cmd: /photo, /pick, /save
+				elif case "${REPLY: ind}" in  #cmd: /photo, /pick, /save, /g
 					*[$IFS][/!]photo|*[$IFS][/!]photo[0-9]) var=photo;;
 					*[$IFS][/!]pick|*[$IFS][/!]p) var=pick;;
 					*[$IFS][/!]save|*[$IFS][/!]\#) var=save;;
+					*[$IFS][/!]g) var=g;;
+					*[$IFS][/!][/!]g) var=/g;;
 					*) 	false;; esac;
 				then
-					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#)")";
+					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#|[/!]g|g)")";
 					cmd_runf /${var:-pick} "$*";
-					((SKIP_SH_HIST)) || shell_histf "$REPLY";
 					set --; continue 2;
 				elif ((${#REPLY}))
 				then 	PSKIP=;
@@ -6176,10 +6222,12 @@ else
 						196)  #whisper off
 							WSKIP=1 EDIT=1 OPTW= ; continue 2;;
 						195)  #whisper append
-							WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=; ((OPTW)) || cmd_runf -ww;
+							WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=;
+							((OPTW)) || cmd_runf -ww;
 							printf '\n%s\n' '--- whisper append ---' >&2; continue;;
 						194)  #whisper retry request
-							cmd_runf /resubmit; set --; continue 2;;
+							cmd_runf /resubmit;
+							set --; continue 2;;
 						0) 	:;;  #yes
 						*) 	REPLY=; set -- ;break;;  #no
 					esac; unset REPLY_CMD;
@@ -6715,8 +6763,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 
 		((++MAIN_LOOP)) ;set --
 		role= rest= tkn_ans= ans_tts= ans= buff= glob= out= pid= s= n=;
-		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= WSKIP= PSKIP= SKIP= EDIT=;
-		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES var tkn;
+		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= WSKIP= PSKIP= SKIP= EDIT= HARGS=;
+		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES  var tkn;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi

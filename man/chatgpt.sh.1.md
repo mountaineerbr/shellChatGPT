@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.89.1 | General Commands Manual
+% CHATGPT.SH(1) v0.90 | General Commands Manual
 % mountaineerbr
 % January 2025
 
@@ -408,9 +408,10 @@ may be either "`!`" or "`/`".
       `-S/`        `!awesome`    \[_NAME_]           Load and edit awesome prompt (english).
       `-S%`        `!awesome-zh` \[_NAME_]           Load and edit awesome prompt (chinese).
        `-Z`        `!last`                           Print last response JSON.
-       `!#`        `!save`       \[_PROMPT_]         Save current prompt to shell history. _‡_
+       `!#`        `!save`      \[_PROMPT_]          Save current prompt to shell history. _‡_
         `!`        `!r`, `!regen`                    Regenerate last response.
        `!!`        `!rr`                             Regenerate response, edit prompt first.
+       `!g`        `!!g`        \[_PROMPT_]          Ground user prompt with search results. _‡_
        `!i`        `!info`                           Information on model and session settings.
       `!!i`        `!!info`                          Monthly usage stats (OpenAI).
        `!j`        `!jump`                           Jump to request, append start seq primer (text cmpls).
@@ -423,7 +424,7 @@ may be either "`!`" or "`/`".
      `!!md`        `!!markdown` \[_SOFTW_]           Render last response in markdown.
      `!rep`        `!replay`                         Replay last TTS audio response.
      `!res`        `!resubmit`                       Resubmit last TTS recorded input from cache.
-       `!p`        `!pick`,     \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
+       `!p`        `!pick`      \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
      `!pdf`        `!pdf:`      \[_FILE_]            Convert PDF and dump text.
    `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux). _‡_
       `!sh`        `!shell`      \[_CMD_]            Run shell or _command_, and edit output. _‡_
@@ -452,9 +453,9 @@ may be either "`!`" or "`/`".
 
  Model             Settings
  --------------    -----------------------    ------------------------------------------------
-   `-Nill`         `!Nill`                    Toggle model max response (chat cmpls).
-      `-M`         `!NUM` `!max` \[_NUM_]     Maximum response tokens.
-      `-N`         `!modmax`     \[_NUM_]     Model token capacity.
+   `!Nill`         `-Nill`                    Unset max response tkns (chat cmpls).
+    `!NUM`         `-M`          \[_NUM_]     Maximum response tokens.
+   `!!NUM`         `-N`          \[_NUM_]     Model token capacity.
       `-a`         `!pre`        \[_VAL_]     Presence penalty.
       `-A`         `!freq`       \[_VAL_]     Frequency penalty.
       `-b`         `!best`       \[_NUM_]     Best-of n results.
@@ -490,6 +491,7 @@ may be either "`!`" or "`/`".
      `!!s`         `!!session`  \[_HIST_FILE_]              Same as `!session`, break session.
  --------------    -------------------------------------    ----------------------------------------------------------------------------------------------------
 
+<!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
 
 | _:_ Commands with a *colon* have their output appended to the prompt.
 
@@ -1294,7 +1296,7 @@ This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
 **-Nill**
 
-: Unset model max response (chat cmpls only).
+: Unset model max response tokens (chat cmpls only).
 
 
 **-NUM**

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.89.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.90 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.89.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.90 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2025</p>
 </header>
@@ -568,100 +568,105 @@ either “<code>!</code>” or “<code>/</code>”.</p>
 <td>Regenerate response, edit prompt first.</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>!g</code></td>
+<td style="text-align: left;"><code>!!g</code> [<em>PROMPT</em>]</td>
+<td>Ground user prompt with search results. <em>‡</em></td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>!i</code></td>
 <td style="text-align: left;"><code>!info</code></td>
 <td>Information on model and session settings.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!i</code></td>
 <td style="text-align: left;"><code>!!info</code></td>
 <td>Monthly usage stats (OpenAI).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!j</code></td>
 <td style="text-align: left;"><code>!jump</code></td>
 <td>Jump to request, append start seq primer (text cmpls).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!j</code></td>
 <td style="text-align: left;"><code>!!jump</code></td>
 <td>Jump to request, no response priming.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;">-</td>
 <td>Cat prompter as one-shot, &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;"><code>!cat:</code>
 [<em>TXT</em>|<em>URL</em>|<em>PDF</em>]</td>
 <td>Cat <em>text</em>, <em>PDF</em> file, or dump <em>URL</em>.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!dialog</code></td>
 <td style="text-align: left;">-</td>
 <td>Toggle the “dialog” interface.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!img</code></td>
 <td style="text-align: left;"><code>!media</code>
 [<em>FILE</em>|<em>URL</em>]</td>
 <td>Append image, media, or URL to prompt.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!md</code></td>
 <td style="text-align: left;"><code>!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Toggle markdown rendering in response.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!md</code></td>
 <td style="text-align: left;"><code>!!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Render last response in markdown.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!rep</code></td>
 <td style="text-align: left;"><code>!replay</code></td>
 <td>Replay last TTS audio response.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!res</code></td>
 <td style="text-align: left;"><code>!resubmit</code></td>
 <td>Resubmit last TTS recorded input from cache.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!p</code></td>
-<td style="text-align: left;"><code>!pick</code>, [<em>PROPMT</em>]</td>
+<td style="text-align: left;"><code>!pick</code> [<em>PROPMT</em>]</td>
 <td>File picker, appends filepath to user prompt. <em>‡</em></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!pdf</code></td>
 <td style="text-align: left;"><code>!pdf:</code> [<em>FILE</em>]</td>
 <td>Convert PDF and dump text.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!photo</code></td>
 <td style="text-align: left;"><code>!!photo</code> [<em>INDEX</em>]</td>
 <td>Take a photo, optionally set camera index (Termux). <em>‡</em></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
 <td>Run shell or <em>command</em>, and edit output. <em>‡</em></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!sh:</code></td>
 <td style="text-align: left;"><code>!shell:</code> [<em>CMD</em>]</td>
 <td>Same as <code>!sh</code> but apppend output as user.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!sh</code></td>
 <td style="text-align: left;"><code>!!shell</code> [<em>CMD</em>]</td>
 <td>Run interactive shell (with <em>command</em>) and exit.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!url</code></td>
 <td style="text-align: left;"><code>!url:</code> [<em>URL</em>]</td>
 <td>Dump URL text or YouTube transcript text.</td>
@@ -760,19 +765,18 @@ flush.</td>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>-Nill</code></td>
 <td style="text-align: left;"><code>!Nill</code></td>
-<td>Toggle model max response (chat cmpls).</td>
+<td style="text-align: left;"><code>-Nill</code></td>
+<td>Unset max response tkns (chat cmpls).</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>-M</code></td>
-<td style="text-align: left;"><code>!NUM</code> <code>!max</code>
-[<em>NUM</em>]</td>
+<td style="text-align: left;"><code>!NUM</code></td>
+<td style="text-align: left;"><code>-M</code> [<em>NUM</em>]</td>
 <td>Maximum response tokens.</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>-N</code></td>
-<td style="text-align: left;"><code>!modmax</code> [<em>NUM</em>]</td>
+<td style="text-align: left;"><code>!!NUM</code></td>
+<td style="text-align: left;"><code>-N</code> [<em>NUM</em>]</td>
 <td>Model token capacity.</td>
 </tr>
 <tr class="even">
@@ -942,6 +946,7 @@ prompts: “<em>pr</em>”. Awesome: “<em>awe</em>”. All: “<em>.</em>”.<
 </tr>
 </tbody>
 </table>
+<!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
 <div class="line-block"><em>:</em> Commands with a <em>colon</em> have
 their output appended to the prompt.</div>
 <div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
@@ -1644,7 +1649,7 @@ text prompt.</p>
 </dd>
 <dt><strong>-Nill</strong></dt>
 <dd>
-<p>Unset model max response (chat cmpls only).</p>
+<p>Unset model max response tokens (chat cmpls only).</p>
 </dd>
 </dl>
 <p><strong>-NUM</strong></p>
