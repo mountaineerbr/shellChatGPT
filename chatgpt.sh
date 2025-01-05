@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.3  jan/2025  by mountaineerbr  GPL+3
+# v0.90.4  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3894,7 +3894,7 @@ function _ttsf
 	[[ $1 = *[!$IFS]* ]] || ! echo '(empty)' >&2 || return 2
 
 	if ((${#1}>max))
-	then 	_warmsgf 'Warning:' "User input ${#1} chars / max ${max} chars"  #max ~5 minutes
+	then 	_warmsgf 'Warning:' "TTS input ${#1} chars / max ${max} chars"  #max ~5 minutes
 		i=1 FOUT=${FOUT%.*}-${i}.${OPTZ_FMT};
 	fi  #https://help.openai.com/en/articles/8555505-tts-api
 	REPLAY_FILES=();
@@ -5690,9 +5690,12 @@ done; unset arg init;
 #handle options of combined modes: chat + whisper + tts
 if ((OPTW+OPTZ)) && ((${#}))
 then 	typeset -a argn; argn=();
-	n=1; for arg
+	n=1 custom=; for arg
 	do 	case "${arg:0:4}" in --) argn=(${argn[@]} $n);; esac; ((++n));
 	done; #map double hyphens `--'
+	case "$1" in
+		[/!.,][[:alpha:]]*) 	((${#1}>320)) || { custom="$1"; shift; };;
+	esac;  #cmd or custom prompt name
 	if ((${#argn[@]}>=2)) && ((OPTW)) && ((OPTZ))  #improbable case
 	then 	((ii=argn[1]-argn[0])); ((ii<1)) && ii=1;
 		WARGS=("${@: argn[0]+1: ii-1}");
@@ -5717,13 +5720,14 @@ then 	typeset -a argn; argn=();
 			set -- ;
 		fi;  #best-effort divination
 	fi
+	((${#custom})) && set -- "$custom" "$@";
 	[[ -z ${WARGS[*]} ]] && unset WARGS;
 	[[ -z ${ZARGS[*]} ]] && unset ZARGS;
 	((${#WARGS[@]})) && ((${#ZARGS[@]})) && ((${#})) && {
 	  var=$* p=${var:128} var=${var:0:128}; cmdmsgf 'Text Prompt' "${var//\\\\[nt]/  }${p:+ [..]}" ;}
 	((${#WARGS[@]})) && cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-unset}"
 	((${#ZARGS[@]})) && cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
-	unset n p ii var arg argn;
+	unset n p ii var arg argn custom;
 fi
 
 ((${#TERMUX_VERSION})) && [[ ! -d $OUTDIR ]] && _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
