@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.8  jan/2025  by mountaineerbr  GPL+3
+# v0.90.9  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -820,7 +820,7 @@ function model_capf
 		code-davinci-00[2-9]*|mistral-embed*|-8k*)
 			MODMAX=8001;;
 		gemini*-thinking*-exp*)
-			MODMAX=32000;;
+			MODMAX=32768;;
 		gemini*-flash*)
 			MODMAX=1048576;;  #std: 128000
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|gemini-exp*)
@@ -6555,7 +6555,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 		((OPTC||(STURN && EPN==6) )) && echo >&2;
 
 		#request and response prompts
-		SECONDS_REQ=${EPOCHREALTIME:-$SECONDS};
+		SECONDS_REQ=${EPOCHREALTIME:-$SECONDS} SECONDS_REQ=${SECONDS_REQ/,/.}
 		((${#START})) && printf "${YELLOW}%b\\n" "$START" >&2;
 		((OLLAMA)) && base_url=$BASE_URL BASE_URL=$OLLAMA_BASE_URL;
 
@@ -6735,9 +6735,10 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 			TKN_RATE=( "${tkn[1]}" "$(printf '%.2f' "${tkn[4]}")" "$(printf '%.2f' "${tkn[5]}")" )
 		elif 	[[ ${tkn[1]:-$tkn_ans} = *[1-9]* ]]
 		then
-			TKN_RATE=( "${tkn[1]:-$tkn_ans}" "$(bc <<<"scale=8; ${EPOCHREALTIME:-$SECONDS} - $SECONDS_REQ")"
-			"$(bc <<<"scale=2; ${tkn[1]:-${tkn_ans:-0}} / (${EPOCHREALTIME:-$SECONDS}-$SECONDS_REQ)")" )
-		fi
+			var=${EPOCHREALTIME:-$SECONDS};
+			TKN_RATE=( "${tkn[1]:-$tkn_ans}" "$(bc <<<"scale=8; ${var/,/.} - $SECONDS_REQ")"
+			"$(bc <<<"scale=2; ${tkn[1]:-${tkn_ans:-0}} / (${var/,/.}-$SECONDS_REQ)")" )
+		fi;
 		SESSION_COST=$(
 			cost=$(_model_costf "$MOD") || exit; set -- $cost;
 			bc <<<"scale=8; ${SESSION_COST:-0} + $(costf "$( ((tkn[0])) && echo ${tkn[0]} || __tiktokenf "$REPLY" )" "$( ((tkn[1])) && echo ${tkn[1]} || __tiktokenf "$(unescapef "$ans")" )" $@)"
@@ -6834,9 +6835,9 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 		fi
 
 		((++MAIN_LOOP)) ;set --
-		role= rest= tkn_ans= ans_tts= ans= buff= glob= out= pid= s= n=;
+		role= rest= tkn_ans= ans_tts= ans= buff= var= tkn= glob= out= pid= s= n=;
 		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= WSKIP= PSKIP= SKIP= EDIT= HARGS=;
-		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES  var tkn;
+		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
