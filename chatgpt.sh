@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.4  jan/2025  by mountaineerbr  GPL+3
+# v0.90.6  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -806,6 +806,8 @@ function model_capf
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
 		code-davinci-00[2-9]*|mistral-embed*|-8k*)
 			MODMAX=8001;;
+		gemini*-thinking*-exp*)
+			MODMAX=32000;;
 		gemini*-flash*)
 			MODMAX=1048576;;  #std: 128000
 		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|gemini-exp*)
@@ -864,45 +866,43 @@ function __promptf
 
 function _promptf
 {
-	typeset chunk_n chunk str n
-	chunk= chunk_n= n=;
+	typeset str
 	json_minif;
 	
 	if ((STREAM))
 	then 	set -- -s "$@" -S --no-buffer;
-		  [[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
-		__promptf "$@" | { tee -- "$FILESTREAM" || cat ;} |
+		[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
+
+		if ((OPTC))
+		then 	str='"text"'; ((GOOGLEAI)) ||
+			if ((EPN==0)) && ((OLLAMA))
+			then 	str='"response"';
+			elif ((EPN==6))
+			then 	str='"content"';
+			fi;
+		fi
+		
 		if ((GOOGLEAI))
-		then 	cat;
-		elif ((ANTHROPICAI))
-		then 	sed -n -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//p' -e '/^[[:space:]]*\[[A-Za-z_][A-Za-z_]*\]/d' -e '/^[[:space:]]*$/d';
-		else 	sed -e 's/^[[:space:]]*//' -e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//' -e '/^[[:space:]]*[A-Za-z_][A-Za-z_]*:/d' -e '/^[[:space:]]*\[[A-Za-z_][A-Za-z_]*\]/d' -e '/^[[:space:]]*$/d';
-		fi |
-		while IFS=  read -r chunk  #|| [[ -n $chunk ]]
-		do
-			## Anthropic sends lots more than only '[DATA]:' fields:
-			### 'event: message_start'  
-			## Google hack does not pass 'DATA:'.
-			#((ANTHROPICAI)) && { [[ ${chunk:0:128} = [Dd][Aa][Tt][Aa]:* ]] || continue ;}
-			## 'DATA: {json}', 'data: [DONE]'
-			#chunk=${chunk##*(\ )[Dd][Aa][Tt][Aa]:*(\ )}
-			#[[ ${chunk:0:256} = *[!$IFS]* ]] || continue
-			#[[ ${chunk:0:256} = \[+([A-Z])\] ]] && continue
-			if ((!n))  #first pass, del leading spaces
-			then 	((OPTC)) && {
-					str='text":'; ((GOOGLEAI)) ||
-					if ((EPN==0)) && ((OLLAMA))
-					then 	str='response":';
-					elif ((EPN==6))
-					then 	str='content":';
-					fi
-					chunk_n="${chunk/${str}*(\ )\"+(\ |\\[ntr])/$str\"}"
-					[[ $chunk_n = *"${str}"\"\"* ]] && continue
-				}; ((++n));
-				printf '%s\n' "${chunk_n:-$chunk}"; chunk_n= ;
-			else 	printf '%s\n' "$chunk"
-			fi; 	printf '%s\n' "$chunk" >>"$FILE"
-		done
+		then 	__promptf "$@" | { tee -- "$FILESTREAM" "$FILE" || cat ;}
+		else
+			__promptf "$@" | { tee -- "$FILESTREAM" || cat ;} |
+			if ((ANTHROPICAI))
+			then 	sed -n -e 's/^[[:space:]]*//' \
+				-e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//p' \
+				-e '/^[[:space:]]*\[[A-Za-z_][A-Za-z_]*\]/d' \
+				-e '/^[[:space:]]*$/d';
+			else 	sed -e 's/^[[:space:]]*//' \
+				-e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//' \
+				-e '/^[[:space:]]*[A-Za-z_][A-Za-z_]*:/d' \
+				-e '/^[[:space:]]*\[[A-Za-z_][A-Za-z_]*\]/d' \
+				-e '/^[[:space:]]*$/d';
+			fi |
+			if ((OPTC))
+			then 	sed -e "1s/${str}:[[:space:]]*\"[[:space:]]*/${str}: \"/" | tee -- "$FILE";
+			else 	tee -- "$FILE";
+			fi;
+
+		fi
 	else
 		{ test_cmplsf || ((OPTV>1)) ;} && set -- -s "$@"
 		set -- -\# "$@" -o "$FILE"
@@ -1172,8 +1172,12 @@ function prompt_prettyf
 
 	jq -r ${STREAM:+-j --unbuffered} "${JQCOLNULL} ${JQCOL}
 	  byellow
-	  + (.choices[1].index as \$sep | if .choices? != null then .choices[] else . end |
-	  ( ((.delta.content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//(.content[]?|.text?)//(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)//(.candidates[]?|.content.parts[]?|.text?)//\"\" ) |
+	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
+	  ( ((.delta.content)//(.delta.text)//(.delta.audio.transcript)
+	    //.text//.response//.completion//(.content[]?|.text?)
+	    //(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)
+	    //(.candidates[]?|.content | if ((${MOD_THINK:+1}0>0) and (.parts?|.[1]?|.text?)) then (.parts[0].text?,\"\\n\\nANSWER:\\n\",.parts[1].text?) else (.parts[]?|.text?) end)
+	    //\"\" ) |
 	  if ( (${OPTC:-0}>0) and (${STREAM:-0}==0) ) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if any( (.finish_reason//.stop_reason//\"\")?; . != \"stop\" and . != \"stop_sequence\" and . != \"end_turn\" and . != \"\") then
 	      red+\"(\"+(.finish_reason//.stop_reason)+\")\"+byellow else null end,
@@ -1186,7 +1190,7 @@ function prompt_pf
 	for var
 	do 	[[ -f $var ]] || { 	opt=("${opt[@]}" "$var"); shift ;}
 	done
-	set -- "(if .choices? != null then (.choices[$INDEX]) else . end |
+	set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
 		(.delta.content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//(.content[]?|.text?)//(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)//(.candidates[]?|.content.parts[]?|.text?)//(.data?))//empty" "$@"
 	jq "${opt[@]}" "$@" && _p_suffixf || ! _warmsgf 'Err';
 }
@@ -3443,9 +3447,22 @@ function set_optsf
 	typeset -a pids
 
 	case "$MOD" in
+		gemini-2*-thinking*)
+		((MOD_THINK)) || {
+			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
+				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
+				OPTMAX=6000;
+			}
+			MOD_THINK=1;
+			#32k input, 8k output limits; Text and image in, Text out only
+			#For .thought parameter, set "v1alpha version"
+			#stream the thinking, use generate_content_stream method
+			#https://ai.google.dev/gemini-api/docs/thinking-mode
+		}
+		;;
 		o[1-9]*|o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
 		((MOD_REASON)) || {
-			((OPTMM<1024*3 && OPTMAX<1024*4)) && {
+			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
 				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
@@ -3467,6 +3484,9 @@ function set_optsf
 			  INSTRUCTION_CHAT=$INSTRUCTION_CHAT_REASON INSTRUCTION=$INSTRUCTION_REASON;;
 			esac;
 			OPTA=$OPTA_REASON OPTAA=$OPTAA_REASON OPTT=$OPTT_REASON OPTMAX=${OPTMAX_REASON:-$OPTMAX} MOD_REASON= CURLTIMEOUT=;
+		}
+		((MOD_THINK)) && {
+			MOD_THINK=;
 		}
 		;;
 	esac
@@ -5094,10 +5114,10 @@ function set_googleaif
 	{
 		typeset epn;
 		epn='generateContent';
-		((STREAM)) && epn='streamGenerateContent'; : >"$FILE_PRE";
+		((STREAM)) && epn='streamGenerateContent';
 		if curl "$@" ${FAIL} -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
-			-d "$BLOCK" | tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
+			-d "$BLOCK"  ##| tee "$FILE_PRE" | sed -n 's/^ *"text":.*/{ & }/p'
 		then 	[[ \ $*\  = *\ -s\ * ]] || _clr_lineupf;
 		else 	return $?;  #E#
 		fi
@@ -5402,7 +5422,7 @@ github  github:git  novita  novita:nov  version  info  time no-time awesome-zh a
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM  init buff var tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM  init buff var tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -5694,7 +5714,7 @@ then 	typeset -a argn; argn=();
 	do 	case "${arg:0:4}" in --) argn=(${argn[@]} $n);; esac; ((++n));
 	done; #map double hyphens `--'
 	case "$1" in
-		[/!.,][[:alpha:]]*) 	((${#1}>320)) || { custom="$1"; shift; };;
+		[/!.,][[:alnum:]]*) 	((${#1}>320)) || { custom="$1"; shift; };;
 	esac;  #cmd or custom prompt name
 	if ((${#argn[@]}>=2)) && ((OPTW)) && ((OPTZ))  #improbable case
 	then 	((ii=argn[1]-argn[0])); ((ii<1)) && ii=1;
@@ -5876,7 +5896,7 @@ else
 
 	#custom / awesome prompts
 	case "$1" in
-		[.,][[:alpha:]]*) 	((${#INSTRUCTION})) || INSTRUCTION=$1 && shift;;
+		[.,][[:alnum:]]*) 	((${#INSTRUCTION})) || INSTRUCTION=$1 && shift;;
 	esac;
 	case "$INSTRUCTION" in
 		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
@@ -6541,7 +6561,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 				((OLLAMA+LOCALAI)) ||  #OpenAI, MistralAI, and Groq
 				tkn=( $(
 					ind="-1" var="";
-					((GOOGLEAI)) && FILE="$FILE_PRE";
+					##((GOOGLEAI)) && FILE="$FILE_PRE";
 					((GROQAI)) && var="x_groq";
 					((ANTHROPICAI)) && ind="";
 					jq -rs ".[${ind}] | .${var}" "$FILE" | response_tknf;
@@ -6581,7 +6601,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 			if ((!${#ans})) && ((RET_PRF<120))
 			then
 				((STREAM)) && file=$FILESTREAM || file=$FILE;
-				((GOOGLEAI && STREAM)) && file=$FILE_PRE;
+				##((GOOGLEAI && STREAM)) && file=$FILE_PRE;
 
 				jq -e '.' "$file" >&2 2>/dev/null || cat -- "$file" >&2 ||
 				((OPTCMPL)) || ! _warmsgf 'Err';
