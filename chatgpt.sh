@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.6  jan/2025  by mountaineerbr  GPL+3
+# v0.90.7  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5094,7 +5094,7 @@ function set_localaif
 function set_googleaif
 {
 	FILE_PRE="${FILE%%.json}.pre.json";
-	: ${GOOGLE_API_KEY:?Required}
+	GOOGLE_API_KEY=${GOOGLE_API_KEY:-${GEMINI_API_KEY:?Required}}
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER
 	((${#GOOGLE_BASE_URL})) || GOOGLE_BASE_URL=${OPENAI_BASE_URL:-$GOOGLE_BASE_URL_DEF};
 	((OPTC)) || OPTC=2;
