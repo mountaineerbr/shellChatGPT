@@ -58,8 +58,9 @@ If no suffix is provided, it works as plain text completions.
   - 6.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
 - 7. [Markdown](#markdown)
 - 8. [Prompts](#-prompts)
-  - 8.1 [Custom Prompts](#-custom-prompts)
-  - 8.2 [Awesome Prompts](#-awesome-prompts)
+  - 8.1 [Instruction Prompt](#instruction-prompt)
+  - 8.2 [Custom Prompts](#-custom-prompts)
+  - 8.3 [Awesome Prompts](#-awesome-prompts)
 - 9. [Shell Completion](#shell-completion)
   - 9.1 [Bash](#bash)
   - 9.2 [Zsh](#zsh)
@@ -625,6 +626,29 @@ to even know that it should answer the questions.
 **NOTE:** Heed your own instruction (or system prompt), as it
 may refer to both *user* and *assistant* roles.
 -->
+
+
+### Instruction Prompt
+
+When the script is run in **chat mode**, the instruction is set
+automatically if none explicitly set by the user on invocation.
+
+The chat instruction will be updated according to the user locale
+after reading envar `$LANG`. <!-- and `$LC_ALL`. -->
+
+Available for the languages: `en`, `pt`, `es`, `it`,
+`fr`, `de`, `ru`, `ja`, `zh`, `zh_TW`, and `hi`.
+
+
+To run the script with the Hindi prompt, for example, the user may execute:
+
+    chatgpt.sh -cc .hi
+    
+    LANG=hi_IN.UTF-8 chatgpt.sh -cc
+
+
+Note: custom prompts whith colliding names such as "hi"
+have precedence over this feature.
 
 
 ### ⌨️  Custom Prompts

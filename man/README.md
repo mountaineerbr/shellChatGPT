@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2025
-title: CHATGPT.SH(1) v0.90 \| General Commands Manual
+title: CHATGPT.SH(1) v0.90.8 \| General Commands Manual
 ---
 
 ### NAME
@@ -809,10 +809,16 @@ Defaults="*~/.chatgpt.conf*"
 Path to a history / session TSV file (script-formatted).
 
 **INSTRUCTION**  
-Initial initial instruction or system message.
+Initial initial instruction message.
 
 **INSTRUCTION_CHAT**  
-Initial initial instruction or system message for chat mode.
+Initial initial instruction or system message in chat mode.
+
+**LC_ALL**
+
+**LANG**  
+Default instruction language in chat mode.
+<!-- and Whisper language. -->
 
 **MOD_CHAT**, **MOD_IMAGE**, **MOD_AUDIO**,
 

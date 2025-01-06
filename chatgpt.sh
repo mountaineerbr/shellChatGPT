@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.7  jan/2025  by mountaineerbr  GPL+3
+# v0.90.8  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -114,8 +114,18 @@ OPTFOLD=1
 # INSTRUCTION
 # Chat completions, chat mode only
 # INSTRUCTION=""
-INSTRUCTION_CHAT_DEF="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly."
-INSTRUCTION_CHAT="${INSTRUCTION_CHAT-$INSTRUCTION_CHAT_DEF}"
+INSTRUCTION_CHAT_EN="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and friendly."
+INSTRUCTION_CHAT_PT="A seguinte é uma conversa com um assistente de IA. O assistente é prestativo, criativo, sagaz e amigável." 
+INSTRUCTION_CHAT_ES="Lo siguiente es una conversación con un asistente de IA. El asistente es atento, creativo, listo y amigable." 
+INSTRUCTION_CHAT_IT="La seguente è una conversazione con un assistente AI. L'assistente è utile, creativo, sveglio e amichevole."
+INSTRUCTION_CHAT_FR="Ce qui suit est une conversation avec un assistant d'IA. L'assistant est prévenant, créatif, malin et amical." 
+INSTRUCTION_CHAT_DE="Das Folgende ist ein Gespräch mit einem KI-Assistenten. Der Assistent ist hilfsbereit, kreativ, klug und freundlich."
+INSTRUCTION_CHAT_RU="Далее приводится разговор с ИИ-ассистентом. Ассистент полезный, креативный, сообразительный и дружелюбный."
+INSTRUCTION_CHAT_JA="以下は、AIアシスタントとの会話です。アシスタントは、親切で、創造的で、賢く、そしてフレンドリーです。"
+INSTRUCTION_CHAT_ZH="以下是对话内容与一位人工智能助手之间的对话。该助手乐于助人、富有创造力、聪明且友好。"
+INSTRUCTION_CHAT_ZH_TW="以下是对话內容與一位人工智慧助手之間的對話。該助手樂於助人、富有創造力、聰明且友善。"
+INSTRUCTION_CHAT_HI="निम्न एक एआई सहायक के साथ एक वार्तालाप है। सहायक सहायक, रचनात्मक, चतुर और मित्रवत है।"
+INSTRUCTION_CHAT="${INSTRUCTION_CHAT-$INSTRUCTION_CHAT_EN}"
 # Insert timestamp in instruction prompt
 #INST_TIME=0
 
@@ -352,10 +362,13 @@ Environment
 
 	FILECHAT 	Path to a history / session TSV file.
 
-	INSTRUCTION 	Initial instruction or system message.
+	INSTRUCTION 	Initial instruction message.
 
 	INSTRUCTION_CHAT
 			Initial instruction or system message (chat mode).
+
+	LC_ALL
+	LANG 		Default instruction language (chat mode).
 
 	MOD_CHAT        MOD_IMAGE      MOD_AUDIO
 	MOD_SPEECH      MOD_LOCALAI    MOD_OLLAMA
@@ -4415,12 +4428,29 @@ function custom_prf
 	then 	file="$name"
 	elif [[ $name = */* ]] ||
 		! file=$(
-			SESSION_LIST=$list SGLOB='[Pp][Rr]' EXT='pr' \
-			session_globf "$name")
-	then 	template=1
+		  SESSION_LIST=$list SGLOB='[Pp][Rr]' EXT='pr' \
+		  session_globf "$name")
+	then
+		case "$name" in  #default translations
+			en)  INSTRUCTION=$INSTRUCTION_CHAT_EN;;
+			pt)  INSTRUCTION=$INSTRUCTION_CHAT_PT;;
+			es)  INSTRUCTION=$INSTRUCTION_CHAT_ES;;
+			it)  INSTRUCTION=$INSTRUCTION_CHAT_IT;;
+			fr)  INSTRUCTION=$INSTRUCTION_CHAT_FR;;
+			de)  INSTRUCTION=$INSTRUCTION_CHAT_DE;;
+			ru)  INSTRUCTION=$INSTRUCTION_CHAT_RU;;
+			ja)  INSTRUCTION=$INSTRUCTION_CHAT_JA;;
+			hi)  INSTRUCTION=$INSTRUCTION_CHAT_HI;;
+			zh[_-]TW|zh[_-][Hh][Aa][Nn][Tt])  INSTRUCTION=$INSTRUCTION_CHAT_ZH_TW;;
+			zh[_-]CN|zh)  INSTRUCTION=$INSTRUCTION_CHAT_ZH;;
+			*)   false;;
+		esac && return;
+
+		template=1;
 		file=$(
-			SGLOB='[Pp][Rr]' EXT='pr' \
-			session_name_choosef "$name")
+		  SGLOB='[Pp][Rr]' EXT='pr' \
+		  session_name_choosef "$name")
+
 		[[ -f $file ]] && msg=${msg:-LOAD} || msg=CREATE
 	fi
 	((list)) && { 	printf '%s\n' "$file"; exit ;}
@@ -5713,8 +5743,8 @@ then 	typeset -a argn; argn=();
 	n=1 custom=; for arg
 	do 	case "${arg:0:4}" in --) argn=(${argn[@]} $n);; esac; ((++n));
 	done; #map double hyphens `--'
-	case "$1" in
-		[/!.,][[:alnum:]]*) 	((${#1}>320)) || { custom="$1"; shift; };;
+	case "$1" in [/!.,][[:alnum:]]*|[.,][.,][[:alnum:]]*)
+		((${#1}>320)) || { custom="$1"; shift; };;
 	esac;  #cmd or custom prompt name
 	if ((${#argn[@]}>=2)) && ((OPTW)) && ((OPTZ))  #improbable case
 	then 	((ii=argn[1]-argn[0])); ((ii<1)) && ii=1;
@@ -5896,7 +5926,7 @@ else
 
 	#custom / awesome prompts
 	case "$1" in
-		[.,][[:alnum:]]*) 	((${#INSTRUCTION})) || INSTRUCTION=$1 && shift;;
+		[.,][[:alnum:]]*|[.,][.,][[:alnum:]]*) 	((${#INSTRUCTION})) || INSTRUCTION=$1 && shift;;
 	esac;
 	case "$INSTRUCTION" in
 		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
@@ -5915,7 +5945,8 @@ else
 			case $? in
 				200) 	set -- ;;  #create, read and clear pos args
 				1|202|201|[1-9]*) 	exit 1; unset INSTRUCTION;;  #err
-			esac; [[ $INSTRUCTION = *[!$IFS]* ]] || unset INSTRUCTION;
+			esac;
+			[[ $INSTRUCTION = *[!$IFS]* ]] || unset INSTRUCTION;
 			;;
 	esac
 
@@ -5968,8 +5999,23 @@ else
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
 	if ((MTURN+OPTRESUME))
-	then
-		((MULTIMODAL>1)) && [[ $INSTRUCTION_CHAT = "$INSTRUCTION_CHAT_DEF" ]] &&
+	then 	case "${LC_ALL:-$LANG}" in
+			en*) 	INSTRUCTION_CHAT=$INSTRUCTION_CHAT_EN;;
+			pt*) 	INSTRUCTION_CHAT=$INSTRUCTION_CHAT_PT;;
+			es*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_ES;;
+			it*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_IT;;
+			fr*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_FR;;
+			de*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_DE;;
+			ru*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_RU;;
+			ja*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_JA;;
+			hi*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_HI;;
+			zh[_-]TW*|zh[_-][Hh][Aa][Nn][Tt]*) INSTRUCTION_CHAT=$INSTRUCTION_CHAT_ZH_TW;;
+			zh[_-]CN*|zh*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_ZH;;
+		esac;
+		#((${#WARGS[@]})) || case "${LC_ALL:-$LANG}" in [a-z][a-z][_.]*)
+		#	WARGS=(${LC_ALL:-$LANG}) WARGS=(${WARGS[0]:0:2});; esac;  #auto whisper lang
+
+		((MULTIMODAL>1)) && [[ $INSTRUCTION_CHAT = "$INSTRUCTION_CHAT_EN" ]] &&
 		  INSTRUCTION_CHAT="${INSTRUCTION_CHAT} Your voice and personality should be warm and engaging, with a lively and playful tone. If interacting in a non-English language, start by using the standard accent or dialect familiar to the user. Talk quickly.";
 
 		[[ $INSTRUCTION = *[!$IFS]* ]] && INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
@@ -6006,8 +6052,8 @@ else
 				*) 	REPLY_OLD=$(trim_leadf "$(fc -ln -1)" "*([$IFS])");;
 			esac;
 		fi
-		((${#1}+${#2}+${#3}+${#4}+${#5}+${#6}+${#7}+${#8}>8192)) ||
-		  shell_histf "$*";
+		((${#1}+${#2}+${#3}+${#4}+${#5}+${#6}+${#7}+${#8}>512)) ||
+		    shell_histf "$*";
 	fi
 	
 	#session and chat cmds
@@ -6080,7 +6126,7 @@ else
 					((OPTV)) || [[ $REPLY = :* ]] \
 					|| [[ $REPLY != *[!$IFS]* ]] \
 					|| { is_txturl "${REPLY: ind}" >/dev/null && ((!REPLY_CMD_BLOCK)) ;};
-					} || new_prompt_confirmf
+					} || NO_CLR=1 new_prompt_confirmf
 						case $? in
 							202) 	exit 202;;  #exit
 							201) 	set --; OPTX= SKIP_SH_HIST=; break 1;;  #abort
