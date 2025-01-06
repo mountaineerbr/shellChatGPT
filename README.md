@@ -116,13 +116,10 @@ If no suffix is provided, it works as plain text completions.
 - [**Markdown rendering**](#markdown) support in response
 - Easily [**regenerate responses**](#--notes-and-tips)
 - **Manage sessions**, _print out_ previous sessions
-- [Instruction prompt manager](#%EF%B8%8F--custom-prompts),
-   easily create and set the initial system prompt
+- Set [Custom Instruction prompts](#%EF%B8%8F--custom-prompts)
 - Integration with [various service providers](#service-providers) and [custom BaseUrl](#base-url-configuration).
 - Support for [awesome-chatgpt-prompts](#-awesome-prompts) & the
    [Chinese variant](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-- [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
-- Colour scheme personalisation 🎨 and a configuration file
 - Stdin and text file input support
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
 - **Fast** shell code for a responsive experience! ⚡️ 
@@ -135,6 +132,10 @@ If no suffix is provided, it works as plain text completions.
 <!-- - Choose amongst all available models from a pick list (`option -m.`) -->
 <!-- - *Lots of* command line options -->
 <!-- - Converts response base64 JSON data to PNG image locally -->
+<!--
+- [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
+- Colour scheme personalisation 🎨 and a configuration file
+-->
 
 <!--
 ### More Features
