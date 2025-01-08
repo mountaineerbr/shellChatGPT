@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.13  jan/2025  by mountaineerbr  GPL+3
+# v0.91  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -116,15 +116,15 @@ OPTFOLD=1
 # INSTRUCTION=""
 INSTRUCTION_CHAT_EN="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and friendly."
 INSTRUCTION_CHAT_PT="A seguinte é uma conversa com um assistente de IA. O assistente é prestativo, criativo, sagaz e amigável." 
-INSTRUCTION_CHAT_ES="Lo siguiente es una conversación con un asistente de IA. El asistente es atento, creativo, listo y amigable." 
+INSTRUCTION_CHAT_ES="Lo siguiente es una conversación con un asistente de IA. El asistente es servicial, creativo, listo y amigable." 
 INSTRUCTION_CHAT_IT="La seguente è una conversazione con un assistente AI. L'assistente è utile, creativo, sveglio e amichevole."
-INSTRUCTION_CHAT_FR="Ce qui suit est une conversation avec un assistant d'IA. L'assistant est prévenant, créatif, malin et amical." 
+INSTRUCTION_CHAT_FR="Ce qui suit est une conversation avec un assistant d'IA. L'assistant est prévenant, créatif, astucieux et amical." 
 INSTRUCTION_CHAT_DE="Das Folgende ist ein Gespräch mit einem KI-Assistenten. Der Assistent ist hilfsbereit, kreativ, klug und freundlich."
 INSTRUCTION_CHAT_RU="Далее приводится разговор с ИИ-ассистентом. Ассистент полезный, креативный, сообразительный и дружелюбный."
 INSTRUCTION_CHAT_JA="以下は、AIアシスタントとの会話です。アシスタントは、親切で、創造的で、賢く、そしてフレンドリーです。"
 INSTRUCTION_CHAT_ZH="以下是对话内容与一位人工智能助手之间的对话。该助手乐于助人、富有创造力、聪明且友好。"
 INSTRUCTION_CHAT_ZH_TW="以下是对话內容與一位人工智慧助手之間的對話。該助手樂於助人、富有創造力、聰明且友善。"
-INSTRUCTION_CHAT_HI="निम्न एक एआई सहायक के साथ एक वार्तालाप है। सहायक सहायक, रचनात्मक, चतुर और मित्रवत है।"
+INSTRUCTION_CHAT_HI="निम्न एक एआई सहायक के साथ एक वार्तालाप है। सहायक मददगार, रचनात्मक, चतुर और मित्रवत है।"
 INSTRUCTION_CHAT="${INSTRUCTION_CHAT-$INSTRUCTION_CHAT_EN}"
 # Insert timestamp in instruction prompt
 #INST_TIME=0
