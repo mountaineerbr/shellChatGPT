@@ -2177,7 +2177,7 @@ function cmd_runf
 			    ;;
 			esac;
 			
-			((OPTV)) || _printbf "${out:-Google}";
+			((OPTV)) || printf "${BWHITE}%s\\n${NC}" "${out:-Google}" >&2;
 			cmd_runf /url${append:+:} "${var:-err}";
 			REPLY="$REPLY"$'\n\n'"$*";
 			return 0;

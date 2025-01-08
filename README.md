@@ -94,7 +94,7 @@ If no suffix is provided, it works as plain text completions.
   - 14.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
   - 14.3 [Tiktoken](#tiktoken)
   - 14.4 [Troubleshoot](#troubleshoot-termux)
-- 15. [Project Objectives](#-project-objectives)
+- 15. [Project Objectives](#--project-objectives)
 - 16. [Roadmap](#roadmap)
 - 17. [Limitations](#%EF%B8%8F-limitations)
 - 18. [Bug report](#bug-report)
@@ -1409,10 +1409,11 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 ## 🎯  Project Objectives
 
-- Implement nice features from `OpenAI API version 1`, mainly focused on
-  text and multimodal (non-video) multimodal chatting.
+- Main focus on **chat models** (multi-turn, text, image, and audio).
 
-- Provide the closest API defaults and let the user customise defaults.
+- Implementation of selected features from **OpenAI API version 1**.
+
+- Provide the closest API defaults and let the user customise settings.
 
 - Première of `chatgpt.sh version 1.0` should occur at the time
   when OpenAI launches its next major API version update.
@@ -1422,20 +1423,19 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 ## Roadmap
 
-- We shall decrease development frequency in 2025, hopefully. LLM models
-in general are not really worth developer efforts sometimes, it is frustating!
-
 - The warper is deemed finished in the sense any further updates must
-not change the user interface.
+not change the user interface significantly.
+
+- We shall decrease development frequency in 2025, hopefully. <!-- LLM models
+in general are not really worth developer efforts sometimes, it is frustating!
+-->
 
 - We plan to gradually wind down development of new features in the near future.
 The project will enter a maintenance phase from 2025 onwards, focusing primarily
 on bug fixes and stability.
 
-- We plan to deprecate the _image generation and editing_ endpoints when
-script code becomes obsolete to work with images. This does not affect
-the feature of attaching images to multimodal prompts or receiving
-image parts from multimodal models.
+- We plan to deprecate the _image generation and image editing_ endpoints
+when script code becomes obsolete to work with images.
 
 - Text completions endpoint is planned to be deprecated when there are
 no models compatible with this endpoint anymore.
