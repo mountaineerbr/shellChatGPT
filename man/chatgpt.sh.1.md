@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.90.10 | General Commands Manual
+% CHATGPT.SH(1) v0.90.11 | General Commands Manual
 % mountaineerbr
 % January 2025
 
@@ -411,7 +411,7 @@ may be either "`!`" or "`/`".
        `!#`        `!save`      \[_PROMPT_]          Save current prompt to shell history. _‡_
         `!`        `!r`, `!regen`                    Regenerate last response.
        `!!`        `!rr`                             Regenerate response, edit prompt first.
-       `!g`        `!!g`        \[_PROMPT_]          Ground user prompt with search results. _‡_
+      `!g:`        `!!g:`       \[_PROMPT_]          Ground user prompt with search results. _‡_
        `!i`        `!info`                           Information on model and session settings.
       `!!i`        `!!info`                          Monthly usage stats (OpenAI).
        `!j`        `!jump`                           Jump to request, append start seq primer (text cmpls).

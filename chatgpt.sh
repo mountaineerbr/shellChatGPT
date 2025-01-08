@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.10  jan/2025  by mountaineerbr  GPL+3
+# v0.90.11  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -421,7 +421,7 @@ Command List
       !#      !save   [PROMPT]  Save current prompt to shell history. ‡
        !      !r, !regen        Regenerate last response.
       !!      !rr               Regenerate response, edit prompt first.
-      !g      !!g     [PROMPT]  Ground prompt, insert search results. ‡
+      !g:    !!g:     [PROMPT]  Ground prompt, insert search results. ‡
       !i      !info             Info on model and session settings.
      !!i     !!info             Monthly usage stats (OpenAI).
       !j      !jump             Jump to request, append response primer.
@@ -2431,20 +2431,22 @@ function cmd_runf
 					cmdmsgf 'Cat Prompter' $(_onoff $CATPR);;
 			esac
 			;;
-		cat*)
+		cat*|file*)
 			set -- "${*}"; HARGS=${HARGS:-$*};
-			filein=$(trimf "${1##cat*(:)}" "$SPC") fileinq=$filein;
+			filein=$(trimf "${1##@(cat|file)*(:)}" "$SPC");
 			if [[ $filein = *\\* ]]
 			then 	filein=${filein//\\};
 			else 	fileinq=$(printf '%q' "${filein}");
 			fi  #paths with spaces must be backslash-escaped
 
-			if is_pdff "$filein"
-			then 	cmd_runf /pdf"${*##cat}";
+			if is_imagef "$filein" || is_audiof "$filein"
+			then 	cmd_runf /media"${filein}";
+			elif is_pdff "$filein"
+			then 	cmd_runf /pdf"${filein}";
 			elif is_docf "$filein"
-			then 	cmd_runf /doc"${*##cat}";
+			then 	cmd_runf /doc"${filein}";
 			elif _is_linkf "$filein"
-			then 	cmd_runf /url"${*##cat}";
+			then 	cmd_runf /url"${filein}";
 			else
 				case "$*" in
 					cat:*[!$IFS]*)

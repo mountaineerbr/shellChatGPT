@@ -1409,11 +1409,10 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 ## 🎯  Project Objectives
 
-- Implement nice features from `OpenAI API version 1`.
+- Implement nice features from `OpenAI API version 1`, mainly focused on
+  text and multimodal (non-video) multimodal chatting.
 
-- Provide the closest API defaults.
-
-- Let the user customise defaults (as homework).
+- Provide the closest API defaults and let the user customise defaults.
 
 - Première of `chatgpt.sh version 1.0` should occur at the time
   when OpenAI launches its next major API version update.
@@ -1425,11 +1424,22 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 - We shall decrease development frequency in 2025, hopefully. LLM models
 in general are not really worth developer efforts sometimes, it is frustating!
+
 - The warper is deemed finished in the sense any further updates must
 not change the user interface.
+
 - We plan to gradually wind down development of new features in the near future.
 The project will enter a maintenance phase from 2025 onwards, focusing primarily
 on bug fixes and stability.
+
+- We plan to deprecate the _image generation and editing_ endpoints when
+script code becomes obsolete to work with images. This does not affect
+the feature of attaching images to multimodal prompts or receiving
+image parts from multimodal models.
+
+- Text completions endpoint is planned to be deprecated when there are
+no models compatible with this endpoint anymore.
+
 
 <!-- in these poor circumstances. The models are not worth the value or expectations. -->
 <!--
@@ -1469,11 +1479,13 @@ _see_ [tkn-cnt.py](https://github.com/mountaineerbr/scripts/blob/main/tkn-cnt.py
 ## ⚠️ Limitations
 
 - OpenAI **API version 1** is the focus of the present project implementation.
-Not all features of the API will be covered.
+Only selected features of the API will be covered.
+
+- The script _will not execute commands_ on behalf of users.
 
 - This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
-- Probably, we will _not_ support "Real-Time" chatting, or video modality.
+- We _will not support_ "Real-Time" chatting, or video modalities.
 
 - Bash shell truncates input on `\000` (null).
 

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2025
-title: CHATGPT.SH(1) v0.90.10 \| General Commands Manual
+title: CHATGPT.SH(1) v0.90.11 \| General Commands Manual
 ---
 
 ### NAME
@@ -410,7 +410,7 @@ either “`!`” or “`/`”.
 | `!#`      | `!save` \[*PROMPT*\]            | Save current prompt to shell history. *‡*               |
 | `!`       | `!r`, `!regen`                  | Regenerate last response.                               |
 | `!!`      | `!rr`                           | Regenerate response, edit prompt first.                 |
-| `!g`      | `!!g` \[*PROMPT*\]              | Ground user prompt with search results. *‡*             |
+| `!g:`     | `!!g:` \[*PROMPT*\]             | Ground user prompt with search results. *‡*             |
 | `!i`      | `!info`                         | Information on model and session settings.              |
 | `!!i`     | `!!info`                        | Monthly usage stats (OpenAI).                           |
 | `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).  |
