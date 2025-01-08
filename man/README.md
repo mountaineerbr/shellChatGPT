@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2025
-title: CHATGPT.SH(1) v0.90.11 \| General Commands Manual
+title: CHATGPT.SH(1) v0.90.13 \| General Commands Manual
 ---
 
 ### NAME
@@ -826,7 +826,9 @@ Default instruction language in chat mode.
 
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**, **MOD_NOVITA**  
+**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**,
+
+**MOD_NOVITA**, **MOD_XAI**  
 Set default model for each endpoint / provider.
 
 **OPENAI_BASE_URL**

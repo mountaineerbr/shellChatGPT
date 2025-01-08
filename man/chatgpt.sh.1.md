@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.90.11 | General Commands Manual
+% CHATGPT.SH(1) v0.90.13 | General Commands Manual
 % mountaineerbr
 % January 2025
 
@@ -869,7 +869,9 @@ set command-line `option -c` instead.
 
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**, **MOD_NOVITA**
+**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**,
+
+**MOD_NOVITA**, **MOD_XAI**
 
 :    Set default model for each endpoint / provider.
 
