@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.90.9  jan/2025  by mountaineerbr  GPL+3
+# v0.90.10  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -433,7 +433,7 @@ Command List
      !md      !markdown [SOFTW] Toggle markdown support in response.
     !!md     !!markdown [SOFTW] Render last response in markdown.
      !rep     !replay           Replay last TTS audio response.
-     !res     !resubmit         Resubmit last TTS recorded input.
+     !res     !resubmit         Resubmit last STT recorded audio input.
      !p       !pick  [PROMPT]   File picker, appends filepath to prompt. ‡
      !pdf     !pdf:    [FILE]   Dump PDF text.
     !photo   !!photo   [INDEX]  Take a photo, camera index (Termux). ‡

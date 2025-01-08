@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2025
-title: CHATGPT.SH(1) v0.90.8 \| General Commands Manual
+title: CHATGPT.SH(1) v0.90.10 \| General Commands Manual
 ---
 
 ### NAME
@@ -422,7 +422,7 @@ either “`!`” or “`/`”.
 | `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                  |
 | `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                       |
 | `!rep`    | `!replay`                       | Replay last TTS audio response.                         |
-| `!res`    | `!resubmit`                     | Resubmit last TTS recorded input from cache.            |
+| `!res`    | `!resubmit`                     | Resubmit last STT recorded audio in cache.              |
 | `!p`      | `!pick` \[*PROPMT*\]            | File picker, appends filepath to user prompt. *‡*       |
 | `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text.                              |
 | `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux). *‡* |

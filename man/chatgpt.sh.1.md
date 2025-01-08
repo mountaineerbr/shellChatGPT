@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.90.8 | General Commands Manual
+% CHATGPT.SH(1) v0.90.10 | General Commands Manual
 % mountaineerbr
 % January 2025
 
@@ -423,7 +423,7 @@ may be either "`!`" or "`/`".
       `!md`        `!markdown`  \[_SOFTW_]           Toggle markdown rendering in response.
      `!!md`        `!!markdown` \[_SOFTW_]           Render last response in markdown.
      `!rep`        `!replay`                         Replay last TTS audio response.
-     `!res`        `!resubmit`                       Resubmit last TTS recorded input from cache.
+     `!res`        `!resubmit`                       Resubmit last STT recorded audio in cache.
        `!p`        `!pick`      \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
      `!pdf`        `!pdf:`      \[_FILE_]            Convert PDF and dump text.
    `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux). _‡_
