@@ -1423,9 +1423,6 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 ## Roadmap
 
-- The warper is deemed finished in the sense any further updates must
-not change the user interface significantly.
-
 - We shall decrease development frequency in 2025, hopefully. <!-- LLM models
 in general are not really worth developer efforts sometimes, it is frustating!
 -->
@@ -1439,6 +1436,9 @@ when script code becomes obsolete to work with images.
 
 - Text completions endpoint is planned to be deprecated when there are
 no models compatible with this endpoint anymore.
+
+- The warper is deemed finished in the sense any further updates must
+not change the user interface significantly.
 
 
 <!-- in these poor circumstances. The models are not worth the value or expectations. -->
