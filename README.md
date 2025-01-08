@@ -1537,19 +1537,21 @@ Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mo
 The following projects are worth remarking.
 They were studied during development of this script and used as referencial code sources.
 
-1. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
+1. [sigoden's aichat](https://github.com/sigoden/aichat)
 2. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
-3. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
-4. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
-5. [mudler's LocalAI](https://github.com/mudler/LocalAI)
-6. [Ollama](https://github.com/ollama/ollama/)
-7. [Google Gemini](https://gemini.google.com/)
-8. [Groq](https://console.groq.com/docs/api-reference)
-9. [Antropic AI](https://docs.anthropic.com/)
-10. [Novita AI](https://novita.ai/)
-11. [xAI](https://docs.x.ai/docs/quickstart)
-12. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-13. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+3. [andrew's tgpt](https://github.com/aandrew-me/tgpt)
+4. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
+5. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
+6. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
+7. [mudler's LocalAI](https://github.com/mudler/LocalAI)
+8. [Ollama](https://github.com/ollama/ollama/)
+9. [Google Gemini](https://gemini.google.com/)
+10. [Groq](https://console.groq.com/docs/api-reference)
+11. [Antropic AI](https://docs.anthropic.com/)
+12. [Novita AI](https://novita.ai/)
+13. [xAI](https://docs.x.ai/docs/quickstart)
+14. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+15. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 <!-- https://huggingface.co/ -->
 
 
