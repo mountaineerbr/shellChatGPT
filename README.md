@@ -1415,8 +1415,11 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 
 - Provide the closest API defaults and let the user customise settings.
 
+
+<!--
 - Première of `chatgpt.sh version 1.0` should occur at the time
   when OpenAI launches its next major API version update.
+  -->
 
 <!--  I think Ksh developers used to commonly say invalid options were "illegal" because they developed software a little like games, so the user ought to follow the rules right, otherwise he would incur in an illegal input or command. That seems fairly reasonable to me!  -->
 
@@ -1541,17 +1544,18 @@ They were studied during development of this script and used as referencial code
 2. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
 3. [andrew's tgpt](https://github.com/aandrew-me/tgpt)
 4. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
-5. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
-6. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
-7. [mudler's LocalAI](https://github.com/mudler/LocalAI)
-8. [Ollama](https://github.com/ollama/ollama/)
-9. [Google Gemini](https://gemini.google.com/)
-10. [Groq](https://console.groq.com/docs/api-reference)
-11. [Antropic AI](https://docs.anthropic.com/)
-12. [Novita AI](https://novita.ai/)
-13. [xAI](https://docs.x.ai/docs/quickstart)
-14. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-15. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+5. [ErikBjare's gptme](https://github.com/ErikBjare/gptme)
+6. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
+7. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
+8. [mudler's LocalAI](https://github.com/mudler/LocalAI)
+9. [Ollama](https://github.com/ollama/ollama/)
+10. [Google Gemini](https://gemini.google.com/)
+11. [Groq](https://console.groq.com/docs/api-reference)
+12. [Antropic AI](https://docs.anthropic.com/)
+13. [Novita AI](https://novita.ai/)
+14. [xAI](https://docs.x.ai/docs/quickstart)
+15. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+16. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 <!-- https://huggingface.co/ -->
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.91  jan/2025  by mountaineerbr  GPL+3
+# v0.91.1  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -388,8 +388,8 @@ Environment
 
 	OPENAI_API_KEY
 	[PROVIDER]_API_KEY
-			Keys for OpenAI, GoogleAI, MistralAI, Groq,
-			Anthropic, and GitHub Models APIs.
+	GITHUB_TOKEN 	Keys for OpenAI, Gemini, Mistral, Groq,
+			Anthropic, GitHub Models, Novita, and xAI APIs.
 
 	OUTDIR 		Output directory for received image and audio.
 
@@ -987,7 +987,7 @@ function __clr_dialogf { 	((DIALOG_CLR)) && _clr_dialogf ;}
 function _clr_ttystf
 {
 	typeset REPLY n;
-	while IFS= read -r -n 1 -t 0.08;
+	while IFS= read -r -n 1 -t 0.002;
 	do 	((++n)); ((n<8192)) || break;
 	done </dev/tty;
 }
@@ -5795,7 +5795,10 @@ then 	function jq { 	false ;}
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 ((!(OPTHH+OPTFF+OPTZZ) )) &&
-[[ $(curl --help all 2>&1) = *"fail-with-body"* ]] && FAIL="--fail-with-body" || unset FAIL;
+  case "$(curl --version 2>&1)" in
+    curl\ [0-6][.\ ]*|curl\ 7.[0-9][.\ ]*|curl\ 7.[0-6][0-9][.\ ]*|curl\ 7.7[0-5][.\ ]*)  unset FAIL;;
+    *)  FAIL="--fail-with-body";;
+  esac;
 
 trap 'cleanupf; exit;' EXIT
 trap 'exit' HUP QUIT TERM KILL

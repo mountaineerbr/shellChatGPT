@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2025
-title: CHATGPT.SH(1) v0.91 \| General Commands Manual
+title: CHATGPT.SH(1) v0.91.1 \| General Commands Manual
 ---
 
 ### NAME
@@ -839,12 +839,15 @@ with the full url path to disable endpoint auto selection.
 
 **PROVIDER_BASE_URL**  
 Base URLs for each service provider: *LOCALAI*, *OLLAMA*, *MISTRAL*,
-*GOOGLE*, *ANTHROPIC*, *GROQ*, *GITHUB*, and *NOVITA*.
+*GOOGLE*, *ANTHROPIC*, *GROQ*, *GITHUB*, *NOVITA*, and *xAI*.
 
 **OPENAI_API_KEY**
 
-**PROVIDER_API_KEY**  
-Keys for OpenAI, GoogleAI, MistralAI, Groq, GitHub and Novita AI APIs.
+**PROVIDER_API_KEY**
+
+**GITHUB_TOKEN**  
+Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models,
+Novita, and xAI APIs.
 
 **OUTDIR**  
 Output directory for received image and audio.

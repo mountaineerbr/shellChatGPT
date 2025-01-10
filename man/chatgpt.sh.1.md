@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.91 | General Commands Manual
+% CHATGPT.SH(1) v0.91.1 | General Commands Manual
 % mountaineerbr
 % January 2025
 
@@ -886,14 +886,16 @@ set command-line `option -c` instead.
 **PROVIDER_BASE_URL**
 
 :    Base URLs for each service provider:
-     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, and _NOVITA_.
+     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, _NOVITA_, and _xAI_.
 
 
 **OPENAI_API_KEY**
 
 **PROVIDER_API_KEY**
 
-:    Keys for OpenAI, GoogleAI, MistralAI, Groq, GitHub and Novita AI APIs.
+**GITHUB_TOKEN**
+
+:    Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models, Novita, and xAI APIs.
 
 
 **OUTDIR**
