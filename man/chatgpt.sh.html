@@ -1315,13 +1315,12 @@ flush.</td>
 <tr class="odd">
 <td style="text-align: left;"><code>!ls</code></td>
 <td style="text-align: left;"><code>!list</code> [<em>GLOB</em>]</td>
-<td>List History files with <em>glob</em> in <em>name</em>. Intruction
-prompts: “<em>pr</em>”. Awesome: “<em>awe</em>”. All: “<em>.</em>”.</td>
+<td>List History files with <em>glob</em> in <em>name</em>.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
-<td>Search sessions (for regex) and copy session to hist tail.</td>
+<td>Grep sessions and copy session to hist tail.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!c</code></td>
@@ -1361,6 +1360,9 @@ prompts: “<em>pr</em>”. Awesome: “<em>awe</em>”. All: “<em>.</em>”.<
 </tbody>
 </table>
 <!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
+<!--
+ `!list` [GLOB]      Intruction prompts: "_pr_". Awesome: "_awe_". All: "_._".
+ -->
 <div class="line-block"><em>:</em> Commands with a <em>colon</em> have
 their output appended to the prompt.</div>
 <div class="line-block"><em>‡</em> Commands with <em>double dagger</em>

@@ -929,22 +929,26 @@ Command operators "`!`" or "`/`" are equivalent.
  --------------    -----------------------    ------------------------------------------------
 
  Session           Management
- --------------    -------------------------------------    ----------------------------------------------------------------------------------------------------
+ --------------    -------------------------------------    ------------------------------------------------
       `-H`         `!hist`                                  Edit history in editor.
       `-P`         `-HH`, `!print`                          Print session history.
       `-L`         `!log`       \[_FILEPATH_]               Save to log file.
      `!br`         `!break`, `!new`                         Start new session (session break).
-     `!ls`         `!list`      \[_GLOB_]                   List History files with _glob_ in _name_. Intruction prompts: "_pr_". Awesome: "_awe_". All: "_._".
-   `!grep`         `!sub`       \[_REGEX_]                  Search sessions (for regex) and copy session to hist tail.
+     `!ls`         `!list`      \[_GLOB_]                   List History files with _glob_ in _name_.
+   `!grep`         `!sub`       \[_REGEX_]                  Grep sessions and copy session to hist tail.
       `!c`         `!copy` \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
       `!f`         `!fork`      \[_DEST_HIST_]              Fork current session to destination.
       `!k`         `!kill`      \[_NUM_]                    Comment out _n_ last entries in history file.
      `!!k`         `!!kill`     \[\[_0_]_NUM_]              Dry-run of command `!kill`.
       `!s`         `!session`   \[_HIST_NAME_]              Change to, search for, or create history file.
      `!!s`         `!!session`  \[_HIST_NAME_]              Same as `!session`, break session.
- --------------    -------------------------------------    ----------------------------------------------------------------------------------------------------
+ --------------    -------------------------------------    ------------------------------------------------
 
 <!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
+
+<!--
+ `!list` [GLOB]      Intruction prompts: "_pr_". Awesome: "_awe_". All: "_._".
+ -->
 
 | _:_ Commands with a *colon* have their output appended to the prompt.
 

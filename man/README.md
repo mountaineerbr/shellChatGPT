@@ -771,22 +771,25 @@ or “`/`” are equivalent.
 | `!blk`    | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
 | `!vision` | `!audio`, `!multimodal` | Toggle multimodality type.                     |
 
-| Session | Management                             |                                                                                                     |
-|:--------|:---------------------------------------|-----------------------------------------------------------------------------------------------------|
-| `-H`    | `!hist`                                | Edit history in editor.                                                                             |
-| `-P`    | `-HH`, `!print`                        | Print session history.                                                                              |
-| `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                                                                   |
-| `!br`   | `!break`, `!new`                       | Start new session (session break).                                                                  |
-| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *glob* in *name*. Intruction prompts: “*pr*”. Awesome: “*awe*”. All: “*.*”. |
-| `!grep` | `!sub` \[*REGEX*\]                     | Search sessions (for regex) and copy session to hist tail.                                          |
-| `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                                                            |
-| `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.                                                                |
-| `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.                                                       |
-| `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                                                                         |
-| `!s`    | `!session` \[*HIST_NAME*\]             | Change to, search for, or create history file.                                                      |
-| `!!s`   | `!!session` \[*HIST_NAME*\]            | Same as `!session`, break session.                                                                  |
+| Session | Management                             |                                                |
+|:--------|:---------------------------------------|------------------------------------------------|
+| `-H`    | `!hist`                                | Edit history in editor.                        |
+| `-P`    | `-HH`, `!print`                        | Print session history.                         |
+| `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                              |
+| `!br`   | `!break`, `!new`                       | Start new session (session break).             |
+| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *glob* in *name*.      |
+| `!grep` | `!sub` \[*REGEX*\]                     | Grep sessions and copy session to hist tail.   |
+| `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.       |
+| `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.           |
+| `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.  |
+| `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                    |
+| `!s`    | `!session` \[*HIST_NAME*\]             | Change to, search for, or create history file. |
+| `!!s`   | `!!session` \[*HIST_NAME*\]            | Same as `!session`, break session.             |
 
 <!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
+<!--
+ `!list` [GLOB]      Intruction prompts: "_pr_". Awesome: "_awe_". All: "_._".
+ -->
 
 *:* Commands with a *colon* have their output appended to the prompt.
 

@@ -796,13 +796,13 @@ or “/” are equivalent.
   !vision   !audio, !multimodal   Toggle multimodality type.
 
   Session   Management                     
-  --------- ------------------------------ -------------------------------------------------------------------------------------------
+  --------- ------------------------------ ------------------------------------------------
   -H        !hist                          Edit history in editor.
   -P        -HH, !print                    Print session history.
   -L        !log [FILEPATH]                Save to log file.
   !br       !break, !new                   Start new session (session break).
-  !ls       !list [GLOB]                   List History files with glob in name. Intruction prompts: “pr”. Awesome: “awe”. All: “.”.
-  !grep     !sub [REGEX]                   Search sessions (for regex) and copy session to hist tail.
+  !ls       !list [GLOB]                   List History files with glob in name.
+  !grep     !sub [REGEX]                   Grep sessions and copy session to hist tail.
   !c        !copy [SRC_HIST] [DEST_HIST]   Copy session from source to destination.
   !f        !fork [DEST_HIST]              Fork current session to destination.
   !k        !kill [NUM]                    Comment out n last entries in history file.
