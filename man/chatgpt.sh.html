@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.91.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.92 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,14 +171,14 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.91.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.92 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2025</p>
 </header>
-<h3 id="name">NAME</h3>
+<h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
 Whisper / TTS</div>
-<h3 id="synopsis">SYNOPSIS</h3>
+<h1 id="synopsis">SYNOPSIS</h1>
 <div class="line-block">   <strong>chatgpt.sh</strong>
 [<code>-cc</code>|<code>-dd</code>|<code>-qq</code>]
 [<code>opt</code>..]
@@ -208,26 +208,439 @@ Whisper / TTS</div>
 [<code>-m</code>[<em>MODEL</em>|<em>ENCODING</em>]]
 [<em>INPUT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HPP</code>
-[<code>/</code><em>HIST_FILE</em>|<em>.</em>]<br />
+[<code>/</code><em>HIST_NAME</em>|<em>.</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HPw</code></div>
-<h3 id="description">DESCRIPTION</h3>
+<h1 id="description">DESCRIPTION</h1>
 <p>This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
-endpoints from OpenAI. Additional service providers such as LocalAI,
+endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
-and xAI APIs are also available.</p>
+and xAI APIs are supported.</p>
 <p>With no options set, complete INPUT in single-turn mode of the native
 chat completion.</p>
 <p>Handles single-turn and multi-turn modes, pure text and native chat
 completions, image generation and editing, speech-to-text, and
-text-to-speech.</p>
-<p>Positional arguments are read as a single PROMPT, but some functions
-such as Whisper and TTS may handle optional positional parameters before
-the prompt itself.</p>
-<h3 id="chat-completion-modes">Chat Completion Modes</h3>
+text-to-speech models.</p>
+<p>Positional arguments are read as a single PROMPT. Some functions such
+as Whisper and TTS may handle optional positional parameters before the
+text prompt itself.</p>
+<h1 id="options">OPTIONS</h1>
+<h2 id="service-providers">Service Providers</h2>
+<dl>
+<dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
+<dd>
+<p>Set Anthropic integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--github</strong>, <strong>--git</strong></dt>
+<dd>
+<p>Set GitHub Models integration (chat).</p>
+</dd>
+<dt><strong>--google</strong>, <strong>-goo</strong></dt>
+<dd>
+<p>Set Google Gemini integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--groq</strong></dt>
+<dd>
+<p>Set Groq integration (chat).</p>
+</dd>
+<dt><strong>--localai</strong></dt>
+<dd>
+<p>Set LocalAI integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--mistral</strong></dt>
+<dd>
+<p>Set Mistral AI integration (chat).</p>
+</dd>
+<dt><strong>--novita</strong></dt>
+<dd>
+<p>Set Novita AI integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--openai</strong></dt>
+<dd>
+<p>Reset service integrations.</p>
+</dd>
+<dt><strong>-O</strong>, <strong>--ollama</strong></dt>
+<dd>
+<p>Set and make requests to Ollama server (cmpls/chat).</p>
+</dd>
+<dt><strong>--xai</strong></dt>
+<dd>
+<p>Set xAI integrations (cmpls/chat).</p>
+</dd>
+</dl>
+<h2 id="configuration-file">Configuration File</h2>
+<dl>
+<dt><strong>-f</strong>, <strong>--no-conf</strong></dt>
+<dd>
+<p>Ignore user configuration file.</p>
+</dd>
+<dt><strong>-F</strong></dt>
+<dd>
+<p>Edit configuration file with text editor, if it exists.</p>
+<p>$CHATGPTRC="<em>~/.chatgpt.conf</em>".</p>
+</dd>
+<dt><strong>-FF</strong></dt>
+<dd>
+<p>Dump template configuration file to stdout.</p>
+</dd>
+</dl>
+<h2 id="sessions-and-history-files">Sessions and History Files</h2>
+<dl>
+<dt><strong>-H</strong>, <strong>--hist</strong>
+[<code>/</code><em>HIST_NAME</em>]</dt>
+<dd>
+<p>Edit history file with text editor or pipe to stdout.</p>
+<p>A history file name can be optionally set as argument.</p>
+</dd>
+<dt><strong>-P</strong>, <strong>-PP</strong>, <strong>--print</strong>
+[<code>/</code><em>HIST_NAME</em>]</dt>
+<dd>
+<p>Print out last history session.</p>
+<p>Set twice to print commented out history entries, inclusive. Heeds
+<code>options -ccdrR</code>.</p>
+<p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
+respectively.</p>
+</dd>
+</dl>
+<h2 id="input-modes">Input Modes</h2>
+<dl>
+<dt><strong>-u</strong>, <strong>--multiline</strong></dt>
+<dd>
+<p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
+</dd>
+<dt><strong>-U</strong>, <strong>--cat</strong></dt>
+<dd>
+<p>Set cat prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
+</dd>
+<dt><strong>-x</strong>, <strong>-xx</strong>,
+<strong>--editor</strong></dt>
+<dd>
+<p>Edit prompt in text editor.</p>
+<p>Set twice to run the text editor interface a single time for the
+first user input.</p>
+<p>Set <code>options -eex</code> to edit last buffer from cache.</p>
+</dd>
+</dl>
+<h2 id="interface-modes">Interface Modes</h2>
+<dl>
+<dt><strong>-c</strong>, <strong>--chat</strong></dt>
+<dd>
+<p>Chat mode in text completions (used with
+<code>options -wzvv</code>).</p>
+</dd>
+<dt><strong>-cc</strong></dt>
+<dd>
+<p>Chat mode in chat completions (used with
+<code>options -wzvv</code>).</p>
+</dd>
+<dt><strong>-C</strong>, <strong>--continue</strong>,
+<strong>--resume</strong></dt>
+<dd>
+<p>Continue from (resume) last session (cmpls/chat).</p>
+</dd>
+<dt><strong>-d</strong>, <strong>--text</strong></dt>
+<dd>
+<p>Single-turn session of plain text completions.</p>
+</dd>
+<dt><strong>-dd</strong></dt>
+<dd>
+<p>Multi-turn session of plain text completions with history
+support.</p>
+</dd>
+<dt><strong>-e</strong>, <strong>--edit</strong></dt>
+<dd>
+<p>Edit first input from stdin or file (cmpls/chat).</p>
+<p>With <code>options -eex</code>, edit last text editor buffer from
+cache.</p>
+</dd>
+<dt><strong>-E</strong>, <strong>-EE</strong>,
+<strong>--exit</strong></dt>
+<dd>
+<p>Exit on first run (even with options -cc).</p>
+</dd>
+<dt><strong>-g</strong>, <strong>--stream</strong>
+(<em>defaults</em>)</dt>
+<dd>
+<p>Set response streaming.</p>
+</dd>
+<dt><strong>-G</strong>, <strong>--no-stream</strong></dt>
+<dd>
+<p>Unset response streaming.</p>
+</dd>
+<dt><strong>-i</strong>, <strong>--image</strong> [<em>PROMPT</em>]</dt>
+<dd>
+<p>Generate images given a prompt. Set <em>option -v</em> to not open
+response.</p>
+</dd>
+<dt><strong>-i</strong> [<em>PNG</em>]</dt>
+<dd>
+<p>Create variations of a given image.</p>
+</dd>
+<dt><strong>-i</strong> [<em>PNG</em>] [<em>MASK</em>]
+[<em>PROMPT</em>]</dt>
+<dd>
+<p>Edit image with mask and prompt (required).</p>
+</dd>
+<dt><strong>-q</strong>, <strong>-qq</strong>,
+<strong>--insert</strong></dt>
+<dd>
+<p>Insert text rather than completing only. May be set twice for
+multi-turn.</p>
+<p>Use “<em>[insert]</em>” to indicate where the language model should
+insert text (`instruct’ and Mistral `code models’).</p>
+</dd>
+</dl>
+<p><strong>-S</strong> <strong>.</strong>[<em>PROMPT_NAME</em>],
+<strong>-.</strong>[<em>PROMPT_NAME</em>]</p>
+<dl>
+<dt><strong>-S</strong> <strong>,</strong>[<em>PROMPT_NAME</em>],
+<strong>-,</strong>[<em>PROMPT_NAME</em>]</dt>
+<dd>
+<p>Load, search for, or create custom prompt.</p>
+<p>Set <code>.</code>[<em>PROMPT</em>] to load prompt silently.</p>
+<p>Set <code>,</code>[<em>PROMPT</em>] to single-shot edit prompt.</p>
+<p>Set <code>,,</code>[<em>PROMPT</em>] to edit the prompt template
+file.</p>
+<p>Set <code>.</code><em>?</em>, or <code>.</code><em>list</em> to list
+all prompt files.</p>
+</dd>
+</dl>
+<p><strong>-S</strong>, <strong>–awesome</strong>
+<strong>/</strong>[<em>AWESOME_PROMPT_NAME</em>]</p>
+<dl>
+<dt><strong>-S</strong>, <strong>–awesome-zh</strong>
+<strong>%</strong>[<em>AWESOME_PROMPT_NAME_ZH</em>]</dt>
+<dd>
+<p>Set or search for an <em>awesome-chatgpt-prompt(-zh)</em>.</p>
+<p>Set <strong>//</strong> or <strong>%%</strong> instead to refresh
+cache.</p>
+</dd>
+</dl>
+<p><strong>-T</strong>, <strong>--tiktoken</strong></p>
+<dl>
+<dt><strong>-TT</strong>, <strong>-TTT</strong></dt>
+<dd>
+<p>Count input tokens with python Tiktoken (ignores special tokens).</p>
+<p>Set twice to print tokens, thrice to available encodings.</p>
+<p>Set the model or encoding with <code>option -m</code>.</p>
+<p>It heeds <code>options -ccm</code>.</p>
+</dd>
+<dt><strong>-w</strong>, <strong>--transcribe</strong> [<em>AUD</em>]
+[<em>LANG</em>] [<em>PROMPT</em>]</dt>
+<dd>
+<p>Transcribe audio file speech into text. LANG is optional. A prompt
+that matches the speech language is optional. Speech will be transcribed
+or translated to the target LANG.</p>
+<p>Set twice to phrase or thrice for word-level timestamps (-www).</p>
+<p>With <code>options -vv</code>, stop voice recorder on silence auto
+detection.</p>
+</dd>
+<dt><strong>-W</strong>, <strong>--translate</strong> [<em>AUD</em>]
+[<em>PROMPT-EN</em>]</dt>
+<dd>
+<p>Translate audio file speech into English text.</p>
+<p>Set twice to phrase or thrice for word-level timestamps (-WWW).</p>
+</dd>
+<dt><strong>-z</strong>, <strong>--tts</strong>
+[<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
+[<em>SPEED</em>] [<em>PROMPT</em>]</dt>
+<dd>
+<p>Synthesise speech from text prompt. Takes a voice name, speed and
+text prompt.</p>
+<p>Set <code>option -v</code> to not play response automatically.</p>
+</dd>
+</dl>
+<h2 id="model-settings">Model Settings</h2>
+<dl>
+<dt><strong>-@</strong>, <strong>--alpha</strong>
+[[<em>VAL%</em>]<em>COLOUR</em>]</dt>
+<dd>
+<p>Set transparent colour of image mask. Def=<em>black</em>.</p>
+<p>Fuzz intensity can be set with [<em>VAL%</em>]. Def=<em>0%</em>.</p>
+</dd>
+<dt><strong>-Nill</strong></dt>
+<dd>
+<p>Unset model max response tokens (chat cmpls only).</p>
+</dd>
+</dl>
+<p><strong>-NUM</strong></p>
+<dl>
+<dt><strong>-M</strong>, <strong>--max</strong>
+[<em>NUM</em>[<em>-NUM</em>]]</dt>
+<dd>
+<p>Set maximum number of <em>response tokens</em>.
+Def=<em>1024</em>.</p>
+<p>A second number in the argument sets model capacity.</p>
+</dd>
+<dt><strong>-N</strong>, <strong>--modmax</strong> [<em>NUM</em>]</dt>
+<dd>
+<p>Set <em>model capacity</em> tokens. Def=<em>auto</em>,
+Fallback=<em>4000</em>.</p>
+</dd>
+<dt><strong>-a</strong>, <strong>--presence-penalty</strong>
+[<em>VAL</em>]</dt>
+<dd>
+<p>Set presence penalty (cmpls/chat, -2.0 - 2.0).</p>
+</dd>
+<dt><strong>-A</strong>, <strong>--frequency-penalty</strong>
+[<em>VAL</em>]</dt>
+<dd>
+<p>Set frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
+</dd>
+<dt><strong>-b</strong>, <strong>--best-of</strong> [<em>NUM</em>]</dt>
+<dd>
+<p>Set best of, must be greater than <code>option -n</code> (cmpls).
+Def=<em>1</em>.</p>
+</dd>
+<dt><strong>-B</strong>, <strong>--logprobs</strong> [<em>NUM</em>]</dt>
+<dd>
+<p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
+</dd>
+<dt><strong>-j</strong>, <strong>--seed</strong> [<em>NUM</em>]</dt>
+<dd>
+<p>Set a seed for deterministic sampling (integer).</p>
+</dd>
+<dt><strong>-K</strong>, <strong>--top-k</strong> [<em>NUM</em>]</dt>
+<dd>
+<p>Set Top_k value (local-ai, ollama, google).</p>
+</dd>
+<dt><strong>--keep-alive</strong>,
+<strong>--ka</strong>=[<em>NUM</em>]</dt>
+<dd>
+<p>Set how long the model will stay loaded into memory (ollama).</p>
+</dd>
+<dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
+<dd>
+<p>Set language <em>MODEL</em> name.
+Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
+<p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
+</dd>
+<dt><strong>--multimodal</strong>, <strong>--vision</strong>,
+<strong>--audio</strong></dt>
+<dd>
+<p>Set model multimodal model type.</p>
+</dd>
+<dt><strong>-n</strong>, <strong>--results</strong> [<em>NUM</em>]</dt>
+<dd>
+<p>Set number of results. Def=<em>1</em>.</p>
+</dd>
+<dt><strong>-p</strong>, <strong>--top-p</strong> [<em>VAL</em>]</dt>
+<dd>
+<p>Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
+</dd>
+<dt><strong>-r</strong>, <strong>--restart</strong> [<em>SEQ</em>]</dt>
+<dd>
+<p>Set restart sequence string (cmpls).</p>
+</dd>
+<dt><strong>-R</strong>, <strong>--start</strong> [<em>SEQ</em>]</dt>
+<dd>
+<p>Set start sequence string (cmpls).</p>
+</dd>
+<dt><strong>-s</strong>, <strong>--stop</strong> [<em>SEQ</em>]</dt>
+<dd>
+<p>Set stop sequences, up to 4. Def="<em>&lt;|endoftext|&gt;</em>".</p>
+</dd>
+<dt><strong>-S</strong>, <strong>--instruction</strong>
+[<em>INSTRUCTION</em>|<em>FILE</em>]</dt>
+<dd>
+<p>Set an instruction text prompt. It may be a text file.</p>
+</dd>
+<dt><strong>--time</strong>, <strong>--no-time</strong></dt>
+<dd>
+<p>Insert the current date and time (timestamp) to the instruction
+prompt.</p>
+</dd>
+<dt><strong>-t</strong>, <strong>--temperature</strong>
+[<em>VAL</em>]</dt>
+<dd>
+<p>Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
+1.0). Def=<em>0</em>.</p>
+</dd>
+</dl>
+<h2 id="miscellaneous-settings">Miscellaneous Settings</h2>
+<dl>
+<dt><strong>--api-key</strong> [<em>KEY</em>]</dt>
+<dd>
+<p>Set API key to use.</p>
+</dd>
+<dt><strong>--fold</strong> (<em>defaults</em>),
+<strong>--no-fold</strong></dt>
+<dd>
+<p>Set or unset response folding (wrap at white spaces).</p>
+</dd>
+<dt><strong>-h</strong>, <strong>--help</strong></dt>
+<dd>
+<p>Print the help page.</p>
+</dd>
+<dt><strong>--info</strong></dt>
+<dd>
+<p>Print OpenAI usage status (requires envar
+<code>$OPENAI_ADMIN_KEY</code>).</p>
+</dd>
+<dt><strong>-k</strong>, <strong>--no-colour</strong></dt>
+<dd>
+<p>Disable colour output. Def=<em>auto</em>.</p>
+</dd>
+<dt><strong>-l</strong>, <strong>--list-models</strong>
+[<em>MODEL</em>]</dt>
+<dd>
+<p>List models or print details of <em>MODEL</em>.</p>
+</dd>
+<dt><strong>-L</strong>, <strong>--log</strong> [<em>FILEPATH</em>]</dt>
+<dd>
+<p>Set log file. <em>FILEPATH</em> is required.</p>
+</dd>
+<dt><strong>--md</strong>, <strong>--markdown</strong>,
+<strong>--markdown</strong>=[<em>SOFTWARE</em>]</dt>
+<dd>
+<p>Enable markdown rendering in response. Software is optional:
+<em>bat</em>, <em>pygmentize</em>, <em>glow</em>, <em>mdcat</em>, or
+<em>mdless</em>.</p>
+</dd>
+<dt><strong>--no-md</strong>, <strong>--no-markdown</strong></dt>
+<dd>
+<p>Disable markdown rendering.</p>
+</dd>
+<dt><strong>-o</strong>, <strong>--clipboard</strong></dt>
+<dd>
+<p>Copy response to clipboard.</p>
+</dd>
+<dt><strong>-v</strong>, <strong>--verbose</strong></dt>
+<dd>
+<p>Less verbose.</p>
+<p>Sleep after response in voice chat (<code>-vvccw</code>).</p>
+<p>With <code>options -ccwv</code>, sleep after response. With
+<code>options -ccwzvv</code>, stop recording voice input on silence
+detection and play TTS response right away.</p>
+<p>May be set multiple times.</p>
+</dd>
+<dt><strong>-V</strong></dt>
+<dd>
+<p>Dump raw JSON request block (debug).</p>
+</dd>
+<dt><strong>--version</strong></dt>
+<dd>
+<p>Print script version.</p>
+</dd>
+<dt><strong>-y</strong>, <strong>--tik</strong></dt>
+<dd>
+<p>Set tiktoken for token count (cmpls/chat, python).</p>
+</dd>
+<dt><strong>-Y</strong>, <strong>--no-tik</strong>
+(<em>defaults</em>)</dt>
+<dd>
+<p>Unset tiktoken use (cmpls/chat, python).</p>
+</dd>
+<dt><strong>-Z</strong>, <strong>-ZZ</strong>, <strong>-ZZZ</strong>,
+<strong>--last</strong></dt>
+<dd>
+<p>Print JSON data of the last responses.</p>
+</dd>
+</dl>
+<h1 id="chat-completion-mode">CHAT COMPLETION MODE</h1>
 <p>Set <code>option -c</code> to start a multi-turn chat mode via
-<strong>text completions</strong> with command line history support.
-This option works with instruct models, defaults to
-<em>gpt-3.5-turbo-instruct</em> if none set.</p>
+<strong>text completions</strong> with history support. This option
+works with instruct models, defaults to <em>gpt-3.5-turbo-instruct</em>
+if none set.</p>
 <p>Set <code>options -cc</code> to start the chat mode via
 <strong>native chat completions</strong>. This mode defaults to the
 <em>gpt-4o</em> model, which is optimised to follow instructions. Try
@@ -240,7 +653,7 @@ according to the model capabilities!</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session, and set <code>option -E</code> to exit on the
 first response (even in multi turn mode).</p>
-<h3 id="text-completion-modes">Text Completion Modes</h3>
+<h1 id="text-completion-mode">TEXT COMPLETION MODE</h1>
 <p><code>Option -d</code> starts a single-turn session in <strong>plain
 text completions</strong>, no history support. This does not set further
 options automatically, such as instruction or temperature.</p>
@@ -248,15 +661,15 @@ options automatically, such as instruction or temperature.</p>
 support, set command line <code>options -dd</code>.</p>
 <p>Set text completion models such as
 <em>gpt-3.5-turbo-instruct</em>.</p>
-<h3 id="insert-modes-fill-in-the-middle">Insert Modes
-(Fill-In-the-Middle)</h3>
+<h1 id="insert-mode-fill-in-the-middle">INSERT MODE
+(Fill-In-the-Middle)</h1>
 <p>Set <code>option -q</code> for <strong>insert mode</strong> in
 single-turn and <code>option -qq</code> for multiturn. The flag
 “<em>[insert]</em>” must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.</p>
 <p>Insert mode works with `instruct’ and Mistral `code’ models.</p>
-<h3 id="instruction-prompts">Instruction Prompts</h3>
+<h1 id="instruction-prompts">INSTRUCTION PROMPTS</h1>
 <p>The SYSTEM INSTRUCTION prompt may be set with <code>option -S</code>
 or via envars <code>$INSTRUCTION</code> and
 <code>$INSTRUCTION_CHAT</code>.</p>
@@ -264,44 +677,69 @@ or via envars <code>$INSTRUCTION</code> and
 prompt) for text cmpls, and chat cmpls. A text file path may be supplied
 as the single argument. Also see <em>CUSTOM / AWESOME PROMPTS</em>
 section below.</p>
-<p>In multi-turn interactions, prompts prefixed with a single colon
-“<em>:</em>” are appended to the current request buffer as user messages
-without making a new API call. Conversely, prompts starting with double
-colons “<em>::</em>” are appended as instruction / system messages. For
-text cmpls only, triple colons append the text immediately to the
-previous prompt without a restart sequence.</p>
 <p>To create and reuse a custom prompt, set the prompt name as a command
 line option, such as “<code>-S .[_prompt_name_]</code>” or
 “<code>-S ,[_prompt_name_]</code>”.</p>
 <p>When the operator is a comma “<em>,</em>”, single-shot editing will
-be available after loading the prompt text. Use “<em>,,</em>” to
+be available after loading the prompt text. Use double “<em>,,</em>” to
 actually edit the template file itself!</p>
 <p>Note that loading a custom prompt will also change to its
 respectively-named history file.</p>
 <p>Alternatively, set the first positional argument with the operator
 and the prompt name after any command line options, such as
-“<code>.[_prompt_name_]</code>”. This loads the prompt file unless
-instruction was set with command line options.</p>
+“<code>chatgpt;sh -cc .[_prompt_name_]</code>”. This loads the prompt
+file unless instruction was set with command line options.</p>
+<p>In multi-turn interactions, prompts prefixed with a single colon
+“<em>:</em>” are appended to the current request buffer as user messages
+without making a new API call. Conversely, prompts starting with double
+colons “<em>::</em>” are appended as instruction / system messages.
+<!-- [DEPRECATED]
+For text cmpls only, triple colons append the text immediately to the previous prompt
+without a restart sequence. --></p>
 <p>To insert the current date and time to the instruction prompt, set
 command line <code>option --time</code>.</p>
-<h3 id="commands">Commands</h3>
-<p>If the first positional argument of the script starts with the
-command operator forward slash “<code>/</code>” and a history file name,
-the command ``/session [<em>HIST_NAME</em>]’’ is assumed. This will
-change to or create a new history file (with
-<code>options -ccCdPP</code>).</p>
-<p>If a plain text or PDF file path is set as the last positional
-parameter or as an argument to <code>option -S</code> (set instruction
-prompt), the file is loaded as text PROMPT.</p>
-<p>With <strong>vision models</strong>, append the image file paths and
-possibly URLs at the end of the prompt.</p>
-<p>In chat mode, a PDF, DOC, TXT or URL filepath at the very end of the
-user prompt is appended as text dump to the current user input.</p>
-<p>Make sure file paths containing spaces are backslash-escaped!</p>
-<h3 id="model-and-capacity">Model and Capacity</h3>
-<p>Set model with ``-m [<em>MODEL</em>]’’, with <em>MODEL</em> as its
-name, or set it as “<em>.</em>” to pick from the model list. List
-available models with <code>option -l</code>.</p>
+<h2 id="prompt-engineering-and-design">Prompt Engineering and
+Design</h2>
+<p>Minimal <strong>INSTRUCTION</strong> to behave like a chatbot is
+given with chat <code>options -cc</code>, unless otherwise explicitly
+set by the user.</p>
+<p>On chat mode, if no INSTRUCTION is set, minimal instruction is given,
+and some options auto set, such as increasing temp and presence penalty,
+in order to un-lobotomise the bot. With cheap and fast models of text
+cmpls, such as Curie, the `best_of’ option may be worth setting (to 2 or
+3).</p>
+<p>Prompt engineering is an art on itself. Study carefully how to craft
+the best prompts to get the most out of text, code and chat cmpls
+models.</p>
+<p>Certain prompts may return empty responses. Maybe the model has
+nothing to further complete input or it expects more text. Try trimming
+spaces, appending a full stop/ellipsis, resetting temperature, or adding
+more text.</p>
+<p>Prompts ending with a space character may result in lower quality
+output. This is because the API already incorporates trailing spaces in
+its dictionary of tokens.</p>
+<p>Note that the model’s steering and capabilities require prompt
+engineering to even know that it should answer the questions.</p>
+<!--
+It is also worth trying to sample 3 - 5 times (increasing the number
+of responses with \`option -n 3', for example) in order to obtain
+a good response.
+-->
+<!--
+For more on prompt design, see:
+
+ - <https://platform.openai.com/docs/guides/completion/prompt-design>
+ - <https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md>
+
+
+See detailed info on settings for each endpoint at:
+
+ - <https://platform.openai.com/docs/>
+ -->
+<h1 id="model-and-capacity">MODEL AND CAPACITY</h1>
+<p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
+<em>MODEL</em> as its name, or set it as “<em>.</em>” to pick from the
+model list. List available models with <code>option -l</code>.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
 defaults to <em>1024</em> tokens and <em>25000</em> for reasoning
@@ -316,6 +754,11 @@ otherwise model capacity is set automatically for known models or to
 <em>2048</em> tokens as fallback.</p>
 <p>List models with <code>option -l</code> or run <code>/models</code>
 in chat mode.</p>
+<p><code>Option -y</code> sets python tiktoken instead of the default
+script hack to preview token count. This option makes token count
+preview accurate and fast (we fork tiktoken as a coprocess for fast
+token queries). Useful for rebuilding history context independently from
+the original model used to generate responses.</p>
 <!--
 Install models with `option -l` or command `/models`
 and the `install` keyword.
@@ -328,13 +771,50 @@ Gallery defaults to HuggingFace.
 * NOTE: *  I recommend using LocalAI own binary to install the models!
 -->
 <!-- LocalAI only tested with text and chat completion models (vision) -->
-<p><code>Option -y</code> sets python tiktoken instead of the default
-script hack to preview token count. This option makes token count
-preview accurate and fast (we fork tiktoken as a coprocess for fast
-token queries). Useful for rebuilding history context independently from
-the original model used to generate responses.</p>
-<h3 id="image-generations-and-edits-dall-e">Image Generations and Edits
-(Dall-E)</h3>
+<h1 id="speech-to-text-whisper">SPEECH-TO-TEXT (Whisper)</h1>
+<p><code>Option -w</code> <strong>transcribes audio speech</strong> from
+<em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
+<em>wav</em>, <em>webm</em>, <em>flac</em> and <em>ogg</em> files. First
+positional argument must be an <em>AUDIO</em> file. Optionally, set a
+<em>TWO-LETTER</em> input language (<em>ISO-639-1</em>) as the second
+argument. A PROMPT may also be set to guide the model’s style, or
+continue a previous audio segment. The text prompt should match the
+speech language.</p>
+<p>Note that <code>option -w</code> can also be set to <strong>translate
+speech</strong> input to any text language to the target language.</p>
+<p><code>Option -W</code> <strong>translates speech</strong> stream to
+<strong>English text</strong>. A PROMPT in English may be set to guide
+the model as the second positional argument.</p>
+<p>Set these options twice to have phrasal-level timestamps, options -ww
+and -WW. Set thrice for word-level timestamps.</p>
+<p>Combine <code>options -wW</code> <strong>with</strong>
+<code>options -cc</code> to start <strong>chat with voice input</strong>
+(Whisper) support. Additionally, set <code>option -z</code> to enable
+<strong>text-to-speech</strong> (TTS) models and voice out.</p>
+<h1 id="text-to-voice-tts">TEXT-TO-VOICE (TTS)</h1>
+<p><code>Option -z</code> synthesises voice from text (TTS models). Set
+a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
+“<em>echo</em>”, “<em>fable</em>”, “<em>onyx</em>”, “<em>nova</em>”, or
+“<em>shimmer</em>”). Set the second positional parameter as the
+<em>voice speed</em> (<em>0.25</em> - <em>4.0</em>), and, finally the
+<em>output file name</em> or the <em>format</em>, such as
+“<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>opus</em>”,
+“<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
+<code>options -vz</code> to <em>not</em> play received output.</p>
+<h1 id="multimodal-audio-models">MULTIMODAL AUDIO MODELS</h1>
+<p>Audio models, such as `gpt-4o-audio’, deal with audio input and
+output directly.</p>
+<p>To activate the microphone recording function of the script, set
+command line <code>option -w</code>.</p>
+<p>Otherwise, the audio model accepts any compatible audio file (such as
+<strong>mp3</strong>, <strong>wav</strong>, and <strong>opus</strong>).
+These files can be added to be loaded at the very end of the user prompt
+or added with chat command “<code>/audio</code>
+<em>path/to/file.mp3</em>”.</p>
+<p>To activate the audio synthesis output mode of an audio model, make
+sure to set command line <code>option -z</code>!</p>
+<h1 id="image-generations-and-edits-dall-e">IMAGE GENERATIONS AND EDITS
+(Dall-E)</h1>
 <p><code>Option -i</code> <strong>generates images</strong> according to
 text PROMPT. If the first positional argument is an <em>IMAGE</em> file,
 then <strong>generate variations</strong> of it. If the first positional
@@ -356,75 +836,8 @@ Defaults=<em>1024x1024</em>.</p>
 command line invocation.</p>
 <p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
-<h3 id="speech-to-text-whisper">Speech-To-Text (Whisper)</h3>
-<p><code>Option -w</code> <strong>transcribes audio speech</strong> from
-<em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
-<em>wav</em>, <em>webm</em>, <em>flac</em> and <em>ogg</em> files. First
-positional argument must be an <em>AUDIO</em> file. Optionally, set a
-<em>TWO-LETTER</em> input language (<em>ISO-639-1</em>) as the second
-argument. A PROMPT may also be set to guide the model’s style, or
-continue a previous audio segment. The text prompt should match the
-speech language.</p>
-<p>Note that <code>option -w</code> can also be set to <strong>translate
-speech</strong> input to any text language to the target language.</p>
-<p><code>Option -W</code> <strong>translates speech</strong> stream to
-<strong>English text</strong>. A PROMPT in English may be set to guide
-the model as the second positional argument.</p>
-<p>Set these options twice to have phrasal-level timestamps, options -ww
-and -WW. Set thrice for word-level timestamps.</p>
-<p>Combine <code>options -wW</code> <strong>with</strong>
-<code>options -cc</code> to start <strong>chat with voice input</strong>
-(Whisper) support. Additionally, set <code>option -z</code> to enable
-<strong>text-to-speech</strong> (TTS) models and voice out.</p>
-<h3 id="tts-text-to-voice">TTS (Text-To-Voice)</h3>
-<p><code>Option -z</code> synthesises voice from text (TTS models). Set
-a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
-“<em>echo</em>”, “<em>fable</em>”, “<em>onyx</em>”, “<em>nova</em>”, or
-“<em>shimmer</em>”). Set the second positional parameter as the
-<em>voice speed</em> (<em>0.25</em> - <em>4.0</em>), and, finally the
-<em>output file name</em> or the <em>format</em>, such as
-“<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>opus</em>”,
-“<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
-<code>options -vz</code> to <em>not</em> play received output.</p>
-<h3 id="audio-models">Audio Models</h3>
-<p>Audio models, such as `gpt-4o-audio’, deal with audio input and
-output directly.</p>
-<p>To activate the microphone recording function of the script, set
-command line <code>option -w</code>.</p>
-<p>Otherwise, the audio model accepts any compatible audio file (such as
-<strong>mp3</strong>, <strong>wav</strong>, and <strong>opus</strong>).
-These files can be added to be loaded at the very end of the user prompt
-or added with chat command ``/audio path/to/file.mp3’’.</p>
-<p>To activate the audio synthesis output mode of an audio model, make
-sure to set command line <code>option -z</code>!</p>
-<h3 id="general-considerations">General Considerations</h3>
-<p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
-cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
-<p>The moderation endpoint can be accessed by setting the model name to
-<em>omni-moderation-latest</em> (or
-<em>text-moderation-latest</em>).</p>
-<p>Stdin text is appended to PROMPT, to set a single PROMPT.</p>
-<p>Press &lt;<em>CTRL-X</em> <em>CTRL-E</em>&gt; to edit command line in
-text editor from readline.</p>
-<p>Press &lt;<em>CTRL-J</em>&gt; or &lt;<em>CTRL-V</em>
-<em>CTRL-J</em>&gt; for newline in readline.</p>
-<p>Press &lt;<em>CTRL-L</em>&gt; to redraw readline buffer (user input)
-on screen.</p>
-<p>During <em>cURL</em> requests, press &lt;<em>CTRL-C</em>&gt; once to
-interrupt the call.</p>
-<p>Press &lt;<em>CTRL-\</em>&gt; to exit from the script (send
-<em>QUIT</em> signal), or “<em>Q</em>” in user confirmation prompts.</p>
-<p>A personal OpenAI API is required, set it with
-<code>option --api-key</code>. See also <strong>ENVIRONMENT
-section</strong>.</p>
-<p>For complete model and settings information, refer to OpenAI API docs
-at <a href="https://platform.openai.com/docs/"
-class="uri">https://platform.openai.com/docs/</a>.</p>
-<p>See the online man page and <code>chatgpt.sh</code> usage examples
-at: <a href="https://gitlab.com/fenixdragao/shellchatgpt"
-class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
-<h3 id="text-chat-completions">TEXT / CHAT COMPLETIONS</h3>
-<h3 id="text-completion-modes-1">1. Text Completion Modes</h3>
+<h1 id="text-chat-completions">TEXT / CHAT COMPLETIONS</h1>
+<h2 id="text-completion">1. Text Completion</h2>
 <p>Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language model will
 try completing it until probable “<code>&lt;|endoftext|&gt;</code>”,</p>
@@ -438,28 +851,28 @@ pasting from the clipboard. Alternatively, set <code>option -u</code> to
 enable pressing &lt;<em>CTRL-D</em>&gt; to flush input! Or set
 <code>option -U</code> to set <em>cat command</em> as input
 prompter.</p>
-<!--  [DISABLED]
-Type in a backslash "_\\_" as the last character of the input line
-to append a literal newline once and return to edition,
-or press \<_CTRL-V_ _CTRL-J_>.
--->
 <p>Bash bracketed paste is enabled, meaning multiline input may be
 pasted or typed, even without setting <code>options -uU</code>
 (<em>v25.2+</em>).</p>
 <p>Language model <strong>SKILLS</strong> can be activated with specific
 prompts, see <a href="https://platform.openai.com/examples"
 class="uri">https://platform.openai.com/examples</a>.</p>
-<h3 id="chat-modes">2. Chat Modes</h3>
-<h4 id="text-completions-chat">2.1 Text Completions Chat</h4>
+<!--  [DISABLED]
+Type in a backslash "_\\_" as the last character of the input line
+to append a literal newline once and return to edition,
+or press \<_CTRL-V_ _CTRL-J_>.
+-->
+<h2 id="interactive-conversations">2. Interactive Conversations</h2>
+<h3 id="text-completions-chat">2.1 Text Completions Chat</h3>
 <p>Set <code>option -c</code> to start chat mode of text completions. It
 keeps a history file, and keeps new questions in context. This works
 with a variety of models. Set <code>option -E</code> to exit on
 response.</p>
-<h4 id="native-chat-completions">2.2 Native Chat Completions</h4>
+<h3 id="native-chat-completions">2.2 Native Chat Completions</h3>
 <p>Set the double <code>option -cc</code> to start chat completions
 mode. More recent models are also the best option for many non-chat use
 cases.</p>
-<h4 id="q-a-format">2.3 Q &amp; A Format</h4>
+<h3 id="q-a-format">2.3 Q &amp; A Format</h3>
 <p>The defaults chat format is “<strong>Q &amp; A</strong>”. The
 <strong>restart sequence</strong> “<em>\nQ: </em>” and the <strong>start
 text</strong> “<em>\nA:</em>” are injected for the chat bot to work well
@@ -469,8 +882,8 @@ initial character sets the prompt as a <strong>SYSTEM</strong> message.
 In text completions, however, typing a colon “<em>:</em>” at the start
 of the prompt causes the text following it to be appended immediately to
 the last (response) prompt text.</p>
-<h4 id="voice-input-whisper-and-voice-output-tts">2.4 Voice input
-(Whisper), and voice output (TTS)</h4>
+<h3 id="voice-input-whisper-and-voice-output-tts">2.4 Voice input
+(Whisper), and voice output (TTS)</h3>
 <p>The <code>options -ccwz</code> may be combined to have voice
 recording input and synthesised voice output, specially nice with chat
 modes. When setting <code>flag -w</code> or <code>flag -z</code>, the
@@ -480,11 +893,11 @@ Whisper, and then TTS arguments.</p>
 <p>Set chat mode, plus Whisper language and prompt, and the TTS voice
 option argument:</p>
 <pre><code>chatgpt.sh -ccwz  en &#39;whisper prompt&#39;  --  nova</code></pre>
-<h4 id="vision-and-multimodal-models">2.5 Vision and Multimodal
-Models</h4>
+<h3 id="vision-and-multimodal-models">2.5 Vision and Multimodal
+Models</h3>
 <p>To send an <em>image</em> or <em>url</em> to <strong>vision
-models</strong>, either set the image with the ``!img’’ command with one
-or more <em>filepaths</em> / <em>urls</em>.</p>
+models</strong>, either set the image with the “<code>!img</code>”
+command with one or more <em>filepaths</em> / <em>urls</em>.</p>
 <pre><code>chatgpt.sh -cc -m gpt-4-vision-preview &#39;!img path/to/image.jpg&#39;</code></pre>
 <p>Alternatively, set the <em>image paths</em> / <em>urls</em> at the
 end of the text prompt interactively:</p>
@@ -492,8 +905,9 @@ end of the text prompt interactively:</p>
 
 [...]
 Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpeg</code></pre>
-<h4 id="text-pdf-doc-and-url-dumps">2.6 Text, PDF, Doc, and URL
-Dumps</h4>
+<p>Make sure file paths containing spaces are backslash-escaped!</p>
+<h3 id="text-pdf-doc-and-url-dumps">2.6 Text, PDF, Doc, and URL
+Dumps</h3>
 <p>The user may add a <em>filepath</em> or <em>URL</em> to the end of
 the prompt. The file is then read and the text content appended to the
 user prompt. This is a basic text feature that works with any model.</p>
@@ -510,12 +924,12 @@ required. See the <strong>Optional Packages</strong> section.</p>
 <p>Also note that <em>file paths</em> containing white spaces must be
 <strong>blackslash-escaped</strong>, or the <em>file path</em> must be
 preceded by a pipe `|’ character.</p>
-<p>Multiple images and audio files may be appended the the prompt in
-this way!</p>
-<h4 id="command-list">2.7 Command List</h4>
+<p>Multiple images and audio files may be appended the prompt in this
+way!</p>
+<h1 id="command-list">COMMAND LIST</h1>
 <p>While in chat mode, the following commands can be invoked in the new
-prompt to execute a task or set parameters. The command operator may be
-either “<code>!</code>” or “<code>/</code>”.</p>
+prompt to change parameters and manage sessions. Command operators
+“<code>!</code>” or “<code>/</code>” are equivalent.</p>
 <table>
 <thead>
 <tr class="header">
@@ -935,13 +1349,13 @@ prompts: “<em>pr</em>”. Awesome: “<em>awe</em>”. All: “<em>.</em>”.<
 <tr class="odd">
 <td style="text-align: left;"><code>!s</code></td>
 <td style="text-align: left;"><code>!session</code>
-[<em>HIST_FILE</em>]</td>
+[<em>HIST_NAME</em>]</td>
 <td>Change to, search for, or create history file.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!!s</code></td>
 <td style="text-align: left;"><code>!!session</code>
-[<em>HIST_FILE</em>]</td>
+[<em>HIST_NAME</em>]</td>
 <td>Same as <code>!session</code>, break session.</td>
 </tr>
 </tbody>
@@ -952,119 +1366,77 @@ their output appended to the prompt.</div>
 <div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
 may be invoked at the very end of the input prompt (preceded by
 space).</div>
-<div class="line-block">E.g.: “<code>/temp</code> <em>0.7</em>”,
-“<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”,
-“<code>/session</code> <em>HIST_NAME</em>”, “[<em>PROMPT</em>]
-<code>/pick</code>”, and “[<em>PROMPT</em>] <code>/sh</code>”.</div>
-<p>The “<code>/pick</code>” command opens a file picker (usually a
-command-line file manager). The selected file’s path will be appended to
-the current prompt in editing mode.</p>
-<p>The “<code>/pick</code>” and “<code>/sh</code>” commands may be run
-when typed at the end of the current prompt, such as “[<em>PROMPT</em>]
-<code>/sh</code>”, which opens a new shell instance to execute commands
-interactively. The output of these commands is appended to the current
-prompt.</p>
-<p>When the “<code>/pick</code>” command is run at the end of the
-prompt, the selected file path is appended instead.</p>
-<p>Command “<code>!block</code> [<em>ARGS</em>]” may be run to set raw
-model options in JSON syntax according to each API. Alternatively, set
-envar <strong>$BLOCK_USR</strong>.</p>
-<h4 id="session-management">2.8 Session Management</h4>
-<p>The script uses a <em>TSV file</em> to record entries, which is kept
-at the script cache directory. A new history file can be created or an
-existing one changed to with command “<code>/session</code>
-[<em>HIST_FILE</em>]”, in which <em>HIST_FILE</em> is the file name of
-(with or without the <em>.tsv</em> extension), or path to, a history
-file.</p>
-<p>When the first positional argument to the script is the command
-operator forward slash followed by a history file name, the command
-“<code>/session</code>” is assumed.</p>
-<p>A history file can contain many sessions. The last one (the tail
-session) is always loaded if the resume <code>option -C</code> is
-set.</p>
-<h5 id="copying-and-resuming-older-sessions">Copying and resuming older
-sessions</h5>
-<p>To continue from an old session type in a dot “<code>.</code>” as the
-first positional argument from the command line. This is a shortcut for
-the “<code>/sub</code>” command, which really copies an old session to
-the tail the history file so we can resume it.</p>
-<p>If you want to change to a custom history file, type in as the first
-positional argument at the command line “<code>/session</code>
-[<em>NAME</em>]” or simply “<code>/</code>[<em>NAME</em>]”.</p>
-<p>Once the history file is set, the user can resume from an older
-session with “<code>/grep</code> [<em>REGEX</em>]”, “<code>/copy</code>
-<em>current</em>” or simply “<code>/sub</code>”.</p>
-<!--
-If "`/copy` _current_" is run, a selector is shown to choose and copy
-a session to the tail of the current history file, and resume it.
-This is equivalent to running "`/fork`". 
--->
-<p>It is also possible to copy sessions of a history file to another
-file when a second argument is given to the command with the history
-file name, such as “<code>/copy</code> [<em>SRC_HIST_FILE</em>]
-[<em>DEST_HIST_FILE</em>]”. A dot as file name means the current history
-file.</p>
-<h5 id="changing-session">Changing session</h5>
-<p>To load an older session from a history file that is different from
-the defaults, there are some options.</p>
-<p>Change to it with command “<code>!session</code> [<em>NAME</em>]”,
-and then “<code>!fork</code>” the older session to the active
-session.</p>
-<p>Or, “<code>!copy</code> [<em>ORIGN</em>] [<em>DEST</em>]” the session
-from a history file to the current or other history file.</p>
-<p>In these cases, a pickup interface should open to let the user choose
-the correct session from the history file.</p>
-<h5 id="history-file-editing">History file editing</h5>
-<p>To change the chat context at run time, the history file may be
-edited with the “<code>/hist</code>” command (also for context
-injection). Delete history entries or comment them out with
-“<code>#</code>”.</p>
-<h4 id="completion-regeneration">2.9 Completion Regeneration</h4>
+<div class="line-block">Examples:</div>
+<div class="line-block">  “<code>/temp</code> <em>0.7</em>”,
+“<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”</div>
+<div class="line-block">  “<code>/session</code> <em>HIST_NAME</em>”,
+“[<em>PROMPT</em>] <code>/pick</code>”,</div>
+<div class="line-block">  “[<em>PROMPT</em>] <code>/sh</code>”.</div>
 <p>To <strong>regenerate response</strong>, type in the command
 “<code>!regen</code>” or a single exclamation mark or forward slash in
 the new empty prompt. In order to edit the prompt before the request,
 try “<code>!!</code>” (or “<code>//</code>”).</p>
-<h3 id="prompt-engineering-and-design">3. Prompt Engineering and
-Design</h3>
-<p>Minimal <strong>INSTRUCTION</strong> to behave like a chatbot is
-given with chat <code>options -cc</code>, unless otherwise explicitly
-set by the user.</p>
-<p>On chat mode, if no INSTRUCTION is set, minimal instruction is given,
-and some options auto set, such as increasing temp and presence penalty,
-in order to un-lobotomise the bot. With cheap and fast models of text
-cmpls, such as Curie, the `best_of’ option may be worth setting (to 2 or
-3).</p>
-<p>Prompt engineering is an art on itself. Study carefully how to craft
-the best prompts to get the most out of text, code and chat cmpls
-models.</p>
-<p>Certain prompts may return empty responses. Maybe the model has
-nothing to further complete input or it expects more text. Try trimming
-spaces, appending a full stop/ellipsis, resetting temperature, or adding
-more text.</p>
-<p>Prompts ending with a space character may result in lower quality
-output. This is because the API already incorporates trailing spaces in
-its dictionary of tokens.</p>
-<p>Note that the model’s steering and capabilities require prompt
-engineering to even know that it should answer the questions.</p>
-<p>It is also worth trying to sample 3 - 5 times (increasing the number
-of responses with `option -n 3’, for example) in order to obtain a good
-response.</p>
-<p>For more on prompt design, see:</p>
-<ul>
-<li><a
-href="https://platform.openai.com/docs/guides/completion/prompt-design"
-class="uri">https://platform.openai.com/docs/guides/completion/prompt-design</a></li>
-<li><a
-href="https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md"
-class="uri">https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md</a></li>
-</ul>
-<p>See detailed info on settings for each endpoint at:</p>
-<ul>
-<li><a href="https://platform.openai.com/docs/"
-class="uri">https://platform.openai.com/docs/</a></li>
-</ul>
+<p>The “<code>/pick</code>” command opens a file picker (usually a
+command-line file manager). The selected file’s path will be appended to
+the current prompt in editing mode.</p>
+<p>The “<code>/sh</code>” and “<code>/pick</code>” commands may be run
+when typed at the end of the current prompt, such as “[<em>PROMPT</em>]
+<code>/sh</code>”, which opens a new shell instance to execute commands
+interactively. The shell command dump or file path is appended to the
+current prompt.</p>
+<p>Command “<code>!block</code> [<em>ARGS</em>]” may be run to set raw
+model options in JSON syntax according to each API. Alternatively, set
+envar <strong>$BLOCK_USR</strong>.</p>
+<h1 id="session-management">Session Management</h1>
+<p>A history file can hold a single session or multiple sessions. When
+it holds a single session, the name of the history file and the session
+are the same. However, in case the user breaks a session, the last one
+(the tail session) of that history file is always loaded when the resume
+<code>option -C</code> is set.</p>
+<p>The script uses a <em>TSV file</em> to record entries, which is kept
+at the script cache directory (“<code>~/.cache/chatgptsh/</code>”). The
+<strong>tail session</strong> of the history file can always be read and
+resumed.</p>
+<h2 id="changing-session">Changing Session</h2>
+<p>A new history file can be created or changed to with command
+“<code>/session</code> [<em>HIST_NAME</em>]”, in which
+<em>HIST_NAME</em> is the file name or path of a history file.</p>
+<p>On invocation, when the first positional argument to the script
+follows the syntax “<code>/</code>[<em>HIST_NAME</em>]”, the command
+“<code>/session</code>” is assumed (with
+<code>options -ccCdPP</code>).</p>
+<h2 id="resuming-and-copying-sessions">Resuming and Copying
+Sessions</h2>
+<p>To continue from an old session type in a dot “<code>.</code>” as the
+first positional argument from the command line on invocation.</p>
+<p>The above command is a shortcut of “<code>/copy</code>
+<em>current</em> <em>current</em>”. In fact, there are multiple commands
+to copy and resume from an older session (the dot means <em>current
+session</em>): “<code>/copy . .</code>”, “<code>/fork.</code>”,
+“<code>/sub</code>”, “<code>/grep</code> [<em>REGEX</em>]”,
+“<code>/.</code>”, or simply “<code>.</code>”.</p>
+<p>It is possible to copy sessions of a history file to another file
+when a second argument is given to the “<code>/copy</code>” command.</p>
 <!--
-### CODE COMPLETIONS _(discontinued)_
+If "`/copy` _current_" is run, a selector is shown to choose and copy
+a session to the tail of the current history file, and resume it.
+This is equivalent to running "`/fork`". -->
+<!--
+Change to a history file with command "`!session` \[_NAME_]",
+and then "`!fork`" the older session to the active session. -->
+<!--
+Or, "`!copy` \[_ORIGN_] \[_DEST_]" the session from a history file to the current
+or other history file.
+
+In these cases, a pickup interface should open to let the user choose
+the correct session from the history file. -->
+<h2 id="history-file-editing">History File Editing</h2>
+<p>To edit chat context at run time, the history file may be modified
+with the “<code>/hist</code>” command (also good for context
+injection).</p>
+<p>Delete history entries or comment them out with “#”.</p>
+<!--
+# CODE COMPLETIONS _(discontinued)_
 
 Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
 
@@ -1079,7 +1451,7 @@ useful completions it's helpful to think about what information
 a programmer would need to perform a task. 
 -->
 <!--
-### TEXT EDITS  _(discontinued)_
+# TEXT EDITS  _(discontinued)_
 
 --
 This endpoint is set with models with **edit** in their name or
@@ -1096,10 +1468,7 @@ Alternatively,
 
 Use _gpt-4+ models_ and the right instructions.
 -->
-<h3 id="escaping-new-lines-and-tabs">ESCAPING NEW LINES AND TABS</h3>
-<p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
-specially in restart, start and stop sequences!</p>
-<h3 id="custom-awesome-prompts">CUSTOM / AWESOME PROMPTS</h3>
+<h1 id="custom-awesome-prompts">CUSTOM / AWESOME PROMPTS</h1>
 <p>When the argument to <code>option -S</code> starts with a full stop,
 such as “<code>-S</code> <code>.</code><em>my_prompt</em>”, load, search
 for, or create <em>my_prompt</em> prompt file. If two full stops are
@@ -1116,25 +1485,25 @@ or a percent sign, such as “<code>-S</code>
 <p>Please note and make sure to backup your important custom prompts!
 They are located at “<code>~/.cache/chatgptsh/</code>” with the
 extension “<em>.pr</em>”.</p>
-<h3 id="images-dall-e">IMAGES / DALL-E</h3>
-<h3 id="image-generations">1. Image Generations</h3>
+<h1 id="images-dall-e">IMAGES / DALL-E</h1>
+<h2 id="image-generations">1. Image Generations</h2>
 <p>An image can be created given a text prompt. A text PROMPT of the
 desired image(s) is required. The maximum length is 1000 characters.</p>
-<h3 id="image-variations">2. Image Variations</h3>
+<h2 id="image-variations">2. Image Variations</h2>
 <p>Variations of a given <em>IMAGE</em> can be generated. The
 <em>IMAGE</em> to use as the basis for the variations must be a valid
 PNG file, less than 4MB and square.</p>
-<h3 id="image-edits">3. Image Edits</h3>
+<h2 id="image-edits">3. Image Edits</h2>
 <p>To edit an <em>IMAGE</em>, a <em>MASK</em> file may be optionally
 provided. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
 transparency, which will be used as the mask. A text prompt is
 required.</p>
-<h4 id="imagemagick">3.1 ImageMagick</h4>
+<h3 id="imagemagick">3.1 ImageMagick</h3>
 <p>If <strong>ImageMagick</strong> is available, input <em>IMAGE</em>
 and <em>MASK</em> will be checked and processed to fit dimensions and
 other requirements.</p>
-<h4 id="transparent-colour-and-fuzz">3.2 Transparent Colour and
-Fuzz</h4>
+<h3 id="transparent-colour-and-fuzz">3.2 Transparent Colour and
+Fuzz</h3>
 <p>A transparent colour must be set with
 “<code>-@</code>[<em>COLOUR</em>]” to create the mask.
 Defaults=<em>black</em>.</p>
@@ -1150,12 +1519,12 @@ class="uri">https://imagemagick.org/script/color.php</a></li>
 href="https://imagemagick.org/script/command-line-options.php#fuzz"
 class="uri">https://imagemagick.org/script/command-line-options.php#fuzz</a></li>
 </ul>
-<h4 id="mask-file-alpha-channel">3.3 Mask File / Alpha Channel</h4>
+<h3 id="mask-file-alpha-channel">3.3 Mask File / Alpha Channel</h3>
 <p>An alpha channel is generated with <strong>ImageMagick</strong> from
 any image with the set transparent colour (defaults to <em>black</em>).
 In this way, it is easy to make a mask with any black and white image as
 a template.</p>
-<h4 id="in-paint-and-out-paint">3.4 In-Paint and Out-Paint</h4>
+<h3 id="in-paint-and-out-paint">3.4 In-Paint and Out-Paint</h3>
 <p>In-painting is achieved setting an image with a MASK and a
 prompt.</p>
 <p>Out-painting can also be achieved manually with the aid of this
@@ -1164,8 +1533,8 @@ script. Paint a portion of the outer area of an image with
 will be used as the mask, and set the same <em>colour</em> in the script
 with `option -@’. Choose the best result amongst many results to
 continue the out-painting process step-wise.</p>
-<h3 id="audio-whisper">AUDIO / WHISPER</h3>
-<h3 id="transcriptions">1. Transcriptions</h3>
+<h1 id="audio-whisper">AUDIO / WHISPER</h1>
+<h2 id="transcriptions">Transcriptions</h2>
 <p>Transcribes audio file or voice record into the set language. Set a
 <em>two-letter</em> <em>ISO-639-1</em> language code (<em>en</em>,
 <em>es</em>, <em>ja</em>, or <em>zh</em>) as the positional argument
@@ -1176,13 +1545,13 @@ the audio language.</p>
 resubmit the last recorded audio input file from cache.</p>
 <p>Note that if the audio language is different from the set language
 code, output will be on the language code (translation).</p>
-<h3 id="translations">2. Translations</h3>
+<h2 id="translations">Translations</h2>
 <p>Translates audio into <strong>English</strong>. An optional text to
 guide the model’s style or continue a previous audio segment is optional
 as last positional argument. This prompt should be in English.</p>
 <p>Setting <strong>temperature</strong> has an effect, the higher the
 more random.</p>
-<h3 id="provider-integrations">Provider Integrations</h3>
+<h1 id="provider-integrations">PROVIDER INTEGRATIONS</h1>
 <p>For LocalAI integration, run the script with
 <code>option --localai</code>, or set environment
 <strong>$OPENAI_BASE_URL</strong> with the server Base URL.</p>
@@ -1219,7 +1588,7 @@ your API key.</p>
 <code>option -cc</code> (chat completions.).</p>
 <p>Some models also work with native text completions. For that, set
 command-line <code>option -c</code> instead.</p>
-<h3 id="environment">ENVIRONMENT</h3>
+<h1 id="environment">ENVIRONMENT</h1>
 <p><strong>BLOCK_USR</strong></p>
 <dl>
 <dt><strong>BLOCK_USR_TTS</strong></dt>
@@ -1327,7 +1696,7 @@ Novita, and xAI APIs.</p>
 <p>Audio recorder command, e.g. “<em>sox -d</em>”.</p>
 </dd>
 </dl>
-<h3 id="color-themes">COLOR THEMES</h3>
+<h1 id="color-themes">COLOR THEMES</h1>
 <p>The colour scheme may be customised. A few themes are available in
 the template configuration file.</p>
 <p>A small colour library is available for the user conf file to
@@ -1344,12 +1713,38 @@ and background colours can be set with <em>$On_Yellow</em>,
 <p>Theme colours are named variables from <code>Colour1</code> to about
 <code>Colour11</code>, and may be set with colour-named variables or raw
 escape sequences (these must not change cursor position).</p>
-<h3 id="required-packages">REQUIRED PACKAGES</h3>
+<h1 id="notes">NOTES</h1>
+<p>Stdin text is appended to any existing PROMPT.</p>
+<p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
+specially (as escaped new lines and tabs) in restart, start and stop
+sequences!</p>
+<p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
+cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
+<p>The moderation endpoint can be accessed by setting the model name to
+<em>omni-moderation-latest</em> (or
+<em>text-moderation-latest</em>).</p>
+<p>Press &lt;<em>CTRL-X</em> <em>CTRL-E</em>&gt; to edit command line in
+text editor from readline.</p>
+<p>Press &lt;<em>CTRL-J</em>&gt; or &lt;<em>CTRL-V</em>
+<em>CTRL-J</em>&gt; for newline in readline.</p>
+<p>Press &lt;<em>CTRL-L</em>&gt; to redraw readline buffer (user input)
+on screen.</p>
+<p>During <em>cURL</em> requests, press &lt;<em>CTRL-C</em>&gt; once to
+interrupt the call.</p>
+<p>Press &lt;<em>CTRL-\</em>&gt; to exit from the script (send
+<em>QUIT</em> signal), or “<em>Q</em>” in user confirmation prompts.</p>
+<p>For complete model and settings information, refer to OpenAI API docs
+at <a href="https://platform.openai.com/docs/"
+class="uri">https://platform.openai.com/docs/</a>.</p>
+<p>See the online man page and <code>chatgpt.sh</code> usage examples
+at: <a href="https://gitlab.com/fenixdragao/shellchatgpt"
+class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
+<h1 id="required-packages">REQUIRED PACKAGES</h1>
 <ul>
 <li><code>Bash</code></li>
 <li><code>cURL</code>, and <code>JQ</code></li>
 </ul>
-<h3 id="optional-packages">OPTIONAL PACKAGES</h3>
+<h1 id="optional-packages">OPTIONAL PACKAGES</h1>
 <p>Optional packages for specific features.</p>
 <ul>
 <li><code>Base64</code> - Image endpoint, vision models</li>
@@ -1373,7 +1768,13 @@ input (Whisper)</li>
 <li><code>dialog</code>/<code>kdialog</code>/<code>zenity</code>/<code>osascript</code>/<code>termux-dialog</code>
 - File picker</li>
 </ul>
-<h3 id="bugs">BUGS</h3>
+<h1 id="caveats">CAVEATS</h1>
+<p>The script objective is to implement some of the features of OpenAI
+API version 1 (not all endpoints or options will be covered).</p>
+<p>This project <em>doesn’t support</em> “Function Calling”, “Structured
+Outputs”, “Real-Time Conversations”, and “video generation /
+editing”.</p>
+<h1 id="bugs">BUGS</h1>
 <p>Bash “read command” may not correctly display input buffers larger
 than the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.</p>
@@ -1385,8 +1786,8 @@ interface. Make sure to backslash-escape filepaths with white
 spaces.</p>
 <p>Folding the response at white spaces may not worked correctly if the
 user has changed his terminal tabstop setting. Reset it with command
-``tabs -8’’ or ``reset’’ before starting the script, or set one of these
-in the script configuration file.</p>
+“tabs -8” or “reset” before starting the script, or set one of these in
+the script configuration file.</p>
 <p>If folding does not work well at all, try exporting envar
 <code>$COLUMNS</code> before script execution.</p>
 <p>Bash truncates input on “\000” (null).</p>
@@ -1418,423 +1819,7 @@ cursor one char and press the up arrow key.
 `Ksh2020` lacks functionality compared to `Ksh83u+`, such as `read`
 with history, so avoid it.
 -->
-<h3 id="limits">LIMITS</h3>
-<p>The script objective is to implement most features of OpenAI API
-version 1 but not all endpoints or options will be covered.</p>
-<p>This project <em>doesn’t</em> support “Function Calling” or
-“Structured Outputs”.</p>
-<h3 id="options">OPTIONS</h3>
-<h4 id="service-providers">Service Providers</h4>
-<dl>
-<dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
-<dd>
-<p>Set Anthropic integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--github</strong>, <strong>--git</strong></dt>
-<dd>
-<p>Set GitHub Models integration (chat).</p>
-</dd>
-<dt><strong>--google</strong>, <strong>-goo</strong></dt>
-<dd>
-<p>Set Google Gemini integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--groq</strong></dt>
-<dd>
-<p>Set Groq integration (chat).</p>
-</dd>
-<dt><strong>--localai</strong></dt>
-<dd>
-<p>Set LocalAI integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--mistral</strong></dt>
-<dd>
-<p>Set Mistral AI integration (chat).</p>
-</dd>
-<dt><strong>--novita</strong></dt>
-<dd>
-<p>Set Novita AI integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--openai</strong></dt>
-<dd>
-<p>Reset service integrations.</p>
-</dd>
-<dt><strong>-O</strong>, <strong>--ollama</strong></dt>
-<dd>
-<p>Set and make requests to Ollama server (cmpls/chat).</p>
-</dd>
-<dt><strong>--xai</strong></dt>
-<dd>
-<p>Set xAI integrations (cmpls/chat).</p>
-</dd>
-</dl>
-<h4 id="configuration-file">Configuration File</h4>
-<dl>
-<dt><strong>-f</strong>, <strong>--no-conf</strong></dt>
-<dd>
-<p>Ignore user configuration file.</p>
-</dd>
-<dt><strong>-F</strong></dt>
-<dd>
-<p>Edit configuration file with text editor, if it exists.</p>
-<p>$CHATGPTRC="<em>~/.chatgpt.conf</em>".</p>
-</dd>
-<dt><strong>-FF</strong></dt>
-<dd>
-<p>Dump template configuration file to stdout.</p>
-</dd>
-</dl>
-<h4 id="sessions-and-history-files">Sessions and History Files</h4>
-<dl>
-<dt><strong>-H</strong>, <strong>--hist</strong>
-[<code>/</code><em>HIST_FILE</em>]</dt>
-<dd>
-<p>Edit history file with text editor or pipe to stdout.</p>
-<p>A history file name can be optionally set as argument.</p>
-</dd>
-<dt><strong>-P</strong>, <strong>-PP</strong>, <strong>--print</strong>
-[<code>/</code><em>HIST_FILE</em>]</dt>
-<dd>
-<p>Print out last history session.</p>
-<p>Set twice to print commented out history entries, inclusive. Heeds
-<code>options -ccdrR</code>.</p>
-<p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
-respectively.</p>
-</dd>
-</dl>
-<h4 id="input-modes">Input Modes</h4>
-<dl>
-<dt><strong>-u</strong>, <strong>--multiline</strong></dt>
-<dd>
-<p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
-</dd>
-<dt><strong>-U</strong>, <strong>--cat</strong></dt>
-<dd>
-<p>Set cat prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
-</dd>
-<dt><strong>-x</strong>, <strong>-xx</strong>,
-<strong>--editor</strong></dt>
-<dd>
-<p>Edit prompt in text editor.</p>
-<p>Set twice to run the text editor interface a single time for the
-first user input.</p>
-<p>Set <code>options -eex</code> to edit last buffer from cache.</p>
-</dd>
-</dl>
-<h4 id="interface-modes">Interface Modes</h4>
-<dl>
-<dt><strong>-c</strong>, <strong>--chat</strong></dt>
-<dd>
-<p>Chat mode in text completions (used with
-<code>options -wzvv</code>).</p>
-</dd>
-<dt><strong>-cc</strong></dt>
-<dd>
-<p>Chat mode in chat completions (used with
-<code>options -wzvv</code>).</p>
-</dd>
-<dt><strong>-C</strong>, <strong>--continue</strong>,
-<strong>--resume</strong></dt>
-<dd>
-<p>Continue from (resume) last session (cmpls/chat).</p>
-</dd>
-<dt><strong>-d</strong>, <strong>--text</strong></dt>
-<dd>
-<p>Single-turn session of plain text completions.</p>
-</dd>
-<dt><strong>-dd</strong></dt>
-<dd>
-<p>Multi-turn session of plain text completions with history
-support.</p>
-</dd>
-<dt><strong>-e</strong>, <strong>--edit</strong></dt>
-<dd>
-<p>Edit first input from stdin or file (cmpls/chat).</p>
-<p>With <code>options -eex</code>, edit last text editor buffer from
-cache.</p>
-</dd>
-<dt><strong>-E</strong>, <strong>-EE</strong>,
-<strong>--exit</strong></dt>
-<dd>
-<p>Exit on first run (even with options -cc).</p>
-</dd>
-<dt><strong>-g</strong>, <strong>--stream</strong>
-(<em>defaults</em>)</dt>
-<dd>
-<p>Set response streaming.</p>
-</dd>
-<dt><strong>-G</strong>, <strong>--no-stream</strong></dt>
-<dd>
-<p>Unset response streaming.</p>
-</dd>
-<dt><strong>-i</strong>, <strong>--image</strong> [<em>PROMPT</em>]</dt>
-<dd>
-<p>Generate images given a prompt. Set <em>option -v</em> to not open
-response.</p>
-</dd>
-<dt><strong>-i</strong> [<em>PNG</em>]</dt>
-<dd>
-<p>Create variations of a given image.</p>
-</dd>
-<dt><strong>-i</strong> [<em>PNG</em>] [<em>MASK</em>]
-[<em>PROMPT</em>]</dt>
-<dd>
-<p>Edit image with mask and prompt (required).</p>
-</dd>
-<dt><strong>-q</strong>, <strong>-qq</strong>,
-<strong>--insert</strong></dt>
-<dd>
-<p>Insert text rather than completing only. May be set twice for
-multi-turn.</p>
-<p>Use “<em>[insert]</em>” to indicate where the language model should
-insert text (`instruct’ and Mistral `code models’).</p>
-</dd>
-</dl>
-<p><strong>-S</strong> <strong>.</strong>[<em>PROMPT_NAME</em>],
-<strong>-.</strong>[<em>PROMPT_NAME</em>]</p>
-<dl>
-<dt><strong>-S</strong> <strong>,</strong>[<em>PROMPT_NAME</em>],
-<strong>-,</strong>[<em>PROMPT_NAME</em>]</dt>
-<dd>
-<p>Load, search for, or create custom prompt.</p>
-<p>Set <code>.</code>[<em>PROMPT</em>] to load prompt silently.</p>
-<p>Set <code>,</code>[<em>PROMPT</em>] to single-shot edit prompt.</p>
-<p>Set <code>,,</code>[<em>PROMPT</em>] to edit the prompt template
-file.</p>
-<p>Set <code>.</code><em>?</em>, or <code>.</code><em>list</em> to list
-all prompt files.</p>
-</dd>
-</dl>
-<p><strong>-S</strong>, <strong>–awesome</strong>
-<strong>/</strong>[<em>AWESOME_PROMPT_NAME</em>]</p>
-<dl>
-<dt><strong>-S</strong>, <strong>–awesome-zh</strong>
-<strong>%</strong>[<em>AWESOME_PROMPT_NAME_ZH</em>]</dt>
-<dd>
-<p>Set or search for an <em>awesome-chatgpt-prompt(-zh)</em>.</p>
-<p>Set <strong>//</strong> or <strong>%%</strong> instead to refresh
-cache.</p>
-</dd>
-</dl>
-<p><strong>-T</strong>, <strong>--tiktoken</strong></p>
-<dl>
-<dt><strong>-TT</strong>, <strong>-TTT</strong></dt>
-<dd>
-<p>Count input tokens with python Tiktoken (ignores special tokens).</p>
-<p>Set twice to print tokens, thrice to available encodings.</p>
-<p>Set the model or encoding with <code>option -m</code>.</p>
-<p>It heeds <code>options -ccm</code>.</p>
-</dd>
-<dt><strong>-w</strong>, <strong>--transcribe</strong> [<em>AUD</em>]
-[<em>LANG</em>] [<em>PROMPT</em>]</dt>
-<dd>
-<p>Transcribe audio file speech into text. LANG is optional. A prompt
-that matches the speech language is optional. Speech will be transcribed
-or translated to the target LANG.</p>
-<p>Set twice to phrase or thrice for word-level timestamps (-www).</p>
-<p>With <code>options -vv</code>, stop voice recorder on silence auto
-detection.</p>
-</dd>
-<dt><strong>-W</strong>, <strong>--translate</strong> [<em>AUD</em>]
-[<em>PROMPT-EN</em>]</dt>
-<dd>
-<p>Translate audio file speech into English text.</p>
-<p>Set twice to phrase or thrice for word-level timestamps (-WWW).</p>
-</dd>
-<dt><strong>-z</strong>, <strong>--tts</strong>
-[<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
-[<em>SPEED</em>] [<em>PROMPT</em>]</dt>
-<dd>
-<p>Synthesise speech from text prompt. Takes a voice name, speed and
-text prompt.</p>
-<p>Set <code>option -v</code> to not play response automatically.</p>
-</dd>
-</dl>
-<h4 id="model-settings">Model Settings</h4>
-<dl>
-<dt><strong>-@</strong>, <strong>--alpha</strong>
-[[<em>VAL%</em>]<em>COLOUR</em>]</dt>
-<dd>
-<p>Set transparent colour of image mask. Def=<em>black</em>.</p>
-<p>Fuzz intensity can be set with [<em>VAL%</em>]. Def=<em>0%</em>.</p>
-</dd>
-<dt><strong>-Nill</strong></dt>
-<dd>
-<p>Unset model max response tokens (chat cmpls only).</p>
-</dd>
-</dl>
-<p><strong>-NUM</strong></p>
-<dl>
-<dt><strong>-M</strong>, <strong>--max</strong>
-[<em>NUM</em>[<em>-NUM</em>]]</dt>
-<dd>
-<p>Set maximum number of <em>response tokens</em>.
-Def=<em>1024</em>.</p>
-<p>A second number in the argument sets model capacity.</p>
-</dd>
-<dt><strong>-N</strong>, <strong>--modmax</strong> [<em>NUM</em>]</dt>
-<dd>
-<p>Set <em>model capacity</em> tokens. Def=<em>auto</em>,
-Fallback=<em>4000</em>.</p>
-</dd>
-<dt><strong>-a</strong>, <strong>--presence-penalty</strong>
-[<em>VAL</em>]</dt>
-<dd>
-<p>Set presence penalty (cmpls/chat, -2.0 - 2.0).</p>
-</dd>
-<dt><strong>-A</strong>, <strong>--frequency-penalty</strong>
-[<em>VAL</em>]</dt>
-<dd>
-<p>Set frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
-</dd>
-<dt><strong>-b</strong>, <strong>--best-of</strong> [<em>NUM</em>]</dt>
-<dd>
-<p>Set best of, must be greater than <code>option -n</code> (cmpls).
-Def=<em>1</em>.</p>
-</dd>
-<dt><strong>-B</strong>, <strong>--logprobs</strong> [<em>NUM</em>]</dt>
-<dd>
-<p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
-</dd>
-<dt><strong>-j</strong>, <strong>--seed</strong> [<em>NUM</em>]</dt>
-<dd>
-<p>Set a seed for deterministic sampling (integer).</p>
-</dd>
-<dt><strong>-K</strong>, <strong>--top-k</strong> [<em>NUM</em>]</dt>
-<dd>
-<p>Set Top_k value (local-ai, ollama, google).</p>
-</dd>
-<dt><strong>--keep-alive</strong>,
-<strong>--ka</strong>=[<em>NUM</em>]</dt>
-<dd>
-<p>Set how long the model will stay loaded into memory (ollama).</p>
-</dd>
-<dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
-<dd>
-<p>Set language <em>MODEL</em> name.
-Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
-<p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
-</dd>
-<dt><strong>--multimodal</strong>, <strong>--vision</strong>,
-<strong>--audio</strong></dt>
-<dd>
-<p>Set model multimodal model type.</p>
-</dd>
-<dt><strong>-n</strong>, <strong>--results</strong> [<em>NUM</em>]</dt>
-<dd>
-<p>Set number of results. Def=<em>1</em>.</p>
-</dd>
-<dt><strong>-p</strong>, <strong>--top-p</strong> [<em>VAL</em>]</dt>
-<dd>
-<p>Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
-</dd>
-<dt><strong>-r</strong>, <strong>--restart</strong> [<em>SEQ</em>]</dt>
-<dd>
-<p>Set restart sequence string (cmpls).</p>
-</dd>
-<dt><strong>-R</strong>, <strong>--start</strong> [<em>SEQ</em>]</dt>
-<dd>
-<p>Set start sequence string (cmpls).</p>
-</dd>
-<dt><strong>-s</strong>, <strong>--stop</strong> [<em>SEQ</em>]</dt>
-<dd>
-<p>Set stop sequences, up to 4. Def="<em>&lt;|endoftext|&gt;</em>".</p>
-</dd>
-<dt><strong>-S</strong>, <strong>--instruction</strong>
-[<em>INSTRUCTION</em>|<em>FILE</em>]</dt>
-<dd>
-<p>Set an instruction text prompt. It may be a text file.</p>
-</dd>
-<dt><strong>--time</strong>, <strong>--no-time</strong></dt>
-<dd>
-<p>Insert the current date and time (timestamp) to the instruction
-prompt.</p>
-</dd>
-<dt><strong>-t</strong>, <strong>--temperature</strong>
-[<em>VAL</em>]</dt>
-<dd>
-<p>Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
-1.0). Def=<em>0</em>.</p>
-</dd>
-</dl>
-<h4 id="miscellaneous-settings">Miscellaneous Settings</h4>
-<dl>
-<dt><strong>--api-key</strong> [<em>KEY</em>]</dt>
-<dd>
-<p>Set API key to use.</p>
-</dd>
-<dt><strong>--fold</strong> (<em>defaults</em>),
-<strong>--no-fold</strong></dt>
-<dd>
-<p>Set or unset response folding (wrap at white spaces).</p>
-</dd>
-<dt><strong>-h</strong>, <strong>--help</strong></dt>
-<dd>
-<p>Print the help page.</p>
-</dd>
-<dt><strong>--info</strong></dt>
-<dd>
-<p>Print OpenAI usage status (requires envar
-<code>$OPENAI_ADMIN_KEY</code>).</p>
-</dd>
-<dt><strong>-k</strong>, <strong>--no-colour</strong></dt>
-<dd>
-<p>Disable colour output. Def=<em>auto</em>.</p>
-</dd>
-<dt><strong>-l</strong>, <strong>--list-models</strong>
-[<em>MODEL</em>]</dt>
-<dd>
-<p>List models or print details of <em>MODEL</em>.</p>
-</dd>
-<dt><strong>-L</strong>, <strong>--log</strong> [<em>FILEPATH</em>]</dt>
-<dd>
-<p>Set log file. <em>FILEPATH</em> is required.</p>
-</dd>
-<dt><strong>--md</strong>, <strong>--markdown</strong>,
-<strong>--markdown</strong>=[<em>SOFTWARE</em>]</dt>
-<dd>
-<p>Enable markdown rendering in response. Software is optional:
-<em>bat</em>, <em>pygmentize</em>, <em>glow</em>, <em>mdcat</em>, or
-<em>mdless</em>.</p>
-</dd>
-<dt><strong>--no-md</strong>, <strong>--no-markdown</strong></dt>
-<dd>
-<p>Disable markdown rendering.</p>
-</dd>
-<dt><strong>-o</strong>, <strong>--clipboard</strong></dt>
-<dd>
-<p>Copy response to clipboard.</p>
-</dd>
-<dt><strong>-v</strong>, <strong>--verbose</strong></dt>
-<dd>
-<p>Less verbose.</p>
-<p>Sleep after response in voice chat (<code>-vvccw</code>).</p>
-<p>With <code>options -ccwv</code>, sleep after response. With
-<code>options -ccwzvv</code>, stop recording voice input on silence
-detection and play TTS response right away.</p>
-<p>May be set multiple times.</p>
-</dd>
-<dt><strong>-V</strong></dt>
-<dd>
-<p>Dump raw JSON request block (debug).</p>
-</dd>
-<dt><strong>--version</strong></dt>
-<dd>
-<p>Print script version.</p>
-</dd>
-<dt><strong>-y</strong>, <strong>--tik</strong></dt>
-<dd>
-<p>Set tiktoken for token count (cmpls/chat, python).</p>
-</dd>
-<dt><strong>-Y</strong>, <strong>--no-tik</strong>
-(<em>defaults</em>)</dt>
-<dd>
-<p>Unset tiktoken use (cmpls/chat, python).</p>
-</dd>
-<dt><strong>-Z</strong>, <strong>-ZZ</strong>, <strong>-ZZZ</strong>,
-<strong>--last</strong></dt>
-<dd>
-<p>Print JSON data of the last responses.</p>
-</dd>
-</dl>
+<!--
+# EXAMPLES -->
 </body>
 </html>

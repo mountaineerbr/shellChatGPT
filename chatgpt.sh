@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.91.1  jan/2025  by mountaineerbr  GPL+3
+# v0.92  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -222,37 +222,36 @@ Synopsis
 	${0##*/} -ccWwz [opt..] -- [PROMPT] -- [whisper_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
-	${0##*/} -HPP [/HIST_FILE|.]
+	${0##*/} -HPP [/HIST_NAME|.]
 	${0##*/} -HPw
 
 
 Description
-	Wraps ChatGPT, DALL-E, Whisper, and TTS from various providers.
+	Wraps ChatGPT, DALL-E, Whisper, and TTS endpoints from various
+	providers.
 	
-	Defaults to single-turn native chat completions. Handles single
-	and multi-turn chat, text completions, image generation/editing,
-	speech-to-text, and text-to-speech.
+	Defaults to single-turn native chat completions. Handles multi-turn
+	chat, text completions, image generation/editing, speech-to-text,
+	and text-to-speech models.
 
-	Positional arguments are read as a single PROMPT, but some functions
+	Positional arguments are read as a single PROMPT. Some functions
 	such as Whisper and TTS may handle optional positional parameters
 	before the prompt itself.
 
 
-	Chat Completion Modes
-	
+Chat Completion Mode
 	Set option -c to start multi-turn chat mode via text completions
 	(instruct models) or -cc for native chat completions (gpt-3.5+
-	models) with command line history support.
+	models) with interactive history support.
 
 	In chat mode, some options are automatically set to un-lobotomise
 	the bot.
 
-	Option -C resumes (continues from) last history session. Set option
-	-E to exit on response.
+	Option -C resumes last history session. To exit on first response,
+	set option -E.
 
 
-	Text Completion Modes
-
+Text Completion Mode
 	Option -d initiates a single-turn session of plain text completions.
 	Further options (e.g., instructions, temperature, stop sequences)
 	must be set explicitly at the command line.
@@ -261,49 +260,30 @@ Description
 	with options -dd. Use models as gpt-3.5-turbo-instruct.
 
 
-	Insert Modes
-
+Insert Mode (FIM)
 	Set option -qq for multi turn insert mode, and add tag \`[insert]'
 	to the prompt at the location to be filled in (instruct	models).
 
 
-	Instruction Prompts
-
+Instruction Prompts
 	The SYSTEM INSTRUCTION prompt may be set with option -S or via
 	envars \`\$INSTRUCTION' and \`\$INSTRUCTION_CHAT'.
 
-	If a plain text or PDF file path is set as the last positional
-	parameter or as an argument to \`option -S\`, the file is loaded
-	as text PROMPT.
+	If a plain text or PDF file path is set as the argument to \`-S',
+	the text of the file is loaded as the INSTRUCTION.
 
-	To create and reuse a custom prompt, set the prompt name as a command
-	line option, such as \`-S .[prompt_name]' or \`-S ,[prompt_name]'.
+	To create and reuse a custom prompt, set the prompt name you wish
+	as the option argument preceded by dot or comma, such as
+	\`-S .[prompt_name]' or \`-S ,[prompt_name]'.
 
 	Alternatively, set the first positional argument with the operator
-	dot \`.' and the prompt name, such as \`.[prompt]'.
+	dot \`.' and the prompt name, such as \`${0##*/} -cc .[prompt]'.
 
 	To insert the current date and time to the instruction prompt, set
 	command line option \`--time'.
 
 
-	Commands
-
-	If the first positional argument of the script starts with the
-	command operator \`/', the command \`/session [HIST_NAME]' to change
-	to or create a new history file is assumed (with options -ccCdPP).
-
-	In multi-turn interactions, prompts starting with a colon \`:' are
-	appended as user messages to the request block, while double colons
-	\`::' append the prompt as instruction / system without initiating
-	a new API request.
-
-	With vision and reasoning models, append the image file paths and
-	possibly URLs at the end of the prompt. Make sure file paths
-	containing spaces are backslash-escaped.
-
-
-	Image Generations and Edits (Dall-E)
-
+Image Generations and Edits (Dall-E)
 	Option -i generates or edits images. A text prompt is required for
 	generations. An image file is required for variations. Edits need
 	an image file, a mask (or the image must have a transparent layer),
@@ -318,36 +298,20 @@ Description
 	or \"vivid\" as a positional parameter.
 
 
-	Speech-To-Text (Whisper)
-
+Speech-To-Text (Whisper)
 	Option -w transcribes audio to any language, and option -W translates
 	audio to English text. Set these options twice to have phrasal-
 	level timestamps, options -ww, and -WW. Set thrice for word-level
 	timestamps.
 
 
-	TTS (Text-To-Voice)
-
+Text-To-Voice (TTS)
 	Option -z synthesises voice from text (TTS models). Set a voice as
 	the first positional parameter (\`alloy', \`echo', \`fable', \`onyx',
 	\`nova', or \`shimmer'). Set the second positional parameter as the
 	speed (0.25 - 4.0), and, finally the output file name or the format,
 	such as \`./new_audio.mp3' (\`mp3', \`opus', \`aac', and \`flac'),
 	or \`-' for stdout. Set options -vz to not play received output.
-
-
-	Observations
-
-	Input sequences \`\\n' and \`\\t' are only treated specially in
-	restart, start and stop sequences!
-
-	A personal OpenAI API is required, set environment or command
-	line option --api-key.
-
-	Check the man page for extended description of interface and
-	settings. See the online man page and script usage examples at:
-
-	<https://gitlab.com/fenixdragao/shellchatgpt>.
 
 
 Environment
@@ -378,16 +342,14 @@ Environment
 			Set default model for each endpoint / provider.
 	
 	OPENAI_BASE_URL
-	OPENAI_URL_PATH
-			Main Base URL setting. Alternatively, provide the
+	OPENAI_URL_PATH Main Base URL setting. Alternatively, provide the
 			URL_PATH parameter to disable endpoint auto-selection.
 
 	[PROVIDER]_BASE_URL
 			Base URLs for providers: LOCALAI, OLLAMA,
 			MISTRAL, GOOGLE, GROQ, ANTHROPIC, and GITHUB.
 
-	OPENAI_API_KEY
-	[PROVIDER]_API_KEY
+	OPENAI_API_KEY  [PROVIDER]_API_KEY
 	GITHUB_TOKEN 	Keys for OpenAI, Gemini, Mistral, Groq,
 			Anthropic, GitHub Models, Novita, and xAI APIs.
 
@@ -407,10 +369,33 @@ Environment
 	REC_CMD 	Audio recorder command, e.g. \`sox -d'.
 
 
+Notes
+	Input sequences \`\\n' and \`\\t' are only treated specially in
+	restart, start and stop sequences in chat mode!
+
+	Online documentation and usage examples:
+	<https://gitlab.com/fenixdragao/shellchatgpt>.
+
+
+Command Interface
+	When the first positional argument starts with the command operator
+	\`/' on script invocation, the command \`/session [HIST_NAME]' is
+	assumed. This changes to or creates a history file (with -ccCdPP).
+
+	To append image and audio file paths at the end of the prompt with
+	multimodal and reasoning models. All models work with PDF, DOC, and
+	URL text dump, provided required software is installed. Make sure
+	file paths containing spaces are backslash-escaped.
+
+	In multi-turn interactions, prompts starting with a colon \`:' are
+	appended as user messages to the request block, while double colons
+	\`::' append the prompt as instruction / system without initiating
+	a new API request.
+
+
 Command List
 	In chat mode, commands are invoked with either \`!' or \`/' as
-	operators. These commands allow users to modify settings and
-	manage the session.
+	operators. The following modify settings and manage sessions.
 
    -------    ----------    -----------------------------------------
    --- Misc Commands ------------------------------------------------
@@ -491,9 +476,9 @@ Command List
       !f      !fork [DEST_HIST] Fork current session to destination.
       !k      !kill     [NUM]   Comment out n last entries in hist file.
      !!k     !!kill  [[0]NUM]   Dry-run of command !kill.
-      !s      !session [HIST_FILE]
+      !s      !session [HIST_NAME]
                                 Change to, search for, or create hist file.
-     !!s     !!session [HIST_FILE]
+     !!s     !!session [HIST_NAME]
                                  Same as !session, break session.
    -------    ----------    -----------------------------------------
 
@@ -502,31 +487,28 @@ Command List
       ‡ Commands with double dagger may be invoked at the very end of
         the prompt.
 
-      E.g. \`/temp 0.7', \`!modgpt-4', \`-p 0.2', \`/session HIST_NAME',
-           \`[PROMPT] /pick', and \`[PROMPT] /sh'.
+      Examples
+        \`/temp 0.7',  \`!modgpt-4',  \`-p 0.2',
+	\`[PROMPT] /pick',  \`[PROMPT] /sh'.
 
+      Notes
+        To change to a specific history file, run \`/session [HIST_NAME]',
+	or simply \`/[HIST_NAME]' at script invocation.
 
-	To continue from an old session, either \`/copy . .\` or \`/fork.\` it.
-	The dot means the current session. The shorthand for this feature
-	is \`/.', or simply \`.' as the first positional argument at the
-	command line.
-	
-	It is also possible to execute the command \`/grep [regex]\` for
-	a session and resume it.
+	In order to resume an old session, execute command \`sub' or the
+	alias \`/.'. On script invocation, resuming is aliased to \`.'
+	when a dot is set as the first positional parameter.
 
-	To regenerate a response, type in the command \`!regen' or a single
-	exclamation mark or forward slash in the new empty prompt. In order
-	to edit the prompt before the request, try \`!!' (or \`//').
+        To regenerate a response, type in the command \`!regen' or a single
+        exclamation mark or forward slash in the new empty prompt. In order
+        to edit the prompt before the request, try \`!!' (or \`//').
 
-	Change chat context at run time with the \`!hist' command to edit
-	the raw history file (delete or comment out entries).
-
-	Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
-	Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
-	Press <CTRL-L> to redraw readline buffer (user input) on screen.
-	Press <CTRL-C> during cURL requests to interrupt the call.
-	Press <CTRL-\\> to terminate the script at any time (QUIT signal),
-	or \`Q' in user confirmation prompts.
+        Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
+        Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
+        Press <CTRL-L> to redraw readline buffer (user input) on screen.
+        Press <CTRL-C> during cURL requests to interrupt the call.
+        Press <CTRL-\\> to terminate the script at any time (QUIT signal),
+        or \`Q' in user confirmation prompts.
 
 
 Options
@@ -558,10 +540,10 @@ Options
 	-FF 	Dump template configuration file to stdout.
 
 	Sessions and History Files
-	-H, --hist  [/HIST_FILE]
+	-H, --hist  [/HIST_NAME]
 		Edit history file with text editor or pipe to stdout.
 		A hist file name can be optionally set as argument.
-	-P, -PP, --print  [/HIST_FILE]    (aliases to -HH and -HHH)
+	-P, -PP, --print  [/HIST_NAME]    (aliases to -HH and -HHH)
 		Print out last history session. Set twice to print
 		commented out entries, too. Heeds -ccdrR.
 
@@ -1985,9 +1967,12 @@ function cmd_runf
 			cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		break|br|new)
-			break_sessionf;
+			if ((OPTV>99))
+			then 	BREAK_SET=1;
+			else 	break_sessionf;
+			fi;
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
-			  _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
+			  ((OPTV>99)) || _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} GINSTRUCTION_PERM=$GINSTRUCTION INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; CKSUM_OLD= MAX_PREV= WCHAT_C= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= xskip=1;
@@ -2020,7 +2005,7 @@ function cmd_runf
 			cmdmsgf 'Streaming' $(_onoff ${STREAM:-0})
 			;;
 		-h|h|help|-\?|\?)
-			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*E\.g\./p' <<<"$HELP");
+			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*Notes/p' <<<"$HELP");
 			less -S <<<"${var}"; xskip=1;
 			;;
 		-h\ *|h\ *|[/!]h*|help?*|-\?*|\?*)
@@ -2860,7 +2845,8 @@ function _break_sessionf
 }
 function break_sessionf
 {
-	BREAK_SET=1; _sysmsgf 'SESSION BREAK';
+	BREAK_SET=1;
+	_sysmsgf 'SESSION BREAK';
 }
 
 #fix: remove session break
@@ -4474,9 +4460,11 @@ function custom_prf
 		return
 	fi
 	((CMD_CHAT)) ||
-	_sysmsgf 'Hist   File:' "${FILECHAT/"$HOME"/"~"}"
-	_sysmsgf 'Prompt File:' "${file/"$HOME"/"~"}"
-	_cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
+	  _sysmsgf 'Hist   File:' "${FILECHAT/"$HOME"/"~"}"
+	((OPTV>99)) || {
+	  _sysmsgf 'Prompt File:' "${file/"$HOME"/"~"}"
+	  _cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
+	}
 
 	if { 	[[ $msg = *[Cc][Rr][Ee][Aa][Tt][Ee]* ]] && INSTRUCTION="$*" ret=200 ;} ||
 		[[ $msg = *[Ee][Dd][Ii][Tt]* ]] || (( (MTURN+CHAT_ENV) && OPTRESUME!=1 && skip==0))
@@ -5728,7 +5716,7 @@ fi; REPLY= RET=;
 
 #tips and warnings
 if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) && [[ $MOD != *moderation* ]]
-then 	if ((!OPTHH))
+then 	if ((!OPTHH)) && ((!OPTV))
 	then 	sysmsgf "Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
 	elif ((OPTHH>1))
 	then 	sysmsgf 'Language Model:' "$MOD"
@@ -5948,7 +5936,10 @@ else
 				case "$var" in 	?) SKIP=1 EDIT=1 OPTAWE= REPLY=$var;; 	*) JUMP=1;; esac; unset var;
 			fi; [[ $INSTRUCTION = *[!$IFS]* ]] || unset INSTRUCTION;
 			;;
-		[.,]*) custom_prf "$@"
+		[.,]*) 	if ((OPTV)) 
+			then 	OPTV=100 custom_prf "$@";
+			else 	OPTV= custom_prf "$@";
+			fi;
 			case $? in
 				200) 	set -- ;;  #create, read and clear pos args
 				1|202|201|[1-9]*) 	exit 1; unset INSTRUCTION;;  #err
@@ -5959,7 +5950,7 @@ else
 
 	#text/chat completions
 	if ((OPTC))
-	then 	sysmsgf 'Chat Completions'
+	then 	((OPTV)) || sysmsgf 'Chat Completions'
 		#chatbot must sound like a human, shouldnt be lobotomised
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
@@ -5980,7 +5971,7 @@ else
 		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
 		  STOPS+=("${RESTART-$Q_TYPE}" "${START-$A_TYPE}")
 	else
-		sysmsgf 'Text Completions'
+		((OPTV)) || sysmsgf 'Text Completions'
 	fi
 	((MULTIMODAL)) ||
 	if is_amodelf "$MOD"
@@ -5989,7 +5980,7 @@ else
 	then 	MULTIMODAL=1;
 	fi;
 	((MULTIMODAL>1)) && OPTZ_FMT="pcm16";  #audio-model preview
-	sysmsgf 'Language Model:' "$MOD$( ((MULTIMODAL)) && echo ' / multimodal')";
+	((OPTV)) || sysmsgf 'Language Model:' "$MOD$( ((MULTIMODAL)) && echo ' / multimodal')";
 	
 	restart_compf ;start_compf
 	function unescape_stopsf
@@ -6027,15 +6018,19 @@ else
 
 		[[ $INSTRUCTION = *[!$IFS]* ]] && INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
 		if ((OPTC))
-		then 	((!INST_TIME)) && INSTRUCTION="${INSTRUCTION-$(date2f).${NL}${INSTRUCTION_CHAT}}" ||
-			  INSTRUCTION="${INSTRUCTION-$INSTRUCTION_CHAT}";  #IPC#
-			((INST_TIME>0)) && ((${#INSTRUCTION})) &&
-			  INSTRUCTION="$(date2f).${NL}${INSTRUCTION}";  #timestamp
+		then 	if ((INST_TIME))
+			then 	INSTRUCTION="${INSTRUCTION-$INSTRUCTION_CHAT}";  #IPC#
+				((${#INSTRUCTION})) &&
+				  INSTRUCTION="$(date2f).${NL}${INSTRUCTION}";  #timestamp
+			else 	INSTRUCTION="${INSTRUCTION-$(date2f).${NL}${INSTRUCTION_CHAT}}";
+			fi
 		fi
 		INSTRUCTION_OLD="$INSTRUCTION"
 		
 		if ((OPTC && OPTRESUME)) || ((OPTCMPL==1 || OPTRESUME==1))
 		then 	unset INSTRUCTION;
+		elif ((OPTV))
+		then 	BREAK_SET=1;
 		else 	break_sessionf;
 		fi
 	elif [[ $INSTRUCTION != *[!:$IFS]* ]]
@@ -6071,8 +6066,8 @@ else
 	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
 	then 	case "$1" in
 			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )
-				session_mainf "$1" "${@:2:1}" && set -- "${@:3}";;
-			*) 	session_mainf "$1" && set -- "${@:2}";;
+				OPTV=100 session_mainf "$1" "${@:2:1}" && set -- "${@:3}";;
+			*) 	OPTV=100 session_mainf "$1" && set -- "${@:2}";;
 		esac
 	elif cmd_runf "$@"
 	then 	set -- ; SKIP_SH_HIST=;
@@ -6856,7 +6851,7 @@ fi
 #   %%   %%  % %%  %   %%  %% "% %%      %%        %% %%  %    /a\  /i\  
 #   %%=% %%  % %%  %   %%  %%==% %%      %%  %% %==%% %%  %  ,<___><___>.
 
-## set -x; shopt -s extdebug; PS4='$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
+## set -x; shopt -s extdebug; PS4=$'\n''$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
 
 # vim=syntax sync minlines=800

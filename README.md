@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, Gemini, Mistral, Groq, and GitHub Models integration.
+Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, Gemini, Mistral, and more service providers.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
@@ -204,13 +204,13 @@ and make it executable:
 [`~/.chatgpt.conf`](https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf):
 
     #save configuration template:
-    chatgpt.sh -FF >> ~/.chatgpt.conf
+    chatgpt.sh -FF  >> ~/.chatgpt.conf
     
     #edit:
     chatgpt.sh -F
 
     # Or
-    vim ~/.chatgpt.conf
+    nano ~/.chatgpt.conf
 
 
 <!--
@@ -235,7 +235,7 @@ and make it executable:
 ## 💬  Native Chat Completions
 
 With command line `options -cc`, some properties are set automatically to create a chat bot.
-Start a new session in chat mode, and set a different temperature (*gpt-3.5 and gpt-4+ models*):
+Start a new session in chat mode, and set a different temperature:
 
     chatgpt.sh -cc -t0.7
 
@@ -247,11 +247,9 @@ Change the maximum response length to 4k tokens:
     chatgpt.sh -cc -M 4000
 
 
-Or change a model token capacity to 200k tokens:
+And change a model token capacity to 200k tokens:
 
-    chatgpt.sh -cc -4000-200000
-
-    chatgpt.sh -cc -M 4000-200000
+    chatgpt.sh -cc -N 200000
 
 
 Create **Marv, the sarcastic bot**:
@@ -267,7 +265,7 @@ Create **Marv, the sarcastic bot**:
 <!-- https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset -->
 
 
-Load the *unix instruction* file ("unix.pr") for a new session.
+Load the custom *unix instruction file* ("unix.pr") for a new session.
 The command line syntaxes below are all aliases:
 
 
@@ -283,9 +281,9 @@ The command line syntaxes below are all aliases:
 In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "unix.tsv" file at the cache directory.
 -->
 
-To only chage the history file that the session will be recorded,
-set the first positional argument in command line with the operator forward slash "`/`"
-and the name of the history file (defaults to the `/session` command).
+To only change the history file that the session will be recorded,
+set the first positional argument in the command line with the operator forward slash "`/`"
+and the name of the history file (this executes the `/session` command).
 
     
     chatgpt.sh -cc /test
@@ -305,8 +303,8 @@ The command below starts a chat session, loads the "unix" instruction, and chang
 -->
 
 
-There is a shortcut to load an older session from the current
-history file. This opens a basic interative interface.
+There is a shortcut to load an older session from the defaults (or current)
+history file. This opens a basic interactive interface.
 
     chatgpt.sh -cc .
 
@@ -326,13 +324,15 @@ Technically, this copies an old session from the target history file to the tail
 In chat mode, simple run `!sub` or the equivalent command `!fork current`.
 -->
 
-To load an older session from a history file that is different from the defaults,
-there are some options.
+<!--
+To load an old session from a specific history,
+there are some options. -->
 
 In order to grep for sessions with a regex, it is easier to enter chat mode
 and then type in the chat command `/grep [regex]`.
 
-To only change to a defined history file name, run command `!session [name]`.
+<!--
+To only change to a specific history file, run command `!session [name]`. -->
 
 <!--
 To copy a previous session to the tail of the current history file, run `/sub` or `/grep [regex]` to load that session and resume from it.
@@ -363,30 +363,34 @@ Print out last session, optionally set the history name:
 
 ### Vision and Multimodal Models
 
-To send an `image` / `url` to vision models, start the script and then either
-set the image with the `!img` chat command with one or more filepaths / URLs.
-
-
-    chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
-
+To send an `image` / `url` to vision models, start the script interactively
+and then either set the image with the `!img`.
 
 Alternatively, set the image paths / URLs at the end of the prompt:
+
+
+<!--
+    chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
+    -->
 
     chatgpt.sh -cc -m gpt-4-vision-preview
 
     [...]
-    Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpeg
+    Q: !img  https://i.imgur.com/wpXKyRo.jpeg
+    
+    Q: What can you see?  https://i.imgur.com/wpXKyRo.jpeg
 
 
-**TIP:** Run chat command `!info` to check model configuration!
+**TIP:** Run command `!info` to check configuration!
 
 **DEBUG:** Set `option -V` to see the raw JSON request body.
 
 
 ### Text, PDF, Doc, and URL Dumps
 
-To make an easy workfow, the user may add a filepath or URL to the end
-of the prompt. The file is then read and the text content appended to the user prompt.
+To make an easy workflow, the user may add a filepath or text URL at the end
+of the prompt. The file is then read and the text content appended
+to the user prompt.
 This is a basic text feature that works with any model.
 
     chatgpt.sh -cc
@@ -397,7 +401,7 @@ This is a basic text feature that works with any model.
     Q: Help me study this paper. ~/Downloads/Prigogine\ Perspective\ on\ Nature.pdf
 
 
-In the **second example** above, the _PDF_ will be dumped as text (interactive mode).
+In the **second example** above, the _PDF_ will be dumped as text.
 
 For PDF text dump support, `poppler/abiword` is required.
 For _doc_ and _odt_ files, `LibreOffice` is required.
@@ -409,22 +413,21 @@ Also note that file paths containing white spaces must be
     My text prompt. | path/to the file.jpg
 
 
-Multiple images and audio files may be appended the the prompt in this way!
+Multiple images and audio files may be appended the prompt in this way!
 
 
 ### File Picker and Shell Dump
 
-The `/pick` command opens a file picker (usually a command-line
-file manager). The selected file's path will be appended to the
-current prompt in editing mode.
+The `/pick` command opens a file picker (command-line or GUI
+file manager). The selected file's path is then appended to the
+current prompt.
 
 The `/pick` and `/sh` commands may be run when typed at the end of
-the current prompt, such as `[PROMPT] /sh`, which opens a new
-shell instance to execute commands interactively. The output of these
-commands is appended to the current prompt.
+the current prompt, such as `[PROMPT] /pick`,
 
-When the `/pick` command is run at the end of the prompt, the selected
-file path is appended instead.
+When the `/sh` command is run at the end of the prompt, a new
+shell instance to execute commands interactively is opened.
+The command dumps are appended to the current prompt.
 
 _File paths_ that contain white spaces need backslash-escaping
 in some functions.
@@ -445,7 +448,7 @@ Chat in Portuguese with Whisper and set _onyx_ as the TTS voice:
 prompting the user to confirm each step.
 
 For a more automated execution, set `option -v`,
-and `-vv` for hands-free experience (_live chat_ with silence detection),
+or `-vv` for hands-free experience (_live chat_ with silence detection),
 such as:
 
     chatgpt.sh -cc -w -z -v
@@ -463,7 +466,7 @@ Otherwise, the audio model accepts any compatible audio file (such as **mp3**, *
 These files can be added to be loaded at the very end of the user prompt
 or added with chat command `/audio  path/to/file.mp3`.
 
-Similarly as described above, to activate the audio output mode of an audio model, do set command line `option -z` to make sure to enable the speech synthesis function! 
+To activate the audio output mode of an audio model, do set command line `option -z` to make sure the speech synthesis function is enabled!
 
     chatgpt.sh -cc -w -z -vv -m "gpt-4o-audio-preview"
 
@@ -603,7 +606,7 @@ run `//md`.
 
 The markdown option uses `bat` as it has line buffering on by defaults,
 however other software is supported.
-Set it such as `--markdown=glow` or `/md mdless` on chat mode.
+Set the software of choice such as `--markdown=glow` or `/md mdless`.
 
 Type in any of the following markdown software as argument to the option:
 `bat`, `pygmentize`, `glow`, `mdcat`, or `mdless`.
@@ -614,7 +617,7 @@ Type in any of the following markdown software as argument to the option:
 Unless the chat `option -c` or `-cc` are set, _no instruction_ is
 given to the language model. On chat mode, if no instruction is set,
 minimal instruction is given, and some options set, such as increasing
-temp and presence penalty, in order to un-lobotomise the bot.
+temperature and presence penalty, in order to un-lobotomise the bot.
 
 Prompt engineering is an art on itself. Study carefully how to
 craft the best prompts to get the most out of text, code and
@@ -637,7 +640,7 @@ automatically if none explicitly set by the user on invocation.
 The chat instruction will be updated according to the user locale
 after reading envar `$LANG`. <!-- and `$LC_ALL`. -->
 
-Available for the languages: `en`, `pt`, `es`, `it`,
+Translations are available for the languages: `en`, `pt`, `es`, `it`,
 `fr`, `de`, `ru`, `ja`, `zh`, `zh_TW`, and `hi`.
 
 
@@ -648,7 +651,7 @@ To run the script with the Hindi prompt, for example, the user may execute:
     LANG=hi_IN.UTF-8 chatgpt.sh -cc
 
 
-Note: custom prompts whith colliding names such as "hi"
+Note: custom prompts with colliding names such as "hi"
 have precedence over this feature.
 
 
@@ -776,13 +779,13 @@ the completion files correctly.
 
 ## 💡  Notes and Tips
 
-- YouTube feature will get only YouTube videos heading title and its transcripts (when available).
+- The YouTube feature will get YouTube videos heading title and its transcripts (when available) information only.
 
-- PDF support feature extracts the PDF text ([_no images_](https://docs.anthropic.com/en/docs/build-with-claude/pdf-support#how-pdf-support-works)) and appends it to the user request.
+- The PDF support feature extracts PDF text ([_no images_](https://docs.anthropic.com/en/docs/build-with-claude/pdf-support#how-pdf-support-works)) and appends it to the user request.
 
 - Run chat commands with either _operator_ `!` or `/`.
 
-- Edit live history entries with command `!hist`, for context injection.
+- Edit live history entries with command `!hist` (comment out entries or context injection).
 
 <!-- (deprecated)
 - Add operator forward slash `/` to the end of prompt to trigger **preview mode**. -->
@@ -1026,10 +1029,11 @@ supplied as argument, so that only that model details are shown.
 **NOTE:** Model management (downloading and setting up) must follow
 the LocalAI and Ollama projects guidelines and methods.
 
+<!--
 For image generation, install Stable Diffusion from the URL
 `github:go-skynet/model-gallery/stablediffusion.yaml`,
 and for speech transcription, download Whisper from the URL
-`github:go-skynet/model-gallery/whisper-base.yaml`.
+`github:go-skynet/model-gallery/whisper-base.yaml`. -->
 <!-- LocalAI was only tested with text and chat completion models (vision) -->
 
 <!--
@@ -1055,14 +1059,14 @@ Gallery defaults to [HuggingFace](https://huggingface.co/).
 
 If the service provider Base URL is different from the defaults.
 
-The environment varible `$OPENAI_BASE_URL` is read at invocation.
+The environment variable `$OPENAI_BASE_URL` is read at invocation.
 
     export OPENAI_BASE_URL="http://127.0.0.1:8080/v1"
 
     chatgpt.sh -c -m luna-ai-llama2
 
 
-To set it a in a more permanet fashion, edit the script
+To set it a in a more permanent fashion, edit the script
 configuration file `.chatgpt.conf`.
 
 Use vim:
@@ -1070,7 +1074,7 @@ Use vim:
     vim ~/.chatgpt.conf
 
 
-Or edit the configuration with a comamnd line option.
+Or edit the configuration with a command line option.
 
     chatgpt.sh -F
 
@@ -1107,7 +1111,7 @@ edit `chatgpt.sh` configuration file, and set the following variable:
 Get a free [API key for Google](https://gemini.google.com/) to be able to
 use Gemini and vision models. Users have a free bandwidth of 60 requests per minute, and the script offers a basic implementation of the API.
 
-Set the enviroment variable `$GOOGLE_API_KEY` and run the script
+Set the environment variable `$GOOGLE_API_KEY` and run the script
 with `option --google`, such as:
 
     chatgpt.sh --google -cc -m gemini-pro-vision
@@ -1121,7 +1125,7 @@ To list all available models, run `chatgpt.sh --google -l`.
 ### Mistral AI
 
 Set up a [Mistral AI account](https://mistral.ai/),
-declare the enviroment variable `$MISTRAL_API_KEY`,
+declare the environment variable `$MISTRAL_API_KEY`,
 and run the script with `option --mistral` for complete integration.
 <!-- $MISTRAL_BASE_URL -->
 
@@ -1162,9 +1166,9 @@ chatgpt.sh --ant -c -m claude-2.1
 
 ### GitHub Models
 
-GitHub has partnered with Azure to use its infratructure.
+GitHub has partnered with Azure to use its infrastructure.
 
-As a GitHub user, join the [waitlist](https://github.com/marketplace/models/waitlist/join)
+As a GitHub user, join the [wait list](https://github.com/marketplace/models/waitlist/join)
 and then generate a [personal token](https://github.com/settings/tokens).
 Set the environmental variable `$GITHUB_TOKEN` and run the
 script with `option --github` or `--git`.
@@ -1384,14 +1388,15 @@ In order to set Termux access to recording the microphone and playing audio
     load-module module-sles-source
 
 
-### Acess file
+<!--
+#### File Access
 
 To access your Termux files using Android's file manager, install a decent file manager such as `FX File Explorer` from a Play Store and configure it, or run the following command in your Termux terminal:
 
     am start -a android.intent.action.VIEW -d "content://com.android.externalstorage.documents/root/primary"
 
 
-Source: <https://www.reddit.com/r/termux/comments/182g7np/where_do_i_find_my_things_that_i_downloaded/>
+Source: <https://www.reddit.com/r/termux/comments/182g7np/where_do_i_find_my_things_that_i_downloaded/> -->
 
 
 <!--
@@ -1488,7 +1493,7 @@ Only selected features of the API will be covered.
 
 - This project _doesn't_ support "Function Calling" or "Structured Outputs".
 
-- We _will not support_ "Real-Time" chatting, or video modalities.
+- We _will not support_ "Real-Time" chatting, or video generation / editing.
 
 - Bash shell truncates input on `\000` (null).
 
@@ -1500,7 +1505,7 @@ unaffected. Use the text editor interface for big prompt editing.
 
 - The script logic resembles a bowl of spaghetti code after a cat fight.
 
-- See _BUGS AND LIMITS_ section in the [man page](man/README.md#bugs).
+- See _LIMITS AND BUGS_ section in the [man page](man/README.md#bugs).
 
 <!--
 - User input must double escape `\n` and `\t` to have them as literal sequences.
