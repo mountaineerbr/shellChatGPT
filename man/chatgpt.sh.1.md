@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.92.2 | General Commands Manual
+% CHATGPT.SH(1) v0.92.3 | General Commands Manual
 % mountaineerbr
 % January 2025
 
@@ -934,8 +934,8 @@ Command operators "`!`" or "`/`" are equivalent.
       `-w`         `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
       `-z`         `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
     `!blk`         `!block`     \[_ARGS_]     Set and add custom options to JSON request.
- `!effort`                      \[_MODE_]     Reasoning effort modes: high, medium, or low.
-`!interactive`     `!no-interactive`          Toggle reasoning interactive modes.
+ `!effort`          \-          \[_MODE_]     Reasoning effort modes: high, medium, or low.
+`!interactive`      \-                        Toggle reasoning interactive mode.
      `!ka`         `!keep-alive` \[_NUM_]     Set duration of model load in memory (Ollama).
   `!vision`        `!audio`, `!multimodal`    Toggle multimodality type.
  --------------    -----------------------    ------------------------------------------------

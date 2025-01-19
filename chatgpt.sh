@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.2  jan/2025  by mountaineerbr  GPL+3
+# v0.92.3  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -465,8 +465,8 @@ Command List
       -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
-    !effort            [MODE]   Reasoning effort: high, medium, or low.
-!interactive  !no-interactive   Toggle reasoning interactive modes.
+    !effort   -        [MODE]   Reasoning effort: high, medium, or low.
+!interactive  -                 Toggle reasoning interactive mode.
      !ka      !keep-alive [NUM] Set duration of model load in memory
    !vision    !audio            Toggle model multimodality type.
    --- Session Management -------------------------------------------
@@ -2024,8 +2024,12 @@ function cmd_runf
 			;;
 		interactive|no-interactive)
 			case "$REASON_INTERACTIVE" in
-				true|'') 	REASON_INTERACTIVE=false;;
-				false|*) 	REASON_INTERACTIVE=true;;
+				false|'') if [[ $REASON_INTERACTIVE != *[!$IFS]* ]]
+					then 	REASON_INTERACTIVE=true;
+					else 	REASON_INTERACTIVE=;
+					fi;;
+				true|*) REASON_INTERACTIVE=false;;
+
 			esac;
 			cmdmsgf 'Reasoning Interactive' "$REASON_INTERACTIVE";
 			;;
@@ -2902,23 +2906,6 @@ function json_minif
 	fi
 }
 
-function _fmt_cc_reasonf
-{
-	typeset var;
-	settings=();
-
-	((${REASON_INTERACTIVE:+1})) && settings=("${settings[@]}" '"interactive": '"${REASON_INTERACTIVE:-true}");
-
-	if ((${#settings[@]}>1))
-	then
-		for var in "${settings[@]}"
-		do
-			set -- "$@" "${var},";
-		done;
-
-		settings=("${@:1:${#} -1}" "${var}");
-	fi
-}
 #format for chat completions endpoint
 #usage: fmt_ccf [prompt] [role]
 function fmt_ccf
@@ -2934,17 +2921,14 @@ function fmt_ccf
 		((ANTHROPICAI)) && [[ $2 = system ]] && return 1;
 
 		case "$MOD" in o[1-9]*)
-			_fmt_cc_reasonf;  #prepare $settings[]
-			
-			if ((${#settings[@]}))
-			then
-				printf '{"role": "%s", "content": "%s", "settings": { %s } }\n' "${2:-user}" "$1" "${settings[*]}";
-			else
-				printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";  #K#
-			fi;;
-			*) 	printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";  #K#
-			;;
+			_fmt_cc_reasonf;;  #settings[]
 		esac;
+		if ((${#settings[@]}))
+		then
+			printf '{"role": "%s", "content": "%s", "settings": { %s } }\n' "${2:-user}" "$1" "${settings[*]}";
+		else
+			printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
+		fi;
 	elif ((OLLAMA))
 	then
 		printf '{"role": "%s", "content": "%s",\n' "${2:-user}" "$1";
@@ -2952,17 +2936,14 @@ function fmt_ccf
 	elif is_visionf "$MOD" || is_amodelf "$MOD"
 	then
 		case "$MOD" in o[1-9]*)
-			_fmt_cc_reasonf;  #prepare $settings[]
-			
-			if ((${#settings[@]}))
-			then
-				printf '{ "role": "%s", "settings": { %s }, "content": [ ' "${2:-user}" "${settings[*]}";
-			else
-				printf '{ "role": "%s", "content": [ ' "${2:-user}";  #J#
-			fi;;
-			*) 	printf '{ "role": "%s", "content": [ ' "${2:-user}";  #J#
-			;;
+			_fmt_cc_reasonf;;  #settings[]
 		esac;
+		if ((${#settings[@]}))
+		then
+			printf '{ "role": "%s", "settings": { %s }, "content": [ ' "${2:-user}" "${settings[*]}";
+		else
+			printf '{ "role": "%s", "content": [ ' "${2:-user}";
+		fi;
 
 		((${#1})) &&
 		printf '{ "type": "text", "text": "%s" }' "$1";
@@ -3001,6 +2982,24 @@ function fmt_ccf
 			fi
 		done;
 		printf '%s\n' ' ] }';
+	fi
+}
+#prepare the settings array (reasoning models, possibly gpt-5).
+function _fmt_cc_reasonf
+{
+	typeset var;
+	settings=();
+
+	((${REASON_INTERACTIVE:+1})) && settings=("${settings[@]}" '"interactive": '"${REASON_INTERACTIVE:-true}");
+
+	if ((${#settings[@]}>1))
+	then
+		for var in "${settings[@]}"
+		do
+			set -- "$@" "${var},";
+		done;
+
+		settings=("${@:1:${#} -1}" "${var}");
 	fi
 }
 
@@ -3652,10 +3651,18 @@ function start_compf { ((${#1}+${#START})) && START=$(escapef "$(unescapef "${1:
 
 function record_confirmf
 {
+	typeset var
 	if ((OPTV<1)) && { 	((!WSKIP)) || [[ ! -t 1 ]] ;}
 	then 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s${NC}" ' * [e]dit_text,  [w]hisper_off * ' \
 							      ' * Press ENTER to START record * ' >&2;
-		case "$(read_charf)" in [Q]) 	return 202;; [AaOoqWw]) 	return 196;; [Ee]|$'\e') 	return 199;; esac;
+		var=$(read_charf)
+		case "$var" in
+			[Q]) 	return 202;;
+			[AaOoqWw]) 	return 196;;
+			[Ee]|$'\e') 	return 199;;
+			[/!-]) 	((${#REPLY})) || REPLY="$var";
+ 					return 193;;
+		esac;
 		_clr_lineupf 33; _clr_lineupf 33;  #!#
 	fi
 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr_off * ' >&2
@@ -6290,6 +6297,7 @@ else
 						fi; ((OPTW>1)) && OPTW=;;
 					202) 	exit 202;;  #exit
 					201|196) 	WSKIP= OPTW= REPLY=; continue 1;;  #whisper off
+					193) 	WSKIP= OPTW= OPTX= EDIT=1; continue 1;;  #command run + whisper off
 					199) 	EDIT=1; continue 1;;  #text edit
 					*) 	REPLY=; continue 1;;
 					esac; unset RESUBW;

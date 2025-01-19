@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2025
-title: CHATGPT.SH(1) v0.92.2 \| General Commands Manual
+title: CHATGPT.SH(1) v0.92.3 \| General Commands Manual
 ---
 
 # NAME
@@ -774,8 +774,8 @@ or “`/`” are equivalent.
 | `-w`           | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
 | `-z`           | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
 | `!blk`         | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
-| `!effort`      | \[*MODE*\]              | Reasoning effort modes: high, medium, or low.  |
-| !interactive\` | `!no-interactive`       | Toggle reasoning interactive modes.            |
+| `!effort`      | \- \[*MODE*\]           | Reasoning effort modes: high, medium, or low.  |
+| !interactive\` | \-                      | Toggle reasoning interactive mode.             |
 | `!ka`          | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
 | `!vision`      | `!audio`, `!multimodal` | Toggle multimodality type.                     |
 
