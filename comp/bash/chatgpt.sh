@@ -82,10 +82,12 @@ _chatgptsh()
         -c --chat -cc
         -C --continue
         -d --text
+	--effort
         -e --edit
         -E --exit -EE
         -g --stream
         -G --no-stream
+	--interactive --no-interactive
         -i --image
         -q -qq --insert
         -T --tiktoken -TT -TTT
@@ -122,6 +124,7 @@ _chatgptsh()
 
   #main
   [[ $prev = "=" ]] && prev=${PREV_PREV:-$prev}; PREV_PREV=$prev;  #--foo=bar hack
+
   case "${prev}" in
     -@|-[!-]*@|--alpha)
       ((${#cur})) || COMPREPLY=( '[[percent%]colour]' '"10%white"' )
@@ -143,6 +146,9 @@ _chatgptsh()
       ;;
     -s|-[!-]*s|--stop*)
       ((${#cur})) || COMPREPLY=( '[stop-sequence]' '"\\nQ: "' '"\\nA:"' )
+      ;;
+    --effort*)
+      ((${#cur})) || COMPREPLY=( 'low' 'medium' 'high' )
       ;;
     --md|--markdown)
       COMPREPLY=( $(compgen -W "bat pygmentize glow mdcat mdless" -- "${cur##*=}") )

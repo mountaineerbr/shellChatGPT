@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92  jan/2025  by mountaineerbr  GPL+3
+# v0.92.2  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -105,6 +105,10 @@ OPTFOLD=1
 # Inject   start text
 #START=""
 #  Chat mode of text cmpls sets "\nQ: " and "\nA:"
+# Reasoning effort
+#REASON_EFFORT=  #low, medium, or high
+# Reasoning interactive
+#REASON_INTERACTIVE=  #true or false
 # Input and output prices (dollars per million tokens)
 #MOD_PRICE="0 0"
 # Currency rate against USD
@@ -461,6 +465,8 @@ Command List
       -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
+    !effort            [MODE]   Reasoning effort: high, medium, or low.
+!interactive  !no-interactive   Toggle reasoning interactive modes.
      !ka      !keep-alive [NUM] Set duration of model load in memory
    !vision    !audio            Toggle model multimodality type.
    --- Session Management -------------------------------------------
@@ -514,23 +520,23 @@ Command List
 Options
 	Service Providers
 	--anthropic
-		Set Anthropic integration (cmpls/chat).
+		Anthropic integration (cmpls/chat).
 	--github
-		Set GitHub Models integration (chat).
+		GitHub Models integration (chat).
 	--google
-		Set Google Gemini integration (cmpls/chat).
-	--groq  Set Groq integration (chat).
+		Google Gemini integration (cmpls/chat).
+	--groq  Groq AI integration (chat).
 	--localai
-		Set LocalAI integration (cmpls/chat).
+		LocalAI integration (cmpls/chat).
 	--mistral
-		Set Mistral AI integration (chat).
+		Mistral AI integration (chat).
 	--novita
-		Set Novita AI integration (cmpls/chat).
+		Novita AI integration (cmpls/chat).
 	--openai
 		Reset service integrations.
 	-O, --ollama
-		Set and request to Ollama server (cmpls/chat).
-	--xai 	Set xAI integration (cmpls/chat).
+		Ollama server integration (cmpls/chat).
+	--xai 	xAI's Grok integration (cmpls/chat).
 
 	Configuration File
 	-f, --no-conf
@@ -551,10 +557,10 @@ Options
 	-u, --multiline
 		Toggle multiline prompter, <CTRL-D> flush.
 	-U, --cat
-		Set cat prompter, <CTRL-D> flush.
+		Cat prompter, <CTRL-D> flush.
 	-x, -xx, --editor
 		Edit prompt in text editor. Set twice for single-shot.
-		Set options -eex to edit last text buffer from cache.
+		Options -eex to edit last text buffer from cache.
 
 	Interface Modes
 	-c, --chat
@@ -571,7 +577,7 @@ Options
 	-E, -EE, --exit
 		Exit on first run (even with -cc).
 	-g, --stream  (defaults)
-		Set response streaming.
+		Response streaming.
 	-G, --no-stream
 		Unset response streaming.
 	-i, --image   [PROMPT]
@@ -611,56 +617,60 @@ Options
 
 	Model Settings
 	-@, --alpha  [[VAL%]COLOUR]
-		Set transparent colour of image mask. Def=black.
+		Transparent colour of image mask. Def=black.
 		Fuzz intensity can be set with [VAL%]. Def=0%.
 	-Nill
 		Unset model max response tokens (chat cmpls only).
 	-NUM
 	-M, --max  [NUM[-NUM]]
-		Set maximum number of \`response tokens'. Def=$OPTMAX.
+		Maximum number of \`response tokens'. Def=$OPTMAX.
 		A second number in the argument sets model capacity.
 	-N, --modmax    [NUM]
-		Set \`model capacity' tokens. Def=_auto_, Fallback=8000.
+		Model capacity token value. Def=_auto_, Fallback=8000.
 	-a, --presence-penalty   [VAL]
-		Set presence penalty  (cmpls/chat, -2.0 - 2.0).
+		Presence penalty  (cmpls/chat, -2.0 - 2.0).
 	-A, --frequency-penalty  [VAL]
-		Set frequency penalty (cmpls/chat, -2.0 - 2.0).
+		Frequency penalty (cmpls/chat, -2.0 - 2.0).
 	-b, --best-of   [NUM]
-		Set best of, must be greater than opt -n (cmpls). Def=1.
+		Best of, must be greater than opt -n (cmpls). Def=1.
 	-B, --logprobs  [NUM]
 		Request log probabilities, see -Z (cmpls, 0 - 5),
+	--effort  [ high | medium | low ]
+		Amount of effort in reasoning models (OpenAI).
+	--interactive, --no-interactive
+		Reasoning model output style.
 	-j, --seed  [NUM]
-		Set a seed for deterministic sampling (integer).
+		Seed for deterministic sampling (integer).
 	-K, --top-k     [NUM]
-		Set Top_k value (local-ai, ollama, google).
+		Top_k value (local-ai, ollama, google).
 	--keep-alive, --ka [NUM]
-		Set how long the model will stay loaded into memory (ollama).
+		How long the model will stay loaded into memory (Ollama).
 	-m, --model     [MOD]
-		Set language MODEL name or set it as \`.' to pick
+		Language MODEL name or set it as \`.' to pick
 		from the list. Def=$MOD, $MOD_CHAT.
 	--multimodal, --vision, --audio
- 		Set model multimodal mode.
+ 		Model multimodal mode.
 	-n, --results   [NUM]
-		Set number of results. Def=$OPTN.
+		Number of results. Def=$OPTN.
 	-p, --top-p     [VAL]
-		Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
+		Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
 	-r, --restart   [SEQ]
-		Set restart sequence string (cmpls).
+		Restart sequence string (cmpls).
 	-R, --start     [SEQ]
-		Set start sequence string (cmpls).
+		Start sequence string (cmpls).
 	-s, --stop      [SEQ]
-		Set stop sequences, up to 4. Def=\"<|endoftext|>\".
+		Stop sequences, up to 4. Def=\"<|endoftext|>\".
 	-S, --instruction  [INSTRUCTION|FILE]
 		Set an instruction prompt. It may be a text file.
 	--time, --no-time
 		Insert the current date and time to the instruction prompt.
 	-t, --temperature  [VAL]
-		Set temperature value (cmpls/chat/whisper),
+		Temperature value (cmpls/chat/whisper),
 		Def=${OPTT:-0} (0.0 - 2.0), Whisper=${OPTTW:-0} (0.0 - 1.0).
 
 	Miscellanous Settings
 	--api-key  [KEY]
-		Set API key to use.
+		The API key to use.
 	--fold (defaults), --no-fold
 		Set or unset response folding (wrap at white spaces).
 	-h, --help
@@ -671,7 +681,7 @@ Options
 	-l, --list-models  [MOD]
 		List models or print details of MODEL.
 	-L, --log   [FILEPATH]
-		Set log file. FILEPATH is required.
+		Log file. FILEPATH is required.
 	--md, --markdown, --markdown=[SOFTWARE]
 		Enable markdown rendering in response. Software is optional:
 		\`bat', \`pygmentize', \`glow', \`mdcat', or \`mdless'.
@@ -687,7 +697,7 @@ Options
 	--version
 		Print script version.
 	-y, --tik
-		Set tiktoken for token count (cmpls/chat).
+		Tiktoken for token count (cmpls/chat).
 	-Y, --no-tik  (defaults)
 		Unset tiktoken use (cmpls/chat).
 	-Z, -ZZ, -ZZZ, --last
@@ -1995,6 +2005,14 @@ function cmd_runf
 			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
 			cmdmsgf $'\nUser Block:' "${BLOCK_USR:-unset}";
 			;;
+		effort*)
+			set -- "${*##effort$SPC}"
+			if [[ $REASON_EFFORT != *[!$IFS]* ]]
+			then 	REASON_EFFORT="${*:-medium}";
+			else 	REASON_EFFORT="${*}";
+			fi;
+			cmdmsgf 'Reasoning Effort:' "${REASON_EFFORT:-unset}";
+			;;
 		fold|wrap|no-fold|no-wrap)
 			((++OPTFOLD)) ;((OPTFOLD%=2))
 			cmdmsgf 'Folding' $(_onoff $OPTFOLD)
@@ -2003,6 +2021,13 @@ function cmd_runf
 			((++STREAM)) ;((STREAM%=2))
 			((STREAM)) || unset STREAM;
 			cmdmsgf 'Streaming' $(_onoff ${STREAM:-0})
+			;;
+		interactive|no-interactive)
+			case "$REASON_INTERACTIVE" in
+				true|'') 	REASON_INTERACTIVE=false;;
+				false|*) 	REASON_INTERACTIVE=true;;
+			esac;
+			cmdmsgf 'Reasoning Interactive' "$REASON_INTERACTIVE";
 			;;
 		-h|h|help|-\?|\?)
 			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*Notes/p' <<<"$HELP");
@@ -2095,9 +2120,10 @@ function cmd_runf
 			if ((++OPTMD)); ((OPTMD%=2))
 			then 	MD_CMD=${1:-$MD_CMD} xskip=1;
 				set_mdcmdf "$MD_CMD";
-				sysmsgf 'MD Cmd:' "$MD_CMD"
+				((${MD_AUTO:+1})) ||
+				  sysmsgf 'MD Cmd:' "$MD_CMD"
 			fi;
-			cmdmsgf 'Markdown' $(_onoff $OPTMD);
+			cmdmsgf 'Markdown' "$(_onoff $OPTMD)${MD_AUTO:+ (AUTO)}";
 			((OPTMD)) || unset OPTMD; NO_OPTMD_AUTO=1;
 			;;
 		[/!]markdown*|[/!]md*)
@@ -2876,25 +2902,68 @@ function json_minif
 	fi
 }
 
+function _fmt_cc_reasonf
+{
+	typeset var;
+	settings=();
+
+	((${REASON_INTERACTIVE:+1})) && settings=("${settings[@]}" '"interactive": '"${REASON_INTERACTIVE:-true}");
+
+	if ((${#settings[@]}>1))
+	then
+		for var in "${settings[@]}"
+		do
+			set -- "$@" "${var},";
+		done;
+
+		settings=("${@:1:${#} -1}" "${var}");
+	fi
+}
 #format for chat completions endpoint
 #usage: fmt_ccf [prompt] [role]
 function fmt_ccf
 {
 	typeset var
 	typeset -l ext
+	typeset -a settings
+	settings=();
 	[[ ${1} = *[!$IFS]* ]] || ((${#MEDIA[@]}+${#MEDIA_CMD[@]})) || return
-	
+
 	if ! ((${#MEDIA[@]}+${#MEDIA_CMD[@]}))
 	then
 		((ANTHROPICAI)) && [[ $2 = system ]] && return 1;
-		printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
+
+		case "$MOD" in o[1-9]*)
+			_fmt_cc_reasonf;  #prepare $settings[]
+			
+			if ((${#settings[@]}))
+			then
+				printf '{"role": "%s", "content": "%s", "settings": { %s } }\n' "${2:-user}" "$1" "${settings[*]}";
+			else
+				printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";  #K#
+			fi;;
+			*) 	printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";  #K#
+			;;
+		esac;
 	elif ((OLLAMA))
 	then
 		printf '{"role": "%s", "content": "%s",\n' "${2:-user}" "$1";
 		ollama_mediaf && printf '%s' ' }'
 	elif is_visionf "$MOD" || is_amodelf "$MOD"
 	then
-		printf '{ "role": "%s", "content": [ ' "${2:-user}";
+		case "$MOD" in o[1-9]*)
+			_fmt_cc_reasonf;  #prepare $settings[]
+			
+			if ((${#settings[@]}))
+			then
+				printf '{ "role": "%s", "settings": { %s }, "content": [ ' "${2:-user}" "${settings[*]}";
+			else
+				printf '{ "role": "%s", "content": [ ' "${2:-user}";  #J#
+			fi;;
+			*) 	printf '{ "role": "%s", "content": [ ' "${2:-user}";  #J#
+			;;
+		esac;
+
 		((${#1})) &&
 		printf '{ "type": "text", "text": "%s" }' "$1";
 		for var in "${MEDIA[@]}" "${MEDIA_CMD[@]}"
@@ -3477,6 +3546,15 @@ function set_optsf
 			OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=;
 			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 		}
+		case "$REASON_INTERACTIVE" in
+			true|[1-9]*) 	REASON_INTERACTIVE=true;;
+			false|[00]*) 	REASON_INTERACTIVE=false;;
+		esac;
+		case "$REASON_EFFORT" in
+			high|medium|low|'') 	:;;
+			*) 	_warmsgf 'Warning:' "reason_effort must be high, medium or low -- $REASON_EFFORT";
+			;;
+		esac;
 		;;
 		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
 		INSTRUCTION_CHAT= INSTRUCTION=;
@@ -5301,7 +5379,8 @@ r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
 R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
 u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
 w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  \
-github  github:git  novita  novita:nov  version  info  time no-time awesome-zh awesome
+github  github:git  novita  novita:nov  version  info  time no-time awesome-zh awesome \
+interactive no-interactive effort
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -5310,7 +5389,7 @@ github  github:git  novita  novita:nov  version  info  time no-time awesome-zh a
 
 		case "$OPTARG" in
 			$name|$name=)
-				if [[ $optstring = *"$opt":* ]]
+				if [[ ${optstring}effort: = *"$opt":* ]]
 				then 	OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
 				fi;;
@@ -5353,9 +5432,10 @@ github  github:git  novita  novita:nov  version  info  time no-time awesome-zh a
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		d) 	((OPTCMPL)) && OPTCMPL=1 || OPTCMPL=-1;;  #-1: single-turn, 1: multi-turn
+		effort) REASON_EFFORT=$OPTARG;;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME REASON_EFFORT REASON_INTERACTIVE;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -5369,6 +5449,8 @@ github  github:git  novita  novita:nov  version  info  time no-time awesome-zh a
 			exit;;
 		H) 	((++OPTHH));;
 		P) 	((OPTHH)) && ((++OPTHH)) || OPTHH=2;;
+		interactive) REASON_INTERACTIVE=true;;
+		no-interactive)  REASON_INTERACTIVE=false;;
 		i) 	OPTI=1 EPN=3;;
 		info) 	OPTINFO=1 OPTL=1;;
 		keep-alive)
@@ -5444,7 +5526,7 @@ github  github:git  novita  novita:nov  version  info  time no-time awesome-zh a
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM  init buff var tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO  init buff var tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -5976,7 +6058,7 @@ else
 	((MULTIMODAL)) ||
 	if is_amodelf "$MOD"
 	then 	MULTIMODAL=2;
-	elif is_visionf "$MOD"
+	elif is_visionf "$MOD" || ((MOD_REASON))
 	then 	MULTIMODAL=1;
 	fi;
 	((MULTIMODAL>1)) && OPTZ_FMT="pcm16";  #audio-model preview
@@ -6538,8 +6620,17 @@ $( ((ANTHROPICAI)) && ((EPN==6)) && ((${#INSTRUCTION_OLD})) && echo "\"system\":
 $BLOCK $OPTSUFFIX_OPT
 $(
 ((ANTHROPICAI)) && ((EPN!=6)) && max="max_tokens_to_sample" || max="max_tokens"
-case "$MOD" in o[1-9]*) 	max="max_completion_tokens";; esac
-((OPTMAX_NILL && EPN==6)) || echo "\"${max:-max_tokens}\": $OPTMAX," )
+case "$MOD" in o[1-9]*)
+	max="max_completion_tokens";
+	case "$MOD" in
+		*-preview*|*-mini*)  REASON_EFFORT=;;
+	esac;
+	;;
+	*)  REASON_EFFORT=;;
+esac
+((OPTMAX_NILL && EPN==6)) || echo "\"${max:-max_tokens}\": $OPTMAX,"
+((${REASON_EFFORT:+1})) && echo "\"reasoning_effort\": \"${REASON_EFFORT:-medium}\","
+)
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTBB_OPT $OPTSTOP $OPTSEED_OPT
 $(
@@ -6729,7 +6820,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 			((OPTC)) && ((MTURN)) && is_mdf "${ans}"
 		then
 			printf '\n%s\n' '--- markdown ---' >&2;
-			cmd_runf /markdown; _cmdmsgf 'Markdown' "AUTO";
+			MD_AUTO=1 cmd_runf /markdown;
 		fi
 
 		if ((OLLAMA+GROQAI)) && ((${#tkn[@]}>=5))  #token generation rate

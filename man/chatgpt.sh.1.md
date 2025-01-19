@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.92 | General Commands Manual
+% CHATGPT.SH(1) v0.92.2 | General Commands Manual
 % mountaineerbr
 % January 2025
 
@@ -49,37 +49,37 @@ before the text prompt itself.
 
 **\--anthropic**, **\--ant**
 
-: Set Anthropic integration (cmpls/chat).
+: Anthropic integration (cmpls/chat).
 
 
 **\--github**, **\--git**
 
-: Set GitHub Models integration (chat).
+: GitHub Models integration (chat).
 
 
 **\--google**, **\-goo**
 
-: Set Google Gemini integration (cmpls/chat).
+: Google Gemini integration (cmpls/chat).
 
 
 **\--groq**
 
-: Set Groq integration (chat).
+: Groq AI integration (chat).
 
 
 **\--localai**
 
-: Set LocalAI integration (cmpls/chat).
+: LocalAI integration (cmpls/chat).
 
 
 **\--mistral**
 
-: Set Mistral AI integration (chat).
+: Mistral AI integration (chat).
 
 
 **\--novita**
 
-: Set Novita AI integration (cmpls/chat).
+: Novita AI integration (cmpls/chat).
 
 
 **\--openai**
@@ -89,12 +89,12 @@ before the text prompt itself.
 
 **-O**, **\--ollama**
 
-: Set and make requests to Ollama server (cmpls/chat).
+: Ollama server integration (cmpls/chat).
 
 
 **\--xai**
 
-: Set xAI integrations (cmpls/chat).
+: xAI's Grok integration (cmpls/chat).
 
 
 ## Configuration File
@@ -144,7 +144,7 @@ before the text prompt itself.
 
 **-U**, **\--cat**
 
-: Set cat prompter, \<_CTRL-D_> flush.
+: Cat prompter, \<_CTRL-D_> flush.
 
 
 **-x**, **-xx**, **\--editor**
@@ -197,7 +197,7 @@ before the text prompt itself.
 
 **-g**, **\--stream**   (_defaults_)
 
-: Set response streaming.
+: Response streaming.
 
 
 **-G**, **\--no-stream**
@@ -296,7 +296,7 @@ before the text prompt itself.
 
 **-\@**, **\--alpha**   \[\[_VAL%_]_COLOUR_]
 
-:      Set transparent colour of image mask. Def=_black_.
+:      Transparent colour of image mask. Def=_black_.
 
        Fuzz intensity can be set with \[_VAL%_]. Def=_0%_.
 
@@ -310,29 +310,29 @@ before the text prompt itself.
 
 **-M**, **\--max**   \[_NUM_[_-NUM_]]
 
-:     Set maximum number of _response tokens_. Def=_1024_.
+:     Maximum number of _response tokens_. Def=_1024_.
 
       A second number in the argument sets model capacity.
 
 
 **-N**, **\--modmax**   \[_NUM_]
 
-: Set _model capacity_ tokens. Def=_auto_, Fallback=_4000_.
+: _Model capacity_ token value. Def=_auto_, Fallback=_8000_.
 
 
 **-a**, **\--presence-penalty**   \[_VAL_]
 
-: Set presence penalty  (cmpls/chat, -2.0 - 2.0).
+: Presence penalty  (cmpls/chat, -2.0 - 2.0).
 
 
 **-A**, **\--frequency-penalty**   \[_VAL_]
 
-: Set frequency penalty (cmpls/chat, -2.0 - 2.0).
+: Frequency penalty (cmpls/chat, -2.0 - 2.0).
 
 
 **-b**, **\--best-of**   \[_NUM_]
 
-: Set best of, must be greater than `option -n` (cmpls). Def=_1_.
+: Best of, must be greater than `option -n` (cmpls). Def=_1_.
 
 
 **-B**, **\--logprobs**   \[_NUM_]
@@ -340,56 +340,66 @@ before the text prompt itself.
 : Request log probabilities, also see -Z (cmpls, 0 - 5),
 
 
+**\--effort**  \[_high_|_medium_|_low_]
+
+: Amount of effort in reasoning models (OpenAI).
+
+
+**\--interactive**, **\--no-interactive**
+
+: Reasoning model output style.
+
+
 **-j**, **\--seed**  \[_NUM_]
 
-: Set a seed for deterministic sampling (integer).
+: Seed for deterministic sampling (integer).
 
 
 **-K**, **\--top-k**     \[_NUM_]
 
-: Set Top_k value (local-ai, ollama, google).
+: Top_k value (local-ai, ollama, google).
 
 
 **\--keep-alive**, **\--ka**=\[_NUM_]
 
-: Set how long the model will stay loaded into memory (ollama).
+: How long the model will stay loaded into memory (Ollama).
 
 
 **-m**, **\--model**   \[_MODEL_]
 
-:     Set language _MODEL_ name. Def=_gpt-3.5-turbo-instruct_/_gpt-4o_.
+:     Language _MODEL_ name. Def=_gpt-3.5-turbo-instruct_/_gpt-4o_.
 
       Set _MODEL_ name as "_._" to pick from the list.
 
 
 **\--multimodal**, **\--vision**, **\--audio**
 
-: Set model multimodal model type.
+: Model multimodal model type.
 
 
 **-n**, **\--results**   \[_NUM_]
 
-: Set number of results. Def=_1_.
+: Number of results. Def=_1_.
 
 
 **-p**, **\--top-p**   \[_VAL_]
 
-: Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
+: Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
 
 
 **-r**, **\--restart**   \[_SEQ_]
 
-: Set restart sequence string (cmpls).
+: Restart sequence string (cmpls).
 
 
 **-R**, **\--start**   \[_SEQ_]
 
-: Set start sequence string (cmpls).
+: Start sequence string (cmpls).
 
 
 **-s**, **\--stop**   \[_SEQ_]
 
-: Set stop sequences, up to 4. Def=\"_\<|endoftext|>_\".
+: Stop sequences, up to 4. Def=\"_\<|endoftext|>_\".
 
 
 **-S**, **\--instruction**   \[_INSTRUCTION_|_FILE_]
@@ -404,14 +414,14 @@ before the text prompt itself.
 
 **-t**, **\--temperature**   \[_VAL_]
 
-: Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 - 1.0). Def=_0_.
+: Temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 - 1.0). Def=_0_.
 
 
 ## Miscellaneous Settings
 
 **\--api-key**   \[_KEY_]
 
-: Set API key to use.
+: The API key to use.
 
 
 **\--fold** (_defaults_), **\--no-fold**
@@ -441,7 +451,7 @@ before the text prompt itself.
 
 **-L**, **\--log**   \[_FILEPATH_]
 
-: Set log file. _FILEPATH_ is required.
+: Log file. _FILEPATH_ is required.
 
 
 **\--md**, **\--markdown**, **\--markdown**=\[_SOFTWARE_]
@@ -485,7 +495,7 @@ before the text prompt itself.
 
 **-y**, **\--tik**
 
-: Set tiktoken for token count (cmpls/chat, python).
+: Tiktoken for token count (cmpls/chat, python).
 
 
 **-Y**, **\--no-tik**   (_defaults_)
@@ -923,8 +933,10 @@ Command operators "`!`" or "`/`" are equivalent.
       `-t`         `!temp`       \[_VAL_]     Temperature.
       `-w`         `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
       `-z`         `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
-     `!ka`         `!keep-alive` \[_NUM_]     Set duration of model load in memory (Ollama).
     `!blk`         `!block`     \[_ARGS_]     Set and add custom options to JSON request.
+ `!effort`                      \[_MODE_]     Reasoning effort modes: high, medium, or low.
+`!interactive`     `!no-interactive`          Toggle reasoning interactive modes.
+     `!ka`         `!keep-alive` \[_NUM_]     Set duration of model load in memory (Ollama).
   `!vision`        `!audio`, `!multimodal`    Toggle multimodality type.
  --------------    -----------------------    ------------------------------------------------
 

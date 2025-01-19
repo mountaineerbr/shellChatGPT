@@ -123,10 +123,12 @@ _chatgpt.sh()
     {-c,-cc,--chat}'[Text or native chat completions]' \
     {-C,--continue}'[Continue from last session]' \
     {-d,--text}'[Text completions]' \
+    --effort'[Reasoning effort]:effort:(low medium high)' \
     {-e,--edit}'[Edit first prompt]' \
     {-E,-EE,--exit}'[Exit on first run]' \
     {-g,--stream}'[Stream response on]' \
     {-G,--no-stream}'[Stream response off]' \
+    --{,no-}interactive'[Reasoning interactive mode]:bolean:(true false)' \
     {-i,--image}'[Image generation, variation or edit]' \
     {-q,-qq,--insert}'[Insert text mode (two for multiturn)]' \
     {-S,--instruction}'[Instruction prompt]:instruction:__pr_list3f' \

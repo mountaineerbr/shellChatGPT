@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2025
-title: CHATGPT.SH(1) v0.92 \| General Commands Manual
+title: CHATGPT.SH(1) v0.92.2 \| General Commands Manual
 ---
 
 # NAME
@@ -56,34 +56,34 @@ text prompt itself.
 ## Service Providers
 
 **--anthropic**, **--ant**  
-Set Anthropic integration (cmpls/chat).
+Anthropic integration (cmpls/chat).
 
 **--github**, **--git**  
-Set GitHub Models integration (chat).
+GitHub Models integration (chat).
 
 **--google**, **-goo**  
-Set Google Gemini integration (cmpls/chat).
+Google Gemini integration (cmpls/chat).
 
 **--groq**  
-Set Groq integration (chat).
+Groq AI integration (chat).
 
 **--localai**  
-Set LocalAI integration (cmpls/chat).
+LocalAI integration (cmpls/chat).
 
 **--mistral**  
-Set Mistral AI integration (chat).
+Mistral AI integration (chat).
 
 **--novita**  
-Set Novita AI integration (cmpls/chat).
+Novita AI integration (cmpls/chat).
 
 **--openai**  
 Reset service integrations.
 
 **-O**, **--ollama**  
-Set and make requests to Ollama server (cmpls/chat).
+Ollama server integration (cmpls/chat).
 
 **--xai**  
-Set xAI integrations (cmpls/chat).
+xAI’s Grok integration (cmpls/chat).
 
 ## Configuration File
 
@@ -119,7 +119,7 @@ These are aliases to **-HH** and **-HHH**, respectively.
 Toggle multiline prompter, \<*CTRL-D*\> flush.
 
 **-U**, **--cat**  
-Set cat prompter, \<*CTRL-D*\> flush.
+Cat prompter, \<*CTRL-D*\> flush.
 
 **-x**, **-xx**, **--editor**  
 Edit prompt in text editor.
@@ -155,7 +155,7 @@ With `options -eex`, edit last text editor buffer from cache.
 Exit on first run (even with options -cc).
 
 **-g**, **--stream** (*defaults*)  
-Set response streaming.
+Response streaming.
 
 **-G**, **--no-stream**  
 Unset response streaming.
@@ -230,7 +230,7 @@ Set `option -v` to not play response automatically.
 ## Model Settings
 
 **-@**, **--alpha** \[\[*VAL%*\]*COLOUR*\]  
-Set transparent colour of image mask. Def=*black*.
+Transparent colour of image mask. Def=*black*.
 
 Fuzz intensity can be set with \[*VAL%*\]. Def=*0%*.
 
@@ -240,56 +240,62 @@ Unset model max response tokens (chat cmpls only).
 **-NUM**
 
 **-M**, **--max** \[*NUM*\[*-NUM*\]\]  
-Set maximum number of *response tokens*. Def=*1024*.
+Maximum number of *response tokens*. Def=*1024*.
 
 A second number in the argument sets model capacity.
 
 **-N**, **--modmax** \[*NUM*\]  
-Set *model capacity* tokens. Def=*auto*, Fallback=*4000*.
+*Model capacity* token value. Def=*auto*, Fallback=*8000*.
 
 **-a**, **--presence-penalty** \[*VAL*\]  
-Set presence penalty (cmpls/chat, -2.0 - 2.0).
+Presence penalty (cmpls/chat, -2.0 - 2.0).
 
 **-A**, **--frequency-penalty** \[*VAL*\]  
-Set frequency penalty (cmpls/chat, -2.0 - 2.0).
+Frequency penalty (cmpls/chat, -2.0 - 2.0).
 
 **-b**, **--best-of** \[*NUM*\]  
-Set best of, must be greater than `option -n` (cmpls). Def=*1*.
+Best of, must be greater than `option -n` (cmpls). Def=*1*.
 
 **-B**, **--logprobs** \[*NUM*\]  
 Request log probabilities, also see -Z (cmpls, 0 - 5),
 
+**--effort** \[*high*\|*medium*\|*low*\]  
+Amount of effort in reasoning models (OpenAI).
+
+**--interactive**, **--no-interactive**  
+Reasoning model output style.
+
 **-j**, **--seed** \[*NUM*\]  
-Set a seed for deterministic sampling (integer).
+Seed for deterministic sampling (integer).
 
 **-K**, **--top-k** \[*NUM*\]  
-Set Top_k value (local-ai, ollama, google).
+Top_k value (local-ai, ollama, google).
 
 **--keep-alive**, **--ka**=\[*NUM*\]  
-Set how long the model will stay loaded into memory (ollama).
+How long the model will stay loaded into memory (Ollama).
 
 **-m**, **--model** \[*MODEL*\]  
-Set language *MODEL* name. Def=*gpt-3.5-turbo-instruct*/*gpt-4o*.
+Language *MODEL* name. Def=*gpt-3.5-turbo-instruct*/*gpt-4o*.
 
 Set *MODEL* name as “*.*” to pick from the list.
 
 **--multimodal**, **--vision**, **--audio**  
-Set model multimodal model type.
+Model multimodal model type.
 
 **-n**, **--results** \[*NUM*\]  
-Set number of results. Def=*1*.
+Number of results. Def=*1*.
 
 **-p**, **--top-p** \[*VAL*\]  
-Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
+Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
 
 **-r**, **--restart** \[*SEQ*\]  
-Set restart sequence string (cmpls).
+Restart sequence string (cmpls).
 
 **-R**, **--start** \[*SEQ*\]  
-Set start sequence string (cmpls).
+Start sequence string (cmpls).
 
 **-s**, **--stop** \[*SEQ*\]  
-Set stop sequences, up to 4. Def="*\<\|endoftext\|\>*".
+Stop sequences, up to 4. Def="*\<\|endoftext\|\>*".
 
 **-S**, **--instruction** \[*INSTRUCTION*\|*FILE*\]  
 Set an instruction text prompt. It may be a text file.
@@ -298,13 +304,13 @@ Set an instruction text prompt. It may be a text file.
 Insert the current date and time (timestamp) to the instruction prompt.
 
 **-t**, **--temperature** \[*VAL*\]  
-Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
-1.0). Def=*0*.
+Temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 - 1.0).
+Def=*0*.
 
 ## Miscellaneous Settings
 
 **--api-key** \[*KEY*\]  
-Set API key to use.
+The API key to use.
 
 **--fold** (*defaults*), **--no-fold**  
 Set or unset response folding (wrap at white spaces).
@@ -322,7 +328,7 @@ Disable colour output. Def=*auto*.
 List models or print details of *MODEL*.
 
 **-L**, **--log** \[*FILEPATH*\]  
-Set log file. *FILEPATH* is required.
+Log file. *FILEPATH* is required.
 
 **--md**, **--markdown**, **--markdown**=\[*SOFTWARE*\]  
 Enable markdown rendering in response. Software is optional: *bat*,
@@ -352,7 +358,7 @@ Dump raw JSON request block (debug).
 Print script version.
 
 **-y**, **--tik**  
-Set tiktoken for token count (cmpls/chat, python).
+Tiktoken for token count (cmpls/chat, python).
 
 **-Y**, **--no-tik** (*defaults*)  
 Unset tiktoken use (cmpls/chat, python).
@@ -748,28 +754,30 @@ or “`/`” are equivalent.
 | `-y`    | `!tik`               | Toggle python tiktoken use.                              |
 | `!q`    | `!quit`              | Exit. Bye.                                               |
 
-| Model     | Settings                |                                                |
-|:----------|:------------------------|------------------------------------------------|
-| `!Nill`   | `-Nill`                 | Unset max response tkns (chat cmpls).          |
-| `!NUM`    | `-M` \[*NUM*\]          | Maximum response tokens.                       |
-| `!!NUM`   | `-N` \[*NUM*\]          | Model token capacity.                          |
-| `-a`      | `!pre` \[*VAL*\]        | Presence penalty.                              |
-| `-A`      | `!freq` \[*VAL*\]       | Frequency penalty.                             |
-| `-b`      | `!best` \[*NUM*\]       | Best-of n results.                             |
-| `-j`      | `!seed` \[*NUM*\]       | Seed number (integer).                         |
-| `-K`      | `!topk` \[*NUM*\]       | Top_k.                                         |
-| `-m`      | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.        |
-| `-n`      | `!results` \[*NUM*\]    | Number of results.                             |
-| `-p`      | `!topp` \[*VAL*\]       | Top_p.                                         |
-| `-r`      | `!restart` \[*SEQ*\]    | Restart sequence.                              |
-| `-R`      | `!start` \[*SEQ*\]      | Start sequence.                                |
-| `-s`      | `!stop` \[*SEQ*\]       | One stop sequence.                             |
-| `-t`      | `!temp` \[*VAL*\]       | Temperature.                                   |
-| `-w`      | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
-| `-z`      | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
-| `!ka`     | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
-| `!blk`    | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
-| `!vision` | `!audio`, `!multimodal` | Toggle multimodality type.                     |
+| Model          | Settings                |                                                |
+|:---------------|:------------------------|------------------------------------------------|
+| `!Nill`        | `-Nill`                 | Unset max response tkns (chat cmpls).          |
+| `!NUM`         | `-M` \[*NUM*\]          | Maximum response tokens.                       |
+| `!!NUM`        | `-N` \[*NUM*\]          | Model token capacity.                          |
+| `-a`           | `!pre` \[*VAL*\]        | Presence penalty.                              |
+| `-A`           | `!freq` \[*VAL*\]       | Frequency penalty.                             |
+| `-b`           | `!best` \[*NUM*\]       | Best-of n results.                             |
+| `-j`           | `!seed` \[*NUM*\]       | Seed number (integer).                         |
+| `-K`           | `!topk` \[*NUM*\]       | Top_k.                                         |
+| `-m`           | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.        |
+| `-n`           | `!results` \[*NUM*\]    | Number of results.                             |
+| `-p`           | `!topp` \[*VAL*\]       | Top_p.                                         |
+| `-r`           | `!restart` \[*SEQ*\]    | Restart sequence.                              |
+| `-R`           | `!start` \[*SEQ*\]      | Start sequence.                                |
+| `-s`           | `!stop` \[*SEQ*\]       | One stop sequence.                             |
+| `-t`           | `!temp` \[*VAL*\]       | Temperature.                                   |
+| `-w`           | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
+| `-z`           | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
+| `!blk`         | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
+| `!effort`      | \[*MODE*\]              | Reasoning effort modes: high, medium, or low.  |
+| !interactive\` | `!no-interactive`       | Toggle reasoning interactive modes.            |
+| `!ka`          | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
+| `!vision`      | `!audio`, `!multimodal` | Toggle multimodality type.                     |
 
 | Session | Management                             |                                                |
 |:--------|:---------------------------------------|------------------------------------------------|

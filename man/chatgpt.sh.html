@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.92 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.92.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.92 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.92.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2025</p>
 </header>
@@ -228,31 +228,31 @@ text prompt itself.</p>
 <dl>
 <dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
 <dd>
-<p>Set Anthropic integration (cmpls/chat).</p>
+<p>Anthropic integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--github</strong>, <strong>--git</strong></dt>
 <dd>
-<p>Set GitHub Models integration (chat).</p>
+<p>GitHub Models integration (chat).</p>
 </dd>
 <dt><strong>--google</strong>, <strong>-goo</strong></dt>
 <dd>
-<p>Set Google Gemini integration (cmpls/chat).</p>
+<p>Google Gemini integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--groq</strong></dt>
 <dd>
-<p>Set Groq integration (chat).</p>
+<p>Groq AI integration (chat).</p>
 </dd>
 <dt><strong>--localai</strong></dt>
 <dd>
-<p>Set LocalAI integration (cmpls/chat).</p>
+<p>LocalAI integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--mistral</strong></dt>
 <dd>
-<p>Set Mistral AI integration (chat).</p>
+<p>Mistral AI integration (chat).</p>
 </dd>
 <dt><strong>--novita</strong></dt>
 <dd>
-<p>Set Novita AI integration (cmpls/chat).</p>
+<p>Novita AI integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--openai</strong></dt>
 <dd>
@@ -260,11 +260,11 @@ text prompt itself.</p>
 </dd>
 <dt><strong>-O</strong>, <strong>--ollama</strong></dt>
 <dd>
-<p>Set and make requests to Ollama server (cmpls/chat).</p>
+<p>Ollama server integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--xai</strong></dt>
 <dd>
-<p>Set xAI integrations (cmpls/chat).</p>
+<p>xAI’s Grok integration (cmpls/chat).</p>
 </dd>
 </dl>
 <h2 id="configuration-file">Configuration File</h2>
@@ -309,7 +309,7 @@ respectively.</p>
 </dd>
 <dt><strong>-U</strong>, <strong>--cat</strong></dt>
 <dd>
-<p>Set cat prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
+<p>Cat prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
 </dd>
 <dt><strong>-x</strong>, <strong>-xx</strong>,
 <strong>--editor</strong></dt>
@@ -360,7 +360,7 @@ cache.</p>
 <dt><strong>-g</strong>, <strong>--stream</strong>
 (<em>defaults</em>)</dt>
 <dd>
-<p>Set response streaming.</p>
+<p>Response streaming.</p>
 </dd>
 <dt><strong>-G</strong>, <strong>--no-stream</strong></dt>
 <dd>
@@ -454,7 +454,7 @@ text prompt.</p>
 <dt><strong>-@</strong>, <strong>--alpha</strong>
 [[<em>VAL%</em>]<em>COLOUR</em>]</dt>
 <dd>
-<p>Set transparent colour of image mask. Def=<em>black</em>.</p>
+<p>Transparent colour of image mask. Def=<em>black</em>.</p>
 <p>Fuzz intensity can be set with [<em>VAL%</em>]. Def=<em>0%</em>.</p>
 </dd>
 <dt><strong>-Nill</strong></dt>
@@ -467,77 +467,86 @@ text prompt.</p>
 <dt><strong>-M</strong>, <strong>--max</strong>
 [<em>NUM</em>[<em>-NUM</em>]]</dt>
 <dd>
-<p>Set maximum number of <em>response tokens</em>.
-Def=<em>1024</em>.</p>
+<p>Maximum number of <em>response tokens</em>. Def=<em>1024</em>.</p>
 <p>A second number in the argument sets model capacity.</p>
 </dd>
 <dt><strong>-N</strong>, <strong>--modmax</strong> [<em>NUM</em>]</dt>
 <dd>
-<p>Set <em>model capacity</em> tokens. Def=<em>auto</em>,
-Fallback=<em>4000</em>.</p>
+<p><em>Model capacity</em> token value. Def=<em>auto</em>,
+Fallback=<em>8000</em>.</p>
 </dd>
 <dt><strong>-a</strong>, <strong>--presence-penalty</strong>
 [<em>VAL</em>]</dt>
 <dd>
-<p>Set presence penalty (cmpls/chat, -2.0 - 2.0).</p>
+<p>Presence penalty (cmpls/chat, -2.0 - 2.0).</p>
 </dd>
 <dt><strong>-A</strong>, <strong>--frequency-penalty</strong>
 [<em>VAL</em>]</dt>
 <dd>
-<p>Set frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
+<p>Frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
 </dd>
 <dt><strong>-b</strong>, <strong>--best-of</strong> [<em>NUM</em>]</dt>
 <dd>
-<p>Set best of, must be greater than <code>option -n</code> (cmpls).
+<p>Best of, must be greater than <code>option -n</code> (cmpls).
 Def=<em>1</em>.</p>
 </dd>
 <dt><strong>-B</strong>, <strong>--logprobs</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
 </dd>
+<dt><strong>--effort</strong>
+[<em>high</em>|<em>medium</em>|<em>low</em>]</dt>
+<dd>
+<p>Amount of effort in reasoning models (OpenAI).</p>
+</dd>
+<dt><strong>--interactive</strong>,
+<strong>--no-interactive</strong></dt>
+<dd>
+<p>Reasoning model output style.</p>
+</dd>
 <dt><strong>-j</strong>, <strong>--seed</strong> [<em>NUM</em>]</dt>
 <dd>
-<p>Set a seed for deterministic sampling (integer).</p>
+<p>Seed for deterministic sampling (integer).</p>
 </dd>
 <dt><strong>-K</strong>, <strong>--top-k</strong> [<em>NUM</em>]</dt>
 <dd>
-<p>Set Top_k value (local-ai, ollama, google).</p>
+<p>Top_k value (local-ai, ollama, google).</p>
 </dd>
 <dt><strong>--keep-alive</strong>,
 <strong>--ka</strong>=[<em>NUM</em>]</dt>
 <dd>
-<p>Set how long the model will stay loaded into memory (ollama).</p>
+<p>How long the model will stay loaded into memory (Ollama).</p>
 </dd>
 <dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
 <dd>
-<p>Set language <em>MODEL</em> name.
+<p>Language <em>MODEL</em> name.
 Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
 <p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
 </dd>
 <dt><strong>--multimodal</strong>, <strong>--vision</strong>,
 <strong>--audio</strong></dt>
 <dd>
-<p>Set model multimodal model type.</p>
+<p>Model multimodal model type.</p>
 </dd>
 <dt><strong>-n</strong>, <strong>--results</strong> [<em>NUM</em>]</dt>
 <dd>
-<p>Set number of results. Def=<em>1</em>.</p>
+<p>Number of results. Def=<em>1</em>.</p>
 </dd>
 <dt><strong>-p</strong>, <strong>--top-p</strong> [<em>VAL</em>]</dt>
 <dd>
-<p>Set Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
+<p>Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
 </dd>
 <dt><strong>-r</strong>, <strong>--restart</strong> [<em>SEQ</em>]</dt>
 <dd>
-<p>Set restart sequence string (cmpls).</p>
+<p>Restart sequence string (cmpls).</p>
 </dd>
 <dt><strong>-R</strong>, <strong>--start</strong> [<em>SEQ</em>]</dt>
 <dd>
-<p>Set start sequence string (cmpls).</p>
+<p>Start sequence string (cmpls).</p>
 </dd>
 <dt><strong>-s</strong>, <strong>--stop</strong> [<em>SEQ</em>]</dt>
 <dd>
-<p>Set stop sequences, up to 4. Def="<em>&lt;|endoftext|&gt;</em>".</p>
+<p>Stop sequences, up to 4. Def="<em>&lt;|endoftext|&gt;</em>".</p>
 </dd>
 <dt><strong>-S</strong>, <strong>--instruction</strong>
 [<em>INSTRUCTION</em>|<em>FILE</em>]</dt>
@@ -552,7 +561,7 @@ prompt.</p>
 <dt><strong>-t</strong>, <strong>--temperature</strong>
 [<em>VAL</em>]</dt>
 <dd>
-<p>Set temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
+<p>Temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
 1.0). Def=<em>0</em>.</p>
 </dd>
 </dl>
@@ -560,7 +569,7 @@ prompt.</p>
 <dl>
 <dt><strong>--api-key</strong> [<em>KEY</em>]</dt>
 <dd>
-<p>Set API key to use.</p>
+<p>The API key to use.</p>
 </dd>
 <dt><strong>--fold</strong> (<em>defaults</em>),
 <strong>--no-fold</strong></dt>
@@ -587,7 +596,7 @@ prompt.</p>
 </dd>
 <dt><strong>-L</strong>, <strong>--log</strong> [<em>FILEPATH</em>]</dt>
 <dd>
-<p>Set log file. <em>FILEPATH</em> is required.</p>
+<p>Log file. <em>FILEPATH</em> is required.</p>
 </dd>
 <dt><strong>--md</strong>, <strong>--markdown</strong>,
 <strong>--markdown</strong>=[<em>SOFTWARE</em>]</dt>
@@ -623,7 +632,7 @@ detection and play TTS response right away.</p>
 </dd>
 <dt><strong>-y</strong>, <strong>--tik</strong></dt>
 <dd>
-<p>Set tiktoken for token count (cmpls/chat, python).</p>
+<p>Tiktoken for token count (cmpls/chat, python).</p>
 </dd>
 <dt><strong>-Y</strong>, <strong>--no-tik</strong>
 (<em>defaults</em>)</dt>
@@ -1264,15 +1273,25 @@ flush.</td>
 <td>Toggle TTS chat mode (speech out).</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>!blk</code></td>
+<td style="text-align: left;"><code>!block</code> [<em>ARGS</em>]</td>
+<td>Set and add custom options to JSON request.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!effort</code></td>
+<td style="text-align: left;">[<em>MODE</em>]</td>
+<td>Reasoning effort modes: high, medium, or low.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">!interactive`</td>
+<td style="text-align: left;"><code>!no-interactive</code></td>
+<td>Toggle reasoning interactive modes.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!ka</code></td>
 <td style="text-align: left;"><code>!keep-alive</code>
 [<em>NUM</em>]</td>
 <td>Set duration of model load in memory (Ollama).</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!blk</code></td>
-<td style="text-align: left;"><code>!block</code> [<em>ARGS</em>]</td>
-<td>Set and add custom options to JSON request.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!vision</code></td>
