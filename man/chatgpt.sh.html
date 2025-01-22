@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.92.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.92.4 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.92.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.92.4 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2025</p>
 </header>
@@ -1428,14 +1428,16 @@ follows the syntax “<code>/</code>[<em>HIST_NAME</em>]”, the command
 <code>options -ccCdPP</code>).</p>
 <h2 id="resuming-and-copying-sessions">Resuming and Copying
 Sessions</h2>
-<p>To continue from an old session type in a dot “<code>.</code>” as the
-first positional argument from the command line on invocation.</p>
+<p>To continue from an old session type in a dot “<code>.</code>” or
+“<code>/.</code>” as the first positional argument from the command line
+on invocation.</p>
 <p>The above command is a shortcut of “<code>/copy</code>
 <em>current</em> <em>current</em>”. In fact, there are multiple commands
 to copy and resume from an older session (the dot means <em>current
 session</em>): “<code>/copy . .</code>”, “<code>/fork.</code>”,
-“<code>/sub</code>”, “<code>/grep</code> [<em>REGEX</em>]”,
-“<code>/.</code>”, or simply “<code>.</code>”.</p>
+“<code>/sub</code>”, and “<code>/grep</code> [<em>REGEX</em>]”.</p>
+<p>From the command line on invocation, there is also, or simply
+“<code>.</code>”.</p>
 <p>It is possible to copy sessions of a history file to another file
 when a second argument is given to the “<code>/copy</code>” command.</p>
 <!--
@@ -1793,8 +1795,8 @@ input (Whisper)</li>
 <p>The script objective is to implement some of the features of OpenAI
 API version 1 (not all endpoints or options will be covered).</p>
 <p>This project <em>doesn’t support</em> “Function Calling”, “Structured
-Outputs”, “Real-Time Conversations”, and “video generation /
-editing”.</p>
+Outputs”, “Real-Time Conversations”, “Agents/Operators”, nor “video
+generation / editing” capabilities.</p>
 <h1 id="bugs">BUGS</h1>
 <p>Bash “read command” may not correctly display input buffers larger
 than the TTY screen size during editing. However, input buffers remain

@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.92.3 | General Commands Manual
+% CHATGPT.SH(1) v0.92.4 | General Commands Manual
 % mountaineerbr
 % January 2025
 
@@ -1018,14 +1018,15 @@ the syntax "`/`[_HIST_NAME_]", the command "`/session`" is assumed
 
 ## Resuming and Copying Sessions
 
-To continue from an old session type in a dot "`.`" as the first positional
-argument from the command line on invocation.
+To continue from an old session type in a dot "`.`"  or "`/.`"
+as the first positional argument from the command line on invocation.
 
 The above command is a shortcut of "`/copy` _current_ _current_".
 In fact, there are multiple commands to copy and resume from
 an older session (the dot means _current session_):
-"`/copy . .`", "`/fork.`", "`/sub`",
-"`/grep` \[_REGEX_]", "`/.`", or simply "`.`".
+"`/copy . .`", "`/fork.`", "`/sub`", and "`/grep` \[_REGEX_]".
+
+From the command line on invocation, there is also, or simply "`.`".
 
 It is possible to copy sessions of a history file to another file
 when a second argument is given to the "`/copy`" command.
@@ -1440,7 +1441,8 @@ The script objective is to implement some of the features of OpenAI
 API version 1 (not all endpoints or options will be covered).
 
 This project _doesn't support_ "Function Calling", "Structured Outputs",
-"Real-Time Conversations", and "video generation / editing".
+"Real-Time Conversations", "Agents/Operators", nor "video generation / editing"
+capabilities.
 
 
 # BUGS

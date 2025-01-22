@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.3  jan/2025  by mountaineerbr  GPL+3
+# v0.92.4  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1074,8 +1074,8 @@ function new_prompt_confirmf
 		[HhTt]) return 194;;  #whisper retry request
 		[NnOo]) REC_OUT=; return 1;;  #no
 		[-/!]) 	echo >&2; read_mainf -i "$REPLY" REPLY; echo >&2;
-			BLOCK_USR= BREAK_SET= EDIT= ENDPOINTS= HERR= JUMP= \
-			MAIN_LOOP= REGEN= REPLAY_FILES= REPLY= \
+			BLOCK_USR= BREAK_SET= OPTRESUME= EDIT= ENDPOINTS= \
+			HERR= JUMP= MAIN_LOOP= REGEN= REPLAY_FILES= REPLY= \
 			REPLY_CMD_BLOCK= REPLY_CMD_DUMP= REPLY_OLD= RESTART= START= \
 			RESUBW= RET= SKIP= SKIP_SH_HIST=  BCYAN= CYAN= ON_CYAN= \
 			cmd_runf "$REPLY";
@@ -1814,6 +1814,14 @@ function set_browsercmdf
 		done; false;
 	fi;
 }
+function set_jbrowsercmdf
+{
+	typeset cmd;
+	for cmd in "google-chrome-stable" "google-chrome" "chromium" "chromium-browser" "ungoogled-chromium" "brave"
+	do 	command -v $cmd &>/dev/null || continue;
+		_set_browsercmdf $cmd && return;
+	done; false;
+}
 function _set_browsercmdf
 {
 	case "$1" in
@@ -1821,7 +1829,8 @@ function _set_browsercmdf
 		lynx*) 	printf '%s' "lynx -force_html -nolist -dump -stdin";;
 		elinks*) printf '%s' "elinks -force-html -no-references -dump";;
 		links*) printf '%s' "links -force-html -dump";;
-		google-chrome*|chromium*) printf '%s' "${1%% *} --disable-gpu --headless --dump-dom";;
+		google-chrome*|chromium*|ungoogled-chromium*|brave*)
+			printf '%s' "${1%% *} --disable-gpu --headless --dump-dom";;
 		*) 	printf '%s' "curl -f -L --compressed --insecure --cookie non-existing --header \"$UAG\"";;
 	esac;
 }
@@ -1958,8 +1967,14 @@ function cmd_runf
 			OPTB="${*:-$OPTB}"
 			cmdmsgf 'Best_Of' "$OPTB"
 			;;
-		-C) 	((OPTRESUME)) && BREAK_SET=1 OPTRESUME= || BREAK_SET= OPTRESUME=1;
-			cmdmsgf "Session Continue:" $(_onoff ${OPTRESUME:-0})
+		-C)
+			if ((BREAK_SET))
+			then 	BREAK_SET= OPTRESUME=1 INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION= GINSTRUCTION=;
+				cmdmsgf "Session Continue:" $(_onoff ${OPTRESUME:-0});
+			else 	BREAK_SET=1 OPTRESUME= INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
+				((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION:-$GINSTRUCTION} INSTRUCTION=;
+				cmd_runf /break;
+			fi
 			;;
 		-c)
 			((OPTC)) && { 	cmd_runf -cc; return ;}
@@ -1983,7 +1998,7 @@ function cmd_runf
 			fi;
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
 			  ((OPTV>99)) || _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
-			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION} GINSTRUCTION_PERM=$GINSTRUCTION INSTRUCTION= ||
+			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-${INSTRUCTION:-$GINSTRUCTION}} GINSTRUCTION_PERM=$GINSTRUCTION INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; CKSUM_OLD= MAX_PREV= WCHAT_C= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= xskip=1;
 			;;
@@ -2099,8 +2114,8 @@ function cmd_runf
 			  _cmdmsgf 'Log file' "<${USRLOG/"$HOME"/"~"}>";
 			};
 			;;
-		-l*|models)
-			set -- "${*##@(-l|models)*([$IFS])}";
+		-l*|models|list-models)
+			set -- "${*##@(-l|models|list-models)*([$IFS])}";
 			list_modelsf "$*" | less >&2;
 			;;
 		-m*|model*|mod*)
@@ -2143,25 +2158,36 @@ function cmd_runf
 			case "$*" in [/!]url:*|url:*) 	append=1;; esac;  #append as user
 			set -- "$(trimf "$(trim_leadf "$*" '@(url|[/!]url)*(:)')" "$SPC")";
 
-			if case "$*" in *youtube.com/watch*|*youtu.be/*) 	:;; *) 	! :;; esac
-			then
+			case "$*" in
+			*youtube.com/watch*|*youtube.com/live*|*youtube.com/shorts*|*youtu.be/*)
 				{ yt_descf "$*" || _warmsgf 'YouTube:' 'Description unavailable';
 				  yt_transf "$*" || _warmsgf 'YouTube:' 'Transcript dump fail / unavailable';
 				} >"$FILEFIFO";
 				[[ -s "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO";
 				return 0;
-			elif ((${#1}))
-			then 	var=$(set_browsercmdf);
-				((OPTV)) || _printbf "${var%% *}";
-				case "$var" in
-				  google-chrome*|chromium*)  #html filter hack
-				    cmd_runf /sh${append:+:} "${var} \"${1// /%20}\" | $(BROWSER= set_browsercmdf)";
-				    ;;
-				  *)  cmd_runf /sh${append:+:} "${var}" "\"${1// /%20}\"";
-				    ;;
-				esac;
+				;;
+			*vimeo.com/[0-9][0-9]*|*vimeo.com/video*|*vimeo.com/channel*|*vimeo.com/group*|*vimeo.com/album*)
+				{ vimeo_descf "$*" || _warmsgf 'Vimeo:' 'Description unavailable';
+				  vimeo_transf "$*" || _warmsgf 'Vimeo:' 'Transcript dump fail / unavailable';
+				} >"$FILEFIFO";
+				[[ -s "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO";
 				return 0;
-			fi;
+				;;
+			*)
+				if ((${#1}))
+				then 	var=$(set_browsercmdf);
+					((OPTV)) || _printbf "${var%% *}";
+					case "$var" in
+					  google-chrome*|chromium*|ungoogled-chromium*|brave*)  #html filter hack
+					    cmd_runf /sh${append:+:} "${var} \"${1// /%20}\" | $(BROWSER= set_browsercmdf)";
+					    ;;
+					  *)  cmd_runf /sh${append:+:} "${var}" "\"${1// /%20}\"";
+					    ;;
+					esac;
+					return 0;
+				fi;
+				;;
+			esac;
 			;;
 		[/!]g*|g*)  #ground context (on-line)
 			HARGS=${HARGS:-$*};
@@ -3431,6 +3457,27 @@ function yt_descf
 #https://stackoverflow.com/questions/72354649/
 #https://stackoverflow.com/questions/76876281/
 
+function vimeo_transf
+{
+	typeset browser url
+	
+	if browser=$(set_jbrowsercmdf)
+	then
+		url=$( ${browser} "${*}" |
+		  grep -o -e 'src="/texttrack[^"]*.[sv][rt][t][^"]*"' | sed 's/^[^"]*"//; s/"$//' );
+
+		((${#url})) && curl -Ls "https://player.vimeo.com${url%%${IFS}*}";
+	else
+		! _warmsgf 'Err:' 'Transcription dump requires JavaScript-capable cli-browser';
+	fi;
+}
+#https://developer.vimeo.com/api/reference/videos#get_transcript_metadata
+
+function vimeo_descf
+{
+	curl -Ls -H "$UAG" -H 'x-requested-with: XMLHttpRequest' "https://vimeo.com/api/oembed.json?url=${*}" | jq .;
+}
+
 #alternative to du
 function duf
 {
@@ -3611,6 +3658,7 @@ function set_optsf
 	then 	STREAM_OPT="\"stream\": true,";
 	else 	STREAM_OPT="\"stream\": false,"; unset STREAM;
 	fi
+	#((BREAK_SET && OPTRESUME)) && BREAK_SET=1 OPTRESUME=;  #inconsistent config
 	((OPT_KEEPALIVE)) && OPT_KEEPALIVE_OPT="\"keep_alive\": $OPT_KEEPALIVE," || unset OPT_KEEPALIVE_OPT
 	((OPTV<1)) && unset OPTV  #IPC#
 	
@@ -4999,7 +5047,7 @@ function session_copyf
 
 	buff=$(session_sub_printf "$src") && {
 		[[ -f "$dest" ]] && { 	[[ $(tail -- "$dest") != *"$buff" ]] || return 0 ;}
-		FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= cmd_runf /break 2>/dev/null;
+		FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= OPTRESUME= BREAK_SET= cmd_runf /break 2>/dev/null;
 		FILECHAT="${dest}" _break_sessionf; OLD_DEST="${dest}";
 		#check if dest is the same as current
 		[[ "$dest" != "$FILECHAT" ]] || OPTRESUME=1 BREAK_SET= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= MAX_PREV=;
@@ -5715,12 +5763,19 @@ then
 
 	function list_modelsf
 	{
-		curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
-		jq -r '.[].name' | tee -- "$FILEMODEL";
-		[[ -s $FILEMODEL ]] ||
-		curl -\# -L -H "$UAG" "https://github.com/marketplace/models" |
-		sed -n 's/"original_name":"[^"]*",/\n&\n/gp' | sed -n 's/"original_name"://p' |
-		sed 's/[",]//g' | tee -- "$FILEMODEL";
+		if ((OPTL<2)) && [[ $* != *[!$IFS]* ]]
+		then
+			curl -L -\# 'https://github.com/marketplace/models' -H 'x-requested-with: XMLHttpRequest' |
+			jq -r '.[] | select(.task == "chat-completion") | .original_name' | tee -- "$FILEMODEL";
+		elif [[ $* = *[!$IFS]* ]]
+		then
+			curl -L -\# 'https://github.com/marketplace/models' -H 'x-requested-with: XMLHttpRequest' |
+			jq -r ".[] | select(.original_name == \"$*\")";
+			return;
+		else
+			curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
+			jq -r '.[].name' | tee -- "$FILEMODEL";
+		fi
 		#https://github.com/marketplace/info
 	};
 	GITHUBAI=1 OPTC=2;  #chat completions only

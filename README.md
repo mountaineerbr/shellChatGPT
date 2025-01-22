@@ -1439,8 +1439,8 @@ in general are not really worth developer efforts sometimes, it is frustating!
 The project will enter a maintenance phase from 2025 onwards, focusing primarily
 on bug fixes and stability.
 
-- We plan to deprecate the _image generation and image editing_ endpoints
-when script code becomes obsolete to work with images.
+- We plan to deprecate the <!-- _image generation_ and --> _image editing_
+specific endpoints when script code becomes obsolete to work with images.
 
 - Text completions endpoint is planned to be deprecated when there are
 no models compatible with this endpoint anymore.
@@ -1491,7 +1491,7 @@ Only selected features of the API will be covered.
 
 - The script _will not execute commands_ on behalf of users.
 
-- This project _doesn't_ support "Function Calling" or "Structured Outputs".
+- This project _doesn't_ support "Function Calling", "Structured Outputs", nor "Agents/Operators".
 
 - We _will not support_ "Real-Time" chatting, or video generation / editing.
 
@@ -1561,7 +1561,7 @@ They were studied during development of this script and used as referencial code
 14. [xAI](https://docs.x.ai/docs/quickstart)
 15. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
 16. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
-<!-- https://huggingface.co/ -->
+<!-- 17. [Kardolu's chatgpt-cli](https://github.com/kardolus/chatgpt-cli) -->
 
 
 <!--
