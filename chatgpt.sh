@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.5  jan/2025  by mountaineerbr  GPL+3
+# v0.92.6  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1183,7 +1183,7 @@ function prompt_prettyf
 	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
 	  ( ((.delta.content)//(.delta.text)//(.delta.audio.transcript)
 	    //.text//.response//.completion//(.content[]?|.text?)
-	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"---\") else null end)
+	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"---\",(.message.content//empty)) else null end)
 	    //(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)
 	    //(.candidates[]?|.content | if ((${MOD_THINK:+1}0>0) and (.parts?|.[1]?|.text?)) then (.parts[0].text?,\"\\n\\nANSWER:\\n\",.parts[1].text?) else (.parts[]?|.text?) end)
 	    //\"\" ) |
