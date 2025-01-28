@@ -103,6 +103,7 @@ If no suffix is provided, it works as plain text completions.
 - 21. [Acknowledgements](#acknowledgements)
 
 <!-- - 9. [Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
+  <!-- - 12.10 [DeepSeek](#deepseek) -->
 
 </details>
 
@@ -1235,6 +1236,17 @@ Run the script with `option --xai` and also with `option -cc` (chat completions.
 
 Some models also work with native text completions. For that,
 set command-line `option -c` instead.
+
+
+<!--
+### DeepSeek
+
+Visit [DeepSeek Webpage](https://platform.deepseek.com/api_keys) to get
+an API key and set envar `$DEEPSEEK_API_KEY`.
+
+Run the script with `option --deepseek`.
+It works with chat completions  (`option -cc`) and text completions (`option -c`) modes.
+-->
 
 
 <!--

@@ -163,6 +163,7 @@ _chatgpt.sh()
     '--github[GitHub Models integration]' \
     '--novita[Novita AI integration]' \
     '--xai[xAI integration]' \
+    '--deepseek[DeepSeek integration]' \
     '--openai[Reset defaults to OpenAI]' \
     '--time[Instruction timestamp]' \
     '--no-time[Unset instruction timestamp]' \

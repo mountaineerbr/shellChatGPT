@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.4  jan/2025  by mountaineerbr  GPL+3
+# v0.92.5  jan/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -23,7 +23,6 @@ MOD_CHAT="${MOD_CHAT:-gpt-4o}"  #"chatgpt-4o-latest"
 MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
 # Whisper model (STT)
 MOD_AUDIO="${MOD_AUDIO:-whisper-1}"
-MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
 # Speech model (TTS)
 MOD_SPEECH="${MOD_SPEECH:-tts-1}"
 # LocalAI model
@@ -34,9 +33,10 @@ MOD_OLLAMA="${MOD_OLLAMA:-llama3.2}"
 MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.0-flash-exp}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
-# Groq model
+# Groq models
 MOD_GROQ="${MOD_GROQ:-llama-3.1-70b-versatile}"
-# Enable Groq Whisper only
+MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
+# Prefer Groq Whisper (chat mode)
 #WHISPER_GROQ=
 # Anthropic model
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-latest}"
@@ -46,6 +46,8 @@ MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
 MOD_NOVITA="${MOD_NOVITA:-sao10k/l3-70b-euryale-v2.1}"
 # xAI model
 MOD_XAI="${MOD_XAI:-grok-2-latest}"
+# DeepSeek model
+MOD_DEEPSEEK="${MOD_DEEPSEEK:-deepseek-reasoner}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -189,6 +191,7 @@ ANTHROPIC_BASE_URL_DEF="https://api.anthropic.com/v1";
 GITHUB_BASE_URL_DEF="https://models.inference.ai.azure.com";
 NOVITA_BASE_URL_DEF="https://api.novita.ai/v3/openai";
 XAI_BASE_URL_DEF="https://api.x.ai/v1";
+DEEPSEEK_BASE_URL_DEF="https://api.deepseek.com/beta";
 OPENAI_API_KEY_DEF=$OPENAI_API_KEY;
 BASE_URL=$OPENAI_BASE_URL_DEF;
 
@@ -797,21 +800,21 @@ function model_capf
 	case "${model##ft:}" in  #ft: fine-tune models
 		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct)
 			MODMAX=256000;;
-		open-mixtral-8x22b)
+		deepseek-reasoner|deepseek-chat|open-mixtral-8x22b|text-davinci-002-render-sha)
 			MODMAX=64000;;
 		claude-[3-9]*|claude-2.1*)
 			MODMAX=200000;;
 		claude-2.0*|claude-instant*)
 			MODMAX=100000;;
+		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
+		code-davinci-00[2-9]*|mistral-embed*|-8k*)
+			MODMAX=8001;;
 		*llama-3-8b-instruct|*llama-3-70b-instruct|*gemma-2-9b-it|\
 		*hermes-2-pro-llama-3-8b|llama3*|gemma-*|text-embedding-ada-002|\
 		*embedding*-002|*search*-002|grok-2-vision-1212|grok-vision-beta)
 			MODMAX=8191;;  #8192
 		davinci|curie|babbage|ada)
 			MODMAX=2049;;
-		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
-		code-davinci-00[2-9]*|mistral-embed*|-8k*)
-			MODMAX=8001;;
 		gemini*-thinking*-exp*)
 			MODMAX=32768;;
 		gemini*-flash*)
@@ -830,20 +833,19 @@ function model_capf
 			MODMAX=32768;;
 		o[1-9]*|gpt-4o*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
-		mistral-3b*|*mistral-nemo*|*mistral-large*|open-mistral-nemo*|\
+		mistral-3b*|open-mistral-nemo*|*mistral-nemo*|*mistral-large*|\
 		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
 		*llama-[3-9].[1-9]*|*llama[4-9]-*|\
 		*llama[4-9]*|*ministral*|*pixtral*|*-128k*)
 			MODMAX=128000;;
+		*turbo*|*davinci*|teknium/openhermes-2.5-mistral-7b|openchat/openchat-7b) 	MODMAX=4096;;
 		grok*|*llama-3.1-405b-instruct|cohere-command-r*|grok-beta|grok-2-1212|grok-2*)
 			MODMAX=131072;;
 		*openchat-7b|*mythomax-l2-13b|*airoboros-l2-70b|*lzlv_70b|*nous-hermes-llama2-13b|\
 		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
-		gpt-4*|*-bison*|*-unicorn|text-davinci-002-render-sha|\
-		*wizardlm-2-8x22b)
+		gpt-4*|*-bison*|*-unicorn|*wizardlm-2-8x22b)
 			MODMAX=65535;;
 		gemini*-pro*) 	MODMAX=32760;;
-		*turbo*|*davinci*|teknium/openhermes-2.5-mistral-7b|openchat/openchat-7b) 	MODMAX=4096;;
 		cohere-embed-v3-*) 	MODMAX=1000;;
 		*embedding-gecko*) 	MODMAX=3072;;
 		*embed*|*search*) 	MODMAX=2046;;
@@ -1181,6 +1183,7 @@ function prompt_prettyf
 	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
 	  ( ((.delta.content)//(.delta.text)//(.delta.audio.transcript)
 	    //.text//.response//.completion//(.content[]?|.text?)
+	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"---\") else null end)
 	    //(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)
 	    //(.candidates[]?|.content | if ((${MOD_THINK:+1}0>0) and (.parts?|.[1]?|.text?)) then (.parts[0].text?,\"\\n\\nANSWER:\\n\",.parts[1].text?) else (.parts[]?|.text?) end)
 	    //\"\" ) |
@@ -1886,8 +1889,13 @@ function _model_costf
 		gemini-1.0-pro*) 	echo 0.5 1.5;;
 		gemini-1.5-flash*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 0.15 0.6 || echo 0.075 0.3;;
 		gemini-1.5*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 7 21 || echo 3.5 10.5;;
+		deepseek-chat) echo 0.14 0.55;;
+		deepseek-reasoner) echo 0.28 2.19;;
 		# Novita Models
-		meta-llama/llama-3.1-8b-instruct|qwen/qwen-2-7b-instruct) 	echo 0.05 0.05;;
+		deepseek/deepseek-r1) echo 4 4;;
+		deepseek/deepseek-r1-distill-llama-70b) echo 0.8 0.8;;
+		deepseek/deepseek_v3) echo 0.89 0.89;;
+		meta-llama/llama-3.1-8b-instruct|qwen/qwen-2-7b-instruct|Sao10K/L3-8B-Stheno-v3.2) 	echo 0.05 0.05;;
 		meta-llama/llama-3.1-70b-instruct) 	echo 0.34 0.39;;
 		meta-llama/llama-3.1-405b-instruct) 	echo 2.75 2.75;;
 		mistralai/mistral-7b-instruct|microsoft/wizardlm-2-7b|openchat/openchat-7b) 	echo 0.06 0.06;;
@@ -5420,22 +5428,22 @@ optstring="a:A:b:B:cCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ01234
 while getopts "$optstring" opt
 do
 	case "$opt" in -)  #order matters: anthropic anthropic:ant
-		for opt in api-key  multimodal  vision  audio  markdown  markdown:md  \
-no-markdown  no-markdown:no-md  fold  fold:wrap  no-fold  no-fold:no-wrap \
-localai  localai:local-ai  localai:local  google  google:goo  mistral \
-openai  groq  grok grok:xai  anthropic  anthropic:ant  j:seed  keep-alive \
-keep-alive:ka  @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax \
-a:presence-penalty  a:presence  a:pre  A:frequency-penalty  A:frequency \
-A:freq  b:best-of  b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue \
-d:text  e:edit  E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist \
-i:image 'k:no-colo*'  K:top-k  K:topk  l:list-model  l:list-models  L:log  m:model \
-m:mod  n:results  o:clipboard  o:clip  O:ollama  p:top-p  p:topp  q:insert \
-r:restart-sequence  r:restart-seq  r:restart  R:start-sequence  R:start-seq \
-R:start  s:stop  S:instruction  t:temperature  t:temp  T:tiktoken  \
-u:multiline  u:multi  U:cat  v:verbose  x:editor  X:media  w:transcribe \
-w:stt  W:translate  y:tik  Y:no-tik  z:tts  z:speech  Z:last  P:print  \
-github  github:git  novita  novita:nov  version  info  time no-time awesome-zh awesome \
-interactive no-interactive effort
+		for opt in localai  localai:local-ai  localai:local \
+google  google:goo  mistral  openai  groq  grok  grok:xai  anthropic \
+anthropic:ant  github  github:git  novita  novita:nov  deepseek deepseek:deep \
+w:transcribe  w:stt  W:translate  z:tts  z:speech  Z:last  api-key  multimodal \
+vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
+fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
+@:alpha  M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
+a:presence  a:pre  A:frequency-penalty  A:frequency  A:freq  b:best-of \
+b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue  d:text  e:edit \
+E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist  i:image 'k:no-colo*' \
+K:top-k  K:topk  l:list-models  L:log  m:model  m:mod  n:results  o:clipboard \
+o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
+r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
+S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
+U:cat  v:verbose  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
+no-time  awesome-zh  awesome  interactive  no-interactive  effort
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -5538,16 +5546,17 @@ interactive no-interactive effort
 		n) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" ||  #compat with -Nill option
 			OPTN="$OPTARG" ;;
 		o) 	OPTCLIP=1;;
-		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= ;;
-		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= ;;
-		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= ;;
+		O) 	OLLAMA=1 GOOGLEAI= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= DEEPSEEK= ;;
+		google) GOOGLEAI=1 OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= DEEPSEEK= ;;
+		mistral) MISTRALAI=1 OLLAMA= GOOGLEAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= DEEPSEEK= ;;
 		localai) LOCALAI=1;;
-		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= ;;
-		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= ;;
-		grok) 	XAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= GITHUBAI= NOVITAAI= ;;
-		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= NOVITAAI= XAI= ;;
-		github) GITHUBAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= NOVITAAI= XAI= ;;
-		novita) NOVITAAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= XAI= ;;
+		openai) GOOGLEAI= OLLAMA= MISTRALAI= GROQAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= DEEPSEEK= ;;
+		groq) 	GROQAI=1 GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= GITHUBAI= NOVITAAI= XAI= DEEPSEEK= ;;
+		grok) 	XAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= ANTHROPICAI= GITHUBAI= NOVITAAI= DEEPSEEK= ;;
+		anthropic) ANTHROPICAI=1 GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= NOVITAAI= XAI= DEEPSEEK= ;;
+		github) GITHUBAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= NOVITAAI= XAI= DEEPSEEK= ;;
+		novita) NOVITAAI=1 ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= XAI= DEEPSEEK= ;;
+		deepseek) DEEPSEEK=1 NOVITAAI= ANTHROPICAI= GROQAI= GOOGLEAI= OLLAMA= MISTRALAI= GITHUBAI= XAI= ;;
 		p) 	OPTP="$OPTARG";;
 		q) 	((++OPTSUFFIX)); EPN=0;;
 		r) 	RESTART="$OPTARG";;
@@ -5660,6 +5669,8 @@ else
 	then 	MOD=$MOD_GITHUB
 	elif ((NOVITAAI))
 	then 	MOD=$MOD_NOVITA
+	elif ((DEEPSEEK))
+	then 	MOD=$MOD_DEEPSEEK
 	elif ((!OPTCMPL))
 	then 	if ((OPTC>1)) ||  #chat / single-turn
 			((STURN && !(OPTW+OPTZ+OPTI) ))
@@ -5693,7 +5704,7 @@ fi
 #google integration
 if case "${GOOGLE_BASE_URL:-$OPENAI_BASE_URL}" in *googleapis.com*) :;; *) ((GOOGLEAI));; esac
 then 	set_googleaif;
-	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI;
+	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else 	unset GOOGLEAI;
 fi
 
@@ -5704,7 +5715,7 @@ then
 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
 	((OPTC==1 || OPTCMPL)) && OPTC=2;
 	ENDPOINTS[0]=${ENDPOINTS[6]};
-	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI XAI;
+	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else 	unset GROQAI;
 fi  #https://console.groq.com/docs/api-reference
 
@@ -5713,21 +5724,21 @@ if case "${XAI_BASE_URL:-$OPENAI_BASE_URL}" in *api.x.ai*) :;; *) ((XAI));; esac
 then
 	BASE_URL=${XAI_BASE_URL:-${OPENAI_BASE_URL:-$XAI_BASE_URL_DEF}};
 	OPENAI_API_KEY=${XAI_API_KEY:?Required};
-	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI GROQAI;
+	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI GROQAI DEEPSEEK;
 else 	unset XAI;
 fi  #https://docs.x.ai/api
 
 #anthropic integration
 if case "${ANTHROPIC_BASE_URL:-$OPENAI_BASE_URL}" in *api.anthropic.com*) :;; *) ((ANTHROPICAI));; esac
 then 	set_anthropicf;
-	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI NOVITAAI XAI;
+	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else 	unset ANTHROPICAI;
 fi
 
 #ollama integration
 if case "${OPENAI_BASE_URL}" in *localhost:11434*) :;; *) ((OLLAMA));; esac
 then 	set_ollamaf;
-	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI;
+	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else  	unset OLLAMA OLLAMA_BASE_URL;
 fi
 
@@ -5753,7 +5764,7 @@ then
 	elif [[ $MOD != *embed* ]]
 	then 	OPTSUFFIX= OPTCMPL= OPTC=2;
 	fi; MISTRALAI=1;
-	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB NOVITAAI XAI;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTA OPTAA OPTB NOVITAAI XAI DEEPSEEK;
 elif unset MISTRAL_API_KEY MISTRAL_BASE_URL MISTRALAI;
 #github azure api
 	case "${GITHUB_BASE_URL:-$OPENAI_BASE_URL}" in *ai.azure.com*) :;; *) ((GITHUBAI));; esac
@@ -5779,13 +5790,26 @@ then
 		#https://github.com/marketplace/info
 	};
 	GITHUBAI=1 OPTC=2;  #chat completions only
-	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI DEEPSEEK;
 elif unset GITHUB_TOKEN GITHUB_BASE_URL GITHUBAI;
+#deepseek
+	case "${DEEPSEEK_BASE_URL:-$OPENAI_BASE_URL}" in *deepseek.com*) :;; *) ((DEEPSEEK));; esac
+then
+	OPENAI_API_KEY=${DEEPSEEK_API_KEY:?Required};
+	BASE_URL=${DEEPSEEK_BASE_URL:-$DEEPSEEK_BASE_URL_DEF};
+	DEEPSEEK=1;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI;
+
+#Unsupported：temperature、top_p、presence_penalty、frequency_penalty、logprobs (err)、top_logprobs  (err).
+
+elif unset DEEPSEEK_API_KEY DEEPSEEK_BASE_URL DEEPSEEK;
+#novita ai
 	case "${NOVITA_BASE_URL:-$OPENAI_BASE_URL}" in *api.novita.ai*) :;; *) ((NOVITAAI));; esac
 then
 	OPENAI_API_KEY=${NOVITA_API_KEY:?Required};
 	BASE_URL=${NOVITA_BASE_URL:-${OPENAI_BASE_URL:-$NOVITA_BASE_URL_DEF}};
 	NOVITAAI=1;
+	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI XAI DEEPSEEK;
 else 	
 	unset NOVITA_API_KEY NOVITA_BASE_URL NOVITAAI;
 fi
@@ -6280,7 +6304,7 @@ else
 								REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 								continue 2;;  #redo
 							19[6789]) 	edf "${REPLY:-$*}" || break 1;;  #edit
-							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY;
+							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=;
 								((OPTW)) || cmd_runf -ww;
 								set --; break;;  #whisper append (hidden option)
 							0) 	set -- "$REPLY" ; break;;  #yes
@@ -7006,6 +7030,6 @@ fi
 #   %%=% %%  % %%  %   %%  %%==% %%      %%  %% %==%% %%  %  ,<___><___>.
 
 ## set -x; shopt -s extdebug; PS4=$'\n''$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
-## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078  ~/bin/chatgpt.sh
+## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078,SC2128  ~/bin/chatgpt.sh
 
 # vim=syntax sync minlines=800
