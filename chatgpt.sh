@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.6  jan/2025  by mountaineerbr  GPL+3
+# v0.92.7  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1182,7 +1182,7 @@ function prompt_prettyf
 	  byellow
 	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
 	  ( ((.delta.content)//(.delta.text)//(.delta.audio.transcript)
-	    //.text//.response//.completion//(.content[]?|.text?)
+	    //.text//.response//.completion//.reasoning//(.content[]?|.text?)
 	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"---\",(.message.content//empty)) else null end)
 	    //(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)
 	    //(.candidates[]?|.content | if ((${MOD_THINK:+1}0>0) and (.parts?|.[1]?|.text?)) then (.parts[0].text?,\"\\n\\nANSWER:\\n\",.parts[1].text?) else (.parts[]?|.text?) end)
@@ -1840,7 +1840,7 @@ function _set_browsercmdf
 
 #calculate cost of query (dollars per million tokens)
 #usage: costf [input_tokens] [output_tokens] [input_price] [output_price] [scale]
-function costf
+function costf  #[TO BE REMOVED]
 {
 	bc <<<"scale=${5:-8};
 ( ( (${1:-0} / 1000000) * ${3:-0}) + ( (${2:-0} / 1000000) * ${4:-0}) ) * ${CURRENCY_RATE:-1}"
@@ -1868,9 +1868,11 @@ function _model_costf
 		mistral-medium*) 	echo 2.75 8.1;;
 		ministral-8b*) 	echo 0.1 0.1;;
 		ministral-3b*) 	echo 0.04 0.04;;
-		gpt-4o-audio-preview|gpt-4o-audio-preview-2024-10-01) echo 2.5 10;;  #text only
-		o1-mini*|o1-mini-2024-09-12) echo 3 12;;
+		gpt-4o-audio-preview*|gpt-4o-audio-preview-2024-10-01) echo 2.5 10;;  #text only
+		o3-mini*|o3-mini-2025-01-31) echo 1.10 4.40;;
+		o1-mini*|o1-mini-2024-09-12) echo 1.10 4.40;;
 		o1*|o1-preview-2024-09-12) echo 15 60;;
+		gpt-4o-mini-audio-preview*|gpt-4o-mini-audio-preview-2024-12-17) echo 0.15 0.60;;  #text only
 		gpt-4o-mini*) 	echo 0.15 0.6;;
 		gpt-4o-2024-05-13|chatgpt-4o*) 	echo 5 15;;
 		gpt-4o-2024-08-06|gpt-4o*) echo 2.5 10;;
@@ -4062,7 +4064,7 @@ function _ttsf
 	fi  #https://help.openai.com/en/articles/8555505-tts-api
 	REPLAY_FILES=();
 
-	while input=${1:0: max}; set -- "${1:max}";
+	while input=${1:0: max}; set -- "${1:max}"; [[ $input = *[!$IFS]* ]]
 	do
 		if ((!CHAT_ENV))
 		then 	var=${input//\\\\[nt]/ };
@@ -4095,6 +4097,9 @@ function _ttsf
 				[Pp]|' '|''|$'\t')  ok=1;
 					((SECONDS>secs+2)) ||  #buffer
 					read_charf -t $((secs+2-SECONDS)) >/dev/null 2>&1;
+					for ((n=0;n<10;n++))
+					do 	[[ -s $FOUT ]] || sleep 0.2;
+					done; n=;  #delay until unique file creation
 					break 1;;
 				[CcEeKkQqSs]|$'\e')  ok=1 ret=130;
 					kill -s INT -- $pid 2>/dev/null;
