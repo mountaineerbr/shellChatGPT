@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.9  feb/2025  by mountaineerbr  GPL+3
+# v0.92.10  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2203,40 +2203,12 @@ function cmd_runf
 				;;
 			esac;
 			;;
-		[/!]g*|g*)  #ground context (on-line)
-			HARGS=${HARGS:-$*};
-			case "$*" in [/!]g:*|g:*) 	append=1;; esac;  #append as user
-			set -- "${*##?([/!])g*(:)$SPC}";
-
-			case "${args[*]:-$*}" in
-			  [/!]*)
-			    n=50; var=$(
-			      printf 'Search Engine:\n' >&2;
-			      select var in google duckduckgo brave abort
-			      do 	break;
-			      done </dev/tty;
-			      echo "${var:-$REPLY}")
-
-			    case "$var" in
-			      abort|[AaQq]*|[$'\e\t ']*) EDIT=1; return 0;;
-			      brave|b*) out=Brave;
-			        var="https://search.brave.com/search?q=${*//[&?]/+}&source=web";;
-			      duckduckgo|d*) out=DuckDuckGo;
-			        var="https://html.duckduckgo.com/html/?q=${*//[&?]/+}&kl=wt-wt&kj=wt-wt&k1=-1&kv=${n}";;
-			      google|g*|*)
-			        var="https://www.google.com/search?q=${*//[&?]/+}&num=${n}";;
-			    esac;
-			    ;;
-			    *)
-			    n=50;
-			    var="https://www.google.com/search?num=${n}&q=${*//[&?]/+}";
-			    ;;
-			esac;
-			
-			((OPTV)) || printf "${BWHITE}%s\\n${NC}" "${out:-Google}" >&2;
-			cmd_runf /url${append:+:} "${var:-err}";
-			REPLY="$REPLY"$'\n\n'"$*";
-			return 0;
+		multimodal|[/!-]multimodal|--multimodal|\
+		vision|[/!-]vision|--vision|\
+		audio|[/!-]audio|--audio)
+			((++MULTIMODAL)); ((MULTIMODAL%=3))
+			case "${MULTIMODAL}" in 2) 	var=audio;; 1) 	var=vision;; *) 	var=text;; esac;
+			cmdmsgf "Multimodal Model [${var}]" $(_onoff $MULTIMODAL)
 			;;
 		media*|img*|audio*|aud*)
 			set -- "${*##@(media|img|audio|aud)*([$IFS])}";
@@ -2247,13 +2219,6 @@ function cmd_runf
 			  out=$(is_audiof "$1" && echo aud || echo img)
 			  _sysmsgf "$out ?$var" "${1:0: COLUMNS-6-${#var}}$([[ -n ${1: COLUMNS-6-${#var}} ]] && printf '\b\b\b%s' ...)";
 			};
-			;;
-		multimodal|[/!-]multimodal|--multimodal|\
-		vision|[/!-]vision|--vision|\
-		audio|[/!-]audio|--audio)
-			((++MULTIMODAL)); ((MULTIMODAL%=3))
-			case "${MULTIMODAL}" in 2) 	var=audio;; 1) 	var=vision;; *) 	var=text;; esac;
-			cmdmsgf "Multimodal Model [${var}]" $(_onoff $MULTIMODAL)
 			;;
 		-n*|results*)
 			[[ $* = -n*[!0-9\ ]* ]] && { 	cmd_runf "-N${*##-n}"; return ;}  #compat with -Nill option
@@ -2715,6 +2680,41 @@ function cmd_runf
 		dialog|no-dialog)
 			((++NO_DIALOG)) ;((NO_DIALOG%=2))
 			cmdmsgf 'Dialog' $(_onoff $( ((NO_DIALOG)) && echo 0 || echo 1) )
+			;;
+		[/!]g*|g*)  #ground context (on-line)
+			HARGS=${HARGS:-$*};
+			case "$*" in [/!]g:*|g:*) 	append=1;; esac;  #append as user
+			set -- "${*##?([/!])g*(:)$SPC}";
+
+			case "${args[*]:-$*}" in
+			  [/!]*)
+			    n=50; var=$(
+			      printf 'Search Engine:\n' >&2;
+			      select var in google duckduckgo brave abort
+			      do 	break;
+			      done </dev/tty;
+			      echo "${var:-$REPLY}")
+
+			    case "$var" in
+			      abort|[AaQq]*|[$'\e\t ']*) EDIT=1; return 0;;
+			      brave|b*) out=Brave;
+			        var="https://search.brave.com/search?q=${*//[&?]/+}&source=web";;
+			      duckduckgo|d*) out=DuckDuckGo;
+			        var="https://html.duckduckgo.com/html/?q=${*//[&?]/+}&kl=wt-wt&kj=wt-wt&k1=-1&kv=${n}";;
+			      google|g*|*)
+			        var="https://www.google.com/search?q=${*//[&?]/+}&num=${n}";;
+			    esac;
+			    ;;
+			    *)
+			    n=50;
+			    var="https://www.google.com/search?num=${n}&q=${*//[&?]/+}";
+			    ;;
+			esac;
+			
+			((OPTV)) || printf "${BWHITE}%s\\n${NC}" "${out:-Google}" >&2;
+			cmd_runf /url${append:+:} "${var:-err}";
+			REPLY="$REPLY"$'\n\n'"$*";
+			return 0;
 			;;
 		q|quit|exit|bye)
 			send_tiktokenf '/END_TIKTOKEN/' && wait
@@ -5602,8 +5602,8 @@ no-time  awesome-zh  awesome  interactive  no-interactive  effort
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO  init buff var tkn n s
-typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO  init buff var arr tkn n s
+typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
 set -o ${READLINEOPT:-emacs};
@@ -6853,8 +6853,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]] \
 					&& [[ $ESC != "$ESC_OLD" ]]
 				then 	#[0]modmax [1]resquested [2]prompt [3]cmpl
-					var=(${var//[!0-9$IFS]})
-					if ((${#var[@]}<2 || var[1]<=(var[0]*3)/2))
+					arr=(${var//[!0-9$IFS]})
+					if ((${#arr[@]}<2 || arr[1]<=(arr[0]*3)/2))
 					then    ESC_OLD=$ESC; ((OPTW)) && RESUBW=1;
 					  ((HERR+=HERR_DEF*2)) ;BAD_RES=1 PSKIP=1; set --
 					  _warmsgf "Adjusting Context:" -$((HERR_DEF+HERR))%
@@ -7028,7 +7028,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 		fi
 
 		((++MAIN_LOOP)) ;set --
-		role= rest= tkn_ans= ans_tts= ans= buff= var= tkn= glob= out= pid= s= n=;
+		role= rest= tkn_ans= ans_tts= ans= buff= var= arr= tkn= glob= out= pid= s= n=;
 		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= WSKIP= PSKIP= SKIP= EDIT= HARGS=;
 		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES;
 		((MTURN && !OPTEXIT)) || break
