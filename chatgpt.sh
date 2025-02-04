@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.7  feb/2025  by mountaineerbr  GPL+3
+# v0.92.8  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -802,10 +802,6 @@ function model_capf
 			MODMAX=256000;;
 		deepseek-reasoner|deepseek-chat|open-mixtral-8x22b|text-davinci-002-render-sha)
 			MODMAX=64000;;
-		claude-[3-9]*|claude-2.1*)
-			MODMAX=200000;;
-		claude-2.0*|claude-instant*)
-			MODMAX=100000;;
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
 		code-davinci-00[2-9]*|mistral-embed*|-8k*)
 			MODMAX=8001;;
@@ -815,14 +811,20 @@ function model_capf
 			MODMAX=8191;;  #8192
 		davinci|curie|babbage|ada)
 			MODMAX=2049;;
-		gemini*-thinking*-exp*)
-			MODMAX=32768;;
-		gemini*-flash*)
-			MODMAX=1048576;;  #std: 128000
-		gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|gemini-exp*)
-			MODMAX=2097152;;  #std: 128000
-		*qwen-2.5-72b-instruct|learnlm-1.5-pro*)
-			MODMAX=32000;;
+		#google vertex
+		chat-bison-001) MODMAX=4096;;
+		text-bison-001) MODMAX=8196;;
+		embedding-gecko-001) MODMAX=1024;;
+		aqa) MODMAX=7168;;
+		gemini-1.0-pro-vision*|gemini-pro-vision) MODMAX=12288;;
+		gemini-1.5-flash-001-tuning) MODMAX=16384;;
+		gemini-1.0-pro*|gemini-pro) MODMAX=30720;;
+		gemini-2.0-flash*) MODMAX=1048576;;
+		gemini-1.5-flash*) MODMAX=1000000;;
+		gemini-1.5-pro*) MODMAX=2000000;;
+		gemini-exp*) MODMAX=2097152;;
+		gemini-*) MODMAX=1000000;;
+		learnlm-1.5-pro*|*qwen-2.5-72b-instruct) MODMAX=32000;;
 		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
 			MODMAX=16000;;
 		*llama-3.1-8b-instruct|davinci-00[2-9]|babbage-00[2-9]|gpt-3.5*16k*|\
@@ -831,7 +833,7 @@ function model_capf
 		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*)
 			MODMAX=32768;;
-		o[1-9]*|gpt-4o*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
+		o1-*preview*|o1-*mini*|gpt-4o*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
 		mistral-3b*|open-mistral-nemo*|*mistral-nemo*|*mistral-large*|\
 		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
@@ -841,15 +843,17 @@ function model_capf
 		*turbo*|*davinci*|teknium/openhermes-2.5-mistral-7b|openchat/openchat-7b) 	MODMAX=4096;;
 		grok*|*llama-3.1-405b-instruct|cohere-command-r*|grok-beta|grok-2-1212|grok-2*)
 			MODMAX=131072;;
+		claude-[3-9]*|claude-2.1*|o[1-9]*)
+			MODMAX=200000;;  #204800
+		claude-2.0*|claude-instant*)
+			MODMAX=100000;;
 		*openchat-7b|*mythomax-l2-13b|*airoboros-l2-70b|*lzlv_70b|*nous-hermes-llama2-13b|\
 		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
 		gpt-4*|*-bison*|*-unicorn|*wizardlm-2-8x22b)
 			MODMAX=65535;;
-		gemini*-pro*) 	MODMAX=32760;;
 		cohere-embed-v3-*) 	MODMAX=1000;;
 		*embedding-gecko*) 	MODMAX=3072;;
 		*embed*|*search*) 	MODMAX=2046;;
-		aqa) 	MODMAX=7168;;
 		*-4k*) 	MODMAX=4000;;
 		*) 	MODMAX=8192;;
 	esac
@@ -1183,7 +1187,7 @@ function prompt_prettyf
 	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
 	  ( ((.delta.content)//(.delta.text)//(.delta.audio.transcript)
 	    //.text//.response//.completion//.reasoning//(.content[]?|.text?)
-	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"---\",(.message.content//empty)) else null end)
+	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"</think>\",(.message.content//empty)) else null end)
 	    //(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)
 	    //(.candidates[]?|.content | if ((${MOD_THINK:+1}0>0) and (.parts?|.[1]?|.text?)) then (.parts[0].text?,\"\\n\\nANSWER:\\n\",.parts[1].text?) else (.parts[]?|.text?) end)
 	    //\"\" ) |
@@ -5805,6 +5809,7 @@ then
 	DEEPSEEK=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI;
 
+#https://api.deepseek.com/models
 #Unsupported：temperature、top_p、presence_penalty、frequency_penalty、logprobs (err)、top_logprobs  (err).
 
 elif unset DEEPSEEK_API_KEY DEEPSEEK_BASE_URL DEEPSEEK;
@@ -5833,7 +5838,7 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 
 #model options
 ((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN)) ||
-set_optsf  #IPC#
+MOD= MOD_REASON= MOD_THINK= set_optsf  #IPC#
 
 #model prices (promote var to array)
 (( ${#MOD_PRICE[@]}+${#COST_CUSTOM[@]} )) &&  #$COST_CUSTOM is deprecated

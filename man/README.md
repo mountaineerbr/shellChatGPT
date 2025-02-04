@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: January 2025
-title: CHATGPT.SH(1) v0.92.4 \| General Commands Manual
+date: February 2025
+title: CHATGPT.SH(1) v0.92.8 \| General Commands Manual
 ---
 
 # NAME
@@ -497,7 +497,7 @@ also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
 
 *Model capacity* (maximum model tokens) can be set more intuitively with
 `option` “`-N` *NUM*”, otherwise model capacity is set automatically for
-known models or to *2048* tokens as fallback.
+known models or to *8000* tokens as fallback.
 
 List models with `option -l` or run `/models` in chat mode.
 

@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.92.4 | General Commands Manual
+% CHATGPT.SH(1) v0.92.8 | General Commands Manual
 % mountaineerbr
-% January 2025
+% February 2025
 
 
 # NAME
@@ -645,7 +645,7 @@ and "`-M` _NUM-NUM_".
 
 _Model capacity_ (maximum model tokens) can be set more intuitively with
 `option` "`-N` _NUM_", otherwise model capacity is set automatically
-for known models or to _2048_ tokens as fallback.
+for known models or to _8000_ tokens as fallback.
 
 List models with `option -l` or run `/models` in chat mode.
 
