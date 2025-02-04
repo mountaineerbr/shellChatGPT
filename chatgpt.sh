@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.8  feb/2025  by mountaineerbr  GPL+3
+# v0.92.9  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3578,6 +3578,9 @@ function set_optsf
 	typeset -a pids
 
 	case "$MOD" in
+		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
+		INSTRUCTION_CHAT= INSTRUCTION=;
+		;;
 		gemini-2*-thinking*)
 		((MOD_THINK)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
@@ -3599,11 +3602,13 @@ function set_optsf
 			}
 			case "$MOD" in o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
 			  ((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'Reasoning models do not support system messages yet';
-			  INSTRUCTION_CHAT_REASON=$INSTRUCTION_CHAT INSTRUCTION_REASON=$INSTRUCTION;;
+			  INSTRUCTION_CHAT_REASON=$INSTRUCTION_CHAT INSTRUCTION_REASON=$INSTRUCTION;
+			  INSTRUCTION_CHAT= INSTRUCTION=;
+			  ;;
 			esac;
 			[[ -n $OPTA || -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency and presence penalties';
 			OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTT_REASON=$OPTT;
-			OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900" INSTRUCTION_CHAT= INSTRUCTION=;
+			OPTA= OPTAA= OPTT=1 MOD_REASON=1 CURLTIMEOUT="--max-time 900";
 			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 		}
 		case "$REASON_INTERACTIVE" in
@@ -3616,12 +3621,10 @@ function set_optsf
 			;;
 		esac;
 		;;
-		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
-		INSTRUCTION_CHAT= INSTRUCTION=;
-		;;
 		*) ((MOD_REASON)) && {
 			case "$MOD" in o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
-			  INSTRUCTION_CHAT=$INSTRUCTION_CHAT_REASON INSTRUCTION=$INSTRUCTION_REASON;;
+			  INSTRUCTION_CHAT=${INSTRUCTION_CHAT_REASON:-$INSTRUCTION_CHAT} INSTRUCTION=${INSTRUCTION_REASON:-$INSTRUCTION};
+			  ;;
 			esac;
 			OPTA=$OPTA_REASON OPTAA=$OPTAA_REASON OPTT=$OPTT_REASON OPTMAX=${OPTMAX_REASON:-$OPTMAX} MOD_REASON= CURLTIMEOUT=;
 		}
