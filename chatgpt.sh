@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.12  feb/2025  by mountaineerbr  GPL+3
+# v0.93.1  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1899,8 +1899,8 @@ function _model_costf
 		gemini-1.0-pro*) 	echo 0.5 1.5;;
 		gemini-1.5-flash*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 0.15 0.6 || echo 0.075 0.3;;
 		gemini-1.5*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 7 21 || echo 3.5 10.5;;
-		deepseek-chat) echo 0.14 0.55;;
-		deepseek-reasoner) echo 0.28 2.19;;
+		deepseek-chat) echo 0.07 0.27;;
+		deepseek-reasoner) echo 0.14 2.19;;
 		# Novita Models
 		deepseek/deepseek-r1) echo 4 4;;
 		deepseek/deepseek-r1-distill-llama-70b) echo 0.8 0.8;;
