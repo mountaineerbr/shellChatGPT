@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.10  feb/2025  by mountaineerbr  GPL+3
+# v0.92.11  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -5788,16 +5788,16 @@ then
 	{
 		if ((OPTL<2)) && [[ $* != *[!$IFS]* ]]
 		then
-			curl -L -\# 'https://github.com/marketplace/models' -H 'x-requested-with: XMLHttpRequest' |
-			jq -r '.[] | select(.task == "chat-completion") | .original_name' | tee -- "$FILEMODEL";
+			curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
+			jq -r '.[].name' | tee -- "$FILEMODEL";
 		elif [[ $* = *[!$IFS]* ]]
 		then
 			curl -L -\# 'https://github.com/marketplace/models' -H 'x-requested-with: XMLHttpRequest' |
 			jq -r ".[] | select(.original_name == \"$*\")";
 			return;
 		else
-			curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
-			jq -r '.[].name' | tee -- "$FILEMODEL";
+			curl -L -\# 'https://github.com/marketplace/models' -H 'x-requested-with: XMLHttpRequest' |
+			jq -r '.[] | select(.task == "chat-completion") | .original_name' | tee -- "$FILEMODEL";
 		fi
 		#https://github.com/marketplace/info
 	};
