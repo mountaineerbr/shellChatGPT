@@ -88,6 +88,7 @@ If no suffix is provided, it works as plain text completions.
   - 12.7 [GitHub Models](#github-models)
   - 12.8 [Novita AI](#novita-ai)
   - 12.9 [xAI](#xai)
+  - 12.10 [DeepSeek](#deepseek)
 - 13. [Arch Linux Users](#arch-linux-users)
 - 14. [Termux Users](#termux-users)
   - 14.1 [Dependencies](#dependencies-termux)
@@ -103,7 +104,6 @@ If no suffix is provided, it works as plain text completions.
 - 21. [Acknowledgements](#acknowledgements)
 
 <!-- - 9. [Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
-  <!-- - 12.10 [DeepSeek](#deepseek) -->
 
 </details>
 
@@ -1238,7 +1238,6 @@ Some models also work with native text completions. For that,
 set command-line `option -c` instead.
 
 
-<!--
 ### DeepSeek
 
 Visit [DeepSeek Webpage](https://platform.deepseek.com/api_keys) to get
@@ -1246,7 +1245,6 @@ an API key and set envar `$DEEPSEEK_API_KEY`.
 
 Run the script with `option --deepseek`.
 It works with chat completions  (`option -cc`) and text completions (`option -c`) modes.
--->
 
 
 <!--

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.92.11  feb/2025  by mountaineerbr  GPL+3
+# v0.92.12  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -353,12 +353,13 @@ Environment
 			URL_PATH parameter to disable endpoint auto-selection.
 
 	[PROVIDER]_BASE_URL
-			Base URLs for providers: LOCALAI, OLLAMA,
-			MISTRAL, GOOGLE, GROQ, ANTHROPIC, and GITHUB.
+			Base URLs for providers: LOCALAI, OLLAMA, MISTRAL,
+			GOOGLE, GROQ, ANTHROPIC, GITHUB, NOVITA, XAI, and
+			DEEPSEEK.
 
 	OPENAI_API_KEY  [PROVIDER]_API_KEY
-	GITHUB_TOKEN 	Keys for OpenAI, Gemini, Mistral, Groq,
-			Anthropic, GitHub Models, Novita, and xAI APIs.
+	GITHUB_TOKEN 	Keys for OpenAI, Gemini, Mistral, Groq, Anthropic,
+			GitHub Models, Novita, xAI, and DeepSeek APIs.
 
 	OUTDIR 		Output directory for received image and audio.
 
@@ -524,6 +525,8 @@ Options
 	Service Providers
 	--anthropic
 		Anthropic integration (cmpls/chat).
+	--deepseek
+		DeepSeek API integration (cmpls/chat).
 	--github
 		GitHub Models integration (chat).
 	--google
@@ -1185,11 +1188,12 @@ function prompt_prettyf
 	jq -r ${STREAM:+-j --unbuffered} "${JQCOLNULL} ${JQCOL}
 	  byellow
 	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
-	  ( ((.delta.content)//(.delta.text)//(.delta.audio.transcript)
+	  ( ((.delta.content)//(.delta.reasoning_content)//(.delta.text)//(.delta.audio.transcript)
 	    //.text//.response//.completion//.reasoning//(.content[]?|.text?)
-	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"</think>\",(.message.content//empty)) else null end)
-	    //(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)
+	    //(.message.content${ANTHROPICAI:+skip})
+	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"</think>\\n\") else null end)
 	    //(.candidates[]?|.content | if ((${MOD_THINK:+1}0>0) and (.parts?|.[1]?|.text?)) then (.parts[0].text?,\"\\n\\nANSWER:\\n\",.parts[1].text?) else (.parts[]?|.text?) end)
+	    //(.message.audio.transcript)
 	    //\"\" ) |
 	  if ( (${OPTC:-0}>0) and (${STREAM:-0}==0) ) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if any( (.finish_reason//.stop_reason//\"\")?; . != \"stop\" and . != \"stop_sequence\" and . != \"end_turn\" and . != \"\") then
@@ -1204,7 +1208,7 @@ function prompt_pf
 	do 	[[ -f $var ]] || { 	opt=("${opt[@]}" "$var"); shift ;}
 	done
 	set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
-		(.delta.content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//(.content[]?|.text?)//(.message.content${ANTHROPICAI:+skip})//(.message.audio.transcript)//(.candidates[]?|.content.parts[]?|.text?)//(.data?))//empty" "$@"
+		(.delta.content)//(.delta.reasoning_content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//(.content[]?|.text?)//(.message.content${ANTHROPICAI:+skip})//(.message.reasoning_content)//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@"
 	jq "${opt[@]}" "$@" && _p_suffixf || ! _warmsgf 'Err';
 }
 #https://stackoverflow.com/questions/57298373/print-colored-raw-output-with-jq-on-terminal
@@ -4461,7 +4465,7 @@ function awesomef
 	fi;
 
 	#map prompts to indexes and get user selection
-	act_keys=$(sed -e '1d; s/,.*//; s/^"//; s/"$//; s/""/\\"/g; s/[][()`*_]//g; s/ /_/g' "$FILEAWE")
+	act_keys=$(sed -e '1d; s/,.*//; s/^"//; s/"[[:space:]]*$//; s/""/\\"/g; s/[][()`*_]//g; s/ /_/g' "$FILEAWE")
 	act_keys_n=$(wc -l <<<"$act_keys")
 	case "$1" in
 		list*|ls*|+([./%*?-]))  #list awesome keys
@@ -4512,7 +4516,7 @@ function awesomef
 	done
 	fi
 	
-	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
+	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"[[:space:]]*$//; s/",[Ff][Aa][Ll][Ss][Ee][[:space:]]*$//; s/",[Tt][Rr][Uu][Ee][[:space:]]*$//; s/\\n$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
 	((CMD_CHAT)) ||
 	if _clr_ttystf; ((OPTX))  #edit chosen awesome prompt
 	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
@@ -5809,11 +5813,15 @@ elif unset GITHUB_TOKEN GITHUB_BASE_URL GITHUBAI;
 then
 	OPENAI_API_KEY=${DEEPSEEK_API_KEY:?Required};
 	BASE_URL=${DEEPSEEK_BASE_URL:-$DEEPSEEK_BASE_URL_DEF};
+
+	function list_modelsf
+	{
+		curl -L -\# "https://api.deepseek.com/models" -H "Authorization: Bearer $DEEPSEEK_API_KEY" |
+		jq -r '.data[].id' | tee -- "$FILEMODEL";
+	}
 	DEEPSEEK=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI;
-
-#https://api.deepseek.com/models
-#Unsupported：temperature、top_p、presence_penalty、frequency_penalty、logprobs (err)、top_logprobs  (err).
+	#Unsupported：temperature、top_p、presence_penalty、frequency_penalty、logprobs (err)、top_logprobs  (err).
 
 elif unset DEEPSEEK_API_KEY DEEPSEEK_BASE_URL DEEPSEEK;
 #novita ai

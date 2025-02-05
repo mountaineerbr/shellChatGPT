@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.92.8 | General Commands Manual
+% CHATGPT.SH(1) v0.93 | General Commands Manual
 % mountaineerbr
 % February 2025
 
@@ -30,7 +30,7 @@
 This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
 endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
-and xAI APIs are supported.
+xAI, and DeepSeek APIs are supported.
 
 With no options set, complete INPUT in single-turn mode of
 the native chat completion.
@@ -50,6 +50,11 @@ before the text prompt itself.
 **\--anthropic**, **\--ant**
 
 : Anthropic integration (cmpls/chat).
+
+
+**\--deepseek**, **\--deep**
+
+: DeepSeek integration (cmpls/chat).
 
 
 **\--github**, **\--git**
@@ -1233,8 +1238,9 @@ use the `--novita` option. Novita AI offers a range of LLM models, including
 the highly recommended **Llama 3.1** model. For an uncensored model, consider
 **sao10k/l3-70b-euryale-v2.1** or **cognitivecomputations/dolphin-mixtral-8x22b**.
 
+Likewise, for xAI's Grok, set environment `$XAI_API_KEY` with its API key.
 
-And for xAI's Grok, set environment `$XAI_API_KEY` with your API key.
+And for DeepSeek API, set environment `$DEEPSEEK_API_KEY` with its API key.
 
 Run the script with `option --xai` and also with `option -cc` (chat completions.).
 
@@ -1294,7 +1300,7 @@ set command-line `option -c` instead.
 
 **MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**,
 
-**MOD_NOVITA**, **MOD_XAI**
+**MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**
 
 :    Set default model for each endpoint / provider.
 
@@ -1309,7 +1315,7 @@ set command-line `option -c` instead.
 **PROVIDER_BASE_URL**
 
 :    Base URLs for each service provider:
-     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, _NOVITA_, and _xAI_.
+     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, _NOVITA_, _xAI_, and _DeepSeek_.
 
 
 **OPENAI_API_KEY**
@@ -1318,7 +1324,7 @@ set command-line `option -c` instead.
 
 **GITHUB_TOKEN**
 
-:    Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models, Novita, and xAI APIs.
+:    Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models, Novita, xAI, and DeepSeek APIs.
 
 
 **OUTDIR**

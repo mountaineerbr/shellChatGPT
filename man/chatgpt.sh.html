@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.92.8 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.93 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.92.8 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.93 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">February 2025</p>
 </header>
@@ -214,7 +214,7 @@ Whisper / TTS</div>
 <p>This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
 endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
-and xAI APIs are supported.</p>
+xAI, and DeepSeek APIs are supported.</p>
 <p>With no options set, complete INPUT in single-turn mode of the native
 chat completion.</p>
 <p>Handles single-turn and multi-turn modes, pure text and native chat
@@ -229,6 +229,10 @@ text prompt itself.</p>
 <dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
 <dd>
 <p>Anthropic integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--deepseek</strong>, <strong>--deep</strong></dt>
+<dd>
+<p>DeepSeek integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--github</strong>, <strong>--git</strong></dt>
 <dd>
@@ -1605,8 +1609,10 @@ Novita AI offers a range of LLM models, including the highly recommended
 <strong>Llama 3.1</strong> model. For an uncensored model, consider
 <strong>sao10k/l3-70b-euryale-v2.1</strong> or
 <strong>cognitivecomputations/dolphin-mixtral-8x22b</strong>.</p>
-<p>And for xAI’s Grok, set environment <code>$XAI_API_KEY</code> with
-your API key.</p>
+<p>Likewise, for xAI’s Grok, set environment <code>$XAI_API_KEY</code>
+with its API key.</p>
+<p>And for DeepSeek API, set environment <code>$DEEPSEEK_API_KEY</code>
+with its API key.</p>
 <p>Run the script with <code>option --xai</code> and also with
 <code>option -cc</code> (chat completions.).</p>
 <p>Some models also work with native text completions. For that, set
@@ -1658,7 +1664,8 @@ command-line <code>option -c</code> instead.</p>
 <p><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_ANTHROPIC</strong>,
 <strong>MOD_GITHUB</strong>,</p>
 <dl>
-<dt><strong>MOD_NOVITA</strong>, <strong>MOD_XAI</strong></dt>
+<dt><strong>MOD_NOVITA</strong>, <strong>MOD_XAI</strong>,
+<strong>MOD_DEEPSEEK</strong></dt>
 <dd>
 <p>Set default model for each endpoint / provider.</p>
 </dd>
@@ -1674,7 +1681,8 @@ parameter with the full url path to disable endpoint auto selection.</p>
 <dd>
 <p>Base URLs for each service provider: <em>LOCALAI</em>,
 <em>OLLAMA</em>, <em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>,
-<em>GROQ</em>, <em>GITHUB</em>, <em>NOVITA</em>, and <em>xAI</em>.</p>
+<em>GROQ</em>, <em>GITHUB</em>, <em>NOVITA</em>, <em>xAI</em>, and
+<em>DeepSeek</em>.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_API_KEY</strong></p>
@@ -1683,7 +1691,7 @@ parameter with the full url path to disable endpoint auto selection.</p>
 <dt><strong>GITHUB_TOKEN</strong></dt>
 <dd>
 <p>Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models,
-Novita, and xAI APIs.</p>
+Novita, xAI, and DeepSeek APIs.</p>
 </dd>
 <dt><strong>OUTDIR</strong></dt>
 <dd>

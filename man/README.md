@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: February 2025
-title: CHATGPT.SH(1) v0.92.8 \| General Commands Manual
+title: CHATGPT.SH(1) v0.93 \| General Commands Manual
 ---
 
 # NAME
@@ -38,7 +38,7 @@ title: CHATGPT.SH(1) v0.92.8 \| General Commands Manual
 This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
 endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
-and xAI APIs are supported.
+xAI, and DeepSeek APIs are supported.
 
 With no options set, complete INPUT in single-turn mode of the native
 chat completion.
@@ -57,6 +57,9 @@ text prompt itself.
 
 **--anthropic**, **--ant**  
 Anthropic integration (cmpls/chat).
+
+**--deepseek**, **--deep**  
+DeepSeek integration (cmpls/chat).
 
 **--github**, **--git**  
 GitHub Models integration (chat).
@@ -1045,7 +1048,11 @@ range of LLM models, including the highly recommended **Llama 3.1**
 model. For an uncensored model, consider **sao10k/l3-70b-euryale-v2.1**
 or **cognitivecomputations/dolphin-mixtral-8x22b**.
 
-And for xAI’s Grok, set environment `$XAI_API_KEY` with your API key.
+Likewise, for xAI’s Grok, set environment `$XAI_API_KEY` with its API
+key.
+
+And for DeepSeek API, set environment `$DEEPSEEK_API_KEY` with its API
+key.
 
 Run the script with `option --xai` and also with `option -cc` (chat
 completions.).
@@ -1092,7 +1099,7 @@ Default instruction language in chat mode.
 
 **MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**,
 
-**MOD_NOVITA**, **MOD_XAI**  
+**MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**  
 Set default model for each endpoint / provider.
 
 **OPENAI_BASE_URL**
@@ -1103,7 +1110,8 @@ with the full url path to disable endpoint auto selection.
 
 **PROVIDER_BASE_URL**  
 Base URLs for each service provider: *LOCALAI*, *OLLAMA*, *MISTRAL*,
-*GOOGLE*, *ANTHROPIC*, *GROQ*, *GITHUB*, *NOVITA*, and *xAI*.
+*GOOGLE*, *ANTHROPIC*, *GROQ*, *GITHUB*, *NOVITA*, *xAI*, and
+*DeepSeek*.
 
 **OPENAI_API_KEY**
 
@@ -1111,7 +1119,7 @@ Base URLs for each service provider: *LOCALAI*, *OLLAMA*, *MISTRAL*,
 
 **GITHUB_TOKEN**  
 Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models,
-Novita, and xAI APIs.
+Novita, xAI, and DeepSeek APIs.
 
 **OUTDIR**  
 Output directory for received image and audio.
