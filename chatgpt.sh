@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.93.1  feb/2025  by mountaineerbr  GPL+3
+# v0.93.2  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1951,6 +1951,11 @@ function cmd_runf
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
 			set_maxtknf nill
 			cmdmsgf 'Response' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} tkns"
+			;;
+		-.[0-9]*|-[0-9]*.*|.*[0-9]*|[0-9]*.*|[/!].*[0-9]*|[/!][0-9]*.*|--.*[0-9]*|--[0-9]*.*)
+			set -- "${*##*([$IFS/!-])}";
+			cmd_runf /temperature "$@";
+			return;
 			;;
 		-[0-9]*|[0-9]*|-M*|[Mm]ax*|\
 		-N*|[Mm]odmax*|[/!][0-9]*|--[0-9]*)
@@ -4332,7 +4337,7 @@ function _set_alphaf
 	unset ARGS PNG32
 	if _has_alphaf "$1"
 	then  #has alpha
-		if _is_opaquef "$1"
+		if _is_opaquef "$1" || [[ -n ${OPT_AT+force} ]]
 		then  #is opaque
 			ARGS="-alpha set -fuzz ${OPT_AT_PC:-0}% -transparent ${OPT_AT:-black}" PNG32="png32:"
 			((OPTV)) ||
