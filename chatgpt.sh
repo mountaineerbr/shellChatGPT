@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.93.2  feb/2025  by mountaineerbr  GPL+3
+# v0.93.3  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4804,6 +4804,7 @@ function set_termuxpulsef
 #append to shell hist list
 function shell_histf
 {
+	((${#1}+${#2} < 8192)) || return
 	[[ ${*} = *[!$IFS]* ]] || return
 	history -s -- "$*"
 }
@@ -6446,7 +6447,6 @@ else
 					)
 					if ((${#REPLY_CMD_DUMP}))
 					then 	REPLY="${*} ${REPLY_CMD_DUMP}";
-						#((SKIP_SH_HIST)) || shell_histf "$REPLY";
 					fi
 			    		SKIP=1 EDIT=1 REPLY_CMD=;
 					set -- ; continue 2;
