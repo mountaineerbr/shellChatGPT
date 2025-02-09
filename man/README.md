@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: February 2025
-title: CHATGPT.SH(1) v0.93 \| General Commands Manual
+title: CHATGPT.SH(1) v0.93.5 \| General Commands Manual
 ---
 
 # NAME
@@ -243,7 +243,7 @@ Unset model max response tokens (chat cmpls only).
 **-NUM**
 
 **-M**, **--max** \[*NUM*\[*-NUM*\]\]  
-Maximum number of *response tokens*. Def=*1024*.
+Maximum number of *response tokens*. Def=*2048*.
 
 A second number in the argument sets model capacity.
 
@@ -492,7 +492,7 @@ as “*.*” to pick from the model list. List available models with
 `option -l`.
 
 Set *maximum response tokens* with `option` “`-`*NUM*” or “`-M` *NUM*”.
-This defaults to *1024* tokens and *25000* for reasoning models.
+This defaults to *2048* tokens and *25000* for reasoning models.
 
 If a second *NUM* is given to this option, *maximum model capacity* will
 also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and

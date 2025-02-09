@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.93 | General Commands Manual
+% CHATGPT.SH(1) v0.93.5 | General Commands Manual
 % mountaineerbr
 % February 2025
 
@@ -315,7 +315,7 @@ before the text prompt itself.
 
 **-M**, **\--max**   \[_NUM_[_-NUM_]]
 
-:     Maximum number of _response tokens_. Def=_1024_.
+:     Maximum number of _response tokens_. Def=_2048_.
 
       A second number in the argument sets model capacity.
 
@@ -642,7 +642,7 @@ or set it as "_._" to pick from the model list.
 List available models with `option -l`.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
-This defaults to _1024_ tokens and _25000_ for reasoning models.
+This defaults to _2048_ tokens and _25000_ for reasoning models.
 
 If a second _NUM_ is given to this option, _maximum model capacity_
 will also be set. The option syntax takes the form of "`-`_NUM/NUM_",

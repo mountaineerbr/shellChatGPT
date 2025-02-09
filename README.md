@@ -963,11 +963,14 @@ server set up and running.
 
 The server can be run as a docker container or a
 [binary can be downloaded](https://github.com/mudler/LocalAI/releases).
+
 Check LocalAI tutorials
 [Container Images](https://localai.io/basics/getting_started/#container-images),
 and [Run Models Manually](https://localai.io/docs/getting-started/manual)
-for an idea on how to install, download a model and set it up.
+for an idea on how to [download and install](https://localai.io/models/#how-to-install-a-model-from-the-repositories)
+a model and set it up.
 
+<!--
      ┌───────────────────────────────────────────────────┐
      │                   Fiber v2.50.0                   │
      │               http://127.0.0.1:8080               │
@@ -976,6 +979,7 @@ for an idea on how to install, download a model and set it up.
      │ Handlers ............. 1  Processes ........... 1 │
      │ Prefork ....... Disabled  PID ..................1 │
      └───────────────────────────────────────────────────┘
+-->
 
 
 #### Tips

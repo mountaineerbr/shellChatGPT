@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.93.3  feb/2025  by mountaineerbr  GPL+3
+# v0.93.5  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -26,15 +26,15 @@ MOD_AUDIO="${MOD_AUDIO:-whisper-1}"
 # Speech model (TTS)
 MOD_SPEECH="${MOD_SPEECH:-tts-1}"
 # LocalAI model
-MOD_LOCALAI="${MOD_LOCALAI:-phi-2}"
+MOD_LOCALAI="${MOD_LOCALAI:-phi-4}"
 # Ollama model
-MOD_OLLAMA="${MOD_OLLAMA:-llama3.2}"
+MOD_OLLAMA="${MOD_OLLAMA:-llama3.3}"
 # Google AI model
 MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.0-flash-exp}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Groq models
-MOD_GROQ="${MOD_GROQ:-llama-3.1-70b-versatile}"
+MOD_GROQ="${MOD_GROQ:-llama-3.3-70b-versatile}"
 MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
 # Prefer Groq Whisper (chat mode)
 #WHISPER_GROQ=
@@ -61,7 +61,7 @@ OPTTW=0
 # Top_p probability mass (nucleus sampling)
 #OPTP=1
 # Maximum response tokens
-OPTMAX=1024
+OPTMAX=2048
 # Model capacity (auto)
 #MODMAX=
 # Presence penalty
@@ -819,19 +819,15 @@ function model_capf
 		text-bison-001) MODMAX=8196;;
 		embedding-gecko-001) MODMAX=1024;;
 		aqa) MODMAX=7168;;
-		gemini-1.0-pro-vision*|gemini-pro-vision) MODMAX=12288;;
-		gemini-1.5-flash-001-tuning) MODMAX=16384;;
-		gemini-1.0-pro*|gemini-pro) MODMAX=30720;;
 		gemini-2.0-flash*) MODMAX=1048576;;
 		gemini-1.5-flash*) MODMAX=1000000;;
 		gemini-1.5-pro*) MODMAX=2000000;;
-		gemini-exp*) MODMAX=2097152;;
-		gemini-*) MODMAX=1000000;;
+		gemini-exp*|gemini-*) MODMAX=2097152;;
 		learnlm-1.5-pro*|*qwen-2.5-72b-instruct) MODMAX=32000;;
 		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
 			MODMAX=16000;;
 		*llama-3.1-8b-instruct|davinci-00[2-9]|babbage-00[2-9]|gpt-3.5*16k*|\
-		*turbo*16k*|gpt-3.5-turbo-1106|gemini*-vision*|*-16k*)
+		*turbo*16k*|gpt-3.5-turbo-1106|*-16k*)
 			MODMAX=16384;;
 		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*)
