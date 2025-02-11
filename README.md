@@ -256,12 +256,12 @@ The `chatgpt.sh` script can be run in various modes by setting
 | `-ccw`  | Chat Completions + Whisper                                                |
 | `-ccwz` | [Chat Completions + Whisper + TTS](#voice-in-and-out--chat-completions)   |
 
-| Option | Description   (independent modes)                                  |
-|--------|--------------------------------------------------------------------|
-| `-i`   | [Image generation and editing](#%EF%B8%8F-image-generations)       |
-| `-w`   | [Speech-To-Text](#-speech-transcriptions--translations) (Whisper)  |
-| `-W`   | Speech-To-Text (Whisper), translation to English                   |
-| `-z`   | Text-To-Speech mode (TTS), text input                              |
+| Option | Description   (independent modes)                                   |
+|--------|---------------------------------------------------------------------|
+| `-i`   | [Image generation and editing](#%EF%B8%8F-image-generations)        |
+| `-w`   | [Speech-To-Text](#-speech-transcriptions--translations) (Whisper)   |
+| `-W`   | Speech-To-Text (Whisper), translation to English                    |
+| `-z`   | [Text-To-Speech](man/README.md#text-to-voice-tts) (TTS), text input |
 
 
 ## 💬  Native Chat Completions
