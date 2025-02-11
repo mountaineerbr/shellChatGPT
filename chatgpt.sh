@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.93.5  feb/2025  by mountaineerbr  GPL+3
+# v0.94  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -131,7 +131,6 @@ INSTRUCTION_CHAT_JA="以下は、AIアシスタントとの会話です。アシ
 INSTRUCTION_CHAT_ZH="以下是对话内容与一位人工智能助手之间的对话。该助手乐于助人、富有创造力、聪明且友好。"
 INSTRUCTION_CHAT_ZH_TW="以下是对话內容與一位人工智慧助手之間的對話。該助手樂於助人、富有創造力、聰明且友善。"
 INSTRUCTION_CHAT_HI="निम्न एक एआई सहायक के साथ एक वार्तालाप है। सहायक मददगार, रचनात्मक, चतुर और मित्रवत है।"
-INSTRUCTION_CHAT="${INSTRUCTION_CHAT-$INSTRUCTION_CHAT_EN}"
 # Insert timestamp in instruction prompt
 #INST_TIME=0
 
@@ -1997,17 +1996,17 @@ function cmd_runf
 			;;
 		-c)
 			((OPTC)) && { 	cmd_runf -cc; return ;}
-			OPTC=1 EPN=0 OPTCMPL= ;
+			OPTC=1 EPN=0 OPTCMPL= STURN= ;
 			cmdmsgf "Endpoint[$EPN]:" "Text Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		-cc)
 			((OPTC>1)) && { 	cmd_runf -d; return ;}
-			OPTC=2 EPN=6 OPTCMPL= ;
+			OPTC=2 EPN=6 OPTCMPL= STURN= ;
 			cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		-[dD]|-[dD][dD])
 			((!OPTC)) && { 	cmd_runf -c; return ;}
-			OPTC= EPN=0 OPTCMPL=1 ;
+			OPTC= EPN=0 OPTCMPL=1 STURN= ;
 			cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		break|br|new)
@@ -5642,7 +5641,7 @@ def reset:   null;"
 
 if ((OPTCMPL<0))
 then 	OPTCMPL=;  #single-turn text completions -d
-elif ((!(OPTCMPL+OPTC+OPTZZ+OPTL+OPTI+OPTTIKTOKEN+OPTFF) ))
+elif ((!(OPTCMPL+OPTC+OPTZZ+OPTL+OPTI+OPTTIKTOKEN+OPTFF+OPTSUFFIX) ))
 then 	OPTT=${OPTT:-0.8} STURN=1;  #single-turn chat completions demo
 fi
 ((OPTL+OPTZZ)) && unset OPTX
@@ -5872,7 +5871,7 @@ else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
 fi
 
 #dump and append text from supported file types, and stdin
-if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN)) && ((!(OPTC+OPTCMPL) ))
+if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN)) && ((!(OPTC+OPTCMPL+OPTSUFFIX) ))
 then
 	((OPTEMBED+OPTI+OPTZ)) && ((${#})) &&
 	if is_txtfilef "${@:${#}}" || is_pdff "${@:${#}}" || is_docf "${@:${#}}"
@@ -5996,7 +5995,7 @@ then 	if [[ -s "$CHATGPTRC" ]] && ((OPTFF<2))
 	else 	curl --fail -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
 		CHATGPTRC="stdout [$CHATGPTRC]";
 	fi; _sysmsgf 'Conf File:' "${CHATGPTRC/"$HOME"/"~"}";
-elif ((OPTHH && OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN) )) && [[ -f $FILEWHISPERLOG ]]
+elif ((OPTHH && OPTW)) && ((!(OPTC+OPTCMPL+OPTRESUME+MTURN+OPTSUFFIX) )) && [[ -f $FILEWHISPERLOG ]]
 then  #whisper log
 	if ((OPTHH>1))
 	then 	BUFF="";
@@ -6021,7 +6020,7 @@ then 	OPTRESUME=1 BREAK_SET=
 	if ((OPTHH>1))
 	then
 		((OPTC || EPN==6)) && OPTC=2;
-		((OPTC+OPTRESUME+OPTCMPL)) || OPTC=1;
+		((OPTC+OPTRESUME+OPTCMPL+OPTSUFFIX)) || OPTC=1;
 		MODMAX=$((MODMAX+1048576)) || MODMAX=1048576;
 		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" OLLAMA= set_histf '';
 
@@ -6108,7 +6107,7 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 else
 	CHAT_ENV=1;
 	((OPTW)) && unset OPTX; ((OPTW)) && OPTW=1; ((OPTWW)) && OPTWW=1;
-	((OPTC+OPTCMPL)) && ((!OPTEXIT)) && test_dialogf;
+	((OPTC+OPTCMPL+OPTSUFFIX)) && ((!OPTEXIT)) && test_dialogf;
 
 	#custom / awesome prompts
 	case "$1" in
@@ -6139,9 +6138,22 @@ else
 			;;
 	esac
 
+	if ((OPTEXIT || (OPTSUFFIX && !MTURN) ))
+	then 	var=' / single-turn';
+	elif ((MTURN+OPTC))
+	then 	var=' / multi-turn';
+	elif ((STURN))
+	then 	var=' / single-turn';
+	else 	var=; fi;
 	#text/chat completions
 	if ((OPTC))
-	then 	((OPTV)) || sysmsgf 'Chat Completions'
+	then 	((OPTV)) ||
+		  if ((OPTSUFFIX))
+		  then 	sysmsgf 'Text Completions Insert (FIM)'"$var";
+		  elif ((OPTC==1 || EPN==0))
+		  then 	sysmsgf 'Text Chat Completions'"$var";
+		  else 	sysmsgf 'Chat Completions'"$var";
+		  fi
 		#chatbot must sound like a human, shouldnt be lobotomised
 		#presencePenalty:0.6 temp:0.9 maxTkns:150
 		#frequencyPenalty:0.5 temp:0.5 top_p:0.3 maxTkns:60 (Marv)
@@ -6162,8 +6174,14 @@ else
 		{ ((EPN==6)) && [[ -z ${RESTART:+1}${START:+1} ]] ;} ||  #option -cc conditional skip
 		  STOPS+=("${RESTART-$Q_TYPE}" "${START-$A_TYPE}")
 	else
-		((OPTV)) || sysmsgf 'Text Completions'
-	fi
+		((OPTV)) ||
+		  if ((OPTSUFFIX))
+		  then 	sysmsgf 'Text Completions Insert (FIM)'"$var";
+		  elif ((STURN))
+		  then 	sysmsgf 'Chat Completions'"$var";  #demo - special case
+		  else 	sysmsgf 'Text Completions'"$var";
+		  fi
+	fi; var=;
 	((MULTIMODAL)) ||
 	if is_amodelf "$MOD"
 	then 	MULTIMODAL=2;
@@ -6187,10 +6205,10 @@ else
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
-	if ((MTURN+OPTRESUME))
-	then 	case "${LC_ALL:-$LANG}" in
-			en*) 	INSTRUCTION_CHAT=$INSTRUCTION_CHAT_EN;;
-			pt*) 	INSTRUCTION_CHAT=$INSTRUCTION_CHAT_PT;;
+	if ((MTURN+OPTRESUME+OPTC))
+	then 	((${#INSTRUCTION_CHAT})) ||
+		case "${LC_ALL:-$LANG}" in
+			pt*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_PT;;
 			es*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_ES;;
 			it*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_IT;;
 			fr*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_FR;;
@@ -6200,6 +6218,7 @@ else
 			hi*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_HI;;
 			zh[_-]TW*|zh[_-][Hh][Aa][Nn][Tt]*) INSTRUCTION_CHAT=$INSTRUCTION_CHAT_ZH_TW;;
 			zh[_-]CN*|zh*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_ZH;;
+			en*|*)  INSTRUCTION_CHAT=$INSTRUCTION_CHAT_EN;;  #IPC#
 		esac;
 		#((${#WARGS[@]})) || case "${LC_ALL:-$LANG}" in [a-z][a-z][_.]*)
 		#	WARGS=(${LC_ALL:-$LANG}) WARGS=(${WARGS[0]:0:2});; esac;  #auto whisper lang
