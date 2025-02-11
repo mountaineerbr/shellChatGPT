@@ -67,42 +67,41 @@ If no suffix is provided, it works as plain text completions.
   - 10.2 [Zsh](#zsh)
   - 10.3 [Troubleshoot](#troubleshoot-shell)
 - 11. [Notes and Tips](#-notes-and-tips)
-- 12. [More Script Modes](#more-script-modes)
-  - 12.1 [Image Generations](#-image-generations)
-  - 12.2 [Image Variations](#image-variations)
-  - 12.3 [Image Edits](#image-edits)
-    - 12.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
-    - 12.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
-  - 12.4 [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
-- 13. [Service Providers](#service-providers)
-  - 13.1 [LocalAI](#localai)
-    - 13.1.1 [LocalAI Server](#localai-server)
-    - 13.1.2 [Tips](#tips)
-    - 13.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
-    - 13.1.4 [Installing Models](#installing-models)
-    - 13.1.5 [Host API Configuration](#base-url-configuration)
-  - 13.2 [Ollama](#ollama)
-  - 13.3 [Google AI](#google-ai)
-  - 13.4 [Mistral AI](#mistral-ai)
-  - 13.5 [Groq](#groq)
-  - 13.6 [Anthropic](#anthropic)
-  - 13.7 [GitHub Models](#github-models)
-  - 13.8 [Novita AI](#novita-ai)
-  - 13.9 [xAI](#xai)
-  - 13.10 [DeepSeek](#deepseek)
-- 14. [Arch Linux Users](#arch-linux-users)
-- 15. [Termux Users](#termux-users)
-  - 15.1 [Dependencies](#dependencies-termux)
-  - 15.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
-  - 15.3 [Tiktoken](#tiktoken)
-  - 15.4 [Troubleshoot](#troubleshoot-termux)
-- 16. [Project Objectives](#--project-objectives)
-- 17. [Roadmap](#roadmap)
-- 18. [Limitations](#%EF%B8%8F-limitations)
-- 19. [Bug report](#bug-report)
-- 20. [Help Pages](#-help-pages)
-- 21. [Contributors](#-contributors)
-- 22. [Acknowledgements](#acknowledgements)
+- 12. [Image Generations](#%EF%B8%8F-image-generations)
+- 13. [Image Variations](#image-variations)
+- 14. [Image Edits](#image-edits)
+  - 14.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
+  - 14.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
+- 15. [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
+- 16. [Service Providers](#service-providers)
+  - 16.1 [LocalAI](#localai)
+    - 16.1.1 [LocalAI Server](#localai-server)
+    - 16.1.2 [Tips](#tips)
+    - 16.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
+    - 16.1.4 [Installing Models](#installing-models)
+    - 16.1.5 [Host API Configuration](#base-url-configuration)
+  - 16.2 [Ollama](#ollama)
+  - 16.3 [Google AI](#google-ai)
+  - 16.4 [Mistral AI](#mistral-ai)
+  - 16.5 [Groq](#groq)
+  - 16.6 [Anthropic](#anthropic)
+  - 16.7 [GitHub Models](#github-models)
+  - 16.8 [Novita AI](#novita-ai)
+  - 16.9 [xAI](#xai)
+  - 16.10 [DeepSeek](#deepseek)
+- 17. [Arch Linux Users](#arch-linux-users)
+- 18. [Termux Users](#termux-users)
+  - 18.1 [Dependencies](#dependencies-termux)
+  - 18.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
+  - 18.3 [Tiktoken](#tiktoken)
+  - 18.4 [Troubleshoot](#troubleshoot-termux)
+- 19. [Project Objectives](#--project-objectives)
+- 20. [Roadmap](#roadmap)
+- 21. [Limitations](#%EF%B8%8F-limitations)
+- 22. [Bug report](#bug-report)
+- 23. [Help Pages](#-help-pages)
+- 24. [Contributors](#-contributors)
+- 25. [Acknowledgements](#acknowledgements)
 
 <!-- - 9. [Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
 
@@ -241,28 +240,28 @@ The `chatgpt.sh` script can be run in various modes by setting
 <!-- Table Overview -->
 
 
-| Option | Description                                      |
-|--------|--------------------------------------------------|
-| `-c`   | Text Chat Completions / multi-turn               |
-| `-cc`  | Chat Completions (Native) / multi-turn           |
-| `-d`   | Text Completions / single-turn                   |
-| `-dd`  | Text Completions / multi-turn                    |
-| `-q`   | Text Completions Insert Mode (FIM) / single-turn |
-| `-qq`  | Text Completions Insert Mode (FIM) / multi-turn  |
+| Option | Description                                                                          |
+|--------|--------------------------------------------------------------------------------------|
+| `-c`   | [Text Chat Completions](#chat-mode-of-text-completions) / multi-turn                 |
+| `-cc`  | [Chat Completions (Native)](#--native-chat-completions) / multi-turn                 |
+| `-d`   | Text Completions / single-turn                                                       |
+| `-dd`  | Text Completions / multi-turn                                                        |
+| `-q`   | [Text Completions Insert Mode](#insert-mode-of-text-completions) (FIM) / single-turn |
+| `-qq`  | Text Completions Insert Mode (FIM) / multi-turn                                      |
 
-| Option  | Description  (all multi-turn)           |
-|---------|-----------------------------------------|
-| `-cw`   | Text Chat Completions + Whisper         |
-| `-cwz`  | Text Chat Completions + Whisper + TTS   |
-| `-ccw`  | Chat Completions + Whisper              |
-| `-ccwz` | Chat Completions + Whisper + TTS        |
+| Option  | Description  (all multi-turn)                                             |
+|---------|---------------------------------------------------------------------------|
+| `-cw`   | Text Chat Completions + Whisper                                           |
+| `-cwz`  | Text Chat Completions + Whisper + TTS                                     |
+| `-ccw`  | Chat Completions + Whisper                                                |
+| `-ccwz` | [Chat Completions + Whisper + TTS](#voice-in-and-out--chat-completions)   |
 
-| Option | Description                                        |
-|--------|----------------------------------------------------|
-| `-i`   | Image generation and editing.                      |
-| `-w`   | Speech-To-Text (Whisper), mic or audio file input. |
-| `-W`   | Speech-To-Text (Whisper), translation to English.  |
-| `-z`   | Text-To-Speech mode (TTS), text input.             |
+| Option | Description   (independent modes)                                  |
+|--------|--------------------------------------------------------------------|
+| `-i`   | [Image generation and editing](#%EF%B8%8F-image-generations)       |
+| `-w`   | [Speech-To-Text](#-speech-transcriptions--translations) (Whisper)  |
+| `-W`   | Speech-To-Text (Whisper), translation to English                   |
+| `-z`   | Text-To-Speech mode (TTS), text input                              |
 
 
 ## 💬  Native Chat Completions
@@ -876,9 +875,7 @@ optionally set instruction for the new session:
 -->
 
 
-## More Script Modes
-
-### 🖼️ Image Generations
+## 🖼️ Image Generations
 
 Generate image according to prompt:
 
@@ -887,26 +884,26 @@ Generate image according to prompt:
     chatgpt.sh -i "512x512" "A tower."
 
 
-### Image Variations
+## Image Variations
 
 Generate image variation:
 
     chatgpt.sh -i path/to/image.png
 
 
-### Image Edits
+## Image Edits
 
     chatgpt.sh -i path/to/image.png path/to/mask.png "A pink flamingo."
 
 
-#### Outpaint - Canvas Extension
+### Outpaint - Canvas Extension
 
 ![Displaying Image Edits - Extending the Canvas](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits.gif)
 
 In this example, a mask is made from the white colour.
 
 
-#### Inpaint - Fill in the Gaps
+### Inpaint - Fill in the Gaps
 
 ![Showing off Image Edits - Inpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits2.gif)
 <!-- ![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png) -->
@@ -914,7 +911,7 @@ In this example, a mask is made from the white colour.
 Adding a bat in the night sky.
 
 
-### 🔊 Speech Transcriptions / Translations
+## 🔊 Speech Transcriptions / Translations
 
 Generate transcription from audio file speech. A prompt to guide the model's style is optional.
 The prompt should match the speech language:
