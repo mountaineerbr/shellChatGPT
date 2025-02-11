@@ -47,16 +47,16 @@ If no suffix is provided, it works as plain text completions.
   - 3.2 [Optional Packages](#optional-packages)
   - 3.3 [Installation](#-installation)
   - 3.4 [Usage Examples](#-usage-examples-)
-- 4. [Native Chat Completions](#-native-chat-completions)
-  - 4.1 [Vision and Multimodal Models](#vision-and-multimodal-models)
-  - 4.2 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
-  - 4.3 [File Picker and Shell Dump](#file-picker-and-shell-dump)
-  - 4.4 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
-  - 4.5 [Audio Models](#audio-models)
-- 5. [Chat Mode of Text Completions](#chat-mode-of-text-completions)
-- 6. [Text Completions](#-text-completions)
-  - 6.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
-- 7. Script Operating Modes
+- 4. [Script Operating Modes](#script-operating-modes)
+- 5. [Native Chat Completions](#-native-chat-completions)
+  - 5.1 [Vision and Multimodal Models](#vision-and-multimodal-models)
+  - 5.2 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
+  - 5.3 [File Picker and Shell Dump](#file-picker-and-shell-dump)
+  - 5.4 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
+  - 5.5 [Audio Models](#audio-models)
+- 6. [Chat Mode of Text Completions](#chat-mode-of-text-completions)
+- 7. [Text Completions](#-text-completions)
+  - 7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
 - 8. [Markdown](#markdown)
 - 9. [Prompts](#-prompts)
   - 9.1 [Instruction Prompt](#instruction-prompt)
@@ -232,6 +232,37 @@ and make it executable:
 ### 🔥 Usage Examples 🔥
 
 ![Chat cmpls with prompt confirmation](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_verb.gif)
+
+
+## Script Operating Modes
+
+The `chatgpt.sh` script can be run in various modes by setting
+**command-line options** at invocation. These are summarised bellow.
+<!-- Table Overview -->
+
+
+| Option | Description                                      |
+|--------|--------------------------------------------------|
+| `-c`   | Text Chat Completions / multi-turn               |
+| `-cc`  | Chat Completions (Native) / multi-turn           |
+| `-d`   | Text Completions / single-turn                   |
+| `-dd`  | Text Completions / multi-turn                    |
+| `-q`   | Text Completions Insert Mode (FIM) / single-turn |
+| `-qq`  | Text Completions Insert Mode (FIM) / multi-turn  |
+
+| Option  | Description  (all multi-turn)           |
+|---------|-----------------------------------------|
+| `-cw`   | Text Chat Completions + Whisper         |
+| `-cwz`  | Text Chat Completions + Whisper + TTS   |
+| `-ccw`  | Chat Completions + Whisper              |
+| `-ccwz` | Chat Completions + Whisper + TTS        |
+
+| Option | Description                                        |
+|--------|----------------------------------------------------|
+| `-i`   | Image generation and editing.                      |
+| `-w`   | Speech-To-Text (Whisper), mic or audio file input. |
+| `-W`   | Speech-To-Text (Whisper), translation to English.  |
+| `-z`   | Text-To-Speech mode (TTS), text input.             |
 
 
 ## 💬  Native Chat Completions
@@ -598,24 +629,6 @@ While in chat mode, type the command `/help [question]`, in which the question
 is related to script features and your current chat settings, and how
 you can change them or invoke the script with the right syntax!
 -->
-
-## Script Operating Modes
-
-The `chatgpt.sh` script can be run in various modes, each designed for
-a particular type of interaction. Bellow are the **command-line options**
-that can be set at invocation.
-
-
-| Option | Description                                      |
-|--------|--------------------------------------------------|
-| `-c`   | Text Chat Completions / multi-turn               |
-| `-cc`  | Native Chat Completions / multi-turn             |
-| `-d`   | Text Completions / single-turn                   |
-| `-dd`  | Text Completions / multi-turn                    |
-| `-q`   | Text Completions Insert Mode (FIM) / single-turn |
-| `-qq`  | Text Completions Insert Mode (FIM) / multi-turn  |
-
-<!-- | `-i`   | Image generation and editing.                    |  ->
 
 
 ## Markdown
