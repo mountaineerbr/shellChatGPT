@@ -56,52 +56,53 @@ If no suffix is provided, it works as plain text completions.
 - 5. [Chat Mode of Text Completions](#chat-mode-of-text-completions)
 - 6. [Text Completions](#-text-completions)
   - 6.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
-- 7. [Markdown](#markdown)
-- 8. [Prompts](#-prompts)
-  - 8.1 [Instruction Prompt](#instruction-prompt)
-  - 8.2 [Custom Prompts](#-custom-prompts)
-  - 8.3 [Awesome Prompts](#-awesome-prompts)
-- 9. [Shell Completion](#shell-completion)
-  - 9.1 [Bash](#bash)
-  - 9.2 [Zsh](#zsh)
-  - 9.3 [Troubleshoot](#troubleshoot-shell)
-- 10. [Notes and Tips](#-notes-and-tips)
-- 11. [More Script Modes](#more-script-modes)
-  - 11.1 [Image Generations](#-image-generations)
-  - 11.2 [Image Variations](#image-variations)
-  - 11.3 [Image Edits](#image-edits)
-    - 11.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
-    - 11.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
-  - 11.4 [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
-- 12. [Service Providers](#service-providers)
-  - 12.1 [LocalAI](#localai)
-    - 12.1.1 [LocalAI Server](#localai-server)
-    - 12.1.2 [Tips](#tips)
-    - 12.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
-    - 12.1.4 [Installing Models](#installing-models)
-    - 12.1.5 [Host API Configuration](#base-url-configuration)
-  - 12.2 [Ollama](#ollama)
-  - 12.3 [Google AI](#google-ai)
-  - 12.4 [Mistral AI](#mistral-ai)
-  - 12.5 [Groq](#groq)
-  - 12.6 [Anthropic](#anthropic)
-  - 12.7 [GitHub Models](#github-models)
-  - 12.8 [Novita AI](#novita-ai)
-  - 12.9 [xAI](#xai)
-  - 12.10 [DeepSeek](#deepseek)
-- 13. [Arch Linux Users](#arch-linux-users)
-- 14. [Termux Users](#termux-users)
-  - 14.1 [Dependencies](#dependencies-termux)
-  - 14.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
-  - 14.3 [Tiktoken](#tiktoken)
-  - 14.4 [Troubleshoot](#troubleshoot-termux)
-- 15. [Project Objectives](#--project-objectives)
-- 16. [Roadmap](#roadmap)
-- 17. [Limitations](#%EF%B8%8F-limitations)
-- 18. [Bug report](#bug-report)
-- 19. [Help Pages](#-help-pages)
-- 20. [Contributors](#-contributors)
-- 21. [Acknowledgements](#acknowledgements)
+- 7. Script Operating Modes
+- 8. [Markdown](#markdown)
+- 9. [Prompts](#-prompts)
+  - 9.1 [Instruction Prompt](#instruction-prompt)
+  - 9.2 [Custom Prompts](#-custom-prompts)
+  - 9.3 [Awesome Prompts](#-awesome-prompts)
+- 10. [Shell Completion](#shell-completion)
+  - 10.1 [Bash](#bash)
+  - 10.2 [Zsh](#zsh)
+  - 10.3 [Troubleshoot](#troubleshoot-shell)
+- 11. [Notes and Tips](#-notes-and-tips)
+- 12. [More Script Modes](#more-script-modes)
+  - 12.1 [Image Generations](#-image-generations)
+  - 12.2 [Image Variations](#image-variations)
+  - 12.3 [Image Edits](#image-edits)
+    - 12.3.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
+    - 12.3.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
+  - 12.4 [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
+- 13. [Service Providers](#service-providers)
+  - 13.1 [LocalAI](#localai)
+    - 13.1.1 [LocalAI Server](#localai-server)
+    - 13.1.2 [Tips](#tips)
+    - 13.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
+    - 13.1.4 [Installing Models](#installing-models)
+    - 13.1.5 [Host API Configuration](#base-url-configuration)
+  - 13.2 [Ollama](#ollama)
+  - 13.3 [Google AI](#google-ai)
+  - 13.4 [Mistral AI](#mistral-ai)
+  - 13.5 [Groq](#groq)
+  - 13.6 [Anthropic](#anthropic)
+  - 13.7 [GitHub Models](#github-models)
+  - 13.8 [Novita AI](#novita-ai)
+  - 13.9 [xAI](#xai)
+  - 13.10 [DeepSeek](#deepseek)
+- 14. [Arch Linux Users](#arch-linux-users)
+- 15. [Termux Users](#termux-users)
+  - 15.1 [Dependencies](#dependencies-termux)
+  - 15.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
+  - 15.3 [Tiktoken](#tiktoken)
+  - 15.4 [Troubleshoot](#troubleshoot-termux)
+- 16. [Project Objectives](#--project-objectives)
+- 17. [Roadmap](#roadmap)
+- 18. [Limitations](#%EF%B8%8F-limitations)
+- 19. [Bug report](#bug-report)
+- 20. [Help Pages](#-help-pages)
+- 21. [Contributors](#-contributors)
+- 22. [Acknowledgements](#acknowledgements)
 
 <!-- - 9. [Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
 
@@ -424,7 +425,7 @@ file manager). The selected file's path is then appended to the
 current prompt.
 
 The `/pick` and `/sh` commands may be run when typed at the end of
-the current prompt, such as `[PROMPT] /pick`,
+the current prompt, such as ---`[PROMPT] /pick`,
 
 When the `/sh` command is run at the end of the prompt, a new
 shell instance to execute commands interactively is opened.
@@ -597,6 +598,24 @@ While in chat mode, type the command `/help [question]`, in which the question
 is related to script features and your current chat settings, and how
 you can change them or invoke the script with the right syntax!
 -->
+
+## Script Operating Modes
+
+The `chatgpt.sh` script can be run in various modes, each designed for
+a particular type of interaction. Bellow are the **command-line options**
+that can be set at invocation.
+
+
+| Option | Description                                      |
+|--------|--------------------------------------------------|
+| `-c`   | Text Chat Completions / multi-turn               |
+| `-cc`  | Native Chat Completions / multi-turn             |
+| `-d`   | Text Completions / single-turn                   |
+| `-dd`  | Text Completions / multi-turn                    |
+| `-q`   | Text Completions Insert Mode (FIM) / single-turn |
+| `-qq`  | Text Completions Insert Mode (FIM) / multi-turn  |
+
+<!-- | `-i`   | Image generation and editing.                    |  ->
 
 
 ## Markdown
