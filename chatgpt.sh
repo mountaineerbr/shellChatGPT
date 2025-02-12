@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.94  feb/2025  by mountaineerbr  GPL+3
+# v0.94.1  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2539,8 +2539,8 @@ function cmd_runf
 			;;
 		[/!]sh*)
 			set -- "${*##[/!]@(shell|sh)*([:$IFS])}"
-			if [[ -n $1 ]]
-			then 	bash -i -c "${1%%;}; exit"
+			if [[ $1 = *[!$IFS]* ]]
+			then 	bash -i -c "$1"$'\nexit'
 			else 	bash -i
 			fi  </dev/tty  >&2;  #>/dev/tty
 			;;
