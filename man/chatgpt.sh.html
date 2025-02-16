@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.94 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.94.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.94 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.94.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">February 2025</p>
 </header>
@@ -1744,13 +1744,36 @@ and background colours can be set with <em>$On_Yellow</em>,
 <p>Theme colours are named variables from <code>Colour1</code> to about
 <code>Colour11</code>, and may be set with colour-named variables or raw
 escape sequences (these must not change cursor position).</p>
+<h1 id="configuration-and-cache-files">CONFIGURATION AND CACHE
+FILES</h1>
+<p>User configuration is stored in <strong>~/.chatgpt.conf</strong>. Its
+path location can be set with envar <strong>$CHATGPTRC</strong>.</p>
+<p>The script’s cache directory is <strong>~/.cache/chatgptsh/</strong>
+and may contain the following file types:</p>
+<ul>
+<li><strong>Session Records (tsv):</strong> Tab-separated value files
+storing session history. The default session record is
+<strong>chatgpt.tsv</strong>.</li>
+<li><strong>Prompt Files (pr):</strong> Files storing user-defined
+custom instructions (initial prompts).</li>
+<li><strong>Command History (history_bash):</strong> Bash command-line
+input history. This file is trimmed according to the
+<strong>$HISTSIZE</strong> setting in the configuration file. While it
+improves session recall, a large <strong>history_bash</strong> file can
+slow script startup. It can be safely removed if necessary.</li>
+<li><strong>Temporary Buffers:</strong> Various files holding temporary
+text and data. These files are safe to remove and are not intended for
+backup.</li>
+</ul>
+<p><strong>Backup Recommendation:</strong> It is strongly recommended to
+back up session record files (tsv) and prompt files (pr), as well as the
+configuration file (chatgpt.sh) to preserve session history, custom
+promptsnd settings.</p>
 <h1 id="notes">NOTES</h1>
 <p>Stdin text is appended to any existing PROMPT.</p>
 <p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
 specially (as escaped new lines and tabs) in restart, start and stop
 sequences!</p>
-<p>User configuration is kept at “<em>~/.chatgpt.conf</em>”. Script
-cache is kept at “<em>~/.cache/chatgptsh/</em>”.</p>
 <p>The moderation endpoint can be accessed by setting the model name to
 <em>omni-moderation-latest</em> (or
 <em>text-moderation-latest</em>).</p>

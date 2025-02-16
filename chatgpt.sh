@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.94.1  feb/2025  by mountaineerbr  GPL+3
+# v0.94.2  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2041,7 +2041,7 @@ function cmd_runf
 		effort*)
 			set -- "${*##effort$SPC}"
 			if [[ $REASON_EFFORT != *[!$IFS]* ]]
-			then 	REASON_EFFORT="${*:-medium}";
+			then 	REASON_EFFORT="medium";
 			else 	REASON_EFFORT="${*}";
 			fi;
 			cmdmsgf 'Reasoning Effort:' "${REASON_EFFORT:-unset}";
@@ -2405,7 +2405,7 @@ function cmd_runf
 			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
 			$hurl          $hurlv \
 			api-path      "${BASE_URL}${ENDPOINTS[EPN]}" \
-			model-name    "${MOD:-?}${modmodal}" \
+			model-name    "${MOD:-?}${modmodal}${REASON_EFFORT:+ / $REASON_EFFORT}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
 			context-prev  "${MAX_PREV:-${TKN_PREV:-?}}  (${HIST_LOOP:-0} turns)" \
@@ -3598,16 +3598,15 @@ function set_optsf
 			#https://ai.google.dev/gemini-api/docs/thinking-mode
 		}
 		;;
-		o[1-9]*|o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
+		o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
 		((MOD_REASON)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
 				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
-			case "$MOD" in o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
-			  ((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'Reasoning models do not support system messages yet';
-			  INSTRUCTION_CHAT_REASON=$INSTRUCTION_CHAT INSTRUCTION_REASON=$INSTRUCTION;
-			  INSTRUCTION_CHAT= INSTRUCTION=;
+			case "$MOD" in o1-mini*|o1-preview*|o3*)
+			  ((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'System / developer instructions reset';
+			  INSTRUCTION_OLD=$INSTRUCTION INSTRUCTION_CHAT= INSTRUCTION=;
 			  ;;
 			esac;
 			[[ -n $OPTA || -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency and presence penalties';
@@ -3619,18 +3618,17 @@ function set_optsf
 			true|[1-9]*) 	REASON_INTERACTIVE=true;;
 			false|[00]*) 	REASON_INTERACTIVE=false;;
 		esac;
+		case "$MOD" in
+			*-high|*-medium|*-low) 	REASON_EFFORT=${MOD##*-} MOD=${MOD%-*};;
+		esac;
 		case "$REASON_EFFORT" in
 			high|medium|low|'') 	:;;
-			*) 	_warmsgf 'Warning:' "reason_effort must be high, medium or low -- $REASON_EFFORT";
-			;;
+			?*) 	_warmsgf 'Warning:' "reason_effort must be high, medium or low -- $REASON_EFFORT";;
 		esac;
 		;;
 		*) ((MOD_REASON)) && {
-			case "$MOD" in o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
-			  INSTRUCTION_CHAT=${INSTRUCTION_CHAT_REASON:-$INSTRUCTION_CHAT} INSTRUCTION=${INSTRUCTION_REASON:-$INSTRUCTION};
-			  ;;
-			esac;
-			OPTA=$OPTA_REASON OPTAA=$OPTAA_REASON OPTT=$OPTT_REASON OPTMAX=${OPTMAX_REASON:-$OPTMAX} MOD_REASON= CURLTIMEOUT=;
+			OPTA=${OPTA_REASON:-$OPTA} OPTAA=${OPTAA_REASON:-$OPTAA} OPTT=${OPTT_REASON:-$OPTT};
+			OPTMAX=${OPTMAX_REASON:-$OPTMAX} MOD_REASON= REASON_EFFORT= CURLTIMEOUT=;
 		}
 		((MOD_THINK)) && {
 			MOD_THINK=;
@@ -6751,7 +6749,7 @@ $(
 case "$MOD" in o[1-9]*)
 	max="max_completion_tokens";
 	case "$MOD" in
-		*-preview*|*-mini*)  REASON_EFFORT=;;
+		o[1-9]*-preview*)  REASON_EFFORT=;;
 	esac;
 	;;
 	*)  REASON_EFFORT=;;

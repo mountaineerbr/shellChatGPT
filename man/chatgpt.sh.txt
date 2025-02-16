@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.94 | General Commands Manual
+CHATGPT.SH(1) v0.94.2 | General Commands Manual
 mountaineerbr
 February 2025
 
@@ -1162,15 +1162,37 @@ Theme colours are named variables from Colour1 to about Colour11, and
 may be set with colour-named variables or raw escape sequences (these
 must not change cursor position).
 
+CONFIGURATION AND CACHE FILES
+
+User configuration is stored in ~/.chatgpt.conf. Its path location can
+be set with envar $CHATGPTRC.
+
+The script’s cache directory is ~/.cache/chatgptsh/ and may contain the
+following file types:
+
+-   Session Records (tsv): Tab-separated value files storing session
+    history. The default session record is chatgpt.tsv.
+-   Prompt Files (pr): Files storing user-defined custom instructions
+    (initial prompts).
+-   Command History (history_bash): Bash command-line input history.
+    This file is trimmed according to the $HISTSIZE setting in the
+    configuration file. While it improves session recall, a large
+    history_bash file can slow script startup. It can be safely removed
+    if necessary.
+-   Temporary Buffers: Various files holding temporary text and data.
+    These files are safe to remove and are not intended for backup.
+
+Backup Recommendation: It is strongly recommended to back up session
+record files (tsv) and prompt files (pr), as well as the configuration
+file (chatgpt.sh) to preserve session history, custom promptsnd
+settings.
+
 NOTES
 
 Stdin text is appended to any existing PROMPT.
 
 Input sequences “\n” and “\t” are only treated specially (as escaped new
 lines and tabs) in restart, start and stop sequences!
-
-User configuration is kept at “~/.chatgpt.conf”. Script cache is kept at
-“~/.cache/chatgptsh/”.
 
 The moderation endpoint can be accessed by setting the model name to
 omni-moderation-latest (or text-moderation-latest).
