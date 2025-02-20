@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.94.2  feb/2025  by mountaineerbr  GPL+3
+# v0.94.3  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4157,11 +4157,12 @@ function _ttsf
 				if var=$(NO_CLR=1 read_charf -t 1)
 				then 	case "$var" in
 					[Q]) 	return 202;;
-					[RrYy]|$'\t') continue 2;;
+					[RrYy]|$'\t') WSKIP=; continue 2;;
 					[PpWw]|[$' \e']) printf '%s' waiting.. >&2;
 						read_charf >/dev/null;
-						continue 2;;  #wait key press
-					*) 	break;;
+						WSKIP=; continue 2;;  #wait key press
+					*) 	((OPTW && n)) && WSKIP=2 || WSKIP=;
+						break;;
 					esac;
 				fi; ((n)) || echo >&2;
 			done; _clr_lineupf 19;  #!#
@@ -7011,11 +7012,12 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 						var=$(NO_CLR=1 read_charf -t 1 </dev/tty)
 					then 	case "$var" in
 						[Q]) 	echo '[bye]' >&2; exit 202;;
-						[RrYy]|$'\t') m=0; break 1;;
+						[RrYy]|$'\t') WSKIP= m=0; break 1;;
 						[PpWw]|[$' \e']) printf '%s' waiting.. >&2;
 							read_charf >/dev/null;
-							m=0; break 1;;  #wait key press
-						*) 	n=-1 var=; break 1;;
+							WSKIP= m=0; break 1;;  #wait key press
+						*) 	((OPTW && n)) && WSKIP=2 || WSKIP=;
+							n=-1 var=; break 1;;
 						esac;
 					fi; ((n)) || echo >&2;
 				done; _clr_lineupf 19;  #!#
@@ -7053,9 +7055,9 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 			#https://platform.openai.com/docs/guides/speech-to-text/improving-reliability
 		fi
 
-		((++MAIN_LOOP)) ;set --
+		((++MAIN_LOOP)); ((WSKIP>1)) && WSKIP=1 || WSKIP=; set --;
 		role= rest= tkn_ans= ans_tts= ans= buff= var= arr= tkn= glob= out= pid= s= n=;
-		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= WSKIP= PSKIP= SKIP= EDIT= HARGS=;
+		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= PSKIP= SKIP= EDIT= HARGS=;
 		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES;
 		((MTURN && !OPTEXIT)) || break
 	done
