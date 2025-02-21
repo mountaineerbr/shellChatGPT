@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.94.3  feb/2025  by mountaineerbr  GPL+3
+# v0.94.4  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4161,7 +4161,7 @@ function _ttsf
 					[PpWw]|[$' \e']) printf '%s' waiting.. >&2;
 						read_charf >/dev/null;
 						WSKIP=; continue 2;;  #wait key press
-					*) 	((OPTW && n)) && WSKIP=2 || WSKIP=;
+					*) 	((OPTW && n && !${#var})) && WSKIP=2 || WSKIP=;
 						break;;
 					esac;
 				fi; ((n)) || echo >&2;
@@ -7016,7 +7016,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 						[PpWw]|[$' \e']) printf '%s' waiting.. >&2;
 							read_charf >/dev/null;
 							WSKIP= m=0; break 1;;  #wait key press
-						*) 	((OPTW && n)) && WSKIP=2 || WSKIP=;
+						*) 	((OPTW && n && !${#var})) && WSKIP=2 || WSKIP=;
 							n=-1 var=; break 1;;
 						esac;
 					fi; ((n)) || echo >&2;
