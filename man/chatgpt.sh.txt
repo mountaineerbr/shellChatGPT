@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.94.2 | General Commands Manual
+CHATGPT.SH(1) v0.95 | General Commands Manual
 mountaineerbr
 February 2025
 
@@ -47,7 +47,7 @@ Service Providers
 
 --anthropic, --ant
 
-    Anthropic integration (cmpls/chat).
+    Anthropic integration (cmpls/chat). Also see --think.
 
 --deepseek, --deep
 
@@ -298,13 +298,15 @@ Model Settings
 
     Request log probabilities, also see -Z (cmpls, 0 - 5),
 
---effort [high|medium|low]
+--effort [high|medium|low] (OpenAI)
 
-    Amount of effort in reasoning models (OpenAI).
+--think [token_num] (Anthropic)
+
+    Amount of effort in reasoning models.
 
 --interactive, --no-interactive
 
-    Reasoning model output style.
+    Reasoning model output style (OpenAI).
 
 -j, --seed [NUM]
 
@@ -785,7 +787,7 @@ or “/” are equivalent.
   !q       !quit             Exit. Bye.
 
   Model           Settings              
-  --------------- --------------------- ------------------------------------------------
+  --------------- --------------------- --------------------------------------------------
   !Nill           -Nill                 Unset max response tkns (chat cmpls).
   !NUM            -M [NUM]              Maximum response tokens.
   !!NUM           -N [NUM]              Model token capacity.
@@ -804,7 +806,8 @@ or “/” are equivalent.
   -w              !rec [ARGS]           Toggle Whisper. Optionally, set arguments.
   -z              !tts [ARGS]           Toggle TTS chat mode (speech out).
   !blk            !block [ARGS]         Set and add custom options to JSON request.
-  !effort         - [MODE]              Reasoning effort modes: high, medium, or low.
+  !effort         - [MODE]              Reasoning effort: high, medium, or low (OpenAI).
+  !think          - [NUM]               Thinking budget: max tokens (Anthropic).
   !interactive`   -                     Toggle reasoning interactive mode.
   !ka             !keep-alive [NUM]     Set duration of model load in memory (Ollama).
   !vision         !audio, !multimodal   Toggle multimodality type.

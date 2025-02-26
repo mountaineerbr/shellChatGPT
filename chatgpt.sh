@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.94.4  feb/2025  by mountaineerbr  GPL+3
+# v0.95  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -39,7 +39,7 @@ MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
 # Prefer Groq Whisper (chat mode)
 #WHISPER_GROQ=
 # Anthropic model
-MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-5-sonnet-latest}"
+MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-7-sonnet-latest}"
 # Github Azure model
 MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
 # Novita AI model
@@ -108,7 +108,9 @@ OPTFOLD=1
 #START=""
 #  Chat mode of text cmpls sets "\nQ: " and "\nA:"
 # Reasoning effort
-#REASON_EFFORT=  #low, medium, or high
+#REASON_EFFORT=
+#OpenAI: low, medium, or high
+#Anthropic: budget tokens (integer)
 # Reasoning interactive
 #REASON_INTERACTIVE=  #true or false
 # Input and output prices (dollars per million tokens)
@@ -468,7 +470,8 @@ Command List
       -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
-    !effort   -        [MODE]   Reasoning effort: high, medium, or low.
+    !effort   -        [MODE]   Reasoning: high, medium, or low (OpenAI).
+    !think    -         [NUM]   Thinking budget: max tokens (Anthropic).
 !interactive  -                 Toggle reasoning interactive mode.
      !ka      !keep-alive [NUM] Set duration of model load in memory
    !vision    !audio            Toggle model multimodality type.
@@ -523,7 +526,7 @@ Command List
 Options
 	Service Providers
 	--anthropic
-		Anthropic integration (cmpls/chat).
+		Anthropic integration (cmpls/chat). See --think.
 	--deepseek
 		DeepSeek API integration (cmpls/chat).
 	--github
@@ -640,10 +643,11 @@ Options
 		Best of, must be greater than opt -n (cmpls). Def=1.
 	-B, --logprobs  [NUM]
 		Request log probabilities, see -Z (cmpls, 0 - 5),
-	--effort  [ high | medium | low ]
-		Amount of effort in reasoning models (OpenAI).
+	--effort  [ high | medium | low ]    (OpenAI)
+	--think   [ token_num ]             (Anthropic)
+		Amount of effort in reasoning models.
 	--interactive, --no-interactive
-		Reasoning model output style.
+		Reasoning model output style (OpenAI).
 	-j, --seed  [NUM]
 		Seed for deterministic sampling (integer).
 	-K, --top-k     [NUM]
@@ -1183,8 +1187,8 @@ function prompt_prettyf
 	jq -r ${STREAM:+-j --unbuffered} "${JQCOLNULL} ${JQCOL}
 	  byellow
 	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
-	  ( ((.delta.content)//(.delta.reasoning_content)//(.delta.text)//(.delta.audio.transcript)
-	    //.text//.response//.completion//.reasoning//(.content[]?|.text?)
+	  ( ((.delta.content)//(.delta.reasoning_content)//(.delta.text)//(.delta.thinking)//(.delta.audio.transcript)
+	    //.text//.response//.completion//.reasoning//( (.content // []) | .[]? | (.text // .thinking) )
 	    //(.message.content${ANTHROPICAI:+skip})
 	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"</think>\\n\") else null end)
 	    //(.candidates[]?|.content | if ((${MOD_THINK:+1}0>0) and (.parts?|.[1]?|.text?)) then (.parts[0].text?,\"\\n\\nANSWER:\\n\",.parts[1].text?) else (.parts[]?|.text?) end)
@@ -1203,9 +1207,10 @@ function prompt_pf
 	do 	[[ -f $var ]] || { 	opt=("${opt[@]}" "$var"); shift ;}
 	done
 	set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
-		(.delta.content)//(.delta.reasoning_content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//(.content[]?|.text?)//(.message.content${ANTHROPICAI:+skip})//(.message.reasoning_content)//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@"
+		(.delta.content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//( (.content // []) | .[]? | .text)//(.message.content${ANTHROPICAI:+skip})//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@"
 	jq "${opt[@]}" "$@" && _p_suffixf || ! _warmsgf 'Err';
 }
+#//(.delta.reasoning_content)//(.delta.thinking)//(.message.reasoning_content)  #dont record reasoning
 #https://stackoverflow.com/questions/57298373/print-colored-raw-output-with-jq-on-terminal
 #https://stackoverflow.com/questions/40321035/
 
@@ -1856,7 +1861,7 @@ function _model_costf
 	typeset model; model=${1};
 	case "${model##ft:}" in
 		claude-3-opus*) 	echo 15 75;;
-		claude-3-sonnet*|claude-3-5-sonnet*) echo 3 15;;
+		claude-3-sonnet*|claude-3-[5-9]-sonnet*) echo 3 15;;
 		claude-3-haiku*) 	echo 0.25 1.25;;
 		claude-3.5-haiku*) 	echo 1 5;;
 		claude-2.1*|claude-2*) 	echo 8 24;;
@@ -2038,10 +2043,11 @@ function cmd_runf
 			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
 			cmdmsgf $'\nUser Block:' "${BLOCK_USR:-unset}";
 			;;
-		effort*)
-			set -- "${*##effort$SPC}"
+		effort*|budget*|think*)
+			set -- "${*##@(effort|budget|think)$SPC}"
 			if [[ $REASON_EFFORT != *[!$IFS]* ]]
 			then 	REASON_EFFORT="medium";
+				((ANTHROPICAI)) && REASON_EFFORT=16000;
 			else 	REASON_EFFORT="${*}";
 			fi;
 			cmdmsgf 'Reasoning Effort:' "${REASON_EFFORT:-unset}";
@@ -2099,8 +2105,14 @@ function cmd_runf
 			cmdmsgf 'Seed:' "$OPTSEED"
 			;;
 		j|jump)
-			cmdmsgf 'Jump:' 'append response primer'
-			JUMP=1 REPLY=
+			if ((OPTCMPL || !EPN))
+			then
+				cmdmsgf 'Jump:' 'append response primer'
+				JUMP=1 REPLY=
+			else
+				cmd_runf //jump;
+				return;
+			fi
 			return 179
 			;;
 		[/!]j|[/!]jump|J|Jump)
@@ -2202,6 +2214,10 @@ function cmd_runf
 					  *)  cmd_runf /sh${append:+:} "${var}" "\"${1// /%20}\"";
 					    ;;
 					esac;
+					if ((RET))  #try curl hack on dump fail
+					then 	var=$(BROWSER=curl set_browsercmdf);
+						cmd_runf /sh${append:+:} "${var}" "\"${1// /%20}\" | $(BROWSER= set_browsercmdf)";
+					fi
 					return 0;
 				fi;
 				;;
@@ -2384,7 +2400,7 @@ function cmd_runf
 			((GOOGLEAI)) && hurl='google-url' hurlv=${GOOGLE_BASE_URL}${ENDPOINTS[EPN]};
 			((ANTHROPICAI)) && hurl='anthropic-url' hurlv=${ANTHROPIC_BASE_URL}${ENDPOINTS[EPN]};
 
-			set_optsf 2>/dev/null
+			set_optsf  2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
 			{ is_visionf "$MOD" || is_amodelf "$MOD" ;} && modmodal=' / multimodal'
 			((MTURN+OPTRESUME)) &&
@@ -3585,6 +3601,21 @@ function set_optsf
 		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
 		INSTRUCTION_CHAT= INSTRUCTION=;
 		;;
+		claude-3-[7-9]*|claude-4-*)
+		case "${REASON_EFFORT}" in *[a-zA-Z]*) 	REASON_EFFORT=16000;; esac;
+		((MOD_THINK)) || ((!${REASON_EFFORT:+1}0)) || {
+			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
+				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
+				OPTMAX=25000;
+			}
+			case "$REASON_EFFORT" in
+				*[a-zA-Z]*) 	_warmsgf 'Warning:' "Thinking budget_tokens must be an integer -- $REASON_EFFORT";;
+				*|'') 	REASON_EFFORT=${REASON_EFFORT:-16000};;
+			esac;
+			((REASON_EFFORT<1024)) && REASON_EFFORT=1024;
+			MOD_THINK=1;
+		}
+		;;
 		gemini-2*-thinking*)
 		((MOD_THINK)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
@@ -4161,7 +4192,7 @@ function _ttsf
 					[PpWw]|[$' \e']) printf '%s' waiting.. >&2;
 						read_charf >/dev/null;
 						WSKIP=; continue 2;;  #wait key press
-					*) 	((OPTW && n && !${#var})) && WSKIP=2 || WSKIP=;
+					*) 	((OPTW && n && !${#var})) && WSKIP=2 || WSKIP=;  #H#
 						break;;
 					esac;
 				fi; ((n)) || echo >&2;
@@ -5459,7 +5490,8 @@ o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
 S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
 U:cat  v:verbose  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
-no-time  awesome-zh  awesome  interactive  no-interactive  effort
+no-time  awesome-zh  awesome  interactive  no-interactive \
+effort  effort:budget  effort:think
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -5468,7 +5500,7 @@ no-time  awesome-zh  awesome  interactive  no-interactive  effort
 
 		case "$OPTARG" in
 			$name|$name=)
-				if [[ ${optstring}effort: = *"$opt":* ]]
+				if [[ ${optstring}effort:budget:think: = *"$opt":* ]]
 				then 	OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
 				fi;;
@@ -6644,12 +6676,20 @@ else
 		if ((EPN==6));
 		then 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${*}";
 		else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*}"; fi
+		
 		((MAIN_LOOP||TOTAL_OLD)) || TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-${GINSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}}")
+		
 		if ((OPTC)) || [[ -n "${RESTART}" ]]
 		then 	rest="${RESTART-$Q_TYPE}"
 			((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
 		fi
-		((JUMP)) && set -- && rest=;
+
+		if ((JUMP))
+		then 	((OPTCMPL || !EPN)) || rest=;
+			set -- "${RINSERT:0:${#RINSERT}-1}${*}";
+			REPLY="${RINSERT:0:${#RINSERT}-1}$REPLY" RINSERT=;
+		fi
+		
 		var="$(escapef "${INSTRUCTION}")${INSTRUCTION:+\\n\\n}";
 		ESC="${HIST}${HIST:+${var:+\\n\\n}}${var}${rest}$(escapef "${*}")";
 		ESC=$(INDEX=32 trim_leadf "$ESC" "\\n");
@@ -6753,10 +6793,20 @@ case "$MOD" in o[1-9]*)
 		o[1-9]*-preview*)  REASON_EFFORT=;;
 	esac;
 	;;
-	*)  REASON_EFFORT=;;
+	#*)  ((ANTHROPICAI)) || REASON_EFFORT=;;
 esac
 ((OPTMAX_NILL && EPN==6)) || echo "\"${max:-max_tokens}\": $OPTMAX,"
-((${REASON_EFFORT:+1})) && echo "\"reasoning_effort\": \"${REASON_EFFORT:-medium}\","
+
+if ((ANTHROPICAI)) && ((${REASON_EFFORT:+1}0))
+then 	case "$MOD" in claude-3-[5-9]-sonnet*|claude-[4-9]*)
+		echo "\"thinking\": {
+\"type\": \"enabled\",
+\"budget_tokens\": ${REASON_EFFORT:-16000}
+  },"
+	esac
+elif ((${REASON_EFFORT:+1}0))  #OpenAI
+then 	echo "\"reasoning_effort\": \"${REASON_EFFORT:-medium}\","
+fi
 )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTBB_OPT $OPTSTOP $OPTSEED_OPT
@@ -7016,7 +7066,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 						[PpWw]|[$' \e']) printf '%s' waiting.. >&2;
 							read_charf >/dev/null;
 							WSKIP= m=0; break 1;;  #wait key press
-						*) 	((OPTW && n && !${#var})) && WSKIP=2 || WSKIP=;
+						*) 	((OPTW && n && !${#var})) && WSKIP=2 || WSKIP=;  #H#
 							n=-1 var=; break 1;;
 						esac;
 					fi; ((n)) || echo >&2;

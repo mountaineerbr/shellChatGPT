@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.94.2 | General Commands Manual
+% CHATGPT.SH(1) v0.95 | General Commands Manual
 % mountaineerbr
 % February 2025
 
@@ -49,7 +49,7 @@ before the text prompt itself.
 
 **\--anthropic**, **\--ant**
 
-: Anthropic integration (cmpls/chat).
+: Anthropic integration (cmpls/chat). Also see **\--think**.
 
 
 **\--deepseek**, **\--deep**
@@ -345,14 +345,16 @@ before the text prompt itself.
 : Request log probabilities, also see -Z (cmpls, 0 - 5),
 
 
-**\--effort**  \[_high_|_medium_|_low_]
+**\--effort**  \[_high_|_medium_|_low_]  (OpenAI)
 
-: Amount of effort in reasoning models (OpenAI).
+**\--think**   \[_token_num_]            (Anthropic)
+
+: Amount of effort in reasoning models.
 
 
 **\--interactive**, **\--no-interactive**
 
-: Reasoning model output style.
+: Reasoning model output style (OpenAI).
 
 
 **-j**, **\--seed**  \[_NUM_]
@@ -920,30 +922,31 @@ Command operators "`!`" or "`/`" are equivalent.
  --------------    -----------------------    ----------------------------------------------------------
 
  Model             Settings
- --------------    -----------------------    ------------------------------------------------
-   `!Nill`         `-Nill`                    Unset max response tkns (chat cmpls).
-    `!NUM`         `-M`          \[_NUM_]     Maximum response tokens.
-   `!!NUM`         `-N`          \[_NUM_]     Model token capacity.
-      `-a`         `!pre`        \[_VAL_]     Presence penalty.
-      `-A`         `!freq`       \[_VAL_]     Frequency penalty.
-      `-b`         `!best`       \[_NUM_]     Best-of n results.
-      `-j`         `!seed`       \[_NUM_]     Seed number (integer).
-      `-K`         `!topk`       \[_NUM_]     Top_k.
-      `-m`         `!mod`        \[_MOD_]     Model by name, empty to pick from list.
-      `-n`         `!results`    \[_NUM_]     Number of results.
-      `-p`         `!topp`       \[_VAL_]     Top_p.
-      `-r`         `!restart`    \[_SEQ_]     Restart sequence.
-      `-R`         `!start`      \[_SEQ_]     Start sequence.
-      `-s`         `!stop`       \[_SEQ_]     One stop sequence.
-      `-t`         `!temp`       \[_VAL_]     Temperature.
-      `-w`         `!rec`       \[_ARGS_]     Toggle Whisper. Optionally, set arguments.
-      `-z`         `!tts`       \[_ARGS_]     Toggle TTS chat mode (speech out).
-    `!blk`         `!block`     \[_ARGS_]     Set and add custom options to JSON request.
- `!effort`          \-          \[_MODE_]     Reasoning effort modes: high, medium, or low.
-`!interactive`      \-                        Toggle reasoning interactive mode.
-     `!ka`         `!keep-alive` \[_NUM_]     Set duration of model load in memory (Ollama).
-  `!vision`        `!audio`, `!multimodal`    Toggle multimodality type.
- --------------    -----------------------    ------------------------------------------------
+ --------------    ------------------------    ------------------------------------------------
+   `!Nill`         `-Nill`                     Unset max response tkns (chat cmpls).
+    `!NUM`         `-M`          \[_NUM_]      Maximum response tokens.
+   `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
+      `-a`         `!pre`        \[_VAL_]      Presence penalty.
+      `-A`         `!freq`       \[_VAL_]      Frequency penalty.
+      `-b`         `!best`       \[_NUM_]      Best-of n results.
+      `-j`         `!seed`       \[_NUM_]      Seed number (integer).
+      `-K`         `!topk`       \[_NUM_]      Top_k.
+      `-m`         `!mod`        \[_MOD_]      Model by name, empty to pick from list.
+      `-n`         `!results`    \[_NUM_]      Number of results.
+      `-p`         `!topp`       \[_VAL_]      Top_p.
+      `-r`         `!restart`    \[_SEQ_]      Restart sequence.
+      `-R`         `!start`      \[_SEQ_]      Start sequence.
+      `-s`         `!stop`       \[_SEQ_]      One stop sequence.
+      `-t`         `!temp`       \[_VAL_]      Temperature.
+      `-w`         `!rec`       \[_ARGS_]      Toggle Whisper. Optionally, set arguments.
+      `-z`         `!tts`       \[_ARGS_]      Toggle TTS chat mode (speech out).
+    `!blk`         `!block`     \[_ARGS_]      Set and add custom options to JSON request.
+ `!effort`          \-          \[_MODE_]      Reasoning effort: high, medium, or low (OpenAI).
+  `!think`          \-           \[_NUM_]      Thinking budget: max tokens (Anthropic).
+`!interactive`      \-                         Toggle reasoning interactive mode.
+     `!ka`         `!keep-alive` \[_NUM_]      Set duration of model load in memory (Ollama).
+  `!vision`        `!audio`, `!multimodal`     Toggle multimodality type.
+ --------------    ------------------------    ------------------------------------------------
 
  Session           Management
  --------------    -------------------------------------    ------------------------------------------------

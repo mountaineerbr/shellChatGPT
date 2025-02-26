@@ -87,6 +87,7 @@ _chatgptsh()
         -E --exit -EE
         -g --stream
         -G --no-stream
+	--effort  --think
 	--interactive --no-interactive
         -i --image
         -q -qq --insert
@@ -150,6 +151,9 @@ _chatgptsh()
       ;;
     --effort*)
       ((${#cur})) || COMPREPLY=( 'low' 'medium' 'high' )
+      ;;
+    --think*)
+      ((${#cur})) || COMPREPLY=( 'TOKEN_NUM' '16000' )
       ;;
     --md|--markdown)
       COMPREPLY=( $(compgen -W "bat pygmentize glow mdcat mdless" -- "${cur##*=}") )

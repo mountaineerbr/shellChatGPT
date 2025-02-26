@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: February 2025
-title: CHATGPT.SH(1) v0.94.2 \| General Commands Manual
+title: CHATGPT.SH(1) v0.95 \| General Commands Manual
 ---
 
 # NAME
@@ -56,7 +56,7 @@ text prompt itself.
 ## Service Providers
 
 **--anthropic**, **--ant**  
-Anthropic integration (cmpls/chat).
+Anthropic integration (cmpls/chat). Also see **--think**.
 
 **--deepseek**, **--deep**  
 DeepSeek integration (cmpls/chat).
@@ -262,11 +262,13 @@ Best of, must be greater than `option -n` (cmpls). Def=*1*.
 **-B**, **--logprobs** \[*NUM*\]  
 Request log probabilities, also see -Z (cmpls, 0 - 5),
 
-**--effort** \[*high*\|*medium*\|*low*\]  
-Amount of effort in reasoning models (OpenAI).
+**--effort** \[*high*\|*medium*\|*low*\] (OpenAI)
+
+**--think** \[*token_num*\] (Anthropic)  
+Amount of effort in reasoning models.
 
 **--interactive**, **--no-interactive**  
-Reasoning model output style.
+Reasoning model output style (OpenAI).
 
 **-j**, **--seed** \[*NUM*\]  
 Seed for deterministic sampling (integer).
@@ -757,30 +759,31 @@ or “`/`” are equivalent.
 | `-y`    | `!tik`               | Toggle python tiktoken use.                              |
 | `!q`    | `!quit`              | Exit. Bye.                                               |
 
-| Model          | Settings                |                                                |
-|:---------------|:------------------------|------------------------------------------------|
-| `!Nill`        | `-Nill`                 | Unset max response tkns (chat cmpls).          |
-| `!NUM`         | `-M` \[*NUM*\]          | Maximum response tokens.                       |
-| `!!NUM`        | `-N` \[*NUM*\]          | Model token capacity.                          |
-| `-a`           | `!pre` \[*VAL*\]        | Presence penalty.                              |
-| `-A`           | `!freq` \[*VAL*\]       | Frequency penalty.                             |
-| `-b`           | `!best` \[*NUM*\]       | Best-of n results.                             |
-| `-j`           | `!seed` \[*NUM*\]       | Seed number (integer).                         |
-| `-K`           | `!topk` \[*NUM*\]       | Top_k.                                         |
-| `-m`           | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.        |
-| `-n`           | `!results` \[*NUM*\]    | Number of results.                             |
-| `-p`           | `!topp` \[*VAL*\]       | Top_p.                                         |
-| `-r`           | `!restart` \[*SEQ*\]    | Restart sequence.                              |
-| `-R`           | `!start` \[*SEQ*\]      | Start sequence.                                |
-| `-s`           | `!stop` \[*SEQ*\]       | One stop sequence.                             |
-| `-t`           | `!temp` \[*VAL*\]       | Temperature.                                   |
-| `-w`           | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.     |
-| `-z`           | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).             |
-| `!blk`         | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.    |
-| `!effort`      | \- \[*MODE*\]           | Reasoning effort modes: high, medium, or low.  |
-| !interactive\` | \-                      | Toggle reasoning interactive mode.             |
-| `!ka`          | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
-| `!vision`      | `!audio`, `!multimodal` | Toggle multimodality type.                     |
+| Model          | Settings                |                                                  |
+|:---------------|:------------------------|--------------------------------------------------|
+| `!Nill`        | `-Nill`                 | Unset max response tkns (chat cmpls).            |
+| `!NUM`         | `-M` \[*NUM*\]          | Maximum response tokens.                         |
+| `!!NUM`        | `-N` \[*NUM*\]          | Model token capacity.                            |
+| `-a`           | `!pre` \[*VAL*\]        | Presence penalty.                                |
+| `-A`           | `!freq` \[*VAL*\]       | Frequency penalty.                               |
+| `-b`           | `!best` \[*NUM*\]       | Best-of n results.                               |
+| `-j`           | `!seed` \[*NUM*\]       | Seed number (integer).                           |
+| `-K`           | `!topk` \[*NUM*\]       | Top_k.                                           |
+| `-m`           | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.          |
+| `-n`           | `!results` \[*NUM*\]    | Number of results.                               |
+| `-p`           | `!topp` \[*VAL*\]       | Top_p.                                           |
+| `-r`           | `!restart` \[*SEQ*\]    | Restart sequence.                                |
+| `-R`           | `!start` \[*SEQ*\]      | Start sequence.                                  |
+| `-s`           | `!stop` \[*SEQ*\]       | One stop sequence.                               |
+| `-t`           | `!temp` \[*VAL*\]       | Temperature.                                     |
+| `-w`           | `!rec` \[*ARGS*\]       | Toggle Whisper. Optionally, set arguments.       |
+| `-z`           | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).               |
+| `!blk`         | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.      |
+| `!effort`      | \- \[*MODE*\]           | Reasoning effort: high, medium, or low (OpenAI). |
+| `!think`       | \- \[*NUM*\]            | Thinking budget: max tokens (Anthropic).         |
+| !interactive\` | \-                      | Toggle reasoning interactive mode.               |
+| `!ka`          | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama).   |
+| `!vision`      | `!audio`, `!multimodal` | Toggle multimodality type.                       |
 
 | Session | Management                             |                                                |
 |:--------|:---------------------------------------|------------------------------------------------|

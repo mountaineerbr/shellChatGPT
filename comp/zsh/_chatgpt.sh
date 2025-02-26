@@ -124,6 +124,7 @@ _chatgpt.sh()
     {-C,--continue}'[Continue from last session]' \
     {-d,--text}'[Text completions]' \
     --effort'[Reasoning effort]:effort:(low medium high)' \
+    --think'[Thinking budget]:effort:(TOKEN_NUM 16000)' \
     {-e,--edit}'[Edit first prompt]' \
     {-E,-EE,--exit}'[Exit on first run]' \
     {-g,--stream}'[Stream response on]' \

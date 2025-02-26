@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.94.2 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.95 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.94.2 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.95 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">February 2025</p>
 </header>
@@ -228,7 +228,8 @@ text prompt itself.</p>
 <dl>
 <dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
 <dd>
-<p>Anthropic integration (cmpls/chat).</p>
+<p>Anthropic integration (cmpls/chat). Also see
+<strong>--think</strong>.</p>
 </dd>
 <dt><strong>--deepseek</strong>, <strong>--deep</strong></dt>
 <dd>
@@ -498,15 +499,18 @@ Def=<em>1</em>.</p>
 <dd>
 <p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
 </dd>
-<dt><strong>--effort</strong>
-[<em>high</em>|<em>medium</em>|<em>low</em>]</dt>
+</dl>
+<p><strong>--effort</strong>
+[<em>high</em>|<em>medium</em>|<em>low</em>] (OpenAI)</p>
+<dl>
+<dt><strong>--think</strong> [<em>token_num</em>] (Anthropic)</dt>
 <dd>
-<p>Amount of effort in reasoning models (OpenAI).</p>
+<p>Amount of effort in reasoning models.</p>
 </dd>
 <dt><strong>--interactive</strong>,
 <strong>--no-interactive</strong></dt>
 <dd>
-<p>Reasoning model output style.</p>
+<p>Reasoning model output style (OpenAI).</p>
 </dd>
 <dt><strong>-j</strong>, <strong>--seed</strong> [<em>NUM</em>]</dt>
 <dd>
@@ -1284,20 +1288,25 @@ flush.</td>
 <tr class="odd">
 <td style="text-align: left;"><code>!effort</code></td>
 <td style="text-align: left;">- [<em>MODE</em>]</td>
-<td>Reasoning effort modes: high, medium, or low.</td>
+<td>Reasoning effort: high, medium, or low (OpenAI).</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>!think</code></td>
+<td style="text-align: left;">- [<em>NUM</em>]</td>
+<td>Thinking budget: max tokens (Anthropic).</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">!interactive`</td>
 <td style="text-align: left;">-</td>
 <td>Toggle reasoning interactive mode.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!ka</code></td>
 <td style="text-align: left;"><code>!keep-alive</code>
 [<em>NUM</em>]</td>
 <td>Set duration of model load in memory (Ollama).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!vision</code></td>
 <td style="text-align: left;"><code>!audio</code>,
 <code>!multimodal</code></td>

@@ -49,11 +49,12 @@ If no suffix is provided, it works as plain text completions.
   - 3.4 [Usage Examples](#-usage-examples-)
 - 4. [Script Operating Modes](#script-operating-modes)
 - 5. [Native Chat Completions](#-native-chat-completions)
-  - 5.1 [Vision and Multimodal Models](#vision-and-multimodal-models)
-  - 5.2 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
-  - 5.3 [File Picker and Shell Dump](#file-picker-and-shell-dump)
-  - 5.4 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
-  - 5.5 [Audio Models](#audio-models)
+  - 5.1 [Reasoning and Thiking Models](#reasoning-and-thiking-models)
+  - 5.2 [Vision and Multimodal Models](#vision-and-multimodal-models)
+  - 5.3 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
+  - 5.4 [File Picker and Shell Dump](#file-picker-and-shell-dump)
+  - 5.5 [Voice In and Out + Chat Completions](#voice-in-and-out-chat-completions)
+  - 5.6 [Audio Models](#audio-models)
 - 6. [Chat Mode of Text Completions](#chat-mode-of-text-completions)
 - 7. [Text Completions](#-text-completions)
   - 7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
@@ -391,6 +392,22 @@ Print out last session, optionally set the history name:
 <!-- Mind that `option -P` heads `-ccdrR`! -->
 
 <!-- The same as `chatgpt.sh -HH` -->
+
+
+### Reasoning and Thiking Models
+
+Some of our server integrations will not make a distinct separation
+between reasoning and actual answers, which is unfortunate because it
+becomes hard to know what is thinking and what is the actual answer as
+they will be printed out without any visible separation!
+
+This is mostly due to a limitation in how we use JQ to process the JSON
+response from the APIs in the fastest way possible.
+
+For Anthropic's `claude-3-7-sonnet` hybrid model thinking activation,
+the user must specify either `--think [NUM]` (or `--effort [NUM]`)
+command line option. To activate thinking during chat, use either
+`!think`, `/think`, or `/effort` commands.
 
 
 ### Vision and Multimodal Models
