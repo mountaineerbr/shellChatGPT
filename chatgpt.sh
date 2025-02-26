@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.95  feb/2025  by mountaineerbr  GPL+3
+# v0.95.1  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -6615,7 +6615,7 @@ else
 			if ((!${#REPLY_CMD_DUMP}))
 			then
 			  REPLY_CMD=$REPLY;
-			  cmd_runf /cat"$var";
+			  cmd_runf /cat "$var";
 			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST= REPLY_CMD_BLOCK=1;
 			fi; PSKIP= var=;
 			if ((${#REPLY_CMD_DUMP})) &&
