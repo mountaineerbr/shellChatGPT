@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: February 2025
-title: CHATGPT.SH(1) v0.95 \| General Commands Manual
+title: CHATGPT.SH(1) v0.95.1 \| General Commands Manual
 ---
 
 # NAME
@@ -1257,6 +1257,9 @@ This project *doesn’t support* “Function Calling”, “Structured Outputs�
 editing” capabilities.
 
 # BUGS
+
+Reasoning and answers from certain API services may not have a distinct
+separation of output due to JSON processing constraints.
 
 Bash “read command” may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain

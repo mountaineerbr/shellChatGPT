@@ -49,7 +49,7 @@ If no suffix is provided, it works as plain text completions.
   - 3.4 [Usage Examples](#-usage-examples-)
 - 4. [Script Operating Modes](#script-operating-modes)
 - 5. [Native Chat Completions](#-native-chat-completions)
-  - 5.1 [Reasoning and Thiking Models](#reasoning-and-thiking-models)
+  - 5.1 [Reasoning and Thinking Models](#reasoning-and-thinking-models)
   - 5.2 [Vision and Multimodal Models](#vision-and-multimodal-models)
   - 5.3 [Text, PDF, Doc, and URL Dumps](#text-pdf-doc-and-url-dumps)
   - 5.4 [File Picker and Shell Dump](#file-picker-and-shell-dump)
@@ -394,7 +394,7 @@ Print out last session, optionally set the history name:
 <!-- The same as `chatgpt.sh -HH` -->
 
 
-### Reasoning and Thiking Models
+### Reasoning and Thinking Models
 
 Some of our server integrations will not make a distinct separation
 between reasoning and actual answers, which is unfortunate because it
