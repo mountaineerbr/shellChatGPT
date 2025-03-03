@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.95.1  feb/2025  by mountaineerbr  GPL+3
+# v0.95.2  feb/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -835,7 +835,7 @@ function model_capf
 		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*)
 			MODMAX=32768;;
-		o1-*preview*|o1-*mini*|gpt-4o*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
+		o1-*preview*|o1-*mini*|gpt-4.[5-9]*|gpt-4o*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
 		mistral-3b*|open-mistral-nemo*|*mistral-nemo*|*mistral-large*|\
 		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
@@ -1876,6 +1876,7 @@ function _model_costf
 		mistral-medium*) 	echo 2.75 8.1;;
 		ministral-8b*) 	echo 0.1 0.1;;
 		ministral-3b*) 	echo 0.04 0.04;;
+		gpt-4.[5-9]*) 	echo 75 150;;
 		gpt-4o-audio-preview*|gpt-4o-audio-preview-2024-10-01) echo 2.5 10;;  #text only
 		o3-mini*|o3-mini-2025-01-31) echo 1.10 4.40;;
 		o1-mini*|o1-mini-2024-09-12) echo 1.10 4.40;;
@@ -3379,7 +3380,7 @@ function is_visionf
 	typeset -l model; model=${1##*/};
 	case "${model##ft:}" in 
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
-	gpt-4o*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
+	gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*|\
 	claude-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
 	*) 	((MULTIMODAL));;
