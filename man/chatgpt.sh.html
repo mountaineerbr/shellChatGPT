@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.95.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.95.4 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,13 +171,13 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.95.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.95.4 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">February 2025</p>
+<p class="date">March 2025</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
-Whisper / TTS</div>
+STT / TTS</div>
 <h1 id="synopsis">SYNOPSIS</h1>
 <div class="line-block">   <strong>chatgpt.sh</strong>
 [<code>-cc</code>|<code>-dd</code>|<code>-qq</code>]
@@ -201,7 +201,7 @@ Whisper / TTS</div>
 [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
 [<em>SPEED</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-ccWwz</code> [<code>opt</code>..]
--- [<em>PROMPT</em>] -- [<code>whisper_arg</code>..] --
+-- [<em>PROMPT</em>] -- [<code>stt_arg</code>..] --
 [<code>tts_arg</code>..]<br />
    <strong>chatgpt.sh</strong> <code>-l</code> [<em>MODEL</em>]<br />
    <strong>chatgpt.sh</strong> <code>-TTT</code> [-v]
@@ -211,8 +211,8 @@ Whisper / TTS</div>
 [<code>/</code><em>HIST_NAME</em>|<em>.</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HPw</code></div>
 <h1 id="description">DESCRIPTION</h1>
-<p>This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
-endpoints from OpenAI. Various service providers such as LocalAI,
+<p>This script acts as a wrapper for ChatGPT, DALL-E, STT (Whisper), and
+TTS endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
 xAI, and DeepSeek APIs are supported.</p>
 <p>With no options set, complete INPUT in single-turn mode of the native
@@ -221,8 +221,8 @@ chat completion.</p>
 completions, image generation and editing, speech-to-text, and
 text-to-speech models.</p>
 <p>Positional arguments are read as a single PROMPT. Some functions such
-as Whisper and TTS may handle optional positional parameters before the
-text prompt itself.</p>
+as Whisper (STT) and TTS may handle optional positional parameters
+before the text prompt itself.</p>
 <h1 id="options">OPTIONS</h1>
 <h2 id="service-providers">Service Providers</h2>
 <dl>
@@ -569,8 +569,8 @@ prompt.</p>
 <dt><strong>-t</strong>, <strong>--temperature</strong>
 [<em>VAL</em>]</dt>
 <dd>
-<p>Temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 -
-1.0). Def=<em>0</em>.</p>
+<p>Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0).
+Def=<em>0</em>.</p>
 </dd>
 </dl>
 <h2 id="miscellaneous-settings">Miscellaneous Settings</h2>
@@ -715,6 +715,13 @@ For text cmpls only, triple colons append the text immediately to the previous p
 without a restart sequence. --></p>
 <p>To insert the current date and time to the instruction prompt, set
 command line <code>option --time</code>.</p>
+<p>For TTS <em>gpt-4o-tts</em> model type instructions, set command line
+option <code>-S "[instruction]"</code> when invoking the script with
+<code>option -z</code> only (stand-alone TTS mode). Alternatively, set
+envar <code>$INSTRUCTION_SPEECH</code>.</p>
+<p>Note that for audio models such as <code>gpt-4o-audio</code>, the
+user can control tone and accent of the rendered voice output with a
+robust `INSTRUCTION’ as usual.</p>
 <h2 id="prompt-engineering-and-design">Prompt Engineering and
 Design</h2>
 <p>Minimal <strong>INSTRUCTION</strong> to behave like a chatbot is
@@ -792,9 +799,9 @@ Gallery defaults to HuggingFace.
 <p><code>Option -w</code> <strong>transcribes audio speech</strong> from
 <em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
 <em>wav</em>, <em>webm</em>, <em>flac</em> and <em>ogg</em> files. First
-positional argument must be an <em>AUDIO</em> file. Optionally, set a
-<em>TWO-LETTER</em> input language (<em>ISO-639-1</em>) as the second
-argument. A PROMPT may also be set to guide the model’s style, or
+positional argument must be an <em>AUDIO/VOICE</em> file. Optionally,
+set a <em>TWO-LETTER</em> input language (<em>ISO-639-1</em>) as the
+second argument. A PROMPT may also be set to guide the model’s style, or
 continue a previous audio segment. The text prompt should match the
 speech language.</p>
 <p>Note that <code>option -w</code> can also be set to <strong>translate
@@ -819,8 +826,8 @@ a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
 <code>options -vz</code> to <em>not</em> play received output.</p>
 <h1 id="multimodal-audio-models">MULTIMODAL AUDIO MODELS</h1>
-<p>Audio models, such as `gpt-4o-audio’, deal with audio input and
-output directly.</p>
+<p>Audio models, such as <em>gpt-4o-audio</em>, deal with audio input
+and output directly.</p>
 <p>To activate the microphone recording function of the script, set
 command line <code>option -w</code>.</p>
 <p>Otherwise, the audio model accepts any compatible audio file (such as
@@ -857,8 +864,9 @@ command line invocation.</p>
 <h2 id="text-completion">1. Text Completion</h2>
 <p>Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language model will
-try completing it until probable “<code>&lt;|endoftext|&gt;</code>”,</p>
-<p>or other stop sequences (stops may be set with `-s [stop]’).</p>
+try completing it until probable “<code>&lt;|endoftext|&gt;</code>”, or
+other stop sequences (stops may be set with
+<code>-s "\[stop-seq]"</code>).</p>
 <p><strong>Restart</strong> and <strong>start sequences</strong> may be
 optionally set. Restart and start sequences are not set automatically if
 the chat mode of text completions is not activated with
@@ -899,17 +907,17 @@ initial character sets the prompt as a <strong>SYSTEM</strong> message.
 In text completions, however, typing a colon “<em>:</em>” at the start
 of the prompt causes the text following it to be appended immediately to
 the last (response) prompt text.</p>
-<h3 id="voice-input-whisper-and-voice-output-tts">2.4 Voice input
-(Whisper), and voice output (TTS)</h3>
+<h3 id="voice-input-stt-and-voice-output-tts">2.4 Voice input (STT), and
+voice output (TTS)</h3>
 <p>The <code>options -ccwz</code> may be combined to have voice
 recording input and synthesised voice output, specially nice with chat
 modes. When setting <code>flag -w</code> or <code>flag -z</code>, the
-first positional parameters are read as Whisper or TTS arguments. When
+first positional parameters are read as STT or TTS arguments. When
 setting both <code>flags -wz</code>, add a double hyphen to set first
-Whisper, and then TTS arguments.</p>
-<p>Set chat mode, plus Whisper language and prompt, and the TTS voice
-option argument:</p>
-<pre><code>chatgpt.sh -ccwz  en &#39;whisper prompt&#39;  --  nova</code></pre>
+STT, and then TTS arguments.</p>
+<p>Set chat mode, plus voice-in transcription language code and text
+prompt, and the TTS voice-out option argument:</p>
+<pre><code>chatgpt.sh -ccwz  en &#39;transcription prompt&#39;  --  nova</code></pre>
 <h3 id="vision-and-multimodal-models">2.5 Vision and Multimodal
 Models</h3>
 <p>To send an <em>image</em> or <em>url</em> to <strong>vision
@@ -1273,7 +1281,7 @@ flush.</td>
 <tr class="even">
 <td style="text-align: left;"><code>-w</code></td>
 <td style="text-align: left;"><code>!rec</code> [<em>ARGS</em>]</td>
-<td>Toggle Whisper. Optionally, set arguments.</td>
+<td>Toggle voice-in STT. Optionally, set arguments.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-z</code></td>
@@ -1567,9 +1575,9 @@ prompt.</p>
 script. Paint a portion of the outer area of an image with
 <em>alpha</em>, or a defined <em>transparent</em> <em>colour</em> which
 will be used as the mask, and set the same <em>colour</em> in the script
-with `option -@’. Choose the best result amongst many results to
-continue the out-painting process step-wise.</p>
-<h1 id="audio-whisper">AUDIO / WHISPER</h1>
+with <code>option -@</code>. Choose the best result amongst many results
+to continue the out-painting process step-wise.</p>
+<h1 id="stt-voice-in-whisper">STT / VOICE-IN / WHISPER</h1>
 <h2 id="transcriptions">Transcriptions</h2>
 <p>Transcribes audio file or voice record into the set language. Set a
 <em>two-letter</em> <em>ISO-639-1</em> language code (<em>en</em>,
@@ -1606,8 +1614,8 @@ the Ollama project guidelines and own methods.</p>
 <strong>$GOOGLE_API_KEY</strong>, and run the script with the command
 line <code>option --google</code>.</p>
 <p>For Groq, set the environmental variable <code>$GROQ_API_KEY</code>.
-Run the script with <code>option --groq</code>. Whisper endpoint
-available.</p>
+Run the script with <code>option --groq</code>. Transcription (Whisper)
+endpoint available.</p>
 <p>For Anthropic, set envar <code>$ANTHROPIC_API_KEY</code> and run the
 script with command line <code>option --anthropic</code>.</p>
 <p>For GitHub Models, <code>$GITHUB_TOKEN</code> and invoke the script
@@ -1654,6 +1662,10 @@ command-line <code>option -c</code> instead.</p>
 <dt><strong>INSTRUCTION_CHAT</strong></dt>
 <dd>
 <p>Initial initial instruction or system message in chat mode.</p>
+</dd>
+<dt><strong>INSTRUCTION_SPEECH</strong></dt>
+<dd>
+<p>TTS transcription model instruction (gpt-4o-tts models).</p>
 </dd>
 </dl>
 <p><strong>LC_ALL</strong></p>
@@ -1815,7 +1827,7 @@ class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
 <li><code>ImageMagick</code>/<code>fbida</code> - Image edits and
 variations</li>
 <li><code>SoX</code>/<code>Arecord</code>/<code>FFmpeg</code> - Record
-input (Whisper)</li>
+input (STT, Whisper)</li>
 <li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFplay</code>/<code>afplay</code>
 - Play TTS output</li>
 <li><code>xdg-open</code>/<code>open</code>/<code>xsel</code>/<code>xclip</code>/<code>pbcopy</code>

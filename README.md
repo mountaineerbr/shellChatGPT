@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI's ChatGPT, DALL-E, Whisper, and TTS. Features LocalAI, Ollama, Gemini, Mistral, and more service providers.
+Shell wrapper for OpenAI's ChatGPT, DALL-E, STT (Whisper), and TTS. Features LocalAI, Ollama, Gemini, Mistral, and more service providers.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
@@ -174,7 +174,7 @@ Packages required for specific features.
 - `Base64` - Image endpoint, multimodal models
 - `Python` - Modules tiktoken, markdown, bs4
 - `ImageMagick`/`fbida` - Image edits and variations
-- `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
+- `SoX`/`Arecord`/`FFmpeg` - Record input (STT, Whisper)
 - `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
@@ -250,12 +250,12 @@ The `chatgpt.sh` script can be run in various modes by setting
 | `-q`   | [Text Completions Insert Mode](#insert-mode-of-text-completions) (FIM) / single-turn |
 | `-qq`  | Text Completions Insert Mode (FIM) / multi-turn                                      |
 
-| Option  | Description  (all multi-turn)                                             |
-|---------|---------------------------------------------------------------------------|
-| `-cw`   | Text Chat Completions + Whisper                                           |
-| `-cwz`  | Text Chat Completions + Whisper + TTS                                     |
-| `-ccw`  | Chat Completions + Whisper                                                |
-| `-ccwz` | [Chat Completions + Whisper + TTS](#voice-in-and-out--chat-completions)   |
+| Option  | Description  (all multi-turn)                                                   |
+|---------|---------------------------------------------------------------------------------|
+| `-cw`   | Text Chat Completions + voice-in                                                |
+| `-cwz`  | Text Chat Completions + voice-in + voice-out                                    |
+| `-ccw`  | Chat Completions + voice-in                                                     |
+| `-ccwz` | [Chat Completions + voice-in + voice-out](#voice-in-and-out--chat-completions)  |
 
 | Option | Description   (independent modes)                                   |
 |--------|---------------------------------------------------------------------|
@@ -484,11 +484,11 @@ in some functions.
 
 ### Voice In and Out + Chat Completions
 
-🗣️ Chat completion with speech in and out (Whisper plus TTS):
+🗣️ Chat completion with speech in and out (STT plus TTS):
 
     chatgpt.sh -ccwz
 
-Chat in Portuguese with Whisper and set _onyx_ as the TTS voice:
+Chat in Portuguese with voice-in and set _onyx_ as the TTS voice-out:
 
     chatgpt.sh -ccwz -- pt -- onyx
 
@@ -966,13 +966,13 @@ a Japanese speaker can translate its voice and generate audio in the target lang
 
 **4.** Translate speech from any language to English:
 
-    chatgpt.sh -W [audio_file]
+    chatgpt.sh -W [speech_file]
 
     chatgpt.sh -W
 
 
 To retry with the last microphone recording saved in the cache, set
-_audio_file_ as `last` or `retry`.
+_speech_file_ as `last` or `retry`.
 
 **NOTE:** Generate **phrasal-level timestamps** double setting `option -ww` or `option -WW`.
 For **word-level timestamps**, set option `-www` or `-WWW`.
@@ -1382,7 +1382,7 @@ Remember to execute `termux-setup-storage` to set up access to the phone storage
 
 In Termux proper, install the `termux-api` and `termux-tools` packages (`pkg install termux-api termux-tools`).
 
-When recording audio (Whisper, `option -w`),
+When recording audio (STT, Whisper, `option -w`),
 if `pulseaudio` is configured correctly,
 the script uses `sox`, `ffmpeg` or other competent software,
 otherwise it defaults to `termux-microphone-record`

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/Whisper/TTS
-# v0.95.2  feb/2025  by mountaineerbr  GPL+3
+# chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
+# v0.95.4  mar/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -18,13 +18,14 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-gpt-4o}"  #"chatgpt-4o-latest"
+MOD_CHAT="${MOD_CHAT:-gpt-4o}"
 # Image model (generations)
 MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
-# Whisper model (STT)
-MOD_AUDIO="${MOD_AUDIO:-whisper-1}"
+# Transcription model (STT)
+MOD_AUDIO="${MOD_AUDIO:-whisper-1}"  #gpt-4o-mini-transcribe
 # Speech model (TTS)
-MOD_SPEECH="${MOD_SPEECH:-tts-1}"
+MOD_SPEECH="${MOD_SPEECH:-gpt-4o-mini-tts}"  #tts-1
+#INSTRUCTION_SPEECH=
 # LocalAI model
 MOD_LOCALAI="${MOD_LOCALAI:-phi-4}"
 # Ollama model
@@ -37,7 +38,7 @@ MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 MOD_GROQ="${MOD_GROQ:-llama-3.3-70b-versatile}"
 MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
 # Prefer Groq Whisper (chat mode)
-#WHISPER_GROQ=
+#WHISPER_GROQ=0
 # Anthropic model
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-7-sonnet-latest}"
 # Github Azure model
@@ -56,7 +57,7 @@ STREAM=1
 #OPTCTRD=
 # Temperature
 #OPTT=
-# Whisper temperature
+# Transcription model temperature
 OPTTW=0
 # Top_p probability mass (nucleus sampling)
 #OPTP=1
@@ -215,7 +216,7 @@ TIME_ISO8601_FMT='%Y-%m-%dT%H:%M:%S%z'
 TIME_RFC5322_FMT='%a, %d %b %Y %H:%M:%S %z'
 
 HELP="Name
-	${0##*/} -- Wrapper for ChatGPT / DALL-E / Whisper / TTS
+	${0##*/} -- Wrapper for ChatGPT / DALL-E / STT / TTS
 
 
 Synopsis
@@ -227,7 +228,7 @@ Synopsis
 	${0##*/} -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
 	${0##*/} -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
-	${0##*/} -ccWwz [opt..] -- [PROMPT] -- [whisper_arg..] -- [tts_arg..]
+	${0##*/} -ccWwz [opt..] -- [PROMPT] -- [stt_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
 	${0##*/} -HPP [/HIST_NAME|.]
@@ -235,7 +236,7 @@ Synopsis
 
 
 Description
-	Wraps ChatGPT, DALL-E, Whisper, and TTS endpoints from various
+	Wraps ChatGPT, DALL-E, STT, and TTS endpoints from various
 	providers.
 	
 	Defaults to single-turn native chat completions. Handles multi-turn
@@ -243,8 +244,8 @@ Description
 	and text-to-speech models.
 
 	Positional arguments are read as a single PROMPT. Some functions
-	such as Whisper and TTS may handle optional positional parameters
-	before the prompt itself.
+	such as Whisper (STT) and TTS may handle optional positional
+	parameters before the prompt itself.
 
 
 Chat Completion Mode
@@ -289,6 +290,13 @@ Instruction Prompts
 
 	To insert the current date and time to the instruction prompt, set
 	command line option \`--time'.
+
+	For TTS gpt-4o-tts model instructions, set envar \`\$INSTRUCTION_SPEECH'
+	or command line option \`-S [instruction]' when invoking the script
+	with \`option -z' only (stand-alone TTS mode).
+
+	To control tone and accent of the rendered voice output of chat
+	audio models, set a robust \`INSTRUCTION' parameter as usual. 
 
 
 Image Generations and Edits (Dall-E)
@@ -339,6 +347,9 @@ Environment
 	INSTRUCTION_CHAT
 			Initial instruction or system message (chat mode).
 
+	INSTRUCTION_SPEECH
+			TTS model instruction (gpt-4o-tts).
+
 	LC_ALL
 	LANG 		Default instruction language (chat mode).
 
@@ -380,7 +391,7 @@ Environment
 
 Notes
 	Input sequences \`\\n' and \`\\t' are only treated specially in
-	restart, start and stop sequences in chat mode!
+	restart, start and stop sequences!
 
 	Online documentation and usage examples:
 	<https://gitlab.com/fenixdragao/shellchatgpt>.
@@ -467,7 +478,7 @@ Command List
       -R      !start    [SEQ]   Start sequence.
       -s      !stop     [SEQ]   One stop sequence.
       -t      !temp     [VAL]   Temperature.
-      -w      !rec     [ARGS]   Toggle voice chat mode (Whisper).
+      -w      !rec     [ARGS]   Toggle voice-in chat mode (STT, Whisper).
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
     !effort   -        [MODE]   Reasoning: high, medium, or low (OpenAI).
@@ -613,7 +624,7 @@ Options
 		tokens, thrice to available encodings. Set the model
 		or encoding with option -m. It heeds options -ccm.
 	-w, --transcribe  [AUD] [LANG] [PROMPT]
-		Transcribe audio file into text (whisper models).
+		Transcribe audio file into text (transcription models, STT).
 		LANG is optional. A prompt that matches the audio language
 		is optional. Set twice to phrase or thrice for word-level
 		timestamps (-www). With -vv, stop voice recorder on silence.
@@ -674,8 +685,8 @@ Options
 	--time, --no-time
 		Insert the current date and time to the instruction prompt.
 	-t, --temperature  [VAL]
-		Temperature value (cmpls/chat/whisper),
-		Def=${OPTT:-0} (0.0 - 2.0), Whisper=${OPTTW:-0} (0.0 - 1.0).
+		Temperature value (cmpls/chat/stt),
+		Def=${OPTT:-0} (0.0 - 2.0), STT=${OPTTW:-0} (0.0 - 1.0).
 
 	Miscellanous Settings
 	--api-key  [KEY]
@@ -738,30 +749,26 @@ function set_model_epnf
 	typeset -l model; model=${1##*/};
 	set -- "${model##ft:}";
 
-	if is_amodelf "$1"
-	then 	set -- "audio";
-	elif is_visionf "$1"
-	then 	set -- "vision";
-	fi;
-
 	case "${1##ft:}" in
 		*dalle-e*|*stable*diffusion*)
 				# 3 generations  4 variations  9 edits  
 				((OPTII)) && EPN=4 || EPN=3;
 				((OPTII_EDITS)) && EPN=9;;
-		tts-*|*-tts-*) 	EPN=10;;
-		*whisper*) 	((OPTWW)) && EPN=8 || EPN=7;;
+		tts-*|*-tts-*|*-tts) 	EPN=10;;
+		*whisper*|*transcribe*|*transcription*|stt-*|*-stt-*|*-stt) 	((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	case "$1" in
 					*search*) 	EPN=5 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
 		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|*moderation*|*embed*|*similarity*|*search*)
+				is_amodelf "$1" || is_visionf "$1";
 				case "$1" in
 					*embed*|*similarity*|*search*) 	EPN=5 OPTEMBED=1;;
 					*moderation*) 	EPN=1 OPTEMBED=1;;
 					*) 		EPN=0;;
 				esac;;
 		o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*|*audio*)
+				is_amodelf "$1" || is_visionf "$1";
 				EPN=6 EPN6=6  OPTB= OPTBB=
 				((OPTC)) && OPTC=2
 				#set token adjustment per message
@@ -787,12 +794,16 @@ function set_model_epnf
 						elif ((OPTEMBED))
 						then 	OPTCMPL= OPTC= EPN=1;
 						elif ((OPTCMPL || OPTSUFFIX))
-						then 	OPTC= EPN=0;
+						then 	is_amodelf "$1" || is_visionf "$1";
+							OPTC= EPN=0;
 						elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI || GITHUBAI))
-						then 	OPTCMPL= EPN=6;
+						then 	is_amodelf "$1" || is_visionf "$1";
+							OPTCMPL= EPN=6;
 						elif ((OPTC))
-						then 	OPTCMPL= EPN=0;
-						else 	EPN=0;  #defaults
+						then 	is_amodelf "$1" || is_visionf "$1";
+							OPTCMPL= EPN=0;
+						else 	is_amodelf "$1" || is_visionf "$1";
+							EPN=0;  #defaults
 						fi;;
 				esac
 				return 1;;
@@ -1275,7 +1286,7 @@ function prompt_imgprintf
 
 function prompt_audiof
 {
-	((OPTVV)) && _warmsgf "Whisper:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTTW:-${OPTT:-unset}}${*:+,  }${*}" >&2
+	((OPTVV)) && _warmsgf "Transcription:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTTW:-${OPTT:-unset}}${*:+,  }${*}" >&2
 
 	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-X POST \
@@ -2352,8 +2363,8 @@ function cmd_runf
 			  done
 
 			  [[ -z $* ]] || WARGS=("$@"); xskip=1;
-			  cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
-			fi; cmdmsgf 'Whisper Chat' $(_onoff $((OPTW+OPTWW)) );
+			  cmdmsgf "Transcription Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
+			fi; cmdmsgf 'Voice-in Chat' $(_onoff $((OPTW+OPTWW)) );
 			((OPTW)) || unset OPTW WSKIP SKIP;
 			;;
 		-z*|tts*|speech*)
@@ -3923,9 +3934,10 @@ function whisperf
 {
 	typeset file rec var max pid granule scale;
 	typeset -a args; args=(); WHISPER_OUT=;
+	typeset EPN=7;
 	
 	if ((!(CHAT_ENV+MTURN) ))
-	then 	sysmsgf 'Whisper Model:' "$MOD_AUDIO";
+	then 	sysmsgf 'Transcription Model:' "$MOD_AUDIO";
 		sysmsgf 'Temperature:' "${OPTTW:-$OPTT}";
 	fi;
 	check_optrangef "${OPTTW:-$OPTT}" 0 1.0 Temperature
@@ -3965,7 +3977,7 @@ function whisperf
 	fi ;[[ -f $1 ]] && shift  #get rid of eventual second filename
 	if var=$(wc -c <"$file"); ((var > 25000000));
 	then 	du -h "$file" >&2;
-		_warmsgf 'Warning:' "Whisper input exceeds API limit of 25 MB";
+		_warmsgf 'Warning:' "Transcripting input exceeds API limit of 25 MB";
 	fi
 	
 	#set a prompt (224 tokens, GPT2 encoding)
@@ -4005,10 +4017,13 @@ function whisperf
 			\" \" + bpurple + (.text//.${granule}) + reset)" "$FILE" | foldf \
 		|| jq -r "if .${granule}s then (.${granule}s[] | (.start|tostring) + (.text//.${granule}//empty)) else (.text//.${granule}//empty) end" "$FILE" || ! _warmsgf 'Err' ;}
 	else
+		set -- "$@" -F response_format="json";
+
 		prompt_audiof "$file" $LANGW "$@" && {
 		jq -r "def scale: 1; ${JQCOLNULL} ${JQCOL} ${JQDATE}
 		bpurple + (.text//.${granule}//empty) + reset" "$FILE" | foldf \
 		|| jq -r ".text//.${granule}//empty" "$FILE" || ! _warmsgf 'Err' ;}
+
 	fi & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; BAD_RES=1" INT;
 
@@ -4018,14 +4033,14 @@ function whisperf
 	then
 		((!CHAT_ENV)) && [[ -d ${FILEWHISPERLOG%/*} ]] &&  #log output
 		printf '\n====\n%s\n\n%s\n' "$(date -R 2>/dev/null||date)" "$WHISPER_OUT" >>"$FILEWHISPERLOG" &&
-		_sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
+		_sysmsgf 'Transcription Log:' "$FILEWHISPERLOG";
 
 		((OPTCLIP && !CHAT_ENV)) && (${CLIP_CMD:-false} <<<"$WHISPER_OUT" &);  #clipboard
 		:;
 	else 	false;
 	fi || {
-		#[[ -s $FILE ]] && jq . "$FILE" >&2 2>/dev/null;
-		_warmsgf $'\nerr:' 'whisper response';
+		((!CHAT_ENV || OPTVV)) && [[ -s $FILE ]] && jq . "$FILE" >&2 2>/dev/null;
+		_warmsgf $'\nerr:' 'transcription response';
 		printf 'Retry request? Y/n ' >&2;
 		var=$(if ((!BAD_RES)) && [[ -s $FILEINW ]]; then  _printbf 'wait'; sleep 0.6; _printbf '    '; else    read_charf; fi)
 		case "$var" in
@@ -4072,6 +4087,7 @@ function _ttsf
 {
 	typeset FOUT VOICEZ SPEEDZ fname input max ret pid var secs ok n m i
 	typeset -a SPIN_CHARS=("${SPIN_CHARS8[@]}");
+	typeset EPN=10;
 	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
@@ -4114,6 +4130,7 @@ function _ttsf
 		fi; REPLAY_FILES=("${REPLAY_FILES[@]}" "$FOUT"); var= ;
 		
 		BLOCK="{
+$( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}\"," )
 \"model\": \"${MOD_SPEECH}\",
 \"input\": \"${input:-$*}\",
 \"voice\": \"${VOICEZ}\", ${SPEEDZ:+\"speed\": ${SPEEDZ},}
@@ -5480,6 +5497,7 @@ do
 google  google:goo  mistral  openai  groq  grok  grok:xai  anthropic \
 anthropic:ant  github  github:git  novita  novita:nov  deepseek deepseek:deep \
 w:transcribe  w:stt  W:translate  z:tts  z:speech  Z:last  api-key  multimodal \
+interactive  no-interactive  effort  effort:budget  effort:think \
 vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
@@ -5491,8 +5509,7 @@ o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
 S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
 U:cat  v:verbose  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
-no-time  awesome-zh  awesome  interactive  no-interactive \
-effort  effort:budget  effort:think
+no-time  awesome-zh  awesome
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -5617,7 +5634,8 @@ effort  effort:budget  effort:think
 		S|.|,) 	if [[ $opt == S ]] && [[ -f "$OPTARG" ]]
 			then 	INSTRUCTION="${opt##S}$(<"$OPTARG")"
 			else 	INSTRUCTION="${opt##S}$OPTARG"
-			fi;;
+			fi; OPTSSARG="$OPTARG";
+			;;
 		time) 	INST_TIME=1;;
 		no-time) 	INST_TIME=-1;;
 		t) 	OPTT="$OPTARG" OPTTARG="$OPTARG";;
@@ -5989,7 +6007,7 @@ then 	typeset -a argn; argn=();
 	[[ -z ${ZARGS[*]} ]] && unset ZARGS;
 	((${#WARGS[@]})) && ((${#ZARGS[@]})) && ((${#})) && {
 	  var=$* p=${var:128} var=${var:0:128}; cmdmsgf 'Text Prompt' "${var//\\\\[nt]/  }${p:+ [..]}" ;}
-	((${#WARGS[@]})) && cmdmsgf "Whisper Args #${#WARGS[@]}" "${WARGS[*]:-unset}"
+	((${#WARGS[@]})) && cmdmsgf "STT Args #${#WARGS[@]}" "${WARGS[*]:-unset}"
 	((${#ZARGS[@]})) && cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
 	unset n p ii var arg argn custom;
 fi
@@ -6037,7 +6055,7 @@ then  #whisper log
 		done < <(tac "$FILEWHISPERLOG");
 		printf '%s' "$BUFF";
 	else 	_edf "$FILEWHISPERLOG"
-	fi; _sysmsgf 'Whisper Log:' "$FILEWHISPERLOG";
+	fi; _sysmsgf 'Transcription Log:' "$FILEWHISPERLOG";
 elif ((OPTHH))  #edit history/pretty print last session
 then 	OPTRESUME=1 BREAK_SET=
 	[[ -z $INSTRUCTION && $1 = [.,][!$IFS]* ]] && INSTRUCTION=$1 && shift;
@@ -6102,6 +6120,7 @@ then
 	fi
 elif ((OPTZ)) && ((!MTURN))  #speech synthesis
 then 	[[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
+	INSTRUCTION_SPEECH="${OPTSSARG:-$INSTRUCTION_SPEECH}";
 	_ttsf "$@"
 elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
@@ -6417,7 +6436,7 @@ else
 					0) 	((BAD_RES)) ||
 						if ((RESUBW)) || recordf "$FILEINW"
 						then
-							is_amodelf "$MOD" && _sysmsgf $'\nWhisper:' 'Transcript generation..';
+							is_amodelf "$MOD" && _sysmsgf $'\nTranscription:' 'generating..';
 							REPLY=$(
 								set --;
 								((MISTRALAI+NOVITAAI+GITHUBAI+XAI)) &&
@@ -6539,7 +6558,7 @@ else
 						195)  #whisper append
 							WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=;
 							((OPTW)) || cmd_runf -ww;
-							printf '\n%s\n' '--- whisper append ---' >&2; continue;;
+							printf '\n%s\n' '--- transcription append ---' >&2; continue;;
 						194)  #whisper retry request
 							cmd_runf /resubmit;
 							set --; continue 2;;

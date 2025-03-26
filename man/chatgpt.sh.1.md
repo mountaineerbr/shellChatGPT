@@ -1,11 +1,11 @@
-% CHATGPT.SH(1) v0.95.1 | General Commands Manual
+% CHATGPT.SH(1) v0.95.4 | General Commands Manual
 % mountaineerbr
-% February 2025
+% March 2025
 
 
 # NAME
 
-|    chatgpt.sh \-- Wrapper for ChatGPT / DALL-E / Whisper / TTS
+|    chatgpt.sh \-- Wrapper for ChatGPT / DALL-E / STT / TTS
 
 
 # SYNOPSIS
@@ -18,7 +18,7 @@
 |    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_|_._] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_|_._] \[_PROMPT-EN_]
 |    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
-|    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[`whisper_arg`..] \-- \[`tts_arg`..] 
+|    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[`stt_arg`..] \-- \[`tts_arg`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_|_PDF_FILE_]
 |    **chatgpt.sh** `-HPP` \[`/`_HIST_NAME_|_._]
@@ -27,7 +27,7 @@
 
 # DESCRIPTION
 
-This script acts as a wrapper for ChatGPT, DALL-E, Whisper, and TTS
+This script acts as a wrapper for ChatGPT, DALL-E, STT (Whisper), and TTS
 endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
 xAI, and DeepSeek APIs are supported.
@@ -39,7 +39,7 @@ Handles single-turn and multi-turn modes, pure text and native chat completions,
 image generation and editing, speech-to-text, and text-to-speech models.
 
 Positional arguments are read as a single PROMPT. Some functions
-such as Whisper and TTS may handle optional positional parameters
+such as Whisper (STT) and TTS may handle optional positional parameters
 before the text prompt itself.
 
 
@@ -421,7 +421,7 @@ before the text prompt itself.
 
 **-t**, **\--temperature**   \[_VAL_]
 
-: Temperature value (cmpls/chat/whisper), (0.0 - 2.0, whisper 0.0 - 1.0). Def=_0_.
+: Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0). Def=_0_.
 
 
 ## Miscellaneous Settings
@@ -590,6 +590,14 @@ without a restart sequence. -->
 To insert the current date and time to the instruction prompt, set
 command line `option --time`.
 
+For TTS _gpt-4o-tts_ model type instructions, set command line option
+`-S "[instruction]"` when invoking the script with `option -z` only
+(stand-alone TTS mode). Alternatively, set envar `$INSTRUCTION_SPEECH`.
+
+Note that for audio models such as `gpt-4o-audio`, the user can
+control tone and accent of the rendered voice output with a
+robust \`INSTRUCTION' as usual.
+
 
 ## Prompt Engineering and Design
 
@@ -680,7 +688,7 @@ Gallery defaults to HuggingFace.
 
 `Option -w` **transcribes audio speech** from _mp3_, _mp4_, _mpeg_, _mpga_, _m4a_,
 _wav_, _webm_, _flac_ and _ogg_ files. First positional argument must be
-an _AUDIO_ file. Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
+an _AUDIO/VOICE_ file. Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
 as the second argument. A PROMPT may also be set to guide the model's style,
 or continue a previous audio segment. The text prompt should match the speech language.
 
@@ -711,7 +719,7 @@ and "_flac_"), or "_-_" for stdout. Set `options -vz` to _not_ play received out
 
 # MULTIMODAL AUDIO MODELS
 
-Audio models, such as \`gpt-4o-audio', deal with audio input and output directly.
+Audio models, such as _gpt-4o-audio_, deal with audio input and output directly.
 
 To activate the microphone recording function of the script, set command line `option -w`.
 
@@ -751,8 +759,7 @@ See **IMAGES section** below for more information on **inpaint** and **outpaint*
 Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language
 model will try completing it until probable "`<|endoftext|>`",
-
-or other stop sequences (stops may be set with \`-s \[stop]').
+or other stop sequences (stops may be set with `-s "\[stop-seq]"`).
 
 **Restart** and **start sequences** may be optionally set. Restart and start
 sequences are not set automatically if the chat mode of text completions
@@ -804,17 +811,18 @@ causes the text following it to be appended immediately to the last
 (response) prompt text.
 
 
-### 2.4 Voice input (Whisper), and voice output (TTS)
+### 2.4 Voice input (STT), and voice output (TTS)
 
 The `options -ccwz` may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes.
 When setting `flag -w` or `flag -z`, the first positional parameters are read as
-Whisper or TTS  arguments. When setting both `flags -wz`,
-add a double hyphen to set first Whisper, and then TTS arguments.
+STT or TTS  arguments. When setting both `flags -wz`,
+add a double hyphen to set first STT, and then TTS arguments.
 
-Set chat mode, plus Whisper language and prompt, and the TTS voice option argument:
+Set chat mode, plus voice-in transcription language code and text prompt,
+and the TTS voice-out option argument:
 
-    chatgpt.sh -ccwz  en 'whisper prompt'  --  nova
+    chatgpt.sh -ccwz  en 'transcription prompt'  --  nova
 
 
 ### 2.5 Vision and Multimodal Models
@@ -938,7 +946,7 @@ Command operators "`!`" or "`/`" are equivalent.
       `-R`         `!start`      \[_SEQ_]      Start sequence.
       `-s`         `!stop`       \[_SEQ_]      One stop sequence.
       `-t`         `!temp`       \[_VAL_]      Temperature.
-      `-w`         `!rec`       \[_ARGS_]      Toggle Whisper. Optionally, set arguments.
+      `-w`         `!rec`       \[_ARGS_]      Toggle voice-in STT. Optionally, set arguments.
       `-z`         `!tts`       \[_ARGS_]      Toggle TTS chat mode (speech out).
     `!blk`         `!block`     \[_ARGS_]      Set and add custom options to JSON request.
  `!effort`          \-          \[_MODE_]      Reasoning effort: high, medium, or low (OpenAI).
@@ -1176,11 +1184,11 @@ In-painting is achieved setting an image with a MASK and a prompt.
 Out-painting can also be achieved manually with the aid of this
 script. Paint a portion of the outer area of an image with _alpha_,
 or a defined _transparent_ _colour_ which will be used as the mask, and set the
-same _colour_ in the script with \`option -@'. Choose the best result amongst
+same _colour_ in the script with `option -@`. Choose the best result amongst
 many results to continue the out-painting process step-wise.
 
 
-# AUDIO / WHISPER
+# STT / VOICE-IN / WHISPER
 
 ## Transcriptions
 
@@ -1228,7 +1236,7 @@ run the script with the command line `option --google`.
 
 For Groq, set the environmental variable `$GROQ_API_KEY`.
 Run the script with `option --groq`.
-Whisper endpoint available.
+Transcription (Whisper) endpoint available.
 
 For Anthropic, set envar `$ANTHROPIC_API_KEY` and run the script
 with command line `option --anthropic`.
@@ -1286,6 +1294,11 @@ set command-line `option -c` instead.
 **INSTRUCTION_CHAT**
 
 :    Initial initial instruction or system message in chat mode.
+
+
+**INSTRUCTION_SPEECH**
+
+:    TTS transcription model instruction (gpt-4o-tts models).
 
 
 **LC_ALL**
@@ -1450,7 +1463,7 @@ Optional packages for specific features.
 - `Base64` - Image endpoint, vision models
 - `Python` - Modules tiktoken, markdown, bs4
 - `ImageMagick`/`fbida` - Image edits and variations
-- `SoX`/`Arecord`/`FFmpeg` - Record input (Whisper)
+- `SoX`/`Arecord`/`FFmpeg` - Record input (STT, Whisper)
 - `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
 - `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
