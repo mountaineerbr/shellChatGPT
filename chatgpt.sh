@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.95.4  mar/2025  by mountaineerbr  GPL+3
+# v0.95.5  apr/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -314,7 +314,7 @@ Image Generations and Edits (Dall-E)
 	or \"vivid\" as a positional parameter.
 
 
-Speech-To-Text (Whisper)
+Speech-To-Text (STT, Whisper)
 	Option -w transcribes audio to any language, and option -W translates
 	audio to English text. Set these options twice to have phrasal-
 	level timestamps, options -ww, and -WW. Set thrice for word-level
@@ -3632,7 +3632,7 @@ function set_optsf
 		((MOD_THINK)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
 				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
-				OPTMAX=6000;
+				OPTMAX=8000;
 			}
 			MOD_THINK=1;
 			#32k input, 8k output limits; Text and image in, Text out only
@@ -5257,11 +5257,13 @@ function session_sub_fifof
 
 function cleanupf
 {
+	typeset ret=$?
 	((${#PIDS[@]})) || return 0
 	for pid in ${PIDS[@]}
        	do 	kill -- $pid 2>/dev/null;
        	done;
 	wait ${PIDS[@]}  &>/dev/null;
+	return $((ret+$?))
 }
 
 #ollama fun
@@ -5657,7 +5659,7 @@ no-time  awesome-zh  awesome
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO  init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l VOICEZ OPTZ_FMT  #lowercase vars
 
@@ -6355,6 +6357,9 @@ else
 
 	while :
 	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
+		((TRAP_EDIT)) && {
+			EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= TRAP_EDIT=;
+			set -- ;}
 		if ((REGEN>0))  #regen + edit prompt
 		then 	if ((REGEN==1))
        			then 	((OPTX)) && PSKIP=1;
@@ -6400,7 +6405,8 @@ else
 							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=;
 								((OPTW)) || cmd_runf -ww;
 								set --; break;;  #whisper append (hidden option)
-							0) 	set -- "$REPLY" ; break;;  #yes
+							0) 	set -- "$REPLY" ; break;
+								trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
 							*) 	set -- ; SKIP_SH_HIST=; break;;  #no
 						esac
 					done;
@@ -6562,7 +6568,8 @@ else
 						194)  #whisper retry request
 							cmd_runf /resubmit;
 							set --; continue 2;;
-						0) 	:;;  #yes
+						0) 	:;
+							trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
 						*) 	REPLY=; set -- ;break;;  #no
 					esac; unset REPLY_CMD;
 				else
@@ -6574,6 +6581,7 @@ else
 				break
 			done
 		fi; RET=;
+		((TRAP_EDIT)) && continue;
 
 		if ((!(JUMP+OPTCMPL) )) && [[ $1 != *[!$IFS]* ]]
 		then 	_warmsgf "(empty)"
@@ -6670,6 +6678,7 @@ else
 			done; var=;
 		else 	unset SUFFIX PREFIX;
 		fi
+		((TRAP_EDIT)) && continue;
 
 		set_optsf
 
@@ -6696,8 +6705,11 @@ else
 		if ((EPN==6));
 		then 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${*}";
 		else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*}"; fi
+		((TRAP_EDIT)) && continue;
 		
-		((MAIN_LOOP||TOTAL_OLD)) || TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-${GINSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}}")
+		((MAIN_LOOP||TOTAL_OLD)) || {
+			TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-${GINSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}}")
+			((TRAP_EDIT)) && continue ;}
 		
 		if ((OPTC)) || [[ -n "${RESTART}" ]]
 		then 	rest="${RESTART-$Q_TYPE}"
@@ -6869,6 +6881,8 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 			fi;
 		else 	var=$OPTFOLD;
 		fi
+		((TRAP_EDIT)) && continue;
+		trap "exit" INT; TRAP_EDIT=;
 
 		if ((${#BLOCK}>96000))  #96KB
 		then 	buff="${FILE%.*}.block.json"
