@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.95.5  apr/2025  by mountaineerbr  GPL+3
+# v0.95.6  apr/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1315,7 +1315,10 @@ function list_modelsf
 		    ((!MISTRALAI)) || printf '%s\n' mistral-moderation-latest;
 		  }
 		} | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
-	fi || ! _warmsgf 'Err:' 'Model list'
+	fi || {
+		! _warmsgf 'Err:' "Model ${1:+-- }${1:-list}";
+		((${#1})) && ! list_modelsf; return 1;
+	};
 }
 
 function pick_modelf
