@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.95.6  apr/2025  by mountaineerbr  GPL+3
+# v0.95.7  apr/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1482,7 +1482,7 @@ function set_histf
 			esac
 
 			#vision
-			if ((!OPTHH)) && { is_visionf "$MOD" || is_amodelf "$MOD" ;}
+			if ((!OPTHH)) && { 	is_amodelf "$MOD" || is_visionf "$MOD" ;}
 			then 	MEDIA=(); OPTV=100 media_pathf "$stringc"
 			fi
 
@@ -2171,8 +2171,11 @@ function cmd_runf
 			fi; MULTIMODAL=;
 			case "${MOD}" in o[1-9]*) 	:;; *) 	((MOD_REASON));; esac && set_optsf
 			set_model_epnf "$MOD"; model_capf "$MOD";
-			is_amodelf "$MOD" && MULTIMODAL=2;
-			is_visionf "$MOD" && MULTIMODAL=1;
+			if is_amodelf "$MOD"
+			then 	MULTIMODAL=2;
+			elif is_visionf "$MOD"
+			then 	MULTIMODAL=1;
+			fi
 			send_tiktokenf '/END_TIKTOKEN/'
 			cmdmsgf 'Model Name' "$MOD$( ((MULTIMODAL)) && printf ' / %s' 'multimodal')"
 			cmdmsgf 'Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
@@ -2417,7 +2420,7 @@ function cmd_runf
 
 			set_optsf  2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
-			{ is_visionf "$MOD" || is_amodelf "$MOD" ;} && modmodal=' / multimodal'
+			{ 	is_amodelf "$MOD" || is_visionf "$MOD" ;} && modmodal=' / multimodal'
 			((MTURN+OPTRESUME)) &&
 			OPTC= OLLAMA= GOOGLEAI= OPTHH=1 EPN=0 set_histf >/dev/null;
 
@@ -3008,7 +3011,7 @@ function fmt_ccf
 	then
 		printf '{"role": "%s", "content": "%s",\n' "${2:-user}" "$1";
 		ollama_mediaf && printf '%s' ' }'
-	elif is_visionf "$MOD" || is_amodelf "$MOD"
+	elif is_amodelf "$MOD" || is_visionf "$MOD"
 	then
 		case "$MOD" in o[1-9]*)
 			_fmt_cc_reasonf;;  #settings[]
@@ -3394,7 +3397,7 @@ function is_visionf
 	typeset -l model; model=${1##*/};
 	case "${model##ft:}" in 
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
-	gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
+	o[1-9]*|gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*|\
 	claude-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
 	*) 	((MULTIMODAL));;
@@ -6670,7 +6673,7 @@ else
 			  set --; continue 1;  #edit orig input
 			fi; RET=;
 		#vision / audio-model
-		elif is_visionf "$MOD" || is_amodelf "$MOD"
+		elif is_amodelf "$MOD" || is_visionf "$MOD"
 		then
 			media_pathf "$1";
 			((MTURN)) &&
@@ -6738,7 +6741,7 @@ else
 			fi
 
 			((GOOGLEAI)) &&  [[ $MOD = *gemini*-pro-vision* && $MOD != *gemini*-1.5-* ]] &&  #gemini-1.0-pro-vision cannot take it multiturn
-			if ((REGEN<0 && MAIN_LOOP<1 && ${#INSTRUCTION_OLD})) || is_visionf "$MOD"
+			if ((REGEN<0 && MAIN_LOOP<1 && ${#INSTRUCTION_OLD})) || is_amodelf "$MOD" || is_visionf "$MOD"
 			then 	HIST_G=${HIST}${HIST:+\\n\\n} HIST_C= ;
 				((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
 				MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");
