@@ -894,6 +894,12 @@ optionally set instruction for the new session:
 
 ## 🖼️ Image Generations
 
+Currently, the scripts defaults to the **gpt-image** model. The user must
+[verify his OpenAI organisation](https://platform.openai.com/settings/organization/general)
+before before granted access to this model! Otherwise, please
+specify positional arguments `-i -m dall-e-3` or `-i -m dall-e-2`
+to select other models for image endpoints.
+
 Generate image according to prompt:
 
     chatgpt.sh -i "Dark tower in the middle of a field of red roses."
@@ -1499,8 +1505,8 @@ in general are not really worth developer efforts sometimes, it is frustating!
 The project will enter a maintenance phase from 2025 onwards, focusing primarily
 on bug fixes and stability.
 
-- We plan to deprecate the <!-- _image generation_ and --> _image editing_
-specific endpoints when script code becomes obsolete to work with images.
+- We may only partially support the _image generation_ and _image editing_
+specific OpenAI endpoints.
 
 - Text completions endpoint is planned to be deprecated when there are
 no models compatible with this endpoint anymore.

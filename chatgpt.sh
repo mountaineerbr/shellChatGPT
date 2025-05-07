@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.95.7  apr/2025  by mountaineerbr  GPL+3
+# v0.96  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -18,9 +18,9 @@ export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-gpt-4o}"
-# Image model (generations)
-MOD_IMAGE="${MOD_IMAGE:-dall-e-3}"
+MOD_CHAT="${MOD_CHAT:-gpt-4.5-preview}"
+# Image model
+MOD_IMAGE="${MOD_IMAGE:-gpt-image-1}"
 # Transcription model (STT)
 MOD_AUDIO="${MOD_AUDIO:-whisper-1}"  #gpt-4o-mini-transcribe
 # Speech model (TTS)
@@ -31,7 +31,7 @@ MOD_LOCALAI="${MOD_LOCALAI:-phi-4}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-llama3.3}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.0-flash-exp}"
+MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.5-pro-preview-05-06}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Groq models
@@ -42,11 +42,11 @@ MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
 # Anthropic model
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-7-sonnet-latest}"
 # Github Azure model
-MOD_GITHUB="${MOD_GITHUB:-Phi-3-medium-128k-instruct}"
+MOD_GITHUB="${MOD_GITHUB:-gpt-4o}"
 # Novita AI model
 MOD_NOVITA="${MOD_NOVITA:-sao10k/l3-70b-euryale-v2.1}"
 # xAI model
-MOD_XAI="${MOD_XAI:-grok-2-latest}"
+MOD_XAI="${MOD_XAI:-grok-3-beta}"
 # DeepSeek model
 MOD_DEEPSEEK="${MOD_DEEPSEEK:-deepseek-reasoner}"
 # Bash readline mode
@@ -80,10 +80,14 @@ OPTN=1
 # Set python tiktoken
 #OPTTIK=
 # Image size
-#OPTS=1024x1024  #hd
-#Image style
+#OPTS=1024x1024  #1024x1024auto
+#gpt-image: 1024x1024, 1536x1024 (landscape), or 1024x1536 (portrait)
+#dall-e-3: 1024x1024, 1792x1024 (landscape), or 1024x1792 (portrait)
+#dall-e-2: 256x256 (small), 512x512 (medium), or 1024x1024 (large)
+#quality: high, medium, low, or auto (gpt-image), hd or standard (dall-e-3)
+#Image style  #dall-e-3
 #OPTI_STYLE=natural  #vivid
-# Image out format
+# Image out format  #dall-e-2/3
 OPTI_FMT=b64_json  #url
 # TTS voice
 OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
@@ -221,10 +225,10 @@ HELP="Name
 
 Synopsis
 	${0##*/} [-cc|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
-	${0##*/} -i [opt..] [X|L|P][hd] [PROMPT]  #dall-e-3
-	${0##*/} -i [opt..] [S|M|L] [PROMPT]
-	${0##*/} -i [opt..] [S|M|L] [PNG_FILE]
-	${0##*/} -i [opt..] [S|M|L] [PNG_FILE] [MASK_FILE] [PROMPT]
+	${0##*/} -i [opt..] [S|M|L][hd] [PROMPT]  #dall-e-3
+	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PROMPT]  #gpt-image
+	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE]
+	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE] [MASK_FILE] [PROMPT]
 	${0##*/} -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
 	${0##*/} -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
@@ -306,12 +310,19 @@ Image Generations and Edits (Dall-E)
 	and a text prompt to direct the editing.
 
 	Size of output image may be set as the first positional parameter,
-	options are: \`256x256' (S), \`512x512' (M), \`1024x1024' (L),
-	\`1792x1024' (X), and \`1024x1792' (P). The parameter \`hd' may also
-	be set for quality (Dall-E-3), such as \`Xhd', or \`1792x1024hd'.
+	which defaults to "1024x1024auto":
+
+	gpt-imge: "1024x1024" (L, Large, Square), "1536x1024" (X, Landscape),
+	           or "1024x1536" (P, Portrait).
+	dall-e-3: "1024x1024", "1792x1024", or "1024x1792".
+	dall-e-2: "256x256" (Small), "512x512" (M, Medium), or "1024x1024".
+
+	A parameter \`high', \`medium', \`low', or \`auto' may also be appended
+	to the size parameter for gpt-image quality, such as "Xhigh" or
+	"1536x1024high", and \`hd' or \`standard' for dall-e-3.
 	
-	For Dalle-3, optionally set the generation style as either \"natural\"
-	or \"vivid\" as a positional parameter.
+	For dall-e-3, optionally set the generation style as either \"natural\"
+	or \"vivid\" as one the first positional parameters.
 
 
 Speech-To-Text (STT, Whisper)
@@ -953,7 +964,12 @@ function promptf
 		{ prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILETXT"; exit $ret ;}
 	else
 		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "C" >&2;
-		COLUMNS=$((COLUMNS-1)) _promptf || exit;  #!#
+		COLUMNS=$((COLUMNS-1)) _promptf ||
+			if ((OPTI))
+			then 	jq . "$FILE" >&2 2>/dev/null;
+				exit;
+			else  	exit;  #!#
+			fi
 		printf "${NC}" >&2;
 		if ((OPTI))
 		then 	prompt_imgprintf
@@ -1411,13 +1427,17 @@ function set_histf
 	while _spinf
 		IFS=$'\t' read -r time token string
 	do
-		[[ ${time}${token} = *([$IFS])\#* ]] && { ((OPTHH>2)) && com=1 || continue ;}
-		[[ ${time}${token} = *[Bb][Rr][Ee][Aa][Kk]* ]] && break
-		[[ -z ${time}${token}${string} ]] && continue
-		if [[ -z $string ]]
-		then 	[[ -n $token ]] && string=$token token=$time time=
-			[[ -n $time  ]] && string=$time  token=  time=
-		fi
+		case "${time}${token}" in *([$IFS])\#*)
+				((OPTHH>2)) && com=1 || continue;;
+		esac;
+		case "${time}${token}" in *[Bb][Rr][Ee][Aa][Kk]*)
+				break;;
+		esac;
+		case "${time}${token}${string}" in '') 	continue;; esac;
+		case "$string" in '')
+			case "$token" in *[!$IFS]*) 	string=$token token=$time time=;; esac;
+			case "$time" in *[!$IFS]*) 	string=$time  token=  time=;; esac;;
+		esac;
 
 		((${#string}>1)) && string=${string:1:${#string}-2}  #del lead and trail ""
 		#improve bash globbing speed with substring manipulation
@@ -1482,7 +1502,9 @@ function set_histf
 			esac
 
 			#vision
-			if ((!OPTHH)) && { 	is_amodelf "$MOD" || is_visionf "$MOD" ;}
+			if ((!OPTHH)) && {
+				((${#MEDIA[@]}+${#MEDIA_CMD[@]}+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]})) ||
+				is_visionf "$MOD" || is_amodelf "$MOD" ;}
 			then 	MEDIA=(); OPTV=100 media_pathf "$stringc"
 			fi
 
@@ -1735,30 +1757,45 @@ stripped_text = remove_markdown(markdown_text)
 print(stripped_text)"
 }
 
-#set output image size
+#set output image size and quality
 function set_imgsizef
 {
-	typeset opts_hd
-	case "$1" in
-		[Hh][Dd] | [Hh][Dd]* | *[Hh][Dd] )
-			OPTS_HD="hd" opts_hd=1;
+	typeset opts_quality
+	case "$1" in  #dall-e-3 quality
+		[Hh][Dd] | [Hh][Dd]* | *[Hh][Dd])
+			OPTS_QUALITY="hd" opts_quality=1;
 			set -- "${1/[Hh][Dd]}";;
 	esac
-	case "$1" in  #width x height, dall-e-3
+	case "$1" in  #gpt-image quality
+		[Hh][Ii][Gg][Hh] | [Hh][Ii][Gg][Hh]* | *[Hh][Ii][Gg][Hh])
+			OPTS_QUALITY="high" opts_quality=1;
+			set -- "${1/[Hh][Ii][Gg][Hh]}";;
+		[Mm][Ee][Dd][Ii][Uu][Mm] | [Mm][Ee][Dd][Ii][Uu][Mm]* | *[Mm][Ee][Dd][Ii][Uu][Mm])
+			OPTS_QUALITY="medium" opts_quality=1;
+			set -- "${1/[Mm][Ee][Dd][Ii][Uu][Mm]}";;
+		[Ll][Oo][Ww] | *[Ll][Oo][Ww] | *[Ll][Oo][Ww])
+			OPTS_QUALITY="low" opts_quality=1;
+			set -- "${1/[Ll][Oo][Ww]}";;
+	esac
+	case "$1" in  #size, width x height
 		1024*1792 | [Pp] | [Pp][Oo][Rr][Tt][Rr][Aa][Ii][Tt] )  #portrait
-			OPTS=1024x1792;;
+			case "$MOD_IMAGE" in gpt-image*) 	OPTS=1024x1536;;
+				*) 	OPTS=1024x1792;;
+			esac;;
 		1792* | [Xx] | [Ll][Aa][Nn][Dd][Ss][Cc][Aa][Pp][Ee] )  #landscape
-			OPTS=1792x1024;;
-		1024* | [Ll] | [Ll][Aa][Rr][Gg][Ee] )  #large
+			case "$MOD_IMAGE" in gpt-image*) 	OPTS=1536x1024;;
+				*) 	OPTS=1792x1024;;
+			esac;;
+		1024* | [LlSs] | [Ll][Aa][Rr][Gg][Ee] | [Ss][Qq][Uu][Aa][Rr][Ee] )  #large, square
 			OPTS=1024x1024;;
-		512*  |  [Mm]  | [Mm][Ee][Dd][Ii][Uu][Mm] ) OPTS=512x512;;  #medium
-		256*  |  [Ss]  | [Ss][Mm][Aa][Ll][Ll] )     OPTS=256x256;;  #small
+		512*  |  [Mm]  | [Mm][Ee][Dd][Ii][Uu][Mm] ) OPTS=512x512;;  #medium, dall-e-2
+		256*  |  [Ss]  | [Ss][Mm][Aa][Ll][Ll] )     OPTS=256x256;;  #small, dall-e-2
 		*)  #fallbacks
 			[[ -z $OPTS ]] || return 1;
-			if [[ $MOD_IMAGE = *dall-e*[3-9] ]] || [[ opts_hd -gt 0 ]]
-			then 	OPTS=1024x1024; 
-			else 	OPTS=512x512;
-			fi; ((opts_hd));;
+			if [[ $MOD_IMAGE = *dall-e*2 ]] && [[ opts_quality -eq 0 ]]
+			then 	OPTS=512x512;
+			else 	OPTS=1024x1024; 
+			fi; ((opts_quality));;
 	esac;
 }
 
@@ -1892,13 +1929,13 @@ function _model_costf
 		ministral-3b*) 	echo 0.04 0.04;;
 		gpt-4.[5-9]*) 	echo 75 150;;
 		gpt-4o-audio-preview*|gpt-4o-audio-preview-2024-10-01) echo 2.5 10;;  #text only
-		o3-mini*|o3-mini-2025-01-31) echo 1.10 4.40;;
+		o4-mini*|o3-mini*|o4-mini-2025-04-16|o3-mini-2025-01-31) echo 1.10 4.40;;
 		o1-mini*|o1-mini-2024-09-12) echo 1.10 4.40;;
 		o1*|o1-preview-2024-09-12) echo 15 60;;
 		gpt-4o-mini-audio-preview*|gpt-4o-mini-audio-preview-2024-12-17) echo 0.15 0.60;;  #text only
 		gpt-4o-mini*) 	echo 0.15 0.6;;
 		gpt-4o-2024-05-13|chatgpt-4o*) 	echo 5 15;;
-		gpt-4o-2024-08-06|gpt-4o*) echo 2.5 10;;
+		gpt-4o-2024-08-06|gpt-4o*|gpt-4o*search-preview) echo 2.5 10;;
 		text-embedding-3-small) 	echo 0.02 0;;
 		text-embedding-3-large) 	echo 0.13 0;;
 		text-embedding-ada-002|mistral-embed*|mistral-moderation*) 	echo 0.1 0;;
@@ -1939,6 +1976,10 @@ function _model_costf
 		qwen/qwen-2.5-72b-instruct) 	echo 0.38 0.40;;
 		sao10k/l3*-70b-euryale-v2.[1-9]) 	echo 1.48 1.48;;
 		cognitivecomputations/dolphin-mixtral-8x22b) 	echo 0.90 0.90;;
+		grok-3-mini-fast*) 	echo 0.6 4;;
+		grok-3-mini*) 	echo 0.3 0.5;;
+		grok-3-fast*) 	echo 5 25;;
+		grok-3*) 	echo 3 15;;
 		grok-beta|grok-vision-beta) 	echo 5 15;;
 		grok-2-*-1212|grok-*) 	echo 2 10;;
 		*) 	echo 0 0; false;;
@@ -2256,6 +2297,10 @@ function cmd_runf
 			  var=$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}))
 			  out=$(is_audiof "$1" && echo aud || echo img)
 			  _sysmsgf "$out ?$var" "${1:0: COLUMNS-6-${#var}}$([[ -n ${1: COLUMNS-6-${#var}} ]] && printf '\b\b\b%s' ...)";
+			  ((MULTIMODAL)) || if is_audiof "$1"
+			  then 	MULTIMODAL=2;
+			  else 	MULTIMODAL=1;
+			  fi;
 			};
 			;;
 		-n*|results*)
@@ -2420,7 +2465,7 @@ function cmd_runf
 
 			set_optsf  2>/dev/null
 			stop=${OPTSTOP#*:} stop=${stop%%,} stop=${stop:-\"unset\"}
-			{ 	is_amodelf "$MOD" || is_visionf "$MOD" ;} && modmodal=' / multimodal'
+			{ 	is_visionf "$MOD" || is_amodelf "$MOD" ;} && modmodal=' / multimodal'
 			((MTURN+OPTRESUME)) &&
 			OPTC= OLLAMA= GOOGLEAI= OPTHH=1 EPN=0 set_histf >/dev/null;
 
@@ -3011,7 +3056,7 @@ function fmt_ccf
 	then
 		printf '{"role": "%s", "content": "%s",\n' "${2:-user}" "$1";
 		ollama_mediaf && printf '%s' ' }'
-	elif is_amodelf "$MOD" || is_visionf "$MOD"
+	elif is_visionf "$MOD" || is_amodelf "$MOD"
 	then
 		case "$MOD" in o[1-9]*)
 			_fmt_cc_reasonf;;  #settings[]
@@ -3258,20 +3303,19 @@ function media_pathf
 	#process only the last line of input
 	set -- "$(sed -e 's/\\n/\n/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";
 	
-	while [[ $1 = *[[:alnum:]]* ]] && ((m<128))
+	while case "$1" in *[[:alnum:]]*) 	((m<128));; *) 	! :;; esac
 	do
 		((++m)); var=;
-		set -- "$(trim_leadf "$1" $'*([ \n\t\r|]|\\\\[ntr])')";
 		if [[ -f $1 ]]
-		then 	var=$1;
-		else 	[[ $1 = *[\|]* ]]   && var=$(sed 's/^.*[|][[:space:]|]*//' <<<"$1");
+		then 	var="$1";
+		else 	case "$1" in *[\|]*) 	var=$(sed 's/^.*[|][[:space:]|]*//' <<<"$1");; esac;
 			[[ -f ${var//\\} ]] || var=$(sed 's/^.*[^\\][[:space:]]//; s/^[[:space:]|]*//' <<<"$1");
 		fi; ind=${#var};
-		[[ $var = *\\* ]] && var=${var//\\};
+		case "$var" in *\\*) 	var="${var//\\}";; esac;
 		case "$var" in \~\/*) 	var="$HOME/${var:2}";; esac;
 
 		#check if file or url and add to array (max 20MB)
-		if is_imagef "$var" || { is_amodelf "$MOD" && is_audiof "$var" ;} ||
+		if is_imagef "$var" || is_audiof "$var" ||
 			{ ((!GOOGLEAI)) && is_linkf "$var" ;}
 		then
 			((++n));
@@ -3292,8 +3336,9 @@ function media_pathf
 			}
 
 			break;
-			#set -- "${1: 0: ${#1}-ind}";
+			#set -- "${1: 0: ${#1}-ind}";  #remove bad input
 		fi  #https://stackoverflow.com/questions/12199059/
+		set -- "$(trim_leadf "$1" $'*([ \n\t\r|]|\\\\[ntr])')";
 	done; ((n));
 }
 
@@ -3398,7 +3443,7 @@ function is_visionf
 	case "${model##ft:}" in 
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	o[1-9]*|gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
-	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|*multimodal*|\
+	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|grok-[3-9]*|*multimodal*|\
 	claude-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
 	*) 	((MULTIMODAL));;
 	esac;
@@ -3674,6 +3719,12 @@ function set_optsf
 			high|medium|low|'') 	:;;
 			?*) 	_warmsgf 'Warning:' "reason_effort must be high, medium or low -- $REASON_EFFORT";;
 		esac;
+		;;
+		grok-[3]*mini*)
+			[[ -n $OPTA || -n $OPTAA ]] && {
+				_warmsgf 'Warning:' 'Resetting frequency and presence penalties';
+				OPTA= OPTAA=
+			}
 		;;
 		*) ((MOD_REASON)) && {
 			OPTA=${OPTA_REASON:-$OPTA} OPTAA=${OPTAA_REASON:-$OPTAA} OPTT=${OPTT_REASON:-$OPTT};
@@ -4274,23 +4325,43 @@ function __set_speedf
 #image generations
 function imggenf
 {
-	typeset block_x;
-	
-	if ((LOCALAI))
-	then 	block_x="\"model\": \"$MOD_IMAGE\",";
-	elif [[ $MOD_IMAGE = *dall-e*[3-9] ]]
-	then 	block_x="\"model\": \"$MOD_IMAGE\",
-\"quality\": \"${OPTS_HD:-standard}\", ${OPTI_STYLE:+\"style\": \"$OPTI_STYLE\",}";
-	fi
-	
 	BLOCK="{
+\"model\": \"$MOD_IMAGE\",
 \"prompt\": \"${*:?IMG PROMPT ERR}\",
-\"size\": \"$OPTS\", $block_x
+\"size\": \"$OPTS\",
 \"n\": ${OPTN:-1},
 \"response_format\": \"$OPTI_FMT\"${BLOCK_USR:+,$NL}$BLOCK_USR
-}"  #dall-e-2: n<=10, dall-e-3: n==1
+}"
 	promptf
 }
+
+function imggen3f
+{
+	BLOCK="{
+\"model\": \"$MOD_IMAGE\",
+\"prompt\": \"${*:?IMG PROMPT ERR}\",
+\"size\": \"$OPTS\",
+\"n\": ${OPTN:-1},
+\"quality\": \"${OPTS_QUALITY:-standard}\", ${OPTI_STYLE:+\"style\": \"$OPTI_STYLE\",}
+\"response_format\": \"$OPTI_FMT\"${BLOCK_USR:+,$NL}$BLOCK_USR
+}"
+	promptf
+}
+
+function imggen_gptf
+{
+	BLOCK="{
+\"model\": \"$MOD_IMAGE\", \"moderation\": \"low\",
+\"prompt\": \"${*:?IMG PROMPT ERR}\",
+\"size\": \"$OPTS\",
+\"n\": ${OPTN:-1},
+\"quality\": \"${OPTS_QUALITY:-auto}\"${BLOCK_USR:+,$NL}$BLOCK_USR
+}"
+	promptf
+}
+#output_compression: webp *png
+#output_format: png jpeg *webp
+#background: transparent *auto
 
 #image variations
 function prompt_imgvarf
@@ -4298,7 +4369,6 @@ function prompt_imgvarf
 	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" \
 		-F image="@$1" \
-		-F response_format="$OPTI_FMT" \
 		-F n="$OPTN" \
 		-F size="$OPTS" \
 		"${@:2}" \
@@ -4308,8 +4378,13 @@ function prompt_imgvarf
 #image edits+variations
 function imgvarf
 {
-	typeset size prompt mask ;unset ARGS PNG32
+	typeset size prompt mask ret; unset ARGS PNG32
 	[[ -f ${1:?input PNG path required} ]]
+
+	#when file is last pos arg, shift it to the first
+	if ((${#} > 1)) && [[ -f ${@:$#} ]] && [[ ! -f ${@:$# -1} ]]  #img edits
+	then 	set -- "${@:$#}" "${@:1:$# -1}"
+	fi
 
 	if command -v magick >/dev/null 2>&1
 	then 	if ! _is_pngf "$1" || ! _is_squaref "$1" || ! _is_rgbf "$1" ||
@@ -4371,8 +4446,19 @@ function imgvarf
 	fi
 	[[ -n $prompt ]] && set -- "$@" -F prompt="$prompt"
 
-	prompt_imgvarf "$@" &&
-	prompt_imgprintf
+	case "$MOD_IMAGE" in
+		gpt-image*)
+			set -- "$@" -F model="$MOD_IMAGE";;
+		dall-e*)
+			set -- "$@" -F response_format="$OPTI_FMT";;
+	esac
+
+	if prompt_imgvarf "$@"
+	then 	prompt_imgprintf;
+	else 	ret=$?
+		jq . "$FILE" >&2 2>/dev/null;
+		return $ret
+	fi
 }
 #https://legacy.imagemagick.org/Usage/resize/
 #https://imagemagick.org/Usage/masking/#alpha
@@ -4414,6 +4500,11 @@ function _is_pngf
 #usage: img_convf [in_file] [opt..] [out_file]
 function img_convf
 {
+	typeset extra
+	case "$MOD_IMAGE" in gpt-image*) 	extra="";;
+		dall-e*) 	extra="-extent 1:1";;
+	esac
+
 	if ((!OPTV))
 	then 	[[ $ARGS = *-transparent* ]] &&
 		printf "${BWHITE}%-12s --${NC} %s\\n" "Transparent colour" "${OPT_AT:-black}" "Fuzz" "${OPT_AT_PC:-2}%" >&2
@@ -4421,7 +4512,7 @@ function img_convf
 		case "$(read_charf)" in [AaNnQq]|$'\e') 	return 2;; esac
 	fi
 
-	if magick "$1" -background none -gravity center -extent 1:1 "${@:2}"
+	if magick "$1" -background none -gravity center $extra "${@:2}"
 	then 	if ((!OPTV))
 		then 	set -- "${@##png32:}" ;_openf "${@:${#}}"
 			sysmsgf 'Confirm Edit?' '[Y/n] ' ''
@@ -4461,10 +4552,14 @@ function print_imgsizef
 #check file size of image
 function _chk_imgsizef
 {
-	typeset chk_fsize
-	if chk_fsize=$(wc -c <"$1" 2>/dev/null) ;(( (chk_fsize+500000)/1000000 >= 4))
-	then 	_warmsgf "Warning:" "Max image size is 4MB [file:$((chk_fsize/1000))KB]"
-		(( (chk_fsize+500000)/1000000 < 5))
+	typeset chk_fsize mb
+	case "$MOD_IMAGE" in gpt-image*) 	mb=25;;
+		dall-e*) 	mb=4;;
+	esac
+
+	if chk_fsize=$(wc -c <"$1" 2>/dev/null) ;(( (chk_fsize+500000)/1000000 >= mb))
+	then 	_warmsgf "Warning:" "Max image size is ${mb}MB [file:$((chk_fsize/1000))KB]"
+		(( (chk_fsize+500000)/1000000 < mb+1))
 	fi
 }
 #is image colour space rgb?
@@ -5572,7 +5667,7 @@ no-time  awesome-zh  awesome
 		effort) REASON_EFFORT=$OPTARG;;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_HD OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME REASON_EFFORT REASON_INTERACTIVE;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME REASON_EFFORT REASON_INTERACTIVE;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -5667,7 +5762,7 @@ done
 shift $((OPTIND -1))
 unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
-typeset -l VOICEZ OPTZ_FMT  #lowercase vars
+typeset -l VOICEZ OPTZ_FMT OPTS_QUALITY  #lowercase vars
 
 set -o ${READLINEOPT:-emacs};
 bind 'set enable-bracketed-paste on';
@@ -5763,16 +5858,36 @@ fi
 
 #image endpoints
 if ((OPTI))
-then 	command -v base64 >/dev/null 2>&1 || OPTI_FMT=url;
+then 	#command -v base64 >/dev/null 2>&1 || OPTI_FMT=url;
 	n=; for arg
 	do 	[[ -f $arg ]] && OPTII=1 n=$((n+1));  #img vars or edits
 	done;
+	#dall-e-3
 	((${#OPT_AT} || n>1)) && OPTII=1 OPTII_EDITS=1;  #img edits
-	case "$3" in vivid|natural) OPTI_STYLE=$3;; hd|HD|standard) OPTS_HD=$3; set -- "${@:1:2}" "${@:4}";; esac;
-	case "$2" in vivid|natural) OPTI_STYLE=$2;; hd|HD|standard) OPTS_HD=$2; set -- "${@:1:1}" "${@:3}";; esac;
-	case "$1" in vivid|natural) OPTI_STYLE=$1;; hd|HD|standard) OPTS_HD=$1; shift;; esac;
+	case "$3" in vivid|natural) OPTI_STYLE=$3; set -- "${@:1:2}" "${@:4}";;
+		hd|HD|standard) OPTS_QUALITY=$3; set -- "${@:1:2}" "${@:4}";; esac;
+	case "$2" in vivid|natural) OPTI_STYLE=$2; set -- "${@:1:1}" "${@:3}";;
+		hd|HD|standard) OPTS_QUALITY=$2; set -- "${@:1:1}" "${@:3}";; esac;
+	case "$1" in vivid|natural) OPTI_STYLE=$1; shift;;
+		hd|HD|standard) OPTS_QUALITY=$1; shift;; esac;
+	#gpt-image
+	case "$3" in high|medium|low) OPTS_QUALITY=$3; set -- "${@:1:2}" "${@:4}";; esac;
+	case "$2" in high|medium|low) OPTS_QUALITY=$2; set -- "${@:1:1}" "${@:3}";; esac;
+	case "$1" in high|medium|low) OPTS_QUALITY=$1; shift;; esac;
 	[[ -n $OPTS ]] && set_imgsizef "$OPTS";
-	set_imgsizef "$1" && shift;
+	if set_imgsizef "$3"
+	then 	if (($# >3))
+		then 	set -- "${@:1:2}" "${@:4}"
+		else 	set -- "${@:1:2}"
+		fi
+	elif set_imgsizef "$2"
+	then 	if (($# >2))
+		then 	set -- "${@:1:1}" "${@:3}"
+		else 	set -- "${@:1:1}"
+		fi
+	elif set_imgsizef "$1"
+	then 	shift;
+	fi
 	unset STREAM arg n;
 fi
 
@@ -6133,20 +6248,32 @@ then 	[[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
 elif ((OPTII))     #image variations+edits
 then 	if ((${#}>1))
 	then 	sysmsgf 'Image Edits'
-	else 	sysmsgf 'Image Variations' ;fi
-	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
-	then 	sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}${OPTI_STYLE:+ / $OPTI_STYLE}"
-	else 	sysmsgf 'Image Size:' "${OPTS:-err}"
+	else 	sysmsgf 'Image Variations'
 	fi
+	case "$MOD_IMAGE" in
+		gpt-image*)
+			sysmsgf 'Image Size + Quality:' "${OPTS:-err} ${OPTS_QUALITY:-auto}";
+			function _is_squaref { 	: ;};;
+		*dall-e*[3-9])
+			sysmsgf 'Image Size + Quality:' "${OPTS:-err} ${OPTS_QUALITY:-standard}${OPTI_STYLE:+ / Style: $OPTI_STYLE}";;
+		*dall-e*2|*dall-e*|*)
+			sysmsgf 'Image Size:' "${OPTS:-err}";;
+	esac
 	imgvarf "$@"
 elif ((OPTI))      #image generations
 then 	sysmsgf 'Image Generations'
 	sysmsgf 'Image Model:' "$MOD_IMAGE"
-	if [[ $MOD_IMAGE = *dall-e*[3-9] ]]
-	then 	sysmsgf 'Image Size / Quality:' "${OPTS:-err} / ${OPTS_HD:-standard}${OPTI_STYLE:+ / $OPTI_STYLE}"
-	else 	sysmsgf 'Image Size:' "${OPTS:-err}"
-	fi
-	imggenf "$@"
+	case "$MOD_IMAGE" in
+		gpt-image*)
+			sysmsgf 'Image Size + Quality:' "${OPTS:-err} ${OPTS_QUALITY:-auto}";
+			imggen_gptf "$@";;
+		*dall-e*[3-9])
+			sysmsgf 'Image Size + Quality:' "${OPTS:-err} ${OPTS_QUALITY:-standard}${OPTI_STYLE:+ / Style: $OPTI_STYLE}";
+			imggen3f "$@";;
+		*dall-e*2|*dall-e*|*)
+			sysmsgf 'Image Size:' "${OPTS:-err}";
+			imggenf "$@";;
+	esac
 elif ((OPTEMBED))  #embeds
 then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	|| _warmsgf "Warning:" "Not an embedding model -- $MOD"
@@ -6673,7 +6800,9 @@ else
 			  set --; continue 1;  #edit orig input
 			fi; RET=;
 		#vision / audio-model
-		elif is_amodelf "$MOD" || is_visionf "$MOD"
+		#this condition may be changed to process files directly with media_pathf(),
+		#and test the return code, however code must be reviewed in other places.
+		elif is_visionf "$MOD" || is_amodelf "$MOD"
 		then
 			media_pathf "$1";
 			((MTURN)) &&
@@ -6741,7 +6870,9 @@ else
 			fi
 
 			((GOOGLEAI)) &&  [[ $MOD = *gemini*-pro-vision* && $MOD != *gemini*-1.5-* ]] &&  #gemini-1.0-pro-vision cannot take it multiturn
-			if ((REGEN<0 && MAIN_LOOP<1 && ${#INSTRUCTION_OLD})) || is_amodelf "$MOD" || is_visionf "$MOD"
+			if ((REGEN<0 && MAIN_LOOP<1 && ${#INSTRUCTION_OLD})) ||
+				((${#MEDIA[@]}+${#MEDIA_CMD[@]}+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]})) ||
+				is_visionf "$MOD" || is_amodelf "$MOD"
 			then 	HIST_G=${HIST}${HIST:+\\n\\n} HIST_C= ;
 				((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
 				MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");

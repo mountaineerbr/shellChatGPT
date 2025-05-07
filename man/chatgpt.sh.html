@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.95.4 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.96 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.95.4 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.96 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">March 2025</p>
+<p class="date">May 2025</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
@@ -184,15 +184,17 @@ STT / TTS</div>
 [<code>opt</code>..]
 [<em>PROMPT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>X</em>|<em>L</em>|<em>P</em>][<em>hd</em>] [<em>PROMPT</em>]
-#Dall-E-3<br />
+[<em>S</em>|<em>M</em>|<em>L</em>][<em>hd</em>] [<em>PROMPT</em>]
+#dall-e-3<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>S</em>|<em>M</em>|<em>L</em>] [<em>PROMPT</em>]<br />
+[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
+[<em>PROMPT</em>] #gpt-image<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>S</em>|<em>M</em>|<em>L</em>] [<em>PNG_FILE</em>]<br />
+[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
+[<em>PNG_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>S</em>|<em>M</em>|<em>L</em>] [<em>PNG_FILE</em>]
-[<em>MASK_FILE</em>] [<em>PROMPT</em>]<br />
+[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
+[<em>PNG_FILE</em>] [<em>MASK_FILE</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-w</code> [<code>opt</code>..]
 [<em>AUDIO_FILE</em>|<em>.</em>] [<em>LANG</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>..]
@@ -848,16 +850,23 @@ then <strong>edit the</strong> <em>IMAGE</em> according to <em>MASK</em>
 and PROMPT. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
 transparency.</p>
 <p>The <strong>size of output images</strong> may be set as the first
-positional parameter in the command line: “<em>256x256</em>”
-(<em>S</em>), “<em>512x512</em>” (<em>M</em>), “<em>1024x1024</em>”
-(<em>L</em>), “<em>1792x1024</em>” (<em>X</em>), and
-“<em>1024x1792</em>” (<em>P</em>).</p>
-<p>The parameter “<em>hd</em>” may also be set for image quality
-(<em>Dall-E-3</em>), such as “<em>Xhd</em>” or “<em>1792x1024hd</em>”.
-Defaults=<em>1024x1024</em>.</p>
-<p>For Dalle-3, optionally set the generation style as either
-“<em>natural</em>” or “<em>vivid</em>” as a positional parameter in the
-command line invocation.</p>
+positional parameter in the command line:</p>
+<pre><code>gpt-imge: &quot;_1024x1024_&quot; (_L_, _Large_, _Square_), &quot;_1536x1024_&quot; (_X_, _Landscape_), or &quot;_1024x1536_&quot; (_P_, _Portrait_).
+
+dall-e-3: &quot;_1024x1024_&quot; (_L_, _Large_, _Square_), &quot;_1792x1024_&quot; (_X_, _Landscape_), or &quot;_1024x1792_&quot; (_P_, _Portrait_).
+
+dall-e-2: &quot;_256x256_&quot; (_Small_), &quot;_512x512_&quot; (_M_, _Medium_), or &quot;_1024x1024_&quot; (_L_, _Large_).</code></pre>
+<p>A parameter “<em>high</em>”, “<em>medium</em>”, “<em>low</em>”, or
+“<em>auto</em>” may also be appended to the size parameter to set image
+quality with gpt-image, such as “<em>Xhigh</em>” or
+“<em>1563x1024high</em>”. Defaults=<em>1024x1024auto</em>.</p>
+<p>The parameter “<em>hd</em>” or “<em>standard</em>” may also be set
+for image quality with dall-e-3.</p>
+<p>For dall-e-3, optionally set the generation style as either
+“<em>natural</em>” or “<em>vivid</em>” as one of the first positional
+parameters at command line invocation.</p>
+<p>Note that the user needs to verify his organisation to use
+<em>gpt-image</em> models!</p>
 <p>See <strong>IMAGES section</strong> below for more information on
 <strong>inpaint</strong> and <strong>outpaint</strong>.</p>
 <h1 id="text-chat-completions">TEXT / CHAT COMPLETIONS</h1>

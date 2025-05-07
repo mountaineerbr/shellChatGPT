@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: March 2025
-title: CHATGPT.SH(1) v0.95.4 \| General Commands Manual
+date: May 2025
+title: CHATGPT.SH(1) v0.96 \| General Commands Manual
 ---
 
 # NAME
@@ -13,11 +13,14 @@ title: CHATGPT.SH(1) v0.95.4 \| General Commands Manual
 
    **chatgpt.sh** \[`-cc`\|`-dd`\|`-qq`\] \[`opt`..\]
 \[*PROMPT*\|*TEXT_FILE*\|*PDF_FILE*\]  
-   **chatgpt.sh** `-i` \[`opt`..\] \[*X*\|*L*\|*P*\]\[*hd*\]
-\[*PROMPT*\] \#Dall-E-3  
-   **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PROMPT*\]  
-   **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PNG_FILE*\]  
-   **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\] \[*PNG_FILE*\]
+   **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\]\[*hd*\]
+\[*PROMPT*\] \#dall-e-3  
+   **chatgpt.sh** `-i` \[`opt`..\]
+\[*X*\|*L*\|*P*\]\[*high*\|*medium*\|*low*\] \[*PROMPT*\] \#gpt-image  
+   **chatgpt.sh** `-i` \[`opt`..\]
+\[*X*\|*L*\|*P*\]\[*high*\|*medium*\|*low*\] \[*PNG_FILE*\]  
+   **chatgpt.sh** `-i` \[`opt`..\]
+\[*X*\|*L*\|*P*\]\[*high*\|*medium*\|*low*\] \[*PNG_FILE*\]
 \[*MASK_FILE*\] \[*PROMPT*\]  
    **chatgpt.sh** `-w` \[`opt`..\] \[*AUDIO_FILE*\|*.*\] \[*LANG*\]
 \[*PROMPT*\]  
@@ -589,14 +592,27 @@ it. If the first positional argument is an *IMAGE* file and the second a
 *MASK* is not provided, *IMAGE* must have transparency.
 
 The **size of output images** may be set as the first positional
-parameter in the command line: “*256x256*” (*S*), “*512x512*” (*M*),
-“*1024x1024*” (*L*), “*1792x1024*” (*X*), and “*1024x1792*” (*P*).
+parameter in the command line:
 
-The parameter “*hd*” may also be set for image quality (*Dall-E-3*),
-such as “*Xhd*” or “*1792x1024hd*”. Defaults=*1024x1024*.
+    gpt-imge: "_1024x1024_" (_L_, _Large_, _Square_), "_1536x1024_" (_X_, _Landscape_), or "_1024x1536_" (_P_, _Portrait_).
 
-For Dalle-3, optionally set the generation style as either “*natural*”
-or “*vivid*” as a positional parameter in the command line invocation.
+    dall-e-3: "_1024x1024_" (_L_, _Large_, _Square_), "_1792x1024_" (_X_, _Landscape_), or "_1024x1792_" (_P_, _Portrait_).
+
+    dall-e-2: "_256x256_" (_Small_), "_512x512_" (_M_, _Medium_), or "_1024x1024_" (_L_, _Large_).
+
+A parameter “*high*”, “*medium*”, “*low*”, or “*auto*” may also be
+appended to the size parameter to set image quality with gpt-image, such
+as “*Xhigh*” or “*1563x1024high*”. Defaults=*1024x1024auto*.
+
+The parameter “*hd*” or “*standard*” may also be set for image quality
+with dall-e-3.
+
+For dall-e-3, optionally set the generation style as either “*natural*”
+or “*vivid*” as one of the first positional parameters at command line
+invocation.
+
+Note that the user needs to verify his organisation to use *gpt-image*
+models!
 
 See **IMAGES section** below for more information on **inpaint** and
 **outpaint**.
