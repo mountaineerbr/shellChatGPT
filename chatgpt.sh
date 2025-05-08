@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.96  may/2025  by mountaineerbr  GPL+3
+# v0.96.1  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -31,7 +31,7 @@ MOD_LOCALAI="${MOD_LOCALAI:-phi-4}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-llama3.3}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.5-pro-preview-05-06}"
+MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.5-flash-preview-04-17}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Groq models
@@ -4491,10 +4491,25 @@ function _set_alphaf
 #check if file ends with .png
 function _is_pngf
 {
-	if [[ $1 != *.[Pp][Nn][Gg] ]]
-	then 	((OPTV)) || printf '%s\n' 'Not a PNG image' >&2
-		return 1
-	fi ;return 0
+	case "$MOD_IMAGE" in
+		gpt-image*)
+			case  "$1" in
+				*.[Pp][Nn][Gg]|*.[Ww][Ee][Bb][Pp]|*.[Jj][Pp][Gg])
+					:;;
+				*) 	((OPTV)) || printf '%s\n' 'Not a PNG, WEBP, or JPG image' >&2
+					return 1;;
+			esac;
+		;;
+		*)
+			case  "$1" in
+				*.[Pp][Nn][Gg])
+					:;;
+				*) 	((OPTV)) || printf '%s\n' 'Not a PNG image' >&2
+					return 1;;
+			esac;
+		;;
+	esac
+	return 0
 }
 #convert image
 #usage: img_convf [in_file] [opt..] [out_file]
