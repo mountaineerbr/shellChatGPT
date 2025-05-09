@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.96.1  may/2025  by mountaineerbr  GPL+3
+# v0.96.2  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3679,7 +3679,7 @@ function set_optsf
 			MOD_THINK=1;
 		}
 		;;
-		gemini-2*-thinking*)
+		gemini-[2-9]*-thinking*)
 		((MOD_THINK)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
 				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
@@ -3691,6 +3691,15 @@ function set_optsf
 			#stream the thinking, use generate_content_stream method
 			#https://ai.google.dev/gemini-api/docs/thinking-mode
 		}
+		;;
+		gemini-[2-9].5*-flash*|gemini-[3-9]*-flash*)
+			:
+		;;
+		gemini-[2-9].5*|gemini-[3-9]*)
+			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
+				_warmsgf 'Warning:' 'Gemini models require large numbers of output tokens';
+				OPTMAX=8000;
+			}
 		;;
 		o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
 		((MOD_REASON)) || {
