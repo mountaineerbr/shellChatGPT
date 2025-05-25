@@ -1221,7 +1221,7 @@ To list all available models, run `chatgpt.sh --google -l`.
 #### Google Search
 
 To enable live search in the API, use chat command `/g [prompt]` or `//g [prompt]`,
-or set `$BLOCK_CMD` evar.
+or set `$BLOCK_CMD` envar.
 
 ```
 export BLOCK_CMD='"tools": [ { "google_search": {} } ]'
@@ -1275,7 +1275,7 @@ chatgpt.sh --ant -c -m claude-2.1
 #### Anthropic Web Search
 
 To enable live search in the API, use chat command `/g [prompt]` or `//g [prompt]`,
-or set `$BLOCK_USR` evar.
+or set `$BLOCK_USR` envar.
 
 ```
 export BLOCK_USR='"tools": [{
