@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.97.1  may/2025  by mountaineerbr  GPL+3
+# v0.97.2  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4078,8 +4078,8 @@ function whisperf
 	fi
 	
 	((OPTW>1||OPTWW>1)) &&
-	case "$MOD_SPEECH" in *[Ww]hisper*) 	:;; *)
-		_warmsgf 'Warning:' "Word-level timestamps may only be supported by Whisper";
+	case "$MOD_AUDIO" in *[Ww]hisper*) 	:;; *)
+		_warmsgf 'Warning:' "Timestamps may only be supported by Whisper";
 		read_charf -t 2 >/dev/null 2>&1;;
 	esac;
 
