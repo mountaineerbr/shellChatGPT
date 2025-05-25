@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.96 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.97 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.96 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.97 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">May 2025</p>
 </header>
@@ -1018,7 +1018,7 @@ prompt to change parameters and manage sessions. Command operators
 <tr class="odd">
 <td style="text-align: left;"><code>!g:</code></td>
 <td style="text-align: left;"><code>!!g:</code> [<em>PROMPT</em>]</td>
-<td>Ground user prompt with search results. <em>‡</em></td>
+<td>Ground user prompt with web search results. <em>‡</em></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!i</code></td>
@@ -1542,6 +1542,8 @@ extension “<em>.pr</em>”.</p>
 <h2 id="image-generations">1. Image Generations</h2>
 <p>An image can be created given a text prompt. A text PROMPT of the
 desired image(s) is required. The maximum length is 1000 characters.</p>
+<p>This script also supports xAI image generation model with invocation
+<code>chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"</code>.</p>
 <h2 id="image-variations">2. Image Variations</h2>
 <p>Variations of a given <em>IMAGE</em> can be generated. The
 <em>IMAGE</em> to use as the basis for the variations must be a valid
@@ -1757,6 +1759,67 @@ Novita, xAI, and DeepSeek APIs.</p>
 <p>Audio recorder command, e.g. “<em>sox -d</em>”.</p>
 </dd>
 </dl>
+<h1 id="web-search">Web Search</h1>
+<h2 id="simple-search-dump">Simple Search Dump</h2>
+<p>To ground a user prompt with search results, run chat command
+“<code>/g [prompt]</code>”.</p>
+<p>Default search provider is Google. To select a different search
+provider, run “<code>//g [prompt]</code>” and choose amongst
+<em>Google</em>, <em>DuckDuckGo</em>, or <em>Brave</em>.</p>
+<p>Running “<code>//g [prompt]</code>” will always use the in-house
+solution instead of any service provider specific web search tool.</p>
+<p>A cli-browser is required, such as <strong>w3m</strong>,
+<strong>elinks, </strong>links<strong>, or </strong>lynx**.</p>
+<h2 id="openai-web-search">OpenAI Web Search</h2>
+<p>Use the in-house solution above, or select models with “search” in
+the name, such as “gpt-4o-search-preview”.</p>
+<!--
+To enable live search in the API, run chat command `/g [prompt]` or
+`//g [prompt]` (to use the fallback mechanism) as usual;
+or to keep live search enabled for all prompts, set `$BLOCK_USR`
+environment variable before running the script such as:
+
+```
+export BLOCK_USR='"tools": [{
+  "type": "web_search_preview",
+  "search_context_size": "medium"
+}]'
+
+chatgpt.sh -cc -m gpt-4.1-2025-04-14
+```
+
+Check more search parameters at the OpenAI API documentation:
+<https://platform.openai.com/docs/guides/tools-web-search?api-mode=responses>.
+<https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat>.
+-->
+<h2 id="xai-live-search">xAI Live Search</h2>
+<pre><code>export BLOCK_USR=&#39;&quot;search_parameters&quot;: {
+  &quot;mode&quot;: &quot;auto&quot;,
+  &quot;max_search_results&quot;: 10
+}&#39;
+
+chatgpt.sh --xai -cc -m grok-3-latest </code></pre>
+<p>Check more search parameters at the xAI API documentation: <a
+href="https://docs.x.ai/docs/guides/live-search"
+class="uri">https://docs.x.ai/docs/guides/live-search</a>.</p>
+<h2 id="anthropic-web-search">Anthropic Web Search</h2>
+<pre><code>export BLOCK_USR=&#39;&quot;tools&quot;: [{
+  &quot;type&quot;: &quot;web_search_20250305&quot;,
+  &quot;name&quot;: &quot;web_search&quot;,
+  &quot;max_uses&quot;: 5
+}]&#39;
+
+chatgpt.sh --ant -cc -m claude-opus-4-0</code></pre>
+<p>Check more web search parameters at Anthropic API docs: <a
+href="https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking"
+class="uri">https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking</a>.</p>
+<h2 id="google-search">Google Search</h2>
+<pre><code>export BLOCK_CMD=&#39;&quot;tools&quot;: [ { &quot;google_search&quot;: {} } ]&#39;
+
+chatgpt.sh --goo -cc -m gemini-2.5-flash-preview-05-20</code></pre>
+<p>Check more web search parameters at Google AI API docs: <a
+href="https://ai.google.dev/gemini-api/docs/grounding?lang=rest"
+class="uri">https://ai.google.dev/gemini-api/docs/grounding?lang=rest</a>.</p>
 <h1 id="color-themes">COLOR THEMES</h1>
 <p>The colour scheme may be customised. A few themes are available in
 the template configuration file.</p>
@@ -1854,13 +1917,16 @@ input (STT, Whisper)</li>
 </ul>
 <h1 id="caveats">CAVEATS</h1>
 <p>The script objective is to implement some of the features of OpenAI
-API version 1 (not all endpoints or options will be covered).</p>
+API version 1. As text is the only universal interface, voice and image
+features will only be partially supported, and not all endpoints or
+options will be covered.</p>
 <p>This project <em>doesn’t support</em> “Function Calling”, “Structured
 Outputs”, “Real-Time Conversations”, “Agents/Operators”, nor “video
 generation / editing” capabilities.</p>
 <h1 id="bugs">BUGS</h1>
-<p>Reasoning and answers from certain API services may not have a
-distinct separation of output due to JSON processing constraints.</p>
+<p>Reasoning (thinking) and answers from certain API services may not
+have a distinct separation of output due to JSON processing
+constraints.</p>
 <p>Bash “read command” may not correctly display input buffers larger
 than the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.</p>

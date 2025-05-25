@@ -81,14 +81,19 @@ If no suffix is provided, it works as plain text completions.
     - 16.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
     - 16.1.4 [Installing Models](#installing-models)
     - 16.1.5 [Host API Configuration](#base-url-configuration)
+    - 16.1.6 [OpenAI Web Search](#openai-web-search)
   - 16.2 [Ollama](#ollama)
   - 16.3 [Google AI](#google-ai)
+    - 16.3.1 [Google AI](#google-search)
   - 16.4 [Mistral AI](#mistral-ai)
   - 16.5 [Groq](#groq)
   - 16.6 [Anthropic](#anthropic)
+    - 16.6.1 [Anthropic Web Search](#anthropic-web-search)
   - 16.7 [GitHub Models](#github-models)
   - 16.8 [Novita AI](#novita-ai)
   - 16.9 [xAI](#xai)
+    - 16.9.1 [xAI Live Search](#xai-live-search)
+    - 16.9.2 [xAI Image Generation](#xai-image-generation)
   - 16.10 [DeepSeek](#deepseek)
 - 17. [Arch Linux Users](#arch-linux-users)
 - 18. [Termux Users](#termux-users)
@@ -828,7 +833,7 @@ the completion files correctly.
 
 ## 💡  Notes and Tips
 
-- The YouTube feature will get YouTube videos heading title and its transcripts (when available) information only.
+- The YouTube feature will get YouTube video heading title and its transcripts information only (when available).
 
 - The PDF support feature extracts PDF text ([_no images_](https://docs.anthropic.com/en/docs/build-with-claude/pdf-support#how-pdf-support-works)) and appends it to the user request.
 
@@ -905,6 +910,11 @@ Generate image according to prompt:
     chatgpt.sh -i "Dark tower in the middle of a field of red roses."
 
     chatgpt.sh -i "512x512" "A tower."
+
+
+This script also supports xAI `grok-2-image-1212` image model:
+
+    chatgpt.sh --xai -i -m grok-2-image-1212 "A black tower surrounded by red roses."
 
 
 ## Image Variations
@@ -1143,6 +1153,35 @@ And set the following variable:
     OPENAI_BASE_URL="http://127.0.0.1:8080/v1"
 
 
+#### OpenAI Web Search
+
+Use the in-house solution with chat command "`/g [prompt]`" or "`//g [prompt]`"
+to ground the prompt, or select models with **search** in the name,
+such as "gpt-4o-search-preview".
+
+Running "`//g [prompt]`" will always use the in-house solution instead of
+any service provider specific web search tool.
+
+<!--
+To enable live search in the API, run chat command `/g [prompt]` or
+`//g [prompt]` (to use the fallback mechanism) as usual;
+or to keep live search enabled for all prompts, set `$BLOCK_USR`
+environment variable before running the script such as:
+
+```
+export BLOCK_USR='"tools": [{
+  "type": "web_search_preview",
+  "search_context_size": "medium"
+}]'
+
+chatgpt.sh -cc -m gpt-4.1-2025-04-14
+```
+
+Check more search parameters at the [OpenAI API documentation](https://platform.openai.com/docs/guides/tools-web-search?api-mode=responses).
+<https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat>.
+-->
+
+
 ### Ollama
 
 Visit [Ollama repository](https://github.com/ollama/ollama/),
@@ -1179,6 +1218,20 @@ with `option --google`, such as:
 To list all available models, run `chatgpt.sh --google -l`.
 
 
+#### Google Search
+
+To enable live search in the API, use chat command `/g [prompt]` or `//g [prompt]`,
+or set `$BLOCK_CMD` evar.
+
+```
+export BLOCK_CMD='"tools": [ { "google_search": {} } ]'
+
+chatgpt.sh --goo -cc -m gemini-2.5-flash-preview-05-20
+```
+
+Check more web search parameters at [Google AI API docs](https://ai.google.dev/gemini-api/docs/grounding?lang=rest).
+
+
 ### Mistral AI
 
 Set up a [Mistral AI account](https://mistral.ai/),
@@ -1193,8 +1246,6 @@ Sign in to [Groq](https://console.groq.com/playground).
 Create a new API key or use an existing one to set
 the environmental variable `$GROQ_API_KEY`.
 Run the script with `option --groq`.
-
-Currently, **llamma3.1** models are available at lightening speeds!
 
 
 ### Anthropic
@@ -1221,6 +1272,24 @@ chatgpt.sh --ant -c -m claude-2.1
 ```
 
 
+#### Anthropic Web Search
+
+To enable live search in the API, use chat command `/g [prompt]` or `//g [prompt]`,
+or set `$BLOCK_USR` evar.
+
+```
+export BLOCK_USR='"tools": [{
+  "type": "web_search_20250305",
+  "name": "web_search",
+  "max_uses": 5
+}]'
+
+chatgpt.sh --ant -cc -m claude-opus-4-0
+```
+
+Check more web search parameters at [Anthropic API docs](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking).
+
+
 ### GitHub Models
 
 GitHub has partnered with Azure to use its infrastructure.
@@ -1238,7 +1307,9 @@ or list the available models and their original names with `chatgpt.sh --github 
 chatgpt.sh --github -cc -m Phi-3-small-8k-instruct
 ```
 
+<!--
 See also the [GitHub Model Catalog - Getting Started](https://techcommunity.microsoft.com/t5/educator-developer-blog/github-model-catalog-getting-started/ba-p/4212711) page.
+-->
 
 
 ### Novita AI
@@ -1282,7 +1353,6 @@ We are grateful to Novita AI for their support and collaboration. For more
 information, visit [Novita AI](https://novita.ai/).
 
 
-
 ### xAI
 
 Visit [xAI Grok](https://docs.x.ai/docs/quickstart#creating-api-key)
@@ -1292,6 +1362,31 @@ Run the script with `option --xai` and also with `option -cc` (chat completions.
 
 Some models also work with native text completions. For that,
 set command-line `option -c` instead.
+
+
+#### xAI Live Search
+
+To enable live search in the API, use chat command `/g [prompt]`
+or `//g [prompt]`,
+or to keep live search enabled for all prompts, set `$BLOCK_USR`
+environment variable before running the script such as:
+
+```
+export BLOCK_USR='"search_parameters": {
+  "mode": "auto",
+  "max_search_results": 10
+}'
+
+chatgpt.sh --xai -cc -m grok-3-latest 
+```
+
+Check more live search parameters at [xAI API docs](https://docs.x.ai/docs/guides/live-search).
+
+
+#### xAI Image Generation
+
+The model `grok-2-image-1212` is supported for image generation with
+invocation `chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"`.
 
 
 ### DeepSeek
@@ -1483,6 +1578,8 @@ ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bi
 - Main focus on **chat models** (multi-turn, text, image, and audio).
 
 - Implementation of selected features from **OpenAI API version 1**.
+  As text is the only universal interface, voice and image features
+  will only be partially supported.
 
 - Provide the closest API defaults and let the user customise settings.
 

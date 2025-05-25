@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: May 2025
-title: CHATGPT.SH(1) v0.96 \| General Commands Manual
+title: CHATGPT.SH(1) v0.97 \| General Commands Manual
 ---
 
 # NAME
@@ -743,7 +743,7 @@ or “`/`” are equivalent.
 | `!#`      | `!save` \[*PROMPT*\]            | Save current prompt to shell history. *‡*               |
 | `!`       | `!r`, `!regen`                  | Regenerate last response.                               |
 | `!!`      | `!rr`                           | Regenerate response, edit prompt first.                 |
-| `!g:`     | `!!g:` \[*PROMPT*\]             | Ground user prompt with search results. *‡*             |
+| `!g:`     | `!!g:` \[*PROMPT*\]             | Ground user prompt with web search results. *‡*         |
 | `!i`      | `!info`                         | Information on model and session settings.              |
 | `!!i`     | `!!info`                        | Monthly usage stats (OpenAI).                           |
 | `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).  |
@@ -966,6 +966,9 @@ are located at “`~/.cache/chatgptsh/`” with the extension “*.pr*”.
 An image can be created given a text prompt. A text PROMPT of the
 desired image(s) is required. The maximum length is 1000 characters.
 
+This script also supports xAI image generation model with invocation
+`chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"`.
+
 ## 2. Image Variations
 
 Variations of a given *IMAGE* can be generated. The *IMAGE* to use as
@@ -1175,6 +1178,79 @@ Audio player command, e.g. “*mpv –no-video –vo=null*”.
 **REC_CMD**  
 Audio recorder command, e.g. “*sox -d*”.
 
+# Web Search
+
+## Simple Search Dump
+
+To ground a user prompt with search results, run chat command
+“`/g [prompt]`”.
+
+Default search provider is Google. To select a different search
+provider, run “`//g [prompt]`” and choose amongst *Google*,
+*DuckDuckGo*, or *Brave*.
+
+Running “`//g [prompt]`” will always use the in-house solution instead
+of any service provider specific web search tool.
+
+A cli-browser is required, such as **w3m**, **elinks, **links**, or
+**lynx\*\*.
+
+## OpenAI Web Search
+
+Use the in-house solution above, or select models with “search” in the
+name, such as “gpt-4o-search-preview”.
+
+<!--
+To enable live search in the API, run chat command `/g [prompt]` or
+`//g [prompt]` (to use the fallback mechanism) as usual;
+or to keep live search enabled for all prompts, set `$BLOCK_USR`
+environment variable before running the script such as:
+&#10;```
+export BLOCK_USR='"tools": [{
+  "type": "web_search_preview",
+  "search_context_size": "medium"
+}]'
+&#10;chatgpt.sh -cc -m gpt-4.1-2025-04-14
+```
+&#10;Check more search parameters at the OpenAI API documentation:
+<https://platform.openai.com/docs/guides/tools-web-search?api-mode=responses>.
+<https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat>.
+-->
+
+## xAI Live Search
+
+    export BLOCK_USR='"search_parameters": {
+      "mode": "auto",
+      "max_search_results": 10
+    }'
+
+    chatgpt.sh --xai -cc -m grok-3-latest 
+
+Check more search parameters at the xAI API documentation:
+<https://docs.x.ai/docs/guides/live-search>.
+
+## Anthropic Web Search
+
+    export BLOCK_USR='"tools": [{
+      "type": "web_search_20250305",
+      "name": "web_search",
+      "max_uses": 5
+    }]'
+
+    chatgpt.sh --ant -cc -m claude-opus-4-0
+
+Check more web search parameters at Anthropic API docs:
+<https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking>.
+
+## Google Search
+
+    export BLOCK_CMD='"tools": [ { "google_search": {} } ]'
+
+    chatgpt.sh --goo -cc -m gemini-2.5-flash-preview-05-20
+
+Check more web search parameters at Google AI API docs:
+<https://ai.google.dev/gemini-api/docs/grounding?lang=rest>.
+
 # COLOR THEMES
 
 The colour scheme may be customised. A few themes are available in the
@@ -1275,7 +1351,9 @@ Optional packages for specific features.
 # CAVEATS
 
 The script objective is to implement some of the features of OpenAI API
-version 1 (not all endpoints or options will be covered).
+version 1. As text is the only universal interface, voice and image
+features will only be partially supported, and not all endpoints or
+options will be covered.
 
 This project *doesn’t support* “Function Calling”, “Structured Outputs”,
 “Real-Time Conversations”, “Agents/Operators”, nor “video generation /
@@ -1283,8 +1361,8 @@ editing” capabilities.
 
 # BUGS
 
-Reasoning and answers from certain API services may not have a distinct
-separation of output due to JSON processing constraints.
+Reasoning (thinking) and answers from certain API services may not have
+a distinct separation of output due to JSON processing constraints.
 
 Bash “read command” may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain
