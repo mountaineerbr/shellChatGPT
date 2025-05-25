@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.97  may/2025  by mountaineerbr  GPL+3
+# v0.97.1  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -4077,7 +4077,8 @@ function whisperf
 	then 	set -- "${@:1:1}" "${@:3}"
 	fi
 	
-	case "$MOD_SPEECH" in *whisper*) 	:;; *)
+	((OPTW>1||OPTWW>1)) &&
+	case "$MOD_SPEECH" in *[Ww]hisper*) 	:;; *)
 		_warmsgf 'Warning:' "Word-level timestamps may only be supported by Whisper";
 		read_charf -t 2 >/dev/null 2>&1;;
 	esac;
@@ -4813,6 +4814,7 @@ function custom_prf
 		  SESSION_LIST=$list SGLOB='[Pp][Rr]' EXT='pr' \
 		  session_globf "$name")
 	then
+		case "$file" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit) 	return 201;; esac
 		case "$name" in  #default translations
 			en)  INSTRUCTION=$INSTRUCTION_CHAT_EN;;
 			pt)  INSTRUCTION=$INSTRUCTION_CHAT_PT;;
@@ -5752,8 +5754,7 @@ no-time  awesome-zh  awesome
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		d) 	((OPTCMPL)) && OPTCMPL=1 || OPTCMPL=-1;;  #-1: single-turn, 1: multi-turn
-		effort)
-			case "$OPTARG" in -*) 	OPTARG= ;; esac; 
+		effort) case "$OPTARG" in -*) 	OPTARG= ;; esac; 
 			REASON_EFFORT=${OPTARG:?--effort/--think -- level/integer};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
