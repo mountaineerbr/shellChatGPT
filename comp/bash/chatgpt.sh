@@ -119,6 +119,8 @@ _chatgptsh()
         -y --tik
         -Y --no-tik
         -z --tts
+	--format
+	--voice
         -Z --last
 	--version
   "
@@ -161,6 +163,12 @@ _chatgptsh()
     -m|-[!-]*m|--model)
       COMPREPLY=( $(compgen -W "$(chatgpt.sh -EE -lll 2>/dev/null)" -- "${cur}") )
       ((${#COMPREPLY[@]})) || COMPREPLY=( "${models[@]}" )
+      ;;
+    --format)
+      COMPREPLY=( mp3 opus aac flac wav pcm16  mulaw ogg )
+      ;;
+    --voice)
+      COMPREPLY=( alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Adelaide-PlayAI Angelo-PlayAI Arista-PlayAI Atlas-PlayAI Basil-PlayAI Briggs-PlayAI Calum-PlayAI Celeste-PlayAI Cheyenne-PlayAI Chip-PlayAI Cillian-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Judy-PlayAI Mamaw-PlayAI Mason-PlayAI Mikail-PlayAI Mitch-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI )
       ;;
     -[.,]|-[!S.,-][.,]|\
     -[!-]*[!S.,][.,]|\

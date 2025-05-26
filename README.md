@@ -87,6 +87,8 @@ If no suffix is provided, it works as plain text completions.
     - 16.3.1 [Google AI](#google-search)
   - 16.4 [Mistral AI](#mistral-ai)
   - 16.5 [Groq](#groq)
+    - 16.5.1 [Groq Whisper](#groq-whisper-stt)
+    - 16.5.2 [Groq TTS](#groq-tts)
   - 16.6 [Anthropic](#anthropic)
     - 16.6.1 [Anthropic Web Search](#anthropic-web-search)
   - 16.7 [GitHub Models](#github-models)
@@ -1246,6 +1248,24 @@ Sign in to [Groq](https://console.groq.com/playground).
 Create a new API key or use an existing one to set
 the environmental variable `$GROQ_API_KEY`.
 Run the script with `option --groq`.
+
+
+#### Groq Whisper STT
+
+Groq API has got the speech-to-text model "whisper-large-v3",
+which can be used in the stand-alone STT mode  with command line option -w,
+or as the default STT engine in chat mode.
+
+Check the [configuration file](.chatgpt.conf) to set Groq Whisper STT.
+
+
+#### Groq TTS
+
+Groq also offers the text-to-speech model "playai-tts". This model
+can be used in the stand-alone TTS mode of command line option -z,
+or set up as the preferred chat TTS engine.
+
+Check the [configuration file](.chatgpt.conf) to set Groq TTS.
 
 
 ### Anthropic

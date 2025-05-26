@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.97 | General Commands Manual
+% CHATGPT.SH(1) v0.98 | General Commands Manual
 % mountaineerbr
 % May 2025
 
@@ -315,7 +315,7 @@ before the text prompt itself.
 
 **-M**, **\--max**   \[_NUM_[_-NUM_]]
 
-:     Maximum number of _response tokens_. Def=_2048_.
+:     Maximum number of _response tokens_. Def=_4096_.
 
       A second number in the argument sets model capacity.
 
@@ -350,6 +350,11 @@ before the text prompt itself.
 **\--think**   \[_token_num_]            (Anthropic)
 
 : Amount of effort in reasoning models.
+
+
+**\--format**  \[_mp3_|_wav_|_flac_|_opus_|_aac_|_pcm16_|_mulaw_|_ogg_]
+
+: TTS out-file format. Def= _mp3_.
 
 
 **\--interactive**, **\--no-interactive**
@@ -422,6 +427,11 @@ before the text prompt itself.
 **-t**, **\--temperature**   \[_VAL_]
 
 : Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0). Def=_0_.
+
+
+**\--voice**  [_alloy_|_fable_|_onyx_|_nova_|_shimmer_|_ash_|_ballad_|_coral_|_sage_|_verse_|_Adelaide-PlayAI_|_Angelo-PlayAI_|_Arista-PlayAI.._]
+
+: TTS voice name. OpenAI or PlayAI (Groq) voice names. Def=_echo_, _Aaliyah-PlayAI_.
 
 
 ## Miscellaneous Settings
@@ -652,7 +662,7 @@ or set it as "_._" to pick from the model list.
 List available models with `option -l`.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
-This defaults to _2048_ tokens and _25000_ for reasoning models.
+This defaults to _4096_ tokens and _25000_ for reasoning models.
 
 If a second _NUM_ is given to this option, _maximum model capacity_
 will also be set. The option syntax takes the form of "`-`_NUM/NUM_",
@@ -713,8 +723,14 @@ Additionally, set `option -z` to enable **text-to-speech** (TTS) models and voic
 the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
 "_nova_", or "_shimmer_"). Set the second positional parameter as the
 _voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or
-the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_opus_", "_aac_",
-and "_flac_"), or "_-_" for stdout. Set `options -vz` to _not_ play received output.
+the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_wav_", "_flac_",
+"_opus_", "_aac_", or "_pcm16_"); or set "_-_" for stdout.
+
+Do mind that PlayAI (supported by Groq AI) has different
+output formats such as "_mulaw_" and "_ogg_", as well as different
+voice names such as Aaliyah-PlayAI, Adelaide-PlayAI, Angelo-PlayAI, etc.
+
+Set `options -zv` to _not_ play received output.
 
 
 # MULTIMODAL AUDIO MODELS
@@ -1328,9 +1344,9 @@ set command-line `option -c` instead.
 
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**,
+**MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**, **MOD_ANTHROPIC**,
 
-**MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**
+**MOD_GITHUB**, **MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**
 
 :    Set default model for each endpoint / provider.
 

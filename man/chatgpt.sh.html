@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.97 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.98 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.97 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.98 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">May 2025</p>
 </header>
@@ -474,7 +474,7 @@ text prompt.</p>
 <dt><strong>-M</strong>, <strong>--max</strong>
 [<em>NUM</em>[<em>-NUM</em>]]</dt>
 <dd>
-<p>Maximum number of <em>response tokens</em>. Def=<em>2048</em>.</p>
+<p>Maximum number of <em>response tokens</em>. Def=<em>4096</em>.</p>
 <p>A second number in the argument sets model capacity.</p>
 </dd>
 <dt><strong>-N</strong>, <strong>--modmax</strong> [<em>NUM</em>]</dt>
@@ -508,6 +508,11 @@ Def=<em>1</em>.</p>
 <dt><strong>--think</strong> [<em>token_num</em>] (Anthropic)</dt>
 <dd>
 <p>Amount of effort in reasoning models.</p>
+</dd>
+<dt><strong>--format</strong>
+[<em>mp3</em>|<em>wav</em>|<em>flac</em>|<em>opus</em>|<em>aac</em>|<em>pcm16</em>|<em>mulaw</em>|<em>ogg</em>]</dt>
+<dd>
+<p>TTS out-file format. Def= <em>mp3</em>.</p>
 </dd>
 <dt><strong>--interactive</strong>,
 <strong>--no-interactive</strong></dt>
@@ -573,6 +578,12 @@ prompt.</p>
 <dd>
 <p>Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0).
 Def=<em>0</em>.</p>
+</dd>
+<dt><strong>--voice</strong>
+[<em>alloy</em>|<em>fable</em>|<em>onyx</em>|<em>nova</em>|<em>shimmer</em>|<em>ash</em>|<em>ballad</em>|<em>coral</em>|<em>sage</em>|<em>verse</em>|<em>Adelaide-PlayAI</em>|<em>Angelo-PlayAI</em>|<em>Arista-PlayAI..</em>]</dt>
+<dd>
+<p>TTS voice name. OpenAI or PlayAI (Groq) voice names.
+Def=<em>echo</em>, <em>Aaliyah-PlayAI</em>.</p>
 </dd>
 </dl>
 <h2 id="miscellaneous-settings">Miscellaneous Settings</h2>
@@ -768,7 +779,7 @@ See detailed info on settings for each endpoint at:
 model list. List available models with <code>option -l</code>.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
-defaults to <em>2048</em> tokens and <em>25000</em> for reasoning
+defaults to <em>4096</em> tokens and <em>25000</em> for reasoning
 models.</p>
 <p>If a second <em>NUM</em> is given to this option, <em>maximum model
 capacity</em> will also be set. The option syntax takes the form of
@@ -824,9 +835,15 @@ a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>shimmer</em>”). Set the second positional parameter as the
 <em>voice speed</em> (<em>0.25</em> - <em>4.0</em>), and, finally the
 <em>output file name</em> or the <em>format</em>, such as
-“<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>opus</em>”,
-“<em>aac</em>”, and “<em>flac</em>”), or “<em>-</em>” for stdout. Set
-<code>options -vz</code> to <em>not</em> play received output.</p>
+“<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>wav</em>”,
+“<em>flac</em>”, “<em>opus</em>”, “<em>aac</em>”, or “<em>pcm16</em>”);
+or set “<em>-</em>” for stdout.</p>
+<p>Do mind that PlayAI (supported by Groq AI) has different output
+formats such as “<em>mulaw</em>” and “<em>ogg</em>”, as well as
+different voice names such as Aaliyah-PlayAI, Adelaide-PlayAI,
+Angelo-PlayAI, etc.</p>
+<p>Set <code>options -zv</code> to <em>not</em> play received
+output.</p>
 <h1 id="multimodal-audio-models">MULTIMODAL AUDIO MODELS</h1>
 <p>Audio models, such as <em>gpt-4o-audio</em>, deal with audio input
 and output directly.</p>
@@ -1693,11 +1710,11 @@ command-line <code>option -c</code> instead.</p>
 <strong>MOD_OLLAMA</strong>,</p>
 <p><strong>MOD_MISTRAL</strong>, <strong>MOD_GOOGLE</strong>,
 <strong>MOD_GROQ</strong>,</p>
-<p><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_ANTHROPIC</strong>,
-<strong>MOD_GITHUB</strong>,</p>
+<p><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_SPEECH_GROQ</strong>,
+<strong>MOD_ANTHROPIC</strong>,</p>
 <dl>
-<dt><strong>MOD_NOVITA</strong>, <strong>MOD_XAI</strong>,
-<strong>MOD_DEEPSEEK</strong></dt>
+<dt><strong>MOD_GITHUB</strong>, <strong>MOD_NOVITA</strong>,
+<strong>MOD_XAI</strong>, <strong>MOD_DEEPSEEK</strong></dt>
 <dd>
 <p>Set default model for each endpoint / provider.</p>
 </dd>

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: May 2025
-title: CHATGPT.SH(1) v0.97 \| General Commands Manual
+title: CHATGPT.SH(1) v0.98 \| General Commands Manual
 ---
 
 # NAME
@@ -246,7 +246,7 @@ Unset model max response tokens (chat cmpls only).
 **-NUM**
 
 **-M**, **--max** \[*NUM*\[*-NUM*\]\]  
-Maximum number of *response tokens*. Def=*2048*.
+Maximum number of *response tokens*. Def=*4096*.
 
 A second number in the argument sets model capacity.
 
@@ -269,6 +269,9 @@ Request log probabilities, also see -Z (cmpls, 0 - 5),
 
 **--think** \[*token_num*\] (Anthropic)  
 Amount of effort in reasoning models.
+
+**--format** \[*mp3*\|*wav*\|*flac*\|*opus*\|*aac*\|*pcm16*\|*mulaw*\|*ogg*\]  
+TTS out-file format. Def= *mp3*.
 
 **--interactive**, **--no-interactive**  
 Reasoning model output style (OpenAI).
@@ -313,6 +316,10 @@ Insert the current date and time (timestamp) to the instruction prompt.
 
 **-t**, **--temperature** \[*VAL*\]  
 Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0). Def=*0*.
+
+**--voice** \[*alloy*\|*fable*\|*onyx*\|*nova*\|*shimmer*\|*ash*\|*ballad*\|*coral*\|*sage*\|*verse*\|*Adelaide-PlayAI*\|*Angelo-PlayAI*\|*Arista-PlayAI..*\]  
+TTS voice name. OpenAI or PlayAI (Groq) voice names. Def=*echo*,
+*Aaliyah-PlayAI*.
 
 ## Miscellaneous Settings
 
@@ -504,7 +511,7 @@ as “*.*” to pick from the model list. List available models with
 `option -l`.
 
 Set *maximum response tokens* with `option` “`-`*NUM*” or “`-M` *NUM*”.
-This defaults to *2048* tokens and *25000* for reasoning models.
+This defaults to *4096* tokens and *25000* for reasoning models.
 
 If a second *NUM* is given to this option, *maximum model capacity* will
 also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
@@ -562,9 +569,14 @@ input** (Whisper) support. Additionally, set `option -z` to enable
 the first positional parameter (“*alloy*”, “*echo*”, “*fable*”,
 “*onyx*”, “*nova*”, or “*shimmer*”). Set the second positional parameter
 as the *voice speed* (*0.25* - *4.0*), and, finally the *output file
-name* or the *format*, such as “*./new_audio.mp3*” (“*mp3*”, “*opus*”,
-“*aac*”, and “*flac*”), or “*-*” for stdout. Set `options -vz` to *not*
-play received output.
+name* or the *format*, such as “*./new_audio.mp3*” (“*mp3*”, “*wav*”,
+“*flac*”, “*opus*”, “*aac*”, or “*pcm16*”); or set “*-*” for stdout.
+
+Do mind that PlayAI (supported by Groq AI) has different output formats
+such as “*mulaw*” and “*ogg*”, as well as different voice names such as
+Aaliyah-PlayAI, Adelaide-PlayAI, Angelo-PlayAI, etc.
+
+Set `options -zv` to *not* play received output.
 
 # MULTIMODAL AUDIO MODELS
 
@@ -1128,9 +1140,9 @@ Default instruction language in chat mode.
 
 **MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_AUDIO_GROQ**, **MOD_ANTHROPIC**, **MOD_GITHUB**,
+**MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**, **MOD_ANTHROPIC**,
 
-**MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**  
+**MOD_GITHUB**, **MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**  
 Set default model for each endpoint / provider.
 
 **OPENAI_BASE_URL**

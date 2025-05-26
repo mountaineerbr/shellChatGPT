@@ -181,6 +181,8 @@ _chatgpt.sh()
     {-y,--tik}'[Set tiktoken for chat]' \
     {-Y,--no-tik}'[Unset tiktoken for chat]' \
     {-z,--tts}'[Synthesize speech]' \
+    --format'[TTS out-format]:format:(mp3 opus aac flac wav pcm16  mulaw ogg)' \
+    --voice'[TTS voice]:voice:(alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Adelaide-PlayAI Angelo-PlayAI Arista-PlayAI Atlas-PlayAI Basil-PlayAI Briggs-PlayAI Calum-PlayAI Celeste-PlayAI Cheyenne-PlayAI Chip-PlayAI Cillian-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Judy-PlayAI Mamaw-PlayAI Mason-PlayAI Mikail-PlayAI Mitch-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI)' \
     {-Z,--last}'[Dump last response JSON]' \
     --version'[Print script version]' \
     '1:session/file:__session_or_pr_listf' '*:file:_files'

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.97.2  may/2025  by mountaineerbr  GPL+3
+# v0.98  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -37,8 +37,13 @@ MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Groq models
 MOD_GROQ="${MOD_GROQ:-llama-3.3-70b-versatile}"
 MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
+MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-playai-tts}"
 # Prefer Groq Whisper (chat mode)
 #WHISPER_GROQ=0
+# Prefer Groq TTS (chat mode)
+#SPEECH_GROQ=0
+# Groq TTS voice
+OPTZ_VOICE_GROQ=Aaliyah-PlayAI  #Adelaide-PlayAI, Angelo-PlayAI, Arista-PlayAI, etc
 # Anthropic model
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-7-sonnet-latest}"
 # Github Azure model
@@ -62,7 +67,7 @@ OPTTW=0
 # Top_p probability mass (nucleus sampling)
 #OPTP=1
 # Maximum response tokens
-OPTMAX=2048
+OPTMAX=4096
 # Model capacity (auto)
 #MODMAX=
 # Presence penalty
@@ -94,7 +99,7 @@ OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 # TTS voice speed
 #OPTZ_SPEED=   #0.25 - 4.0
 # TTS out file format
-#OPTZ_FMT=opus   #mp3, opus, aac, flac, wav, pcm16
+OPTZ_FMT=mp3   #mp3, wav, flac, opus, aac, pcm16
 # Recorder command, e.g. "sox -d"
 #REC_CMD=""
 # Media player command, e.g. "cvlc"
@@ -175,7 +180,7 @@ FILEWHISPER="${FILECHAT%/*}/whisper.json"
 FILEWHISPERLOG="${OUTDIR%/*}/whisper_log.txt"
 FILETXT="${CACHEDIR%/}/chatgpt.txt"
 FILEOUT="${OUTDIR%/}/dalle_out.png"
-FILEOUT_TTS="${OUTDIR%/}/tts.${OPTZ_FMT:=opus}"
+FILEOUT_TTS="${OUTDIR%/}/tts.${OPTZ_FMT:=mp3}"
 FILEIN="${CACHEDIR%/}/dalle_in.png"
 FILEINW="${CACHEDIR%/}/whisper_in.${REC_FMT:=mp3}"
 FILEAWE="${CACHEDIR%/}/awesome-prompts.csv"
@@ -310,16 +315,16 @@ Image Generations and Edits (Dall-E)
 	and a text prompt to direct the editing.
 
 	Size of output image may be set as the first positional parameter,
-	which defaults to "1024x1024auto":
+	which defaults to \`1024x1024auto':
 
-	gpt-imge: "1024x1024" (L, Large, Square), "1536x1024" (X, Landscape),
-	           or "1024x1536" (P, Portrait).
-	dall-e-3: "1024x1024", "1792x1024", or "1024x1792".
-	dall-e-2: "256x256" (Small), "512x512" (M, Medium), or "1024x1024".
+	gpt-imge: \`1024x1024' (L, Large, Square), \`1536x1024' (X, Landscape),
+	           or \`1024x1536' (P, Portrait).
+	dall-e-3: \`1024x1024', \`1792x1024', or \`1024x1792'.
+	dall-e-2: \`256x256' (Small), \`512x512' (M, Medium), or \`1024x1024'.
 
 	A parameter \`high', \`medium', \`low', or \`auto' may also be appended
-	to the size parameter for gpt-image quality, such as "Xhigh" or
-	"1536x1024high", and \`hd' or \`standard' for dall-e-3.
+	to the size parameter for gpt-image quality, such as \`Xhigh' or
+	\`1536x1024high', and \`hd' or \`standard' for dall-e-3.
 	
 	For dall-e-3, optionally set the generation style as either \"natural\"
 	or \"vivid\" as one the first positional parameters.
@@ -337,8 +342,12 @@ Text-To-Voice (TTS)
 	the first positional parameter (\`alloy', \`echo', \`fable', \`onyx',
 	\`nova', or \`shimmer'). Set the second positional parameter as the
 	speed (0.25 - 4.0), and, finally the output file name or the format,
-	such as \`./new_audio.mp3' (\`mp3', \`opus', \`aac', and \`flac'),
-	or \`-' for stdout. Set options -vz to not play received output.
+	such as \`./new_audio.mp3' (\`mp3', \`wav', \`flac', \`opus', \`aac',
+	or \`pcm16'); or set \`-' for stdout.
+
+	Groq PlayAI also supports \`mulaw' and \`ogg', and specific voices.
+
+	Set options -zv to not play received output.
 
 
 Environment
@@ -364,11 +373,11 @@ Environment
 	LC_ALL
 	LANG 		Default instruction language (chat mode).
 
-	MOD_CHAT        MOD_IMAGE      MOD_AUDIO
-	MOD_SPEECH      MOD_LOCALAI    MOD_OLLAMA
-	MOD_MISTRAL     MOD_GOOGLE     MOD_GROQ
-	MOD_AUDIO_GROQ  MOD_ANTHROPIC  MOD_GITHUB
-	MOD_NOVITA      MOD_XAI
+	MOD_CHAT        MOD_IMAGE        MOD_AUDIO
+	MOD_SPEECH      MOD_LOCALAI      MOD_OLLAMA
+	MOD_MISTRAL     MOD_GOOGLE       MOD_GROQ
+	MOD_AUDIO_GROQ  MOD_SPEECH_GROQ  MOD_ANTHROPIC
+	MOD_GITHUB      MOD_NOVITA       MOD_XAI
 			Set default model for each endpoint / provider.
 	
 	OPENAI_BASE_URL
@@ -656,7 +665,7 @@ Options
 		Maximum number of \`response tokens'. Def=$OPTMAX.
 		A second number in the argument sets model capacity.
 	-N, --modmax    [NUM]
-		Model capacity token value. Def=_auto_, Fallback=8000.
+		Model capacity token value. Def=auto, Fallback=8000.
 	-a, --presence-penalty   [VAL]
 		Presence penalty  (cmpls/chat, -2.0 - 2.0).
 	-A, --frequency-penalty  [VAL]
@@ -668,6 +677,8 @@ Options
 	--effort  [ high | medium | low ]    (OpenAI)
 	--think   [ token_num ]             (Anthropic)
 		Amount of effort in reasoning models.
+	--format  [ mp3 | wav | flac | opus | aac | pcm16 | mulaw | ogg ]
+		TTS output format. Def=mp3.
 	--interactive, --no-interactive
 		Reasoning model output style (OpenAI).
 	-j, --seed  [NUM]
@@ -698,7 +709,10 @@ Options
 	-t, --temperature  [VAL]
 		Temperature value (cmpls/chat/stt),
 		Def=${OPTT:-0} (0.0 - 2.0), STT=${OPTTW:-0} (0.0 - 1.0).
-
+	--voice   [ alloy | fable | onyx | nova | shimmer ]
+		  [ ash | ballad | coral | sage | verse ]
+		  [ Adelaide-PlayAI | Angelo-PlayAI | Arista-PlayAI.. ]
+		TTS voice name (OpenAI, Groq). Def=echo, Aaliyah-PlayAI.
 	Miscellanous Settings
 	--api-key  [KEY]
 		The API key to use.
@@ -805,7 +819,7 @@ function set_model_epnf
 						elif ((OPTCMPL || OPTSUFFIX))
 						then 	is_amodelf "$1" || is_visionf "$1";
 							OPTC= EPN=0;
-						elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI || GITHUBAI))
+						elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI || GITHUBAI || NOVITAAI || XAI || DEEPSEEK))
 						then 	is_amodelf "$1" || is_visionf "$1";
 							OPTCMPL= EPN=6;
 						elif ((OPTC))
@@ -1324,7 +1338,8 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! _warmsgf 'Err';
 	else 	{   jq -r '.data[].id' "$FILE" | sort && {
-		    {    ((LOCALAI+OLLAMA+MISTRALAI+GOOGLEAI+GROQAI+ANTHROPICAI+GITHUBAI+NOVITAAI)) || [[ $BASE_URL != "$OPENAI_BASE_URL_DEF" ]] ||
+		    {    ((LOCALAI+OLLAMA+MISTRALAI+GOOGLEAI+GROQAI+ANTHROPICAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK)) ||
+		    [[ $BASE_URL != "$OPENAI_BASE_URL_DEF" ]] ||
 		    printf '%s\n' text-moderation-latest text-moderation-stable ;}
 		    ((!MISTRALAI)) || printf '%s\n' mistral-moderation-latest;
 		  }
@@ -2833,7 +2848,7 @@ function cmd_runf
 			      ((OPTV)) || printf "${BWHITE}%s\\n${NC}" "Google Search Tool" >&2;
 			      REPLY="$*" SKIP=1 PSKIP=1 JUMP=1;
 			      return 0;
-			    elif ((!(ANTHROPICAI+GROQAI+GOOGLEAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK) )) && case "$MOD" in
+			    elif ((!(ANTHROPICAI+GROQAI+GOOGLEAI+LOCALAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK) )) && case "$MOD" in
 			    	*-search*) 	:;;
 			    	*) 	! :;;
 			    	esac;
@@ -3133,7 +3148,7 @@ function fmt_ccf
 			elif [[ -s $var ]] && is_audiof "$var"
 			then 	ext=${var##*.};
 				((${#ext}<7)) || ext=;
-				case "$ext" in mp3|opus|aac|flac|wav|pcm16) :;;
+				case "$ext" in mp3|opus|aac|flac|wav|pcm16|ogg) :;;
 					*)  _warmsgf 'Warning:' "Filetype may be unsupported -- ${ext:-extension_err}" ;;
 				esac
 				((${#1})) && printf ',';
@@ -4216,7 +4231,11 @@ function _ttsf
 	typeset FOUT VOICEZ SPEEDZ fname input max ret pid var secs ok n m i
 	typeset -a SPIN_CHARS=("${SPIN_CHARS8[@]}");
 	typeset EPN=10;
-	((${#OPTZ_VOICE})) && VOICEZ=$OPTZ_VOICE
+	if ((!GROQAI && SPEECH_GROQ > 0)) || ((GROQAI && SPEECH_GROQ >= 0))
+	then 	MOD_SPEECH=$MOD_SPEECH_GROQ
+		VOICEZ=$OPTZ_VOICE_GROQ
+	else 	VOICEZ=$OPTZ_VOICE
+	fi
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
 	
 	((${#})) || [[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
@@ -4354,12 +4373,19 @@ $( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}
 }
 function ttsf
 {
-	if ((CHAT_ENV))
-	then 	typeset BASE_URL OPENAI_API_KEY ENDPOINTS EPN MOD;
-		ENDPOINTS=(); MOD=$MOD_SPEECH;
+	((CHAT_ENV)) &&
+	if ((!GROQAI && SPEECH_GROQ > 0)) || ((GROQAI && SPEECH_GROQ >= 0))
+	then 	typeset BASE_URL OPENAI_API_KEY ENDPOINTS EPN MOD_SPEECH;
+		ENDPOINTS=(); MOD_SPEECH=$MOD_SPEECH_GROQ;
 		EPN=10 ENDPOINTS[10]="/audio/speech";
+		BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF};
+		OPENAI_API_KEY=${GROQ_API_KEY:-$OPENAI_API_KEY};
+	else
+		typeset GROQAI SPEECH_GROQ;
+		typeset BASE_URL OPENAI_API_KEY ENDPOINTS EPN;
+		ENDPOINTS=(); EPN=10 ENDPOINTS[10]="/audio/speech";
 		BASE_URL=$OPENAI_BASE_URL_DEF;
-		OPENAI_API_KEY=$OPENAI_API_KEY_DEF;  #only OpenAI
+		OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
 	fi
 	_ttsf "$@";
 }
@@ -4370,15 +4396,21 @@ function __set_voicef
 		#alloy|echo|fable|onyx|nova|shimmer
 		#alloy|ash|ballad|coral|echo|sage|shimmer|verse  #realtime
 		[Aa][Ll][Ll][Oo][Yy]|[Ee][Cc][Hh][Oo]|[Ff][Aa][Bb][Ll][Ee]|[Oo][Nn][YyIi][Xx]|[Nn][Oo][Vv][Aa]|[Ss][Hh][Ii][Mm][Mm][Ee][Rr]|\
-		[Ss][Kk][Yy]|[Aa][Ss][Hh]|[Bb][Aa][Ll][Ll][Aa][Dd]|[Cc][Oo][Rr][Aa][Ll]|[Ss][Aa][Gg][Ee]|[Vv][Ee][Rr][Ss][Ee]) 	VOICEZ=$1;;
+		[Ss][Kk][Yy]|[Aa][Ss][Hh]|[Bb][Aa][Ll][Ll][Aa][Dd]|[Cc][Oo][Rr][Aa][Ll]|[Ss][Aa][Gg][Ee]|[Vv][Ee][Rr][Ss][Ee]|\
+		Aaliyah-PlayAI|Adelaide-PlayAI|Angelo-PlayAI|Arista-PlayAI|Atlas-PlayAI|Basil-PlayAI|Briggs-PlayAI|Calum-PlayAI|\
+		Celeste-PlayAI|Cheyenne-PlayAI|Chip-PlayAI|Cillian-PlayAI|Deedee-PlayAI|Eleanor-PlayAI|Fritz-PlayAI|Gail-PlayAI|\
+		Indigo-PlayAI|Jennifer-PlayAI|Judy-PlayAI|Mamaw-PlayAI|Mason-PlayAI|Mikail-PlayAI|Mitch-PlayAI|Nia-PlayAI|\
+		Quinn-PlayAI|Ruby-PlayAI|Thunder-PlayAI) 	VOICEZ=$1;;
 		*) 	false;;
 	esac
 }
 function __set_outfmtf
 {
-	case "$1" in  #mp3|opus|aac|flac
-		[Mm][Pp]3|[Oo][Pp][Uu][Ss]|[Aa][Aa][Cc]|[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=$1;;
-		*?.[Mm][Pp]3|*?.[Oo][Pp][Uu][Ss]|*?.[Aa][Aa][Cc]|*?.[Ff][Ll][Aa][Cc]) 	OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
+	case "$1" in  #mp3|opus|aac|flac|wav  mulaw|ogg
+		[Mm][Pp]3|[Oo][Pp][Uu][Ss]|[Aa][Aa][Cc]|[Ff][Ll][Aa][Cc]|[Ww][Aa][Vv]|[Mm][Uu][Ll][Aa][Ww]|[Oo][Gg][Gg])
+			OPTZ_FMT=$1;;
+		*?.[Mm][Pp]3|*?.[Oo][Pp][Uu][Ss]|*?.[Aa][Aa][Cc]|*?.[Ff][Ll][Aa][Cc]|*?.[Ww][Aa][Vv]|*?.[Mm][Uu][Ll][Aa][Ww]|*?.[Oo][Gg][Gg])
+			OPTZ_FMT=${1##*.} FILEOUT_TTS=$1;;
 		*?/) 	[[ -d $1 ]] && FILEOUT_TTS=${1%%/}/${FILEOUT_TTS##*/};;
 		-) 	FOUT='-';;
 		*) 	false;;
@@ -5702,7 +5734,7 @@ o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
 S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
 U:cat  v:verbose  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
-no-time  awesome-zh  awesome
+no-time  format  voice  awesome-zh  awesome
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -5711,7 +5743,7 @@ no-time  awesome-zh  awesome
 
 		case "$OPTARG" in
 			$name|$name=)
-				if [[ ${optstring}effort:budget:think: = *"$opt":* ]]
+				if [[ ${optstring}effort:budget:think:format:voice: = *"$opt":* ]]
 				then 	OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
 				fi;;
@@ -5758,7 +5790,7 @@ no-time  awesome-zh  awesome
 			REASON_EFFORT=${OPTARG:?--effort/--think -- level/integer};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME REASON_EFFORT REASON_INTERACTIVE;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME REASON_EFFORT REASON_INTERACTIVE;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -5845,6 +5877,8 @@ no-time  awesome-zh  awesome
 		W) 	((++OPTW)); ((++OPTWW)); WSKIP=1;;
 		y) 	OPTTIK=1;;
 		Y) 	OPTTIK= OPTYY=1;;
+		format) OPTZ_FMT=$OPTARG;;
+		voice)  OPTZ_VOICE=$OPTARG OPTZ_VOICE_GROQ=$OPTARG;;
 		z) 	OPTZ=1;;
 		Z) 	((++OPTZZ));;
 		\?) 	exit 1;;
@@ -5853,7 +5887,7 @@ done
 shift $((OPTIND -1))
 unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
-typeset -l VOICEZ OPTZ_FMT OPTS_QUALITY  #lowercase vars
+typeset -l OPTS_QUALITY  #lowercase vars
 
 set -o ${READLINEOPT:-emacs};
 bind 'set enable-bracketed-paste on';
@@ -5919,7 +5953,9 @@ else
 	elif ((MISTRALAI)) || [[ $OPENAI_BASE_URL = *mistral* ]]
 	then 	MOD=$MOD_MISTRAL
 	elif ((GROQAI))
-	then 	MOD=$MOD_GROQ MOD_AUDIO=$MOD_AUDIO_GROQ
+	then 	MOD=$MOD_GROQ
+		((WHISPER_GROQ >= 0)) && MOD_AUDIO=$MOD_AUDIO_GROQ
+		((SPEECH_GROQ >= 0)) && MOD_SPEECH=$MOD_SPEECH_GROQ
 	elif ((XAI))
 	then 	MOD=$MOD_XAI
 	elif ((ANTHROPICAI))
@@ -5937,10 +5973,11 @@ else
 			((STURN && !(OPTW+OPTZ+OPTI) ))
 		then 	MOD=$MOD_CHAT
 		elif ((OPTW)) && ((!MTURN))  #whisper endpoint
-		then 	((GROQAI)) && MOD_AUDIO=$MOD_AUDIO_GROQ
+		then 	((GROQAI)) && ((WHISPER_GROQ >= 0)) && MOD_AUDIO=$MOD_AUDIO_GROQ
 			MOD=$MOD_AUDIO
 		elif ((OPTZ)) && ((!MTURN))  #speech endpoint
-		then 	MOD=$MOD_SPEECH
+		then 	((GROQAI)) && ((SPEECH_GROQ >= 0)) && MOD_SPEECH=$MOD_SPEECH_GROQ
+			MOD=$MOD_SPEECH
 		elif ((OPTI))
 		then 	MOD=$MOD_IMAGE
 		fi
@@ -6072,6 +6109,7 @@ then
 				else .[] | select(.id | contains(\"$*\"))
 				end";
 		else
+			sysmsgf 'Note:' 'Specify model name without provider';
 			curl -L -\# -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
 			-H "X-GitHub-Api-Version: 2022-11-28" https://models.github.ai/catalog/models |
 			jq -r '.[].id' | tee -- "$FILEMODEL";
@@ -6451,7 +6489,7 @@ else
 		OPTT="${OPTT-0.8}";  #!#
 
 		#presencePenalty may be incompatible with some models!
-		((MOD_REASON+ANTHROPICAI+LOCALAI+OLLAMA)) ||
+		((MOD_REASON+ANTHROPICAI+LOCALAI+OLLAMA+NOVITAAI+GROQAI)) ||  #xai+deepseek?
 		{ ((${INSTRUCTION+1}0)) && ((!${#INSTRUCTION})) ;} || OPTA="${OPTA-0.6}";
 
 		#stop sequences
@@ -6473,7 +6511,8 @@ else
 	elif is_visionf "$MOD" || ((MOD_REASON))
 	then 	MULTIMODAL=1;
 	fi;
-	((MULTIMODAL>1)) && OPTZ_FMT="pcm16";  #audio-model preview
+	((MULTIMODAL>1 && STREAM)) && OPTZ_FMT="pcm16";  #audio-model preview
+	#non-streaming mode supports more audio formats!
 	((OPTV)) || sysmsgf 'Language Model:' "$MOD$( ((MULTIMODAL)) && echo ' / multimodal')";
 	
 	restart_compf ;start_compf
@@ -6677,12 +6716,13 @@ else
 							is_amodelf "$MOD" && _sysmsgf $'\nTranscription:' 'generating..';
 							REPLY=$(
 								set --;
-								((MISTRALAI+NOVITAAI+GITHUBAI+XAI)) &&
+								((ANTHROPICAI+GROQAI+GOOGLEAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK)) &&
 								  BASE_URL=$OPENAI_BASE_URL_DEF OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
 								
-								((WHISPER_GROQ && !GROQAI)) &&
-								  BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF} OPENAI_API_KEY=${GROQ_API_KEY:-$OPENAI_API_KEY};
-								((GROQAI+WHISPER_GROQ)) && MOD_AUDIO=$MOD_AUDIO_GROQ;
+								if ((!GROQAI && WHISPER_GROQ > 0)) || ((GROQAI && WHISPER_GROQ >= 0))
+								then 	MOD_AUDIO=$MOD_AUDIO_GROQ;
+									BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF} OPENAI_API_KEY=${GROQ_API_KEY:-$OPENAI_API_KEY};
+								fi
 
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= MULTIMODAL=;
 								
@@ -7086,7 +7126,7 @@ then  printf '"modalities": ["text", "audio"], "audio": { "voice": "%s", "format
 else  printf '"modalities": ["text"],'
 fi ) \
 $( ((OPTN<2)) || ((MISTRALAI+GROQAI+ANTHROPICAI)) || echo "\"n\": ${OPTN:-1}," ) \
-$( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
+$( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
 \"model\": \"$MOD\"${OPTT:+, \"temperature\": ${OPTT:-0}}${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
 }"
 		fi
@@ -7188,14 +7228,13 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI+GITHUBAI)) || ((!STREAM)) || echo "\"stream_o
 			if ((!${#ans})) && ((RET_PRF<120))
 			then
 				((STREAM)) && file=$FILESTREAM || file=$FILE;
-				##((GOOGLEAI && STREAM)) && file=$FILE_PRE;
 
 				jq -e '.' "$file" >&2 2>/dev/null || cat -- "$file" >&2 ||
 				((OPTCMPL)) || ! _warmsgf 'Err';
 				_warmsgf "(response empty)";
 				((${#REPLY}<1640)) || read_charf -t 3 >/dev/null 2>&1;
 
-				((!(LOCALAI+OLLAMA+GOOGLEAI+MISTRALAI+GROQAI+ANTHROPICAI+GITHUBAI) )) &&
+				((!(ANTHROPICAI+GROQAI+GOOGLEAI+LOCALAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK) )) &&
 				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
 					&& var=$(jq -e '(.error.message?)//(.[]?|.error?)//empty' "$file" 2>/dev/null) \
 					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]] \
