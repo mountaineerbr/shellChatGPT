@@ -1164,7 +1164,7 @@ of the desired image(s) is required. The maximum length is 1000
 characters.
 
 This script also supports xAI image generation model
-with invocation `chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"`.
+with invocation "`chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"`".
 
 
 ## 2. Image Variations

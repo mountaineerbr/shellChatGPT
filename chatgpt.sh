@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.98  may/2025  by mountaineerbr  GPL+3
+# v0.98.1  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -66,7 +66,7 @@ STREAM=1
 OPTTW=0
 # Top_p probability mass (nucleus sampling)
 #OPTP=1
-# Maximum response tokens
+# Maximum response tokens (unset with 0)
 OPTMAX=4096
 # Model capacity (auto)
 #MODMAX=
@@ -771,7 +771,7 @@ ENDPOINTS=(
 #set model endpoint based on its name
 function set_model_epnf
 {
-	unset OPTEMBED TKN_ADJ EPN6 MULTIMODAL
+	unset OPTEMBED TKN_ADJ MULTIMODAL
 	typeset -l model; model=${1##*/};
 	set -- "${model##ft:}";
 
@@ -792,7 +792,7 @@ function set_model_epnf
 				esac;;
 		o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*|*audio*)
 				is_amodelf "$1" || is_visionf "$1";
-				EPN=6 EPN6=6  OPTB= OPTBB=
+				EPN=6 OPTB= OPTBB=
 				((OPTC)) && OPTC=2
 				#set token adjustment per message
 				case "$MOD" in
@@ -1344,10 +1344,12 @@ function list_modelsf
 		    ((!MISTRALAI)) || printf '%s\n' mistral-moderation-latest;
 		  }
 		} | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
-	fi || {
-		! _warmsgf 'Err:' "Model ${1:+-- }${1:-list}";
-		((${#1})) && ! list_modelsf; return 1;
-	};
+	fi;
+}
+function list_models_errf
+{
+	_warmsgf 'Err:' "Model ${1:+-- }${1:-list}";
+	((${#1})) && list_modelsf; return 1;
 }
 
 function pick_modelf
@@ -1813,21 +1815,25 @@ function set_imgsizef
 }
 
 # Nill, null, none, inf; Nil, nul; -N---, --- (chat);
-GLOB_NILL='?([Nn])[OoIiUu][NnLl][EeLlFf]' GLOB_NILL2='?([Nn])[IiUu][Ll]' GLOB_NILL3='?([Nn])-*(-)'
+GLOB_NILL='?(-)?([Nn])[OoIiUu][NnLl][EeLlFf]' GLOB_NILL2='?(-)?([Nn])[IiUu][Ll]' GLOB_NILL3='?(-)?([Nn])-*(-)'
 function set_maxtknf
 {
 	typeset buff
-	set -- "${*:-$OPTMAX}"
-	set -- "${*##[+-]}"; set -- "${*%%[+-]}"; set -- "${*// }";
+	set -- "${*:-$OPTMAX}";
+	set -- "${1##[+-]}"; set -- "${1%%[+-]}";
 
-	case "$*" in
-		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
-			((OPTMAX_NILL)) && unset OPTMAX_NILL || OPTMAX_NILL=1;;
+	case "$1" in
+		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3|0|*[/-]0|0[/-]*|*[/-]0[/-]*)
+			set -- "${1//[/-]0[/-]/-}"; set -- "${1%%[/-]0}"
+			set -- "${1##0[/-]}"; set -- "${1##*[!0-9]}"
+			((10#${1:-0})) && MODMAX="$1"
+			((OPTMAX_NILL)) && unset OPTMAX_NILL || OPTMAX_NILL=1 ;;
 		*[0-9][!0-9][0-9]*)
-			OPTMAX="${*##${*%[!0-9]*}}" MODMAX="${*%%"$OPTMAX"}"
-			OPTMAX="${OPTMAX##[!0-9]}" OPTMAX_NILL= ;;
+			OPTMAX="${1##${1%[!0-9]*}}" MODMAX="${1%%"$OPTMAX"}"
+			OPTMAX="${OPTMAX##*[!0-9]}" MODMAX="${MODMAX##*[!0-9]}"
+			unset OPTMAX_NILL ;;
 		*[0-9]*)
-			OPTMAX="${*//[!0-9]}" OPTMAX_NILL= ;;
+			OPTMAX="${1//[!0-9]}"; unset OPTMAX_NILL ;;
 	esac
 	if ((OPTMAX>MODMAX))
 	then 	buff="$MODMAX" MODMAX="$OPTMAX" OPTMAX="$buff" 
@@ -2020,9 +2026,9 @@ function cmd_runf
 	args=("$@"); set -- "$*";
 
 	case "$*" in
-		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3)
+		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3|0|*[/-]0|0[/-]*|*[/-]0[/-]*)
 			set_maxtknf nill
-			cmdmsgf 'Response' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} tkns"
+			cmdmsgf 'Response' "$OPTMAX${OPTMAX_NILL:+-inf} tkns"
 			;;
 		-.[0-9]*|-[0-9]*.*|.*[0-9]*|[0-9]*.*|[/!].*[0-9]*|[/!][0-9]*.*|--.*[0-9]*|--[0-9]*.*)
 			set -- "${*##*([$IFS/!-])}";
@@ -2040,10 +2046,11 @@ function cmd_runf
 				set_maxtknf "${*##?([Mm]ax|-M)*([$IFS])}";
 				;;
 			esac;
+			((OPTMAX<MODMAX)) || ((OPTMAX=(MODMAX/2)+1));
 			if ((HERR))
 			then 	unset HERR
 				_sysmsgf 'Context Length:' 'error reset'
-			fi ;cmdmsgf 'Response / Capacity' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
+			fi ;cmdmsgf 'Response / Capacity' "$OPTMAX${OPTMAX_NILL:+-inf} / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
 			set -- "${*//[!0-9.]}"
@@ -2113,6 +2120,7 @@ function cmd_runf
 			set -- "${*##@(block|blk)$SPC}"
 			_printbf '>';
 			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
+			((${#BLOCK_USR})) && BLOCK_USR=$(trim_trailf "$BLOCK_USR" $',*([\n\t ])')
 			cmdmsgf $'\nUser Block:' "${BLOCK_USR:-unset}";
 			;;
 		effort*|budget*|think*)
@@ -2218,7 +2226,7 @@ function cmd_runf
 			;;
 		-l*|models|list-models)
 			set -- "${*##@(-l|models|list-models)*([$IFS])}";
-			list_modelsf "$*" | less >&2;
+			list_modelsf "$*" >&2 || list_models_errf "$*" >&2;
 			;;
 		-m*|model*|mod*)
 			set -- "${*##@(-m|model|mod)}"; set -- "${1//[$IFS]}"
@@ -2235,7 +2243,7 @@ function cmd_runf
 			fi
 			send_tiktokenf '/END_TIKTOKEN/'
 			cmdmsgf 'Model Name' "$MOD$( ((MULTIMODAL)) && printf ' / %s' 'multimodal')"
-			cmdmsgf 'Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
+			cmdmsgf 'Response / Capacity:' "$OPTMAX${OPTMAX_NILL:+-inf} / $MODMAX tkns"
 			;;
 		markdown*|md*)
 			((OPTMD)) || (OPTMD=1 cmd_runf //"${args[@]}");
@@ -2502,7 +2510,7 @@ function cmd_runf
 			api-path      "${BASE_URL}${ENDPOINTS[EPN]}" \
 			model-name    "${MOD:-?}${modmodal}${REASON_EFFORT:+ / $REASON_EFFORT}" \
 			model-cap     "${MODMAX:-?}" \
-			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+${EPN6:+ - inf.}}" \
+			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+-inf}" \
 			${REASON_EFFORT:+reason effort    "$REASON_EFFORT"} \
 			context-prev  "${MAX_PREV:-${TKN_PREV:-?}}  (${HIST_LOOP:-0} turns)" \
 			token-rate    "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
@@ -3831,7 +3839,7 @@ function set_optsf
 	    check_optrangef "$OPTBB" 0   5 'Logprobs'
 
 	    check_optrangef "$OPTP"  0.0 1.0 'Top_p'
-	    ((!OPTMAX && OPTBB)) ||
+	    ((!OPTMAX && OPTBB)) || ((OPTMAX_NILL)) || 
 	    check_optrangef "$OPTMAX"  1 "$MODMAX" 'Response Max Tokens'
 	  }
 	  check_optrangef "$OPTT"  0.0 $( ((MISTRALAI+ANTHROPICAI)) && echo 1.0 || echo 2.0) 'Temperature'  #whisper 0.0 - 1.0
@@ -3842,17 +3850,17 @@ function set_optsf
 	  printf "${RED}Warning: Bad %s${NC}${BRED} -- %s  ${NC}${YELLOW}(integer)${NC}\\n" "seed" "$OPTSEED" >&2;;
 	esac
 
-	[[ -n $OPTA ]] && OPTA_OPT="\"presence_penalty\": $OPTA," || unset OPTA_OPT
-	[[ -n $OPTAA ]] && OPTAA_OPT="\"frequency_penalty\": $OPTAA," || unset OPTAA_OPT
+	((OPTN<2)) && unset OPTN_OPT || ((MISTRALAI+GROQAI+ANTHROPICAI)) || OPTN_OPT="\"n\": ${OPTN:-1},";
+	case "$OPTT" in *[!$IFS]*) 	OPTT_OPT="\"temperature\": ${OPTT:-0},";; *) 	unset OPTT_OPT;; esac;
+	case "$OPTA" in *[!$IFS]*) 	OPTA_OPT="\"presence_penalty\": $OPTA,";; *) 	unset OPTA_OPT;; esac;
+	case "$OPTAA" in *[!$IFS]*) 	OPTAA_OPT="\"frequency_penalty\": $OPTAA,";; *) 	unset OPTAA_OPT;; esac;
 	{ ((OPTB)) && OPTB_OPT="\"best_of\": $OPTB," || unset OPTB OPTB_OPT;
-	  ((OPTBB)) && OPTBB_OPT="\"logprobs\": $OPTBB," || unset OPTBB OPTBB_OPT; } 2>/dev/null
-	[[ -n $OPTP ]] && OPTP_OPT="\"top_p\": $OPTP," || unset OPTP_OPT
-	[[ -n $OPTKK ]] && OPTKK_OPT="\"top_k\": $OPTKK," || unset OPTKK_OPT
+	  ((OPTBB)) && OPTBB_OPT="\"logprobs\": $OPTBB," || unset OPTBB OPTBB_OPT; }  #2>/dev/null
+	case "$OPTP" in *[!$IFS]*) 	OPTP_OPT="\"top_p\": $OPTP,";; *) 	unset OPTP_OPT;; esac;
+	case "$OPTKK" in *[!$IFS]*) 	OPTKK_OPT="\"top_k\": $OPTKK,";; *) 	unset OPTKK_OPT;; esac;
 	if ((OPTSUFFIX+${#SUFFIX})); then 	OPTSUFFIX_OPT="\"suffix\": \"$(escapef "$SUFFIX")\","; else 	unset OPTSUFFIX_OPT; fi;
-	if [[ -n $OPTSEED ]]
-	then #seed  integer or null: openai, groq, ollama.
-	  OPTSEED_OPT="\"${MISTRALAI:+random_}seed\": $OPTSEED," || unset OPTSEED
-	fi
+	#seed  integer or null: openai, groq, ollama.
+	case "$OPTSEED" in *[!$IFS]*) 	OPTSEED_OPT="\"${MISTRALAI:+random_}seed\": $OPTSEED,";; *) 	unset OPTSEED;; esac;
 	if ((STREAM))
 	then 	STREAM_OPT="\"stream\": true,";
 	else 	STREAM_OPT="\"stream\": false,"; unset STREAM;
@@ -3870,15 +3878,15 @@ function set_optsf
 			OPTSTOP="${OPTSTOP}${OPTSTOP:+,}\"$(escapef "$s")\""
 		done
 		((ANTHROPICAI)) && stop="stop_sequences" || stop="stop";
-		if ((n==1))
+		if ((n==1)) && ((!(ANTHROPICAI+NOVITAAI+XAI) ))
 		then 	OPTSTOP="\"${stop}\":${OPTSTOP},"
 		elif ((n))
 		then 	OPTSTOP="\"${stop}\":[${OPTSTOP}],"
 		fi; STOPS_OLD=("${STOPS[@]}");
 	fi #https://help.openai.com/en/articles/5072263-how-do-i-use-stop-sequences
 	((EPN==6)) || {
-	  [[ "$RESTART" = "$RESTART_OLD" ]] || restart_compf
-	  [[ "$START" = "$START_OLD" ]] || start_compf
+	  case "$RESTART" in "$RESTART_OLD") 	:;; *) 	restart_compf;; esac;
+	  case "$START" in "$START_OLD") 	:;; *) 	start_compf;; esac;
 	}
 
 	case "${MOD_PRICE[*]}" in
@@ -4692,8 +4700,8 @@ function _is_rgbf
 function embedf
 {
 	BLOCK="{
-$( ((MISTRALAI)) || echo "\"temperature\": ${OPTT:-0}, $OPTP_OPT
-\"max_tokens\": $OPTMAX,${OPTN:+ \"n\": ${OPTN:-1}}," )
+$( ((MISTRALAI)) || echo "$OPTT_OPT $OPTP_OPT $OPTN_OPT
+\"max_tokens\": $OPTMAX," )
 \"model\": \"$MOD\", ${BLOCK_USR:+$NL}$BLOCK_USR
 \"input\": \"${*:?INPUT ERR}\"
 }"
@@ -6158,6 +6166,7 @@ pick_modelf "$MOD"
 [[ -n $OPTNN && -z $OPTMM ]] ||
 set_maxtknf "${OPTMM:-$OPTMAX}"
 [[ -n $OPTNN ]] && MODMAX="$OPTNN"
+((OPTMAX<MODMAX)) || ((OPTMAX=(MODMAX/2)+1))
 
 #model options
 ((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN)) ||
@@ -6218,7 +6227,7 @@ fi; REPLY= RET=;
 #tips and warnings
 if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) && [[ $MOD != *moderation* ]]
 then 	if ((!OPTHH)) && ((!OPTV))
-	then 	sysmsgf "Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+${EPN6:+ - inf.}} / $MODMAX tkns"
+	then 	sysmsgf "Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+-inf} / $MODMAX tkns"
 	elif ((OPTHH>1))
 	then 	sysmsgf 'Language Model:' "$MOD"
 	fi
@@ -6229,6 +6238,9 @@ for arg  #!# escape input
 do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
 done; unset arg init;
+
+((${#BLOCK_USR})) && BLOCK_USR=$(trim_trailf "$BLOCK_USR" $',*([\n\t ])')
+((${#BLOCK_CMD})) && BLOCK_CMD=$(trim_trailf "$BLOCK_CMD" $',*([\n\t ])')
 
 #handle options of combined modes: chat + whisper + tts
 if ((OPTW+OPTZ)) && ((${#}))
@@ -6299,7 +6311,7 @@ then 	get_infof;
 elif ((OPTL))  #model list
 then 	#(shell completion script)
 	((OPTL>2)) && [[ -s $FILEMODEL ]] && cat -- "$FILEMODEL" ||
-	list_modelsf "$@";
+	list_modelsf "$@" || list_models_errf "$@";
 elif ((OPTFF))
 then 	if [[ -s "$CHATGPTRC" ]] && ((OPTFF<2))
 	then 	_edf "$CHATGPTRC";
@@ -7051,7 +7063,21 @@ else
 
 		if ((GOOGLEAI))
 		then
-			BLOCK_SAFETY="\"safetySettings\": [
+    			var="  $( ((OPTMAX_NILL)) || echo "\"maxOutputTokens\": ${OPTMAX}," )
+  ${OPTSTOP/stop/stopSequences} ${OPTP_OPT/_p/P}
+  ${OPTKK_OPT/_k/K} ${OPTT_OPT}
+  ${BLOCK_USR}"
+    			case "$var" in *[!$IFS]*)
+				var="\"generationConfig\": {${NL}${var%%,*([$'\n '])}${NL}  },";;
+			esac
+			BLOCK="{
+$(
+  case "$MOD" in *gemini-1.0*) 	((MAIN_LOOP)) || _warmsgf 'gemini-1.0:' 'system instruction unsupported'; exit;; esac;  #gemini-1.0 series deprecation: 15/feb/2025
+  ((${#GINSTRUCTION}+${#GINSTRUCTION_PERM})) && echo "\"systemInstruction\": { \"role\": \"system\", \"parts\": [ { \"text\": \"$(escapef "${GINSTRUCTION:-$GINSTRUCTION_PERM}")\" } ] },"
+)
+$BLOCK
+$var
+\"safetySettings\": [
   {\"category\": \"HARM_CATEGORY_DANGEROUS_CONTENT\",
     \"threshold\": \"BLOCK_NONE\"},
   {\"category\": \"HARM_CATEGORY_SEXUALLY_EXPLICIT\",
@@ -7060,20 +7086,8 @@ else
     \"threshold\": \"BLOCK_NONE\"},
   {\"category\": \"HARM_CATEGORY_HARASSMENT\",
     \"threshold\": \"BLOCK_NONE\"}
-    ],"
-			BLOCK="{
-$(
-  case "$MOD" in *gemini-1.0*) 	((MAIN_LOOP)) || _warmsgf 'gemini-1.0:' 'system instruction unsupported'; exit;; esac;  #gemini-1.0 series deprecation: 15/feb/2015
-  ((${#GINSTRUCTION}+${#GINSTRUCTION_PERM})) && echo "\"systemInstruction\": { \"role\": \"system\", \"parts\": [ { \"text\": \"$(escapef "${GINSTRUCTION:-$GINSTRUCTION_PERM}")\" } ] }," )
-$BLOCK
-$BLOCK_SAFETY
-\"generationConfig\": {
-    ${OPTSTOP/stop/stopSequences}
-    ${OPTP_OPT/_p/P} ${OPTKK_OPT/_k/K}
-    ${OPTT:+\"temperature\": ${OPTT:-0},}
-    \"maxOutputTokens\": ${OPTMAX}${BLOCK_USR:+,$NL}${BLOCK_USR}
-  }
-}"
+    ]
+}"; var=;
 #PaLM: HARM_CATEGORY_UNSPECIFIED HARM_CATEGORY_DEROGATORY HARM_CATEGORY_TOXICITY HARM_CATEGORY_VIOLENCE HARM_CATEGORY_SEXUAL HARM_CATEGORY_MEDICAL HARM_CATEGORY_DANGEROUS
 		elif ((OLLAMA))
 		then
@@ -7083,13 +7097,14 @@ $( ((EPN!=6)) && echo "\"system\": \"$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}
 $BLOCK
 \"model\": \"$MOD\", $STREAM_OPT $OPT_KEEPALIVE_OPT
 \"options\": {
-  $( ((OPTMAX_NILL)) && "\"num_predict\": -2" || echo "\"num_predict\": $OPTMAX" ),
-  ${OPTT:+\"temperature\": ${OPTT:-0},} $OPTSEED_OPT
+  $( ((OPTMAX_NILL)) && echo "\"num_predict\": -2" || echo "\"num_predict\": $OPTMAX" ),
+  $OPTT_OPT $OPTSEED_OPT
   $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
   $OPTB_OPT $OPTBB_OPT $OPTSTOP
   \"num_ctx\": ${MODMAX}${BLOCK_USR:+,$NL}${BLOCK_USR}
   }
 }"
+#https://www.reddit.com/r/ollama/comments/1e4hklk/how_does_num_predict_and_num_ctx_work/
 		else
 			BLOCK="{
 $( ((ANTHROPICAI)) && ((EPN==6)) && ((${#INSTRUCTION_OLD})) && echo "\"system\": \"$(escapef "$INSTRUCTION_OLD")\"," )
@@ -7101,11 +7116,11 @@ then 	max="max_tokens_to_sample"
 elif ((ANTHROPICAI+MISTRALAI+NOVITAAI))
 then 	max="max_tokens"
 fi
+((OPTMAX_NILL && EPN==6 && !ANTHROPICAI)) || echo "\"${max:-max_completion_tokens}\": $OPTMAX,"
+
 case "$MOD" in
 	o[1-9]*-preview*)  REASON_EFFORT=;;
 esac
-((OPTMAX_NILL && EPN==6)) || echo "\"${max:-max_completion_tokens}\": $OPTMAX,"
-
 if ((ANTHROPICAI)) && ((${REASON_EFFORT:+1}0))
 then 	case "$MOD" in claude-3-[5-9]-sonnet*|claude*-[4-9]*)
 		echo "\"thinking\": {
@@ -7118,16 +7133,15 @@ then 	echo "\"reasoning_effort\": \"${REASON_EFFORT:-medium}\","
 fi
 )
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
-$OPTB_OPT $OPTBB_OPT $OPTSTOP $OPTSEED_OPT
+$OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 $(
 is_amodelf "$MOD" &&
 if ((OPTW+OPTZ))
 then  printf '"modalities": ["text", "audio"], "audio": { "voice": "%s", "format": "%s" },' "${OPTZ_VOICE:-echo}" "${OPTZ_FMT:-pcm16}"
 else  printf '"modalities": ["text"],'
-fi ) \
-$( ((OPTN<2)) || ((MISTRALAI+GROQAI+ANTHROPICAI)) || echo "\"n\": ${OPTN:-1}," ) \
+fi )
 $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
-\"model\": \"$MOD\"${OPTT:+, \"temperature\": ${OPTT:-0}}${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
+\"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
 }"
 		fi
 
@@ -7418,7 +7432,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		((++MAIN_LOOP)); ((WSKIP>1)) && WSKIP=1 || WSKIP=; set --;
 		role= rest= tkn_ans= ans_tts= ans= buff= var= arr= tkn= glob= out= pid= s= n=;
 		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= PSKIP= SKIP= EDIT= HARGS=;
-		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES BLOCK_CMD;
+		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES BLOCK_CMD;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
