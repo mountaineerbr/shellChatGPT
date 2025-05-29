@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.98.1  may/2025  by mountaineerbr  GPL+3
+# v0.99  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -133,10 +133,10 @@ OPTFOLD=1
 # Chat completions, chat mode only
 # INSTRUCTION=""
 INSTRUCTION_CHAT_EN="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and friendly."
-INSTRUCTION_CHAT_PT="A seguinte é uma conversa com um assistente de IA. O assistente é prestativo, criativo, sagaz e amigável." 
-INSTRUCTION_CHAT_ES="Lo siguiente es una conversación con un asistente de IA. El asistente es servicial, creativo, listo y amigable." 
+INSTRUCTION_CHAT_PT="A seguinte é uma conversa com um assistente de IA. O assistente é prestativo, criativo, sagaz e amigável."
+INSTRUCTION_CHAT_ES="Lo siguiente es una conversación con un asistente de IA. El asistente es servicial, creativo, listo y amigable."
 INSTRUCTION_CHAT_IT="La seguente è una conversazione con un assistente AI. L'assistente è utile, creativo, sveglio e amichevole."
-INSTRUCTION_CHAT_FR="Ce qui suit est une conversation avec un assistant d'IA. L'assistant est prévenant, créatif, astucieux et amical." 
+INSTRUCTION_CHAT_FR="Ce qui suit est une conversation avec un assistant d'IA. L'assistant est prévenant, créatif, astucieux et amical."
 INSTRUCTION_CHAT_DE="Das Folgende ist ein Gespräch mit einem KI-Assistenten. Der Assistent ist hilfsbereit, kreativ, klug und freundlich."
 INSTRUCTION_CHAT_RU="Далее приводится разговор с ИИ-ассистентом. Ассистент полезный, креативный, сообразительный и дружелюбный."
 INSTRUCTION_CHAT_JA="以下は、AIアシスタントとの会話です。アシスタントは、親切で、創造的で、賢く、そしてフレンドリーです。"
@@ -247,7 +247,7 @@ Synopsis
 Description
 	Wraps ChatGPT, DALL-E, STT, and TTS endpoints from various
 	providers.
-	
+
 	Defaults to single-turn native chat completions. Handles multi-turn
 	chat, text completions, image generation/editing, speech-to-text,
 	and text-to-speech models.
@@ -305,7 +305,7 @@ Instruction Prompts
 	with \`option -z' only (stand-alone TTS mode).
 
 	To control tone and accent of the rendered voice output of chat
-	audio models, set a robust \`INSTRUCTION' parameter as usual. 
+	audio models, set a robust \`INSTRUCTION' parameter as usual.
 
 
 Image Generations and Edits (Dall-E)
@@ -325,7 +325,7 @@ Image Generations and Edits (Dall-E)
 	A parameter \`high', \`medium', \`low', or \`auto' may also be appended
 	to the size parameter for gpt-image quality, such as \`Xhigh' or
 	\`1536x1024high', and \`hd' or \`standard' for dall-e-3.
-	
+
 	For dall-e-3, optionally set the generation style as either \"natural\"
 	or \"vivid\" as one the first positional parameters.
 
@@ -356,7 +356,7 @@ Environment
 			(e.g. \`\"seed\": 33, \"dimensions\": 1024').
 
 	CACHEDIR 	Script cache directory base.
-	
+
 	CHATGPTRC 	Path to the user configuration file.
 			Defaults=${CHATGPTRC/"$HOME"/"~"}
 
@@ -379,7 +379,7 @@ Environment
 	MOD_AUDIO_GROQ  MOD_SPEECH_GROQ  MOD_ANTHROPIC
 	MOD_GITHUB      MOD_NOVITA       MOD_XAI
 			Set default model for each endpoint / provider.
-	
+
 	OPENAI_BASE_URL
 	OPENAI_URL_PATH Main Base URL setting. Alternatively, provide the
 			URL_PATH parameter to disable endpoint auto-selection.
@@ -650,7 +650,7 @@ Options
 		timestamps (-www). With -vv, stop voice recorder on silence.
 	-W, --translate   [AUD] [PROMPT-EN]
 		Translate audio file into English text (whisper models).
-		Set twice to phrase or thrice for word-level timestamps (-WWW). 
+		Set twice to phrase or thrice for word-level timestamps (-WWW).
 	-z, --tts   [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 		Synthesise speech from text prompt, set -v to not play.
 
@@ -777,7 +777,7 @@ function set_model_epnf
 
 	case "${1##ft:}" in
 		*dalle-e*|*stable*diffusion*)
-				# 3 generations  4 variations  9 edits  
+				# 3 generations  4 variations  9 edits
 				((OPTII)) && EPN=4 || EPN=3;
 				((OPTII_EDITS)) && EPN=9;;
 		tts-*|*-tts-*|*-tts) 	EPN=10;;
@@ -811,7 +811,7 @@ function set_model_epnf
 						elif ((OPTW && !(MTURN+CHAT_ENV) ))
 						then 	OPTCMPL= OPTC= EPN=7;
 						elif ((OPTI && !(MTURN+CHAT_ENV) ))
-						then 	# 3 generations  4 variations  9 edits  
+						then 	# 3 generations  4 variations  9 edits
 							((OPTII)) && EPN=4 || EPN=3;
 							((OPTII_EDITS)) && EPN=9;
 						elif ((OPTEMBED))
@@ -916,7 +916,7 @@ function _promptf
 {
 	typeset str
 	json_minif;
-	
+
 	if ((STREAM))
 	then 	set -- -s "$@" -S --no-buffer;
 		[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}"; : >"$FILE"  #clear buffer asap
@@ -929,7 +929,7 @@ function _promptf
 			then 	str='"content"';
 			fi;
 		fi
-		
+
 		if ((GOOGLEAI))
 		then 	__promptf "$@" | { tee -- "$FILESTREAM" "$FILE" || cat ;}
 		else
@@ -988,7 +988,7 @@ function promptf
 		else 	prompt_printf
 		fi
 	fi & pid=$! PIDS+=($!)  #catch <CTRL-C>
-	
+
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2;" INT;
 	wait $pid; echo >&2;
 	trap 'exit' INT; RET_APRF=;
@@ -1039,7 +1039,7 @@ function _clr_lineupf
 	for ((n=0;n<((chars+(COLUMNS-1))/COLUMNS);++n))
 	do 	printf '\e[A\e[K' >&2
 	done
-} 
+}
 #https://www.zsh.org/mla/workers//1999/msg01550.html
 #https://superchlorine.com/2013/08/kill-winch-to-fix-bash-prompt-wrapping-to-the-same-line/
 
@@ -1059,35 +1059,41 @@ function _spinf
 #print input and backspaces for all chars
 function _printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
 
-#trim leading glob
-#usage: trim_leadf [string] [glob]
-function trim_leadf
+#trim left (leading) glob
+#usage: trim_lf [string] [glob]
+function trim_lf
 {
-	typeset var ind sub
-	var="$1" ind=${INDEX:-320}
-	sub="${var:0:$ind}"
+	typeset ind sub
+	ind=${INDEX:-320}
+	sub="${1:0:$ind}"
 	((SMALLEST)) && sub="${sub#$2}" || sub="${sub##$2}"
-	var="${sub}${var:$ind}"
-	printf '%s\n' "$var"
+	TRIM="${sub}${1:$ind}"
 }
-#trim trailing glob
-#usage: trim_trailf [string] [glob]
-function trim_trailf
+#trim right (trailing) glob
+#usage: trim_rf [string] [glob]
+function trim_rf
 {
-	typeset var ind sub
-	var="$1" ind=${INDEX:-320}
-	if ((${#var}>ind))
-	then 	sub="${var:$((${#var}-${ind}))}"
+	typeset ind sub
+	ind=${INDEX:-320}
+	if ((${#1}>ind))
+	then 	sub="${1:$((${#1}-${ind}))}"
 		((SMALLEST)) && sub="${sub%$2}" || sub="${sub%%$2}"
-		var="${var:0:$((${#var}-${ind}))}${sub}"
-	else 	((SMALLEST)) && var="${var%$2}" || var="${var%%$2}"
-	fi; printf '%s\n' "$var"
+		TRIM="${1:0:$((${#1}-${ind}))}${sub}"
+	else 	((SMALLEST)) && TRIM="${1%$2}" || TRIM="${1%%$2}"
+	fi;
 }
 #fast shell glob trimmer
-#usage: trimf [string] [glob]
-function trimf
+#usage: trim_lrf [string] [left_glob] [right_glob]
+#usage example:
+#  trim_lrf "$var"
+#  var="$TRIM"
+#TRIM: trimmed output
+#INDEX: target length (integer)
+#SMALLEST: non-greedy glob (0 or 1)
+function trim_lrf
 {
-	trim_leadf "$(trim_trailf "$1" "$2")" "$2"
+	trim_lf "$1" "$2"
+	trim_rf "$TRIM" "${3:-$2}"
 }
 
 #pretty print request body or dump and exit
@@ -1106,9 +1112,10 @@ function new_prompt_confirmf
 	typeset REPLY extra
 	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor, m[u]ltiline";; esac;
 	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hsp_append, [w]hsp_off, w[h]sp_retry";; esac;
+	case \ $*\  in 	*\ abort\ *) extra="${extra}, [a]bort";; esac;
 
-	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit${extra}, [r]edo, or [a]bort " ''
-	REPLY=$(read_charf); _clr_lineupf $((8+1+40+${#extra}))  #!#
+	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit, [r]edo${extra}, or [/]cmd " ''
+	REPLY=$(read_charf); _clr_lineupf $((8+1+39+${#extra}))  #!#
 	case "$REPLY" in
 		[Q]) 	return 202;;  #exit
 		[aq]) 	return 201;;  #abort
@@ -1121,7 +1128,7 @@ function new_prompt_confirmf
 		[HhTt]) return 194;;  #whisper retry request
 		[NnOo]) REC_OUT=; return 1;;  #no
 		[-/!]) 	echo >&2; read_mainf -i "$REPLY" REPLY; echo >&2;
-			BLOCK_USR= BREAK_SET= OPTRESUME= EDIT= ENDPOINTS= \
+			BLOCK_USR= BLOCK_CMD= BREAK_SET= OPTRESUME= EDIT= ENDPOINTS= \
 			HERR= JUMP= MAIN_LOOP= REGEN= REPLAY_FILES= REPLY= \
 			REPLY_CMD_BLOCK= REPLY_CMD_DUMP= REPLY_OLD= RESTART= START= \
 			RESUBW= RET= SKIP= SKIP_SH_HIST=  BCYAN= CYAN= ON_CYAN= \
@@ -1155,13 +1162,13 @@ function splayerf
 (
 	trap 'exit' INT TERM;
 	: > "${1}" || exit;
-	
+
 	((${#TERMUX_VERSION})) && sleep 0.8;
 	for ((n=0;n<12;n++))  #wait for buffer
 	do 	sleep 0.6; [[ -s "${1}" ]] &&
 		(( $(wc -c <${1}) > 64000)) && break;
 	done
-	
+
 	if command -v ffplay
 	then 	ffplay -autoexit -nodisp -hide_banner -f s16le -ar 24000 -i "${1}";
 	elif command -v sox
@@ -1297,7 +1304,7 @@ function prompt_imgprintf
 		n=0 m=0
 		for fname in "${FILEOUT%.*}"*
 		do 	fname="${fname%.*}" fname="${fname##*[!0-9]}"
-			((m>fname)) || ((m=fname+1)) 
+			((m>fname)) || ((m=fname+1))
 		done
 		while jq -e ".data[${n}]" "$FILE" >/dev/null 2>&1
 		do 	fout="${FILEOUT%.*}${m}.png"
@@ -1386,7 +1393,7 @@ function pick_modelf
 function get_infof
 {
 	typeset unix
-	
+
 	# 1:Y 2:m 3:d 4:h 5:min 6:s  7:Y 8:m 9:d 10:h 11:min 12:s  # now  month_start
 	set -- $(printf '%(%Y %m %d %H %M %S)T' -1) $(printf '%(%Y %m 01 00 00 00)T' -1);
 	set -- $(( ( (10#${3}-10#${9}) * 24*60*60) + ( (10#${4}-10#${10}) * 60*60) + ( (10#${5}-10#${11}) * 60) + 10#${6}));
@@ -1466,10 +1473,10 @@ function set_histf
 		if ((OPTTIK || token<1))
 		then 	((token<1 && OPTVV)) && _warmsgf "Warning:" "Zero/Neg token in history"
 			start_tiktokenf
-			if ((EPN==6))
-			then 	token=$(__tiktokenf "$(INDEX=32 trim_leadf "$stringc" :)" )
-			else 	token=$(__tiktokenf "\\n$(INDEX=32 trim_leadf "$stringc" :)" )
-			fi; ((token+=TKN_ADJ))
+			INDEX=32 trim_lf "$stringc" ":"
+			((EPN==6)) || TRIM="\\n$TRIM"
+			token=$(__tiktokenf "$TRIM" )
+			((token+=TKN_ADJ))
 		fi # every message follows <|start|>{role/name}\n{content}<|end|>\n (gpt-3.5-turbo-0301)
 		#trail nls are rm in (text) chat modes, so actual request prompt token count may be *less*
 		#we currently ignore (re)start seq tkns, always consider +3 tkns from $[QA]_TYPE
@@ -1488,15 +1495,16 @@ function set_histf
 			MAX_PREV=$((max_prev+TKN_PREV))  HIST_TIME="${time##\#}"
 
 			if ((OPTC))
-			then 	stringc=$(trim_leadf  "$stringc" "*(\\\\[ntr]| )")
-				stringc=$(trim_trailf "$stringc" "*(\\\\[ntr])")
+			then 	trim_lrf "$stringc" "*(\\\\[ntr]| )" "*(\\\\[ntr])"
+				stringc="$TRIM"
 			fi
 
 			role_last=$role role= rest= nl=
 			case "${string}" in
 				::*) 	role=system rest=  #[DEPRECATED]
 					((MOD_REASON)) && role=developer;
-					stringc=$(INDEX=32 trim_leadf "$stringc" :)  #append (txt cmpls)
+					INDEX=32 trim_lf "$stringc" ":"
+					stringc="$TRIM"  #append (txt cmpls)
 					;;
 				:*) 	role=system;
 					((MOD_REASON)) && role=developer;
@@ -1525,10 +1533,10 @@ function set_histf
 
 			#print commented out lines ( $OPTHH > 2 )
 			((com)) && stringc=$(sed 's/\\n/\\n# /g' <<<"${rest}${stringc}") rest= com=
-			
+
 			HIST="${rest}${stringc}${nl}${HIST}"
 			stringd=$(fmt_ccf "${stringc}" "${role}") && ((${#HIST_C}&&${#stringc})) && stringd=${stringd},${NL};
-			
+
 			((GOOGLEAI)) && {
 			  case "$role" in system)
 			    ((${#GINSTRUCTION_PERM})) ||
@@ -1537,21 +1545,23 @@ function set_histf
 			  esac;
 			  case "$role" in system|user)  #[UNNEEDED]
 			    case "$role_last" in system|user)
-			      HIST_C=$(SMALLEST=1 trim_leadf "$HIST_C" $'*"text":?( )"')
-			      stringd=$(SMALLEST=1 trim_trailf "$stringd" $'"}*')"\\n\\n";;
+			      SMALLEST=1 trim_lf "$HIST_C" $'*"text":?( )"'
+			      HIST_C="$TRIM"
+			      SMALLEST=1 trim_rf "$stringd" $'"}*'
+			      stringd="$TRIM\\n\\n";;
 			    esac;;
 			  esac;
 			}
-			
+
 			((EPN==6)) && HIST_C="${stringd}${HIST_C}"
 		else 	break
 		fi
 	done < <(tac -- "$FILECHAT")
 	_printbf ' ' #_spinf() end
 	((MAX_PREV+=3)) # chat cmpls, every reply is primed with <|start|>assistant<|message|>
-	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns 
-	
-	#first system/instruction: add extra newlines and delete $S_TYPE  (txt cmpls) 
+	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns
+
+	#first system/instruction: add extra newlines and delete $S_TYPE  (txt cmpls)
 	case "$role" in system|developer)
 		if ((OLLAMA))
 		then 	((OPTC && EPN==0)) && [[ $rest = \\n* ]] && rest="xx${rest}"  #!#del \n at start of string
@@ -1561,8 +1571,8 @@ function set_histf
 	esac;
 
 	((!OPTC)) || [[ $HIST = "$stringc"*(\\n) ]] ||  #hist contains only one/system prompt?
-	HIST=$(trim_trailf "$HIST" "*(\\\\[ntrvf])")  #del multiple trailing nl
-	HIST=$(trim_leadf "$HIST" "?(\\\\[ntrvf]|$NL)?( )")  #del one leading nl+sp
+	trim_lrf "$HIST" "?(\\\\[ntrvf]|$NL)?( )" "*(\\\\[ntrvf])"
+	HIST="$TRIM"  #del one leading nl+sp  #del multiple trailing nl
 }
 #https://thoughtblogger.com/continuing-a-conversation-with-a-chatbot-using-gpt/
 
@@ -1682,7 +1692,7 @@ function _tiktokenf
 
 	# 1 TOKEN ~= 4 CHARS IN ENGLISH
 	#str="${1// }" str="${str//[$'\t\n']/xxxx}" str="${str//\\[ntrvf]/xxxx}" tkn=$((${#str}/${by:-4}))
-	
+
 	# 1 TOKEN ~= ¾ WORDS
 	var=$(sed 's/\\[ntrvf]/ x /g' <<<"$var")  #escaped special chars
 	var=$(sed 's/[^[:alnum:] \t\n]/ x/g' <<<"$var")
@@ -1809,7 +1819,7 @@ function set_imgsizef
 			[[ -z $OPTS ]] || return 1;
 			if [[ $MOD_IMAGE = *dall-e*2 ]] && [[ opts_quality -eq 0 ]]
 			then 	OPTS=512x512;
-			else 	OPTS=1024x1024; 
+			else 	OPTS=1024x1024;
 			fi; ((opts_quality));;
 	esac;
 }
@@ -1836,7 +1846,7 @@ function set_maxtknf
 			OPTMAX="${1//[!0-9]}"; unset OPTMAX_NILL ;;
 	esac
 	if ((OPTMAX>MODMAX))
-	then 	buff="$MODMAX" MODMAX="$OPTMAX" OPTMAX="$buff" 
+	then 	buff="$MODMAX" MODMAX="$OPTMAX" OPTMAX="$buff"
 	fi
 }
 
@@ -1846,7 +1856,8 @@ function set_mdcmdf
 	typeset cmd;
 	unset MD_CMD_UNBUFF;
 	((STREAM)) || unset STREAM;
-	set -- "$(trimf "${*:-$MD_CMD}" "$SPC")";
+	trim_lrf "${*:-$MD_CMD}" "$SPC";
+	set -- "$TRIM";
 
 	if ! command -v "${1%% *}" &>/dev/null
 	then 	for cmd in "bat" "pygmentize" "glow" "mdcat" "mdless"
@@ -2018,11 +2029,12 @@ function cmd_runf
 	typeset append filein fileinq onutdir out var wc xskip pid n
 	typeset -a args arr;
 	((${#HARGS})) || typeset HARGS;
-	[[ ${1:0:128}${2:0:128} = *([$IFS:])[/!-]* ]] || return;
+	case "${1:0:128}${2:0:128}" in [/!-]*|*([$IFS:])[/!-]*) 	:;; *) 	return 1;; esac
 	((${#1}+${#2}<1024)) || return;
 	printf "${NC}" >&2;
 
-	set -- "${1##*([$IFS:])?([/!])}" "${@:2}";
+	trim_lf "$1" "*([$IFS:])?([/!])";
+	set -- "$TRIM" "${@:2}";
 	args=("$@"); set -- "$*";
 
 	case "$*" in
@@ -2117,10 +2129,14 @@ function cmd_runf
 			cmdmsgf 'Price / 1M tkns:' "input: \$ ${MOD_PRICE[0]}  output: \$ ${MOD_PRICE[1]}"
 			;;
 		block*|blk*)
-			set -- "${*##@(block|blk)$SPC}"
+			trim_lf "$*" "@(block|blk)$SPC"
+			set -- "$TRIM"
 			_printbf '>';
 			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
-			((${#BLOCK_USR})) && BLOCK_USR=$(trim_trailf "$BLOCK_USR" $',*([\n\t ])')
+			((${#BLOCK_USR})) && {
+				trim_rf "$BLOCK_USR" $',*([\n\t ])';
+				BLOCK_USR="$TRIM";
+			}
 			cmdmsgf $'\nUser Block:' "${BLOCK_USR:-unset}";
 			;;
 		effort*|budget*|think*)
@@ -2269,8 +2285,9 @@ function cmd_runf
 		url*|[/!]url*)
 			HARGS=${HARGS:-$*} xskip=1;
 			case "$*" in [/!]url:*|url:*) 	append=1;; esac;  #append as user
-			set -- "$(trimf "$(trim_leadf "$*" '@(url|[/!]url)*(:)')" "$SPC")";
-
+			trim_lf "$*" '@(url|[/!]url)*(:)';
+			trim_lrf "$TRIM" "$SPC";
+			set -- "$TRIM";
 			case "$*" in
 			*youtube.com/watch*|*youtube.com/live*|*youtube.com/shorts*|*youtu.be/*)
 				{ yt_descf "$*" || _warmsgf 'YouTube:' 'Description unavailable';
@@ -2314,8 +2331,8 @@ function cmd_runf
 			cmdmsgf "Multimodal Model [${var}]" $(_onoff $MULTIMODAL)
 			;;
 		media*|img*|audio*|aud*)
-			set -- "${*##@(media|img|audio|aud)*([$IFS])}";
-			set -- "$(trim_trailf "$*" $'*([ \t\n])')";
+			trim_lrf "$*" "@(media|img|audio|aud)*([$IFS])" "*([$IFS])";
+			set -- "$TRIM";
 			CMD_CHAT=1 media_pathf "$1" && {
 			  [[ -f $1 ]] && set -- "$(duf "$1")";
 			  var=$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}))
@@ -2355,16 +2372,21 @@ function cmd_runf
 			cmdmsgf 'Stop Sequences' "[$(unset s v; for s in "${STOPS[@]}"; do v=${v}\"$(escapef "$s")\",; done; printf '%s' "${v%%,}")]"
 			;;
 		-?(S)*([$' \t'])[.,]*)
-			set -- "${*##-?(S)*([$' \t.,'])}"; PSKIP= SKIP=1 EDIT=1
+			trim_lf "$*" "-?(S)*([$' \t.,'])"
+			set -- "$TRIM"
+			PSKIP= SKIP=1 EDIT=1
 			var=$(INSTRUCTION=$* OPTRESUME=1 CMD_CHAT=1; custom_prf "$@" && echo "$INSTRUCTION")
 			case $? in [1-9]*|201|[!0]*) 	REPLY=${args[*]};; 	*) REPLY="-S $var";; esac
 			;;
 		-?(S)*([$' \t'])[/%]*)
-			set -- "${*##-?(S)*([$' \t'])}"; PSKIP= SKIP=1 EDIT=1 
+			trim_lf "$*" "-?(S)*([$' \t'])"
+			set -- "$TRIM"
+			PSKIP= SKIP=1 EDIT=1
 			var=$(INSTRUCTION=$* CMD_CHAT=1; awesomef && echo "$INSTRUCTION") && REPLY="-S $var"
 			;;
 		-S*|-:*)
-			set -- "${*##-[S:]*([$': \t'])}"
+			trim_lf "$*" "-[S:]*([$': \t'])"
+			set -- "$TRIM"
 			SKIP=1 PSKIP=1 REPLY="::${*}"
 			unset INSTRUCTION GINSTRUCTION
 			;;
@@ -2425,7 +2447,7 @@ function cmd_runf
 
 			((OPTW%=2)); ((OPTWW%=2));
 			case "${args[*]}" in 	-[Ww][Ww]*|[Ww][Ww]*) OPTW=2;; esac;
-			
+
 			if ((OPTW+OPTWW))
 			then
 			  set_reccmdf
@@ -2511,12 +2533,12 @@ function cmd_runf
 			model-name    "${MOD:-?}${modmodal}${REASON_EFFORT:+ / $REASON_EFFORT}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "${OPTMAX:-?}${OPTMAX_NILL:+-inf}" \
-			${REASON_EFFORT:+reason effort    "$REASON_EFFORT"} \
+			${REASON_EFFORT:+reason-effort    "$REASON_EFFORT"} \
 			context-prev  "${MAX_PREV:-${TKN_PREV:-?}}  (${HIST_LOOP:-0} turns)" \
 			token-rate    "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
 			session-cost  "${SESSION_COST:-0} \$" \
 			turn-cost-max "$(
-			  case "$REASON_EFFORT" in *[0-9]*) 	:;; *) 	REASON_EFFORT= ;; esac; 
+			  case "$REASON_EFFORT" in *[0-9]*) 	:;; *) 	REASON_EFFORT= ;; esac;
 			  costf ${MAX_PREV:-0} $((${OPTMAX:-0}+${REASON_EFFORT:-0})) $(_model_costf "$MOD") 6 ) \$" \
 			browser-cli   "${BROWSER:-auto}" \
 			seed          "${OPTSEED:-unset}" \
@@ -2540,7 +2562,7 @@ function cmd_runf
 			stop-seqs     "${stop}" \
 			$blku \
 			history-file  "${FILECHAT/"$HOME"/"~"}"  >&2;
-			
+
 			((!NOVITAAI)) || {  _printbf 'wait';  #credit_balance
 			curl -L -s "https://api.novita.ai/v3/user" --header "Authorization: Bearer ${NOVITA_API_KEY}"; echo >&2 ;}  )
 			;;
@@ -2564,7 +2586,9 @@ function cmd_runf
 			;;
 		cat*|file*)
 			set -- "${*}"; HARGS=${HARGS:-$*};
-			filein=$(trimf "${1##@(cat|file)*(:)}" "$SPC");
+			trim_lf "$1" "@(cat|file)*(:)";
+			trim_lrf "$TRIM" "$SPC";
+			filein="$TRIM";
 			if [[ $filein = *\\* ]]
 			then 	filein=${filein//\\};
 			else 	fileinq=$(printf '%q' "${filein}");
@@ -2592,9 +2616,11 @@ function cmd_runf
 			;;
 		pdf*)
 			set -- "${*}"; HARGS=${HARGS:-$*};
-			filein=$(trimf "${1##pdf*(:)}" "$SPC");
+			trim_lf "$1" "pdf*(:)";
+			trim_lrf "$TRIM" "$SPC";
+			filein="$TRIM";
 			[[ $filein = *\\* ]] || filein=$(printf '%q' "${filein}");
-			
+
 			if command -v pdftotext
 			then 	var="pdftotext -layout -nopgbrk ${filein} -";
 			elif command -v gs
@@ -2617,7 +2643,9 @@ function cmd_runf
 			;;
 		doc*)
 			set -- "${*}"; HARGS=${HARGS:-$*};
-			filein=$(trimf "${1##doc*(:)}" "$SPC");
+			trim_lf "$1" "doc*(:)";
+			trim_lrf "$TRIM" "$SPC";
+			filein="$TRIM";
 			[[ $filein = *\\* ]] || filein=$(printf '%q' "${filein}");
 			outdir=$(printf '%q' "${OUTDIR}");
 			out=${outdir}/${filein##*/} out=${out%.*}.txt;
@@ -2644,7 +2672,8 @@ function cmd_runf
 			REPLY= EDIT= SKIP_SH_HIST=;
 			;;
 		[/!]sh*)
-			set -- "${*##[/!]@(shell|sh)*([:$IFS])}"
+			trim_lf "$*" "[/!]@(shell|sh)*([:$IFS])";
+			set -- "$TRIM";
 			if [[ $1 = *[!$IFS]* ]]
 			then 	bash -i -c "$1"$'\nexit'
 			else 	bash -i
@@ -2652,7 +2681,8 @@ function cmd_runf
 			;;
 		shell*|sh*)
 			case "$*" in shell:*|sh:*) 	append=1;; esac;  #append as user
-			set -- "${*##@(shell|sh)*([:$IFS])}";
+			trim_lf "$*" "@(shell|sh)*([:$IFS])";
+			set -- "$TRIM";
 			[[ -n $* ]] || set --; xskip=1;
 			while :
 			do 	trap 'trap "-" INT' INT;  #disable trap for one <CRTL-C>#
@@ -2667,29 +2697,32 @@ function cmd_runf
 				else 	REPLY=$var var=;
 				fi; printf '\n---\n\n' >&2;
 
-				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, or [r]edo ' ''
+				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, [r]edo, or [d]iscard ' ''
 				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
 				case "$(NO_CLR=1 read_charf)" in
 					[Q]) 	RET=202; exit 202;;  #exit
-					[AaqRr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
-		  					REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
-							break;;  #abort, redo
+					[AaDdq]) REPLY= RET=201 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;
+						WSKIP= SKIP= EDIT= append=; break;;  #abort / discard
+					[Rr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
+		  				REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
+						break;;  #redo
 					[EeYy]|$'\e') 	SKIP=1 EDIT=1 RET=199; break;; #yes, bash `read`
 					[VvXx]|$'\t'|' ') 	SKIP=1 EDIT=1 RET=198; ((OPTX)) || OPTX=2; break;; #yes, text editor
 					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break;;  #no need to edit
 				esac; set --;
-			done; _clr_lineupf $((12+1+47));  #!#
+			done; _clr_lineupf $((12+1+58));  #!#
 
 			((append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
 			shell_histf "!${HARGS[*]:-${args[*]}}"; SKIP_SH_HIST=1 HARGS=;
-			((RET==200)) || REPLY_CMD_BLOCK=1;
+			((RET==200||RET==201)) || REPLY_CMD_BLOCK=1;
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
 			echo Session and History >&2; [[ $* = . ]] && args=('fork current');
 			session_mainf /"${args[@]}"
 			;;
 		photo*)
-			set -- "$(trim_leadf "$*" "photo$SPC")";
+			trim_lf "$*" "photo$SPC";
+			set -- "$TRIM";
 			if [[ -n $TERMUX_VERSION ]]
 			then
 				case "${1:0:2}" in [0-9]|[0-9][!0-9]) 	typeset INDEX=${1:0:1}; set -- "${1:1}";; esac;
@@ -2708,8 +2741,8 @@ function cmd_runf
 					  #var2=${var%.*}s.${var##*.}  #shrink
 					  size=($(magick identify -format "%w %h" "$var"))
 					  _sysmsgf "Camera Raw:" "$(printf '%dx%d' "${size[@]}")  $(duf "$var")";
-					  
-					  #((size[0]>2048 || size[1]>2048)) && ((size[0]!=size[1])) && 
+
+					  #((size[0]>2048 || size[1]>2048)) && ((size[0]!=size[1])) &&
 					  #magick "$var" -auto-orient -resize '2048x2048>' "$var2" >&2;
 					  #
 					  #[[ -s $var2 ]] && var=$var2 size=($(magick identify -format "%w %h" "$var2"));
@@ -2737,7 +2770,8 @@ function cmd_runf
 			INDEX=1 cmd_runf "$*"; return;
 			;;
 		pick*|p*)
-			set -- "$(trim_leadf "$*" "@(pick|p)$SPC")";
+			trim_lf "$*" "@(pick|p)$SPC";
+			set -- "$TRIM";
 			trap "trap 'exit' INT; echo >&2;" INT;
 
 			if [[ -d $1 ]]
@@ -2746,7 +2780,7 @@ function cmd_runf
 			else 	var=$(trap '-' INT; _file_pickf "$PWD");
 				((${#var})) && REPLY="${1}${1:+ }${var}";
 			fi && unset TIPS_DIALOG || _warmsgf 'Err:' 'Filepicker';
-			
+
 			trap 'exit' INT;
 			SKIP=1 EDIT=1 xskip=1;
 			;;
@@ -2794,7 +2828,8 @@ function cmd_runf
 		[/!]g*|g*)  #ground context
 			HARGS=${HARGS:-$*};
 			case "$*" in [/!]g:*|g:*) 	append=1;; esac;  #append as user
-			set -- "${*##?([/!])g*(:)$SPC}";
+			trim_lf "$*" "?([/!])g*(:)$SPC";
+			set -- "$TRIM";
 
 			case "${args[*]:-$*}" in
 			  [/!]*)
@@ -2871,7 +2906,7 @@ function cmd_runf
 			    var="https://www.google.com/search?num=${n}&q=${*//[&?]/+}";
 			    ;;
 			esac;
-			
+
 			((OPTV)) || printf "${BWHITE}%s\\n${NC}" "${out:-Google}" >&2;
 			cmd_runf /url${append:+:} "${var:-err}";
 			REPLY="$REPLY"$'\n\n'"$*";
@@ -2886,7 +2921,7 @@ function cmd_runf
 	esac;
 	((OPTEXIT>1)) && exit;
 	{ ((OPTCMPL)) && typeset Q_TYPE; [[ ${RESTART-$Q_TYPE} != @($'\n'|\\n)* ]] && echo >&2 ;}  #newline
-	if ((OPTX && REGEN<1 && !xskip)) 
+	if ((OPTX && REGEN<1 && !xskip))
 	then 	printf "\\r${BWHITE}${ON_CYAN}%s\\a${NC}" ' * Press Enter to Continue * ' >&2;
 		read_charf >/dev/null;
 	fi;
@@ -2983,14 +3018,16 @@ function edf
 	_edf "$FILETXT"
 
 	while [[ -f $FILETXT ]] && pos="$(<"$FILETXT")"
-		
+
 		if ((inst)) && [[ "$pos" != "${pre}"* ]]
 		then 	inst= ;  #instruction editing
 			prev=$(sed -n "1,/${ed_msg}/ p" <<<"${pos}");
 			instruction=$(sed "/${ed_msg}/ d" <<<"${prev}");
 		    ((${#prev}==${#instruction})) || {  #skip?
 
-			pre=$prev instruction=$(trimf "$instruction" "$SPC");
+			trim_lrf "$instruction" "$SPC";
+			instruction="$TRIM";
+			pre="$prev";
 			if ((${#instruction}))
 			then 	if ((GOOGLEAI))
 				then 	GINSTRUCTION="$instruction" INSTRUCTION=;
@@ -3001,7 +3038,7 @@ function edf
 		    }
 		fi
 		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#%#}" ]]
-	do 	_warmsgf "Bad edit:" "[E]dit, [c]ontinue, [/]cmd, [r]edo or [a]bort? " ''
+	do 	_warmsgf "Bad edit:" "[E]dit, [r]edo, [c]ontinue, [a]bort, or [/]cmd? " ''
 		reply=$(read_charf)
 		case "$reply" in
 			[-/!]) read_mainf -i "$reply" reply;
@@ -3067,10 +3104,10 @@ function escapef {
 function _break_sessionf
 {
 	[[ -f "$FILECHAT" ]] || return; typeset tail;
-	
+
 	tail=$(tail -n 20 -- "$FILECHAT") || return;
 	((${#tail}>2048)) && tail=${tail:${#tail} -2048};
-	
+
 	[[ BREAK${tail} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]] \
 	|| printf '%s%s\n' "$1" 'SESSION BREAK' >> "$FILECHAT";
 }
@@ -3218,7 +3255,7 @@ function _file_pickf
 {
 	typeset file
 	file=${1:-${PWD:-$HOME}}/
-	
+
 	__set_fpick;
 
 	case "$file" in
@@ -3315,7 +3352,7 @@ function _termux-dialog_pickf
 #https://wiki.termux.com/wiki/Internal_and_external_storage
 function _ls_pickf
 {
-	shopt -s nullglob; 
+	shopt -s nullglob;
 	cd "$1" || return;
 	printf '%s\n' */;
 	printf '%s\n' * |  __ls_pickf
@@ -3339,7 +3376,7 @@ TIPS_DIALOG='\n- \ZbNavigation:\ZB Use \ZbTAB\ZB, \ZbSHIFT-TAB\ZB and \ZbARROW K
 HELP_DIALOG='\n- \ZbMove:\ZB Use \ZbTAB\ZB, \ZbSHIFT+TAB\ZB, or \ZbARROW KEYS\ZB.\n\n- \ZbScroll:\ZB Use \ZbUP and DOWN\ZB arrow keys in lists.\n\n- \ZbSelect:\ZB Press \ZbSPACE\ZB to copy to text box.\n\n- \ZbAutocomplete:\ZB Type \ZbSPACE\ZB to complete names.\n\n- \ZbConfirm:\ZB Press \ZbENTER\ZB or click "\ZbOK\ZB".\n\n\n\ZuHappy browsing!\ZU'
 
 #print entries with 1-9 indexes or '.' for dialog
-function _dialog_optf 
+function _dialog_optf
 {
 	typeset i
 	for ((i=0;i<${#};i++))
@@ -3380,7 +3417,7 @@ function media_pathf
 	typeset var ind m n
 	#process only the last line of input
 	set -- "$(sed -e 's/\\n/\n/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";
-	
+
 	while case "$1" in *[[:alnum:]]*) 	((m<128));; *) 	! :;; esac
 	do
 		((++m)); var=;
@@ -3403,9 +3440,10 @@ function media_pathf
 			else 	MEDIA=("$var" "${MEDIA[@]}");  #read by fmt_ccf()
 				MEDIA_IND=("$var" "${MEDIA_IND[@]}");
 			fi;
-			
+
 			((${#1}-ind < 0)) && { 	_warmsgf 'Err: media_pathf():' "negative index -- $((${#1}-ind))"; break ;}
-			set -- "$(trim_trailf "${1: 0: ${#1}-ind}" $'*(\\[tnr]|[ \t\n\r|])')";
+			trim_rf "${1: 0: ${#1}-ind}" $'*(\\[tnr]|[ \t\n\r|])';
+			set -- "$TRIM";
 		else
 			((OPTV>99)) || [[ $var = *[[\]\<\>{}\(\)*?=%\&^\$\#\ ]* ]] ||
 			  [[ $var != *[[:alnum:]].[[:alnum:]]* ]] || [[ ${1:0:128} = "${var:0:128}" ]] || {
@@ -3416,7 +3454,8 @@ function media_pathf
 			break;
 			#set -- "${1: 0: ${#1}-ind}";  #remove bad input
 		fi  #https://stackoverflow.com/questions/12199059/
-		set -- "$(trim_leadf "$1" $'*([ \n\t\r|]|\\\\[ntr])')";
+		trim_lf "$1" $'*([ \n\t\r|]|\\\\[ntr])';
+		set -- "$TRIM";
 	done; ((n));
 }
 
@@ -3433,7 +3472,7 @@ function _is_linkf
 function is_linkf
 {
 	[[ ! -f $1 ]] || return;
-	
+
 	_is_linkf "$1" || [[ \ $LINK_CACHE\  = *\ "${1:-empty}"\ * ]] ||
 	  case "$1" in
 	  *[$IFS]*) false;;
@@ -3498,12 +3537,14 @@ function is_audiof { 	[[ -f $1 ]] && _is_audiof "$1" ;}
 #test whether file is text, pdf file, or url and print out filepath
 function is_txturl
 {
-	((${#1}>320)) && set -- "${1: ${#1}-320}"
-	
-	set -- "$1" "$(INDEX=64 trimf "$1" "$SPC")";
+	((${#1}>512)) && set -- "${1: ${#1}-512}"
+
+	INDEX=64 trim_lrf "$1" "$SPC";
+	set -- "$1" "$TRIM";
 	if [[ -f ${2:-$1} ]]
 	then 	set -- "${2:-$1}";
-	else 	set -- "$(trim_leadf "$(trim_trailf "$1" "$SPC")" $'*[!\\\\][ \t\n]')";
+	else 	trim_lrf "$1" $'*[!\\\\][ \t\n]' "$SPC";
+		set -- "$TRIM";
 		[[ ${1:0:1} = [$IFS] ]] && set -- "${1:1}";
 	fi  #C#
 	case "$1" in \~\/*) 	set -- "$HOME/${1:2}";; esac;
@@ -3518,7 +3559,7 @@ function is_txturl
 function is_visionf
 {
 	typeset -l model; model=${1##*/};
-	case "${model##ft:}" in 
+	case "${model##ft:}" in
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	o[1-9]*|gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|grok-[3-9]*|*multimodal*|\
@@ -3531,7 +3572,7 @@ function is_visionf
 function is_amodelf
 {
 	typeset -l model; model=${1##*/};
-	case "${model##ft:}" in 
+	case "${model##ft:}" in
 	*audio*|*speech*|*speaker*|*bark*|*lalm*|*music*|*yi-vl*) :;;
 	*) 	((MULTIMODAL>1));;
 	esac;
@@ -3552,7 +3593,7 @@ function _is_docf
 {
 	typeset -l ext=$1
 	case "$ext" in
-	*.doc|*.docx|*.odt|*.ott|*.rtf) :;; 
+	*.doc|*.docx|*.odt|*.ott|*.rtf) :;;
 	*) false;;
 	esac;
 }
@@ -3635,7 +3676,7 @@ function yt_descf
 function vimeo_transf
 {
 	typeset browser url
-	
+
 	if browser=$(set_jbrowsercmdf)
 	then
 		url=$( ${browser} "${*}" |
@@ -3696,7 +3737,7 @@ function foldf
 			  done
 			  r="${result}${text}"
 			}
-			
+
 			case "$r" in *$'\n'*) 	x=${r##*$'\n'} r=${r%%$'\n'*};; esac;
 
 			if (( ${#r}>COLUMNS ))  #REPLY alone is bigger than COLUMNS
@@ -3745,17 +3786,20 @@ function set_optsf
 		gpt*-search*preview*) 	OPTA= OPTAA= OPTT=;;
 		claude-3-[7-9]*|claude-[4-9]*|claude*-[4-9]*)
 		case "${REASON_EFFORT}" in *[a-zA-Z]*) 	REASON_EFFORT=16000;; esac;
-		((MOD_THINK)) || ((!${REASON_EFFORT:+1}0)) || {
+		((MOD_THINK)) || {
+		    ((!${REASON_EFFORT:+1}0)) || {
 			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
 				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
-				OPTMAX=25000;
+		    		OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
 			case "$REASON_EFFORT" in
 				*[a-zA-Z]*) 	_warmsgf 'Warning:' "Thinking budget_tokens must be an integer -- $REASON_EFFORT";;
 				*|'') 	REASON_EFFORT=${REASON_EFFORT:-16000};;
 			esac;
 			((REASON_EFFORT<1024)) && REASON_EFFORT=1024;
-			MOD_THINK=1;
+		    }
+		    OPTT_REASON=$OPTT OPTT=;
+		    MOD_THINK=1;
 		}
 		;;
 		gemini-[2-9]*-thinking*)
@@ -3819,6 +3863,7 @@ function set_optsf
 			OPTMAX=${OPTMAX_REASON:-$OPTMAX} MOD_REASON= REASON_EFFORT= CURLTIMEOUT=;
 		}
 		((MOD_THINK)) && {
+			OPTMAX=${OPTMAX_REASON:-$OPTMAX} OPTT=${OPTT_REASON:-$OPTT};
 			MOD_THINK=;
 		}
 		;;
@@ -3839,7 +3884,7 @@ function set_optsf
 	    check_optrangef "$OPTBB" 0   5 'Logprobs'
 
 	    check_optrangef "$OPTP"  0.0 1.0 'Top_p'
-	    ((!OPTMAX && OPTBB)) || ((OPTMAX_NILL)) || 
+	    ((!OPTMAX && OPTBB)) || ((OPTMAX_NILL)) ||
 	    check_optrangef "$OPTMAX"  1 "$MODMAX" 'Response Max Tokens'
 	  }
 	  check_optrangef "$OPTT"  0.0 $( ((MISTRALAI+ANTHROPICAI)) && echo 1.0 || echo 2.0) 'Temperature'  #whisper 0.0 - 1.0
@@ -3868,7 +3913,7 @@ function set_optsf
 	#((BREAK_SET && OPTRESUME)) && BREAK_SET=1 OPTRESUME=;  #inconsistent config
 	((OPT_KEEPALIVE)) && OPT_KEEPALIVE_OPT="\"keep_alive\": $OPT_KEEPALIVE," || unset OPT_KEEPALIVE_OPT
 	((OPTV<1)) && unset OPTV  #IPC#
-	
+
 	if ((${#STOPS[@]})) && [[ "${STOPS[*]}" != "${STOPS_OLD[*]:-%#}" ]]
 	then  #compile stop sequences  #def: <|endoftext|>
 		OPTSTOP=;
@@ -3933,10 +3978,10 @@ function recordf
 		termux*) termux=1;;
 		false) 	return 196;;
 	esac
-	
+
 	#move out file before writing
 	[[ -s $1 ]] && mv -f -- "$1" "${1%.*}.2.${1##*.}";
-	
+
 	[[ -n $TERMUX_VERSION ]] &&
 	if is_amodelf "$MOD"
 	then 	OPTV=2 set_termuxpulsef;
@@ -3946,7 +3991,7 @@ function recordf
 
 	$REC_CMD "$1" >&2 & pid=$! PIDS+=($!);
 	trap "trap 'exit' INT; ret=199;" INT;
-	
+
 	#see record_confirmf()
 	case "$(read_charrecf "$@")" in
 		[Q]) 	ret=202  #exit
@@ -3965,7 +4010,7 @@ function recordf
 
 	rec_killf $pid $termux;
        	trap 'exit' INT;
-	wait $pid 
+	wait $pid
 	[[ -n $TERMUX_VERSION ]] && sleep 0.6;  #termux on slow-cpu bug workaround
 
 	#if command -v ffmpeg >/dev/null 2>&1
@@ -4080,14 +4125,14 @@ function whisperf
 	typeset file rec var max pid granule scale;
 	typeset -a args; args=(); WHISPER_OUT=;
 	typeset EPN=7;
-	
+
 	if ((!(CHAT_ENV+MTURN) ))
 	then 	sysmsgf 'Transcription Model:' "$MOD_AUDIO";
 		sysmsgf 'Temperature:' "${OPTTW:-${OPTT:-unset}}";
 	fi;
 	check_optrangef "${OPTTW:-$OPTT}" 0 1.0 Temperature
 	set_model_epnf "$MOD_AUDIO"
-	
+
 	((${#})) || [[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
 	for var
 	do    [[ $var != *[!$IFS]* ]] && shift || break;
@@ -4099,7 +4144,7 @@ function whisperf
 	elif _set_langf "$2"
 	then 	set -- "${@:1:1}" "${@:3}"
 	fi
-	
+
 	((OPTW>1||OPTWW>1)) &&
 	case "$MOD_AUDIO" in *[Ww]hisper*) 	:;; *)
 		_warmsgf 'Warning:' "Timestamps may only be supported by Whisper";
@@ -4118,7 +4163,7 @@ function whisperf
 				set -- "$FILEINW" "$@"; rec=1;;
 		esac
 	fi
-	
+
 	if is_audiof "$1"
 	then 	file="$1"; shift;
 	elif ((${#} >1)) && is_audiof "${@:${#}}"
@@ -4130,7 +4175,7 @@ function whisperf
 	then 	du -h "$file" >&2;
 		_warmsgf 'Warning:' "Transcripting input exceeds API limit of 25 MB";
 	fi
-	
+
 	#set a prompt (224 tokens, GPT2 encoding)
 	max=490  #2-3 chars/tkn code and foreign languages, 4 chars/tkn english
 	if var=$*; [[ $var = *[!$IFS]* ]]
@@ -4141,7 +4186,7 @@ function whisperf
 	fi
 
 	((OPTW>2||OPTWW>2)) && granule=word || granule=segment;
-	
+
 	if [[ $granule = segment ]] || ((GROQAI))
 	then 	scale=2;
 	else  #word level
@@ -4245,12 +4290,12 @@ function _ttsf
 	else 	VOICEZ=$OPTZ_VOICE
 	fi
 	((${#OPTZ_SPEED})) && SPEEDZ=$OPTZ_SPEED
-	
+
 	((${#})) || [[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
 	for var
 	do    [[ $var != *[!$IFS]* ]] && shift || break;
 	done; var= ;
-	
+
 	if ((!CHAT_ENV)) || ((${#ZARGS[@]}))
 	then 	#set speech voice, out file format, and speed
 		_set_ttsf "$3" && set -- "${@:1:2}" "${@:4}"
@@ -4283,7 +4328,7 @@ function _ttsf
 			_sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
 			sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${input: COLUMNS-17} ]] && echo ...)";
 		fi; REPLAY_FILES=("${REPLAY_FILES[@]}" "$FOUT"); var= ;
-		
+
 		BLOCK="{
 $( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}\"," )
 \"model\": \"${MOD_SPEECH}\",
@@ -4336,8 +4381,8 @@ $( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}
 				esac;;
 		esac
 
-	[[ $FOUT = "-"* ]] || [[ ! -e $FOUT ]] || { 
-		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS File:' "$FOUT"; 
+	[[ $FOUT = "-"* ]] || [[ ! -e $FOUT ]] || {
+		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS File:' "$FOUT";
 		((OPTV && !CHAT_ENV)) || [[ ! -s $FOUT ]] || {
 			((CHAT_ENV)) || sysmsgf 'Play Cmd:' "\"${PLAY_CMD}\"";
 			case "$PLAY_CMD" in false) 	return $ret;; esac;
@@ -4523,9 +4568,9 @@ function imgvarf
 		else 	((OPTV)) ||
 			printf '%s\n' 'No adjustment needed in image file' >&2
 		fi ;unset ARGS PNG32
-						
+
 		if [[ -f $2 ]]  #edits + mask file
-		then 	size=$(print_imgsizef "$1") 
+		then 	size=$(print_imgsizef "$1")
 			if ! _is_pngf "$2" || ! _is_rgbf "$2" || {
 				[[ $(print_imgsizef "$2") != "$size" ]] &&
 				{ 	((OPTV)) || printf '%s\n' 'Mask size differs' >&2 ;}
@@ -4539,7 +4584,7 @@ function imgvarf
 			fi
 		fi
 	fi ;unset ARGS PNG32
-	
+
 	_chk_imgsizef "$1" || return 2
 
 	## one prompt  --  generations
@@ -4549,7 +4594,7 @@ function imgvarf
 	if [[ -f $1 ]] && ((${#} > 1))  #img edits
 	then 	OPTII=1 EPN=9  #MOD=image-ed
 		if ((${#} > 2)) && [[ -f $2 ]]
-		then 	prompt="${@:3}" ;set -- "${@:1:2}" 
+		then 	prompt="${@:3}" ;set -- "${@:1:2}"
 		elif ((${#} > 1)) && [[ ! -e $2 ]]
 		then 	prompt="${@:2}" ;set -- "${@:1:1}"
 		fi
@@ -4723,8 +4768,9 @@ function awesomef
 	typeset REPLY act_keys act_keys_n options glob act zh a l n
 	[[ "$INSTRUCTION" = %* ]] && FILEAWE="${FILEAWE%%.csv}-zh.csv" zh=1
 
-	set -- "$(trimf "${INSTRUCTION##[/%]}" "*( )" )";
-	set -- "${1// /_}";
+	trim_lf "$INSTRUCTION" "[/%]";
+	trim_lrf "$TRIM" "*( )";
+	set -- "${TRIM// /_}";
 	FILECHAT="${FILECHAT%/*}/awesome.tsv"
 	_cmdmsgf 'Awesome Prompts' "$1"
 
@@ -4753,7 +4799,7 @@ function awesomef
 	((${#1}==1)) && glob='^';
 	if test_dialogf
 	then
-		if ((${#1})) && 
+		if ((${#1})) &&
 		options=( $(_dialog_optf $(grep -i -e "${glob}${1//[ _-]/[ _-]}" <<<"${act_keys}" | sort) ) )
 			((!${#options[@]}))
 		then  options=( $(_dialog_optf $(printf '%s\n' ${act_keys:-err} | sort) ) )
@@ -4792,14 +4838,17 @@ function awesomef
 		fi ;set -- "$act"; glob= n= a= l=;
 	done
 	fi
-	
+
 	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"[[:space:]]*$//; s/",[Ff][Aa][Ll][Ss][Ee][[:space:]]*$//; s/",[Tt][Rr][Uu][Ee][[:space:]]*$//; s/\\n$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
 	((CMD_CHAT)) ||
 	if _clr_ttystf; ((OPTX))  #edit chosen awesome prompt
 	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 		printf '%s\n\n' "$INSTRUCTION" >&2 ;
 	else 	read_mainf -i "$INSTRUCTION" INSTRUCTION
-		((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
+		((OPTCTRD)) && {
+			trim_rf "$INSTRUCTION" $'*([\r])'
+			INSTRUCTION="$TRIM"
+		}
 	fi </dev/tty
 	case "$INSTRUCTION" in ''|prompt|act)
 		_warmsgf 'Err:' 'awesome-chatgpt-prompts fail'
@@ -4836,15 +4885,16 @@ function custom_prf
 			INSTRUCTION=
 			;;
 	esac
-	
+
 	#set skip confirmation (catch ./file)
 	[[ $INSTRUCTION = .* ]] && [[ $INSTRUCTION != .?(.)/*([!/]) ]] \
-	&& INSTRUCTION="${INSTRUCTION##[.,]}" skip=${skip:-1} 
-	
+	&& INSTRUCTION="${INSTRUCTION##[.,]}" skip=${skip:-1}
+
 	[[ ! -f $INSTRUCTION ]] && [[ $INSTRUCTION != ./*([!/]) ]] \
 	&& INSTRUCTION="${INSTRUCTION##[.,]}"
-	
-	name=$(trim_leadf "$INSTRUCTION" '*( )')
+
+	trim_lf "$INSTRUCTION" '*( )'
+	name="$TRIM"
 
 	#set source prompt file
 	if [[ -f $name ]]
@@ -4909,7 +4959,10 @@ function custom_prf
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;
 		else 	_printbf '>'; read_mainf -i "$INSTRUCTION" INSTRUCTION;
-			((OPTCTRD)) && INSTRUCTION=$(trim_trailf "$INSTRUCTION" $'*([\r])')
+			((OPTCTRD)) && {
+				trim_rf "$INSTRUCTION" $'*([\r])'
+				INSTRUCTION="$TRIM"
+			}
 		fi </dev/tty
 
 		if ((template))  #push changes to file
@@ -4935,7 +4988,7 @@ function set_fnamef
 		for fname in "${1%.*}"*
 		do 	fname=${fname##*/} fname=${fname%.*}
 			fname=${fname%%-*([0-9])} fname=${fname##*[!0-9]}
-			((m>fname)) || ((m=fname+1)) 
+			((m>fname)) || ((m=fname+1))
 		done
 		set -- "${1%.*}"; set -- "${1%%?(-)*([0-9])}";
 		while [[ -s ${1}${m}.${ext} ]]; do 	((++m)); done;
@@ -4989,7 +5042,7 @@ function set_playcmdf
 	#--network-caching=150 --sout-mux-caching=50 --live-caching=100 --clock-jitter=0 --file-caching=0 --no-audio-time-stretch
 	elif command -v ffplay
 	then 	PLAY_CMD='ffplay -nodisp -hide_banner -autoexit'
-	#-fflags +nobuffer -flags low_delay -framedrop 
+	#-fflags +nobuffer -flags low_delay -framedrop
 	#-fflags discardcorrupt, too aggressive (breaks audio-video sync)
 	elif command -v afplay  #macos
 	then 	PLAY_CMD='afplay'
@@ -5114,7 +5167,7 @@ function session_globf
 	#input is exact filename, or ends with extension wo whitespaces?
 	[[ -f "${glob}".${ext} ]] || [[ "$1" = *?.${sglob} && "$1" != *\ * ]] \
 	|| set -- *${glob}*.${sglob}  #set the glob
-	
+
 	if ((SESSION_LIST))
 	then 	ls -- "$@";
 		return 0;
@@ -5164,7 +5217,7 @@ function session_globf
 function session_name_choosef
 {
 	typeset fname new print_name sglob ext var item
-	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}" 
+	fname="$1" sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}"
 	((OPTEXIT>1)) && return
 	case "$fname" in [Nn]ew|*[N]ew.${sglob}) 	set --; fname= ;; esac
 	while
@@ -5174,7 +5227,7 @@ function session_name_choosef
 		case "pr" in ${sglob}) item="prompt";;
 			*) item="session";;
 		esac;
-		
+
 		if [[ -d "$fname" ]]
 		then 	_warmsgf 'Err:' 'Is a directory'
 			fname="${fname%%/}"
@@ -5236,7 +5289,7 @@ function session_name_choosef
 		fi
 	do 	unset fname new print_name
 	done
-	
+
 	if [[ ! -e ${fname} ]]
 	then 	[[ ${fname} = *.[Pp][Rr] ]] \
 		&& printf '(new prompt file)\n' >&2 \
@@ -5252,7 +5305,7 @@ function session_sub_printf
 	sopt= copt= ok= buff= buff_end=;
 	[[ -s ${file:=$1} ]] || return; [[ $file = */* ]] || [[ ! -e "./$file" ]] || file="./$file";
 	FILECHAT_OLD="$file" regex="${REGEX%%${NL}*}";
- 
+
 	while ((skip)) || IFS= read -r
 	do 	_spinf; skip= ;
 		if [[ ${REPLY} = *([$IFS])\#* ]] && ((OPTHH<3))
@@ -5267,7 +5320,7 @@ do 	_spinf 	#grep session with user regex
 				then 	[[ $regex = -?* ]] && sopt="${regex%% *}" regex="${regex#* }"
 					grep $sopt "${regex}" <<<" " >/dev/null  #test user syntax
 					(($?<2)) || return 1; ((OPTK)) || copt='--color=always';
-					
+
 					_sysmsgf 'Regex': "\`${regex}'";
 					if ! grep -q $copt $sopt "${regex}" "$file" 1>&2 2>/dev/null;  #grep regex match in current file
 					then 	grep -n -o $copt $sopt "${regex}" "${file%/*}"/*"${file##*.}" 1>&2 2>/dev/null  #grep other files
@@ -5284,7 +5337,7 @@ do 	_spinf 	#grep session with user regex
 					buff_end="${buff_end}${buff_end:+$NL}${string:1: ${#string}-2}"
 				done <<<"${buff}"
 			fi
-			
+
 			((OPTHH && OPTV)) && break 2;  #IPC#
 			((${#buff})) && {
 			  if ((${#buff_end}))
@@ -5335,7 +5388,7 @@ done
 function session_copyf
 {
 	typeset src dest buff
-	
+
 	((${#}==1)) && [[ "$1" = +([!\ ])[\ ]+([!\ ]) ]] && set -- $@  #filename with spaces
 
 	_sysmsgf 'Source hist file: ' '' ''
@@ -5364,9 +5417,12 @@ function session_mainf
 {
 	typeset name file optsession arg break msg
 	typeset -a args
-	name="${*}"               ;((${#name}<512)) || return
-	name=$(trimf "${name}" "*([$IFS])") ;[[ $name = [/!]* ]] || return
-	name="${name##?([/!])*([$IFS])}"
+	name="${*}"; ((${#name}<512)) || return
+	trim_lrf "${name}" "*([$IFS])"
+	name="$TRIM"
+	case "${name}" in [/!]*) 	:;; *) 	return 1;; esac
+	trim_lf "${name}" "?([/!])*([$IFS])"
+	name="$TRIM"
 
 	case "${name}" in
 		#list files: /list [awe|pr|all|session]
@@ -5413,7 +5469,7 @@ function session_mainf
 				name="${name##[/!]}"
 			fi;;
 	esac
-	
+
 	name="${name##@(session|sub|grep|[Ss])*([$IFS])}"
 	name="${name/\~\//"$HOME"\/}"
 
@@ -5512,11 +5568,11 @@ function set_ollamaf
 			} | { 	column -t -s $'\t' 2>/dev/null || ! _warmsgf 'Err' ;}  #tsv
 		fi
 	}
-	
+
 	ENDPOINTS[0]="/api/generate" ENDPOINTS[5]="/api/embeddings" ENDPOINTS[6]="/api/chat";
 	((${#OLLAMA_BASE_URL})) || OLLAMA_BASE_URL=${OPENAI_BASE_URL:-$OLLAMA_BASE_URL_DEF};
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER  #set placeholder as this field is required
-	
+
 	OLLAMA_BASE_URL=${OLLAMA_BASE_URL%%*([/$IFS])}; set_model_epnf "$MOD";
 	_sysmsgf "OLLAMA URL / Endpoint:" "$OLLAMA_BASE_URL${ENDPOINTS[EPN]}";
 }
@@ -5630,7 +5686,7 @@ function set_googleaif
 		typeset var ext role
 		[[ ${1} = *[!$IFS]* ]] || ((${#MEDIA[@]}+${#MEDIA_CMD[@]})) || return
 		var= ext= role=;
-		
+
 		case "$2" in
 			system) 	role=system; return 1;;
 			assistant) 	role=model;;
@@ -5678,7 +5734,7 @@ function set_anthropicf
 
 	function __promptf
 	{
-		[[ $MOD =  claude-3-5-sonnet-20240620 ]] &&  #8192 output tokens is in beta 
+		[[ $MOD =  claude-3-5-sonnet-20240620 ]] &&  #8192 output tokens is in beta
 		  set -- "$@" --header "anthropic-beta: max-tokens-3-5-sonnet-2024-07-15";
 
 		if curl "$@" ${FAIL} -L "${ANTHROPIC_BASE_URL}${ENDPOINTS[EPN]}" \
@@ -5759,7 +5815,7 @@ no-time  format  voice  awesome-zh  awesome
 				OPTARG="${OPTARG##$name=}"
 				;;
 			[0-9]*)  #max resp tkns option
-				OPTARG="$OPTMM-$OPTARG" opt=M 
+				OPTARG="$OPTMM-$OPTARG" opt=M
 				;;
 			*) 	_warmsgf "Unknown option:" "--$OPTARG"
 				exit 2;;
@@ -5773,7 +5829,7 @@ no-time  format  voice  awesome-zh  awesome
 			then 	if [[ $OPTARG = *% ]]
 				then 	OPT_AT_PC="${OPTARG##${OPTARG%%??%}}"
 					OPT_AT_PC="${OPT_AT_PC:-${OPTARG##${OPTARG%%?%}}}"
-					OPT_AT_PC="${OPT_AT_PC//[!0-9]}" 
+					OPT_AT_PC="${OPT_AT_PC//[!0-9]}"
 					OPT_AT="${OPT_AT%%"$OPT_AT_PC%"}"
 				else 	OPT_AT_PC="${OPTARG%%%*}"
 					OPT_AT="${OPT_AT##*%}"
@@ -5794,7 +5850,7 @@ no-time  format  voice  awesome-zh  awesome
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		d) 	((OPTCMPL)) && OPTCMPL=1 || OPTCMPL=-1;;  #-1: single-turn, 1: multi-turn
-		effort) case "$OPTARG" in -*) 	OPTARG= ;; esac; 
+		effort) case "$OPTARG" in -*) 	OPTARG= ;; esac;
 			REASON_EFFORT=${OPTARG:?--effort/--think -- level/integer};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
@@ -6151,7 +6207,7 @@ then
 	BASE_URL=${NOVITA_BASE_URL:-${OPENAI_BASE_URL:-$NOVITA_BASE_URL_DEF}};
 	NOVITAAI=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI XAI DEEPSEEK;
-else 	
+else
 	unset NOVITA_API_KEY NOVITA_BASE_URL NOVITAAI;
 fi
 
@@ -6206,7 +6262,7 @@ then
 
 	{ ((OPTI)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
 	  [[ -t 0 ]] || set -- "$@" "$(<$STDIN)";
-	
+
 	edf "$@" && set -- "$(<"$FILETXT")";
 elif ! ((OPTTIKTOKEN+OPTI))
 then
@@ -6239,8 +6295,14 @@ do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
 done; unset arg init;
 
-((${#BLOCK_USR})) && BLOCK_USR=$(trim_trailf "$BLOCK_USR" $',*([\n\t ])')
-((${#BLOCK_CMD})) && BLOCK_CMD=$(trim_trailf "$BLOCK_CMD" $',*([\n\t ])')
+((${#BLOCK_USR})) && {
+	trim_rf "$BLOCK_USR" $',*([\n\t ])'
+	BLOCK_USR="$TRIM"
+}
+((${#BLOCK_CMD})) && {
+	trim_rf "$BLOCK_CMD" $',*([\n\t ])'
+	BLOCK_CMD="$TRIM"
+}
 
 #handle options of combined modes: chat + whisper + tts
 if ((OPTW+OPTZ)) && ((${#}))
@@ -6431,7 +6493,10 @@ then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
 	if ((!${#}))
 	then 	_clr_ttystf; echo 'Input:' >&2;
 		read_mainf REPLY </dev/tty
-		((OPTCTRD)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])')
+		((OPTCTRD)) && {
+			trim_rf "$REPLY" $'*([\r])'
+			REPLY="$TRIM"
+		}
 		set -- "$REPLY"; echo >&2;
 	fi
 	if [[ $MOD = *embed* ]]
@@ -6462,7 +6527,7 @@ else
 				case "$var" in 	?) SKIP=1 EDIT=1 OPTAWE= REPLY=$var;; 	*) JUMP=1;; esac; unset var;
 			fi; [[ $INSTRUCTION = *[!$IFS]* ]] || unset INSTRUCTION;
 			;;
-		[.,]*) 	if ((OPTV)) 
+		[.,]*) 	if ((OPTV))
 			then 	OPTV=100 custom_prf "$@";
 			else 	OPTV= custom_prf "$@";
 			fi;
@@ -6526,7 +6591,7 @@ else
 	((MULTIMODAL>1 && STREAM)) && OPTZ_FMT="pcm16";  #audio-model preview
 	#non-streaming mode supports more audio formats!
 	((OPTV)) || sysmsgf 'Language Model:' "$MOD$( ((MULTIMODAL)) && echo ' / multimodal')";
-	
+
 	restart_compf ;start_compf
 	function unescape_stopsf
 	{   typeset s
@@ -6562,7 +6627,10 @@ else
 		((MULTIMODAL>1)) && [[ $INSTRUCTION_CHAT = "$INSTRUCTION_CHAT_EN" ]] &&
 		  INSTRUCTION_CHAT="${INSTRUCTION_CHAT} Your voice and personality should be warm and engaging, with a lively and playful tone. If interacting in a non-English language, start by using the standard accent or dialect familiar to the user. Talk quickly.";
 
-		[[ $INSTRUCTION = *[!$IFS]* ]] && INSTRUCTION=$(trim_leadf "$INSTRUCTION" "$SPC:$SPC")
+		case "$INSTRUCTION" in *[!$IFS]*)
+			trim_lf "$INSTRUCTION" "$SPC:$SPC"
+			INSTRUCTION="$TRIM"
+		esac
 		if ((OPTC))
 		then 	if ((INST_TIME))
 			then 	INSTRUCTION="${INSTRUCTION-$INSTRUCTION_CHAT}";  #IPC#
@@ -6572,7 +6640,7 @@ else
 			fi
 		fi
 		INSTRUCTION_OLD="$INSTRUCTION"
-		
+
 		if ((OPTC && OPTRESUME)) || ((OPTCMPL==1 || OPTRESUME==1))
 		then 	unset INSTRUCTION;
 		elif ((OPTV))
@@ -6597,13 +6665,14 @@ else
 		elif [[ -s $HISTFILE ]]
 		then 	case "$BASH_VERSION" in  #avoid bash4 hanging
 				[0-3]*|4.[01]*|4|'') 	:;;
-				*) 	REPLY_OLD=$(trim_leadf "$(fc -ln -1)" "*([$IFS])");;
+				*) 	trim_lf "$(fc -ln -1)" "*([$IFS])"
+					REPLY_OLD="$TRIM";;
 			esac;
 		fi
 		((${#1}+${#2}+${#3}+${#4}+${#5}+${#6}+${#7}+${#8}>512)) ||
 		    shell_histf "$*";
 	fi
-	
+
 	#session and chat cmds
 	case "$1" in
 		[.]|[/!.][/.]) 	set -- '/fork current' "${@:2}";;
@@ -6622,24 +6691,25 @@ else
 		then 	OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
 		fi
 	fi
-	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;  #needs review#
 	((OPTRESUME)) && BREAK_SET= && fix_breakf "$FILECHAT";
 
 	if ((${#})) && ((!(OPTE+OPTX) )) && [[ ! -e $1 && ! -e ${@:${#}} ]]
 	then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
 		sysmsgf "Inst+Prompt:" "~$TKN_PREV tokens"
 	fi
+	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;  #mind anthropic
 
 	#warnings and tips
 	((OPTCTRD)) && _warmsgf '*' '<Ctrl-V Ctrl-J> for newline * '
 	((OPTCTRD+CATPR)) && _warmsgf '*' '<Ctrl-D> to flush input * '
 	echo >&2  #!#
-	
+
 	#option -e, edit first user input
 	((OPTE && ${#})) && { 	REPLY=$* EDIT=1 SKIP= WSKIP=; set -- ;}
 
 	while :
-	do 	((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
+	do 	trap "exit" INT;
+		((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
 		((TRAP_EDIT)) && {
 			EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= TRAP_EDIT=;
 			set -- ;}
@@ -6676,8 +6746,8 @@ else
 					((!BAD_RES)) && {
 					((OPTV)) || [[ $REPLY = :* ]] \
 					|| [[ $REPLY != *[!$IFS]* ]] \
-					|| { is_txturl "${REPLY: ind}" >/dev/null && ((!REPLY_CMD_BLOCK)) ;};
-					} || NO_CLR=1 new_prompt_confirmf
+					|| { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY}" >/dev/null ;};
+					} || NO_CLR=1 new_prompt_confirmf abort
 						case $? in
 							202) 	exit 202;;  #exit
 							201) 	set --; OPTX= SKIP_SH_HIST=; break 1;;  #abort
@@ -6719,7 +6789,7 @@ else
 						else 	_printbf "${var//?/ } ";
 						fi
 					fi
-					
+
 					((RESUBW)) || record_confirmf
 					case $? in
 					0) 	((BAD_RES)) ||
@@ -6730,18 +6800,18 @@ else
 								set --;
 								((ANTHROPICAI+GROQAI+GOOGLEAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK)) &&
 								  BASE_URL=$OPENAI_BASE_URL_DEF OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
-								
+
 								if ((!GROQAI && WHISPER_GROQ > 0)) || ((GROQAI && WHISPER_GROQ >= 0))
 								then 	MOD_AUDIO=$MOD_AUDIO_GROQ;
 									BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF} OPENAI_API_KEY=${GROQ_API_KEY:-$OPENAI_API_KEY};
 								fi
 
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= MULTIMODAL=;
-								
+
 								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
 								context="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}";
 								((${#context})) && set -- "$@" "$context";
-								
+
 								whisperf "$FILEINW" "$@";
 							)
 							if is_amodelf "$MOD" && ((!WAPPEND))
@@ -6773,9 +6843,12 @@ else
 					fi </dev/tty
 
 					((CATPR)) && echo >&2;
-					((OPTCTRD+CATPR)) && REPLY=$(trim_trailf "$REPLY" $'*([\r])')
+					((OPTCTRD+CATPR)) && {
+						trim_rf "$REPLY" $'*([\r])'
+						REPLY="$TRIM"
+					}
 				fi; printf "${NC}" >&2;
-				
+
 				if [[ ${REPLY:0:128} = /cat*([$IFS]) ]]
 				then 	((CATPR)) || CATPR=2 ;REPLY= PSKIP= SKIP=1
 					((CATPR==2)) && _cmdmsgf 'Cat Prompter' "one-shot"
@@ -6795,11 +6868,13 @@ else
 					*[$IFS][/!]shell|*[$IFS][/!]sh) var=shell;;
 					*) 	false;; esac;
 				then
-					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(/shell|shell|/sh|sh)")";
+					trim_rf "$REPLY" "${SPC}[/!]@(/shell|shell|/sh|sh)";
+					set -- "$TRIM";
 					REPLY_CMD_DUMP=$(
 						REPLY=;
 						cmd_runf /${var:-shell};
-						trim_trailf "$REPLY" "[/!]@(/shell|shell|/sh|sh)"
+						trim_rf "$REPLY" "[/!]@(/shell|shell|/sh|sh)"
+						printf '%s' "$TRIM"
 					)
 					if ((${#REPLY_CMD_DUMP}))
 					then 	REPLY="${*} ${REPLY_CMD_DUMP}";
@@ -6814,7 +6889,8 @@ else
 					*[$IFS][/!][/!]g) var=/g;;
 					*) 	false;; esac;
 				then
-					set -- "$(trim_trailf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#|[/!]g|g)")";
+					trim_rf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#|[/!]g|g)";
+					set -- "$TRIM";
 					cmd_runf /${var:-pick} "$*";
 					set --; continue 2;
 				elif ((${#REPLY}))
@@ -6822,12 +6898,12 @@ else
 					((!BAD_RES)) && {
 					((OPTV)) || [[ $REPLY = :* ]] \
 					|| [[ $REPLY != *[!$IFS]* ]] \
-					|| { is_txturl "${REPLY: ind}" >/dev/null && ((!REPLY_CMD_BLOCK)) ;};
+					|| { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY: ind}" >/dev/null ;};
 					} || new_prompt_confirmf ed whisper
 					case $? in
 						202) 	exit 202;;  #exit
-						201) 	break 2;;   #abort
-						200)  #redo
+						#201) 	break 2;;   #abort
+						200|201)  #redo / abort
 							REPLY=$REPLY_CMD;
 							REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 							printf '\n%s\n' '--- redo ---' >&2; set --; continue;;
@@ -6872,11 +6948,12 @@ else
 			set -- ; continue
 		fi
 		if ((!OPTCMPL)) && ((OPTC)) && [[ "${*}" = *[!$IFS]* ]]
-		then 	set -- "$(trimf "$*" "$SPC1")"  #!#
+		then 	trim_lrf "$*" "$SPC1"
+			set -- "$TRIM"  #!#
 			REPLY="$*"
 		fi
 		((${#REPLY_OLD})) || REPLY_OLD="${REPLY:-$*}";  #I# Avoid $REPLY_CMD!
-		
+
 		}  #awesome 1st pass skip end
 
 		if ((MTURN+OPTRESUME)) && [[ -n "${*}" ]]
@@ -6887,22 +6964,27 @@ else
 
 			#system/instruction?
 			case "${1:0:32}${2:0:16}" in :*)
-				var=$(trim_leadf "$*" "$SPC:")
+				trim_lf "$*" "+([:$IFS])"
+				var="$TRIM"
 
-				case "${var:0:32}" in :::*) 	var=${var:1};; esac;  #[DEPRECATED] 
-				case "${var:0:32}" in ::*)
-					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=added || v=set;
+				case "${1:0:32}${2:0:16}" in ::*)
+					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=append || v=set;
+					((ANTHROPICAI)) && ((${#INSTRUCTION_OLD})) && v=append;
 					_sysmsgf "System Prompt $v";
-					if ((GOOGLEAI))  #[UNNEEDED]
-					then 	RINSERT=${RINSERT}${var:1}${NL}${NL};
+					if ((GOOGLEAI))
+					then
+						INSTRUCTION_OLD=${GINSTRUCTION:-${INSTRUCTION:-$INSTRUCTION_OLD}}
+						GINSTRUCTION=${GINSTRUCTION}${GINSTRUCTION:+${NL}${NL}}${var}
+						GINSTRUCTION_PERM=${GINSTRUCTION}
 					else
 						INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD}
-						INSTRUCTION=${INSTRUCTION}${INSTRUCTION:+${NL}${NL}}${var:1}
+						INSTRUCTION=${INSTRUCTION}${INSTRUCTION:+${NL}${NL}}${var}
+						((ANTHROPICAI)) && INSTRUCTION_OLD=${INSTRUCTION_OLD}${NL}${NL}${var} INSTRUCTION=
 					fi;
 				;;
 					*)
 					RINSERT=${RINSERT}${var}${NL};
-					_sysmsgf 'User Prompt added';
+					_sysmsgf 'User Prompt append';
 				;;
 				esac;
 				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD= REPLY_CMD_DUMP= var= v=;
@@ -6930,6 +7012,7 @@ else
 			  cmd_runf /cat "$var";
 			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST= REPLY_CMD_BLOCK=1;
 			fi; PSKIP= var=;
+			((RET==201)) ||
 			if ((${#REPLY_CMD_DUMP})) &&
 				((!RET || (RET>180 && RET<220) ))  #!# our exit codes: >180 and <220
 			then
@@ -6938,7 +7021,8 @@ else
 			    REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
 			  case "$RET" in
 			    202) echo '[bye]' >&2; exit 202;;
-			    201|200) EDIT=1 REPLY=$REPLY_CMD;
+			    201) REPLY= SKIP_SH_HIST=;;  #abort
+			    200) EDIT=1 REPLY=$REPLY_CMD;
 				 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 			         set --; continue 1;;  #redo / abort
 			    199) SKIP=1 EDIT=1; set --; continue 1;;  #edit in bash readline
@@ -6989,14 +7073,15 @@ else
 
 		((MTURN+OPTRESUME)) &&
 		if ((EPN==6));
-		then 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${*}";
-		else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*}"; fi
+		then 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${*}";  #mind anthropic
+		else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*}";
+		fi
 		((TRAP_EDIT)) && continue;
-		
+
 		((MAIN_LOOP||TOTAL_OLD)) || {
 			TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-${GINSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}}")
 			((TRAP_EDIT)) && continue ;}
-		
+
 		if ((OPTC)) || [[ -n "${RESTART}" ]]
 		then 	rest="${RESTART-$Q_TYPE}"
 			((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
@@ -7008,11 +7093,12 @@ else
 			set -- "${RINSERT:0:${#RINSERT}-var}${*:-$REPLY}";
 			REPLY="${RINSERT:0:${#RINSERT}-var}$REPLY" RINSERT= var=;
 		fi
-		
+
 		var="$(escapef "${INSTRUCTION}")${INSTRUCTION:+\\n\\n}";
 		ESC="${HIST}${HIST:+${var:+\\n\\n}}${var}${rest}$(escapef "${*}")";
-		ESC=$(INDEX=32 trim_leadf "$ESC" "\\n");
-		
+		INDEX=32 trim_lf "$ESC" "\\n";
+		ESC="$TRIM";
+
 		if ((EPN==6))
 		then 	#chat cmpls
 			if [[ ${*} = *([$IFS]):* ]]
@@ -7021,7 +7107,7 @@ else
 			else 	role=user;
 			fi
 
-			((GOOGLEAI)) &&  [[ $MOD = *gemini*-pro-vision* && $MOD != *gemini*-1.5-* ]] &&  #gemini-1.0-pro-vision cannot take it multiturn
+			((GOOGLEAI)) &&  [[ $MOD = *gemini-1.0*-pro-vision* ]] &&  #gemini-1.0-pro-vision cannot take it multiturn
 			if ((REGEN<0 && MAIN_LOOP<1 && ${#INSTRUCTION_OLD})) ||
 				((${#MEDIA[@]}+${#MEDIA_CMD[@]}+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]})) ||
 				is_visionf "$MOD" || is_amodelf "$MOD"
@@ -7029,7 +7115,7 @@ else
 				((${#MEDIA[@]}+${#MEDIA_CMD[@]})) ||
 				MEDIA=("${MEDIA_IND[@]}") MEDIA_CMD=("${MEDIA_CMD_IND[@]}");
 			fi
-			
+
 			((MOD_REASON)) && var=developer || var=system;
 			var=$(unset MEDIA MEDIA_CMD; fmt_ccf "$(escapef "$INSTRUCTION")" "${var}";) && var="${var}${INSTRUCTION:+,${NL}}";  #mind anthropic
 			set -- "${HIST_C}${HIST_C:+,${NL}}${var}$(fmt_ccf "${HIST_G}$(escapef "${*}")" "$role")";
@@ -7040,18 +7126,18 @@ else
 			else 	set -- "${ESC}"
 			fi
 		fi; rest= role=;
-		
+
 		for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 		do 	((media_i++));
 		  	var=$(is_audiof "$media" && echo aud || echo img)
 			[[ -f $media ]] && media=$(duf "$media");
 			_sysmsgf "$var #${media_i}" "${media:0: COLUMNS-6-${#media_i}}$([[ -n ${media: COLUMNS-6-${#media_i}} ]] && printf '\b\b\b%s' ...)";
 		done; media= media_i=;
-		
+
 		if ((EPN==6))
 		then 	set -- "$(sed -e '/^[[:space:]]*$/d' <<<"$*" | sed -e '$s/,[[:space:]]*$//')";
 			if ((GOOGLEAI))
-			then 	BLOCK="\"contents\": [ ${*} ],${BLOCK_CMD}${BLOCK_CMD:+,}"; 
+			then 	BLOCK="\"contents\": [ ${*} ],${BLOCK_CMD}${BLOCK_CMD:+,}";
 			else 	BLOCK="\"messages\": [ ${*} ],";
 			fi
 		else
@@ -7092,8 +7178,10 @@ $var
 		elif ((OLLAMA))
 		then
 			BLOCK="{
-$( ((EPN!=6)) && ollama_mediaf && printf '%s' ',')
-$( ((EPN!=6)) && echo "\"system\": \"$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")\"," )
+$(
+  ((EPN!=6)) && ollama_mediaf && printf '%s' ','
+  ((EPN!=6)) && echo "\"system\": \"$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")\","
+)
 $BLOCK
 \"model\": \"$MOD\", $STREAM_OPT $OPT_KEEPALIVE_OPT
 \"options\": {
@@ -7107,40 +7195,42 @@ $BLOCK
 #https://www.reddit.com/r/ollama/comments/1e4hklk/how_does_num_predict_and_num_ctx_work/
 		else
 			BLOCK="{
-$( ((ANTHROPICAI)) && ((EPN==6)) && ((${#INSTRUCTION_OLD})) && echo "\"system\": \"$(escapef "$INSTRUCTION_OLD")\"," )
-$BLOCK $OPTSUFFIX_OPT
 $(
-max=""
-if ((ANTHROPICAI)) && ((EPN!=6))
-then 	max="max_tokens_to_sample"
-elif ((ANTHROPICAI+MISTRALAI+NOVITAAI))
-then 	max="max_tokens"
-fi
-((OPTMAX_NILL && EPN==6 && !ANTHROPICAI)) || echo "\"${max:-max_completion_tokens}\": $OPTMAX,"
+  max=""
+  if ((ANTHROPICAI)) && ((EPN!=6))
+  then 	max="max_tokens_to_sample"
+  elif ((ANTHROPICAI+MISTRALAI+NOVITAAI))
+  then 	max="max_tokens"
+  fi
+  ((OPTMAX_NILL && EPN==6 && !ANTHROPICAI)) || echo "\"${max:-max_completion_tokens}\": $OPTMAX,"
 
-case "$MOD" in
-	o[1-9]*-preview*)  REASON_EFFORT=;;
-esac
-if ((ANTHROPICAI)) && ((${REASON_EFFORT:+1}0))
-then 	case "$MOD" in claude-3-[5-9]-sonnet*|claude*-[4-9]*)
-		echo "\"thinking\": {
-\"type\": \"enabled\",
-\"budget_tokens\": ${REASON_EFFORT:-16000}
-  },"
-	esac
-elif ((${REASON_EFFORT:+1}0))  #OpenAI
-then 	echo "\"reasoning_effort\": \"${REASON_EFFORT:-medium}\","
-fi
+  case "$MOD" in
+  	o[1-9]*-preview*)  REASON_EFFORT=;;
+  esac
+  if ((ANTHROPICAI)) && ((${REASON_EFFORT:+1}0))
+  then 	case "$MOD" in claude-3-[5-9]-sonnet*|claude*-[4-9]*)
+  		echo "\"thinking\": {
+  \"type\": \"enabled\",
+  \"budget_tokens\": ${REASON_EFFORT:-16000}
+    },"
+  	esac
+  elif ((${REASON_EFFORT:+1}0))  #OpenAI
+  then 	echo "\"reasoning_effort\": \"${REASON_EFFORT:-medium}\","
+  fi
+
+  is_amodelf "$MOD" &&
+  if ((OPTW+OPTZ))
+  then  printf '"modalities": ["text", "audio"], "audio": { "voice": "%s", "format": "%s" },' "${OPTZ_VOICE:-echo}" "${OPTZ_FMT:-pcm16}"
+  else  printf '"modalities": ["text"],'
+  fi
+
+  ((ANTHROPICAI+MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true},"
+
+  ((ANTHROPICAI)) && ((EPN==6)) && ((${#INSTRUCTION_OLD})) && echo "\"system\": \"$(escapef "$INSTRUCTION_OLD")\","
 )
+$BLOCK $OPTSUFFIX_OPT
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
-$(
-is_amodelf "$MOD" &&
-if ((OPTW+OPTZ))
-then  printf '"modalities": ["text", "audio"], "audio": { "voice": "%s", "format": "%s" },' "${OPTZ_VOICE:-echo}" "${OPTZ_FMT:-pcm16}"
-else  printf '"modalities": ["text"],'
-fi )
-$( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true}," )
 \"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
 }"
 		fi
@@ -7155,7 +7245,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 		#move cursor to the end of user input in previous line
 		if test_cmplsf && ((!JUMP))
 		then 	if ((${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}+${#REPLY_CMD_DUMP}))
-			then 
+			then
 			  echo >&2;
 			elif ((OPTSUFFIX && ${#SUFFIX}))
 			then  #insert mode, print last line of reply
@@ -7263,7 +7353,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
 				fi  #adjust context err (OpenAI only)
-				unset REPLY_CMD_DUMP file;  
+				unset REPLY_CMD_DUMP file;
 			fi;
 
 			BAD_RES= PSKIP= ESC_OLD=;
@@ -7349,10 +7439,10 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			FILEOUT_TTS=$(
 			  ((MULTIMODAL>1)) && OPTZ_FMT="pcm";  #audio-model preview
 			  set_fnamef "${FILEOUT_TTS%.*}.${OPTZ_FMT}");
-			
+
 			jq -r '(.choices|.[0]?|.message.audio.data)//(.choices|.[0]?|.delta.audio.data)//empty' "$FILE" |
 			{ 	base64 -d || base64 -D ;} >"$FILEOUT_TTS" || rm -vf "$FILEOUT_TTS" >&2;
-			
+
 			var="${FILEOUT_TTS%.*}.wav";
 			if [[ -s $FILEOUT_TTS ]] && case "$OPTZ_FMT" in pcm16|pcm|raw) 	:;; *) 	false;; esac
 			then
@@ -7366,7 +7456,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 				#then 	ecasound -f:s16_le,1,24000 -i "$FILEOUT_TTS" -o "$var";  #.raw only
 				else 	false;
 				fi >/dev/null 2>&1 || ! _warmsgf 'Err:' 'ffmpeg/sox/lame -- pcm16 to wav';
-				
+
 				[[ -s $var ]] && FILEOUT_TTS=$var;
 				[[ ! -e $var ]] || du -h "$var" >&2 2>/dev/null || _sysmsgf 'TTS File:' "${var/"$HOME"/"~"}";
 			fi
@@ -7415,7 +7505,7 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
  				ans_tts=$(escapef "$ans_tts");
 			fi
 
-			trap '' INT; 
+			trap '' INT;
 			ttsf "${ZARGS[@]}" "${ans_tts:-$ans}";
 			trap 'exit' INT;
 		fi
@@ -7425,21 +7515,22 @@ $( ((MISTRALAI+LOCALAI+ANTHROPICAI)) || ((!STREAM)) || echo "\"stream_options\":
 			  ((${#ans} > 245)) && ans=${ans: ${#ans}-245}; printf '%s' "${ans#*[$IFS]}" )";
 			#trim right away, max 224 tkns, GPT-2 encoding
 			((${#WCHAT_C}>490)) && WCHAT_C=${WCHAT_C: ${#WCHAT_C}-490};
-			WCHAT_C=$(SMALLEST=1 INDEX=64 trim_leadf "${WCHAT_C}" $'*[ \t\n]');
+			SMALLEST=1 INDEX=64 trim_lf "${WCHAT_C}" $'*[ \t\n]';
+			WCHAT_C="$TRIM";
 			#https://platform.openai.com/docs/guides/speech-to-text/improving-reliability
 		fi
 
 		((++MAIN_LOOP)); ((WSKIP>1)) && WSKIP=1 || WSKIP=; set --;
-		role= rest= tkn_ans= ans_tts= ans= buff= var= arr= tkn= glob= out= pid= s= n=;
-		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= PSKIP= SKIP= EDIT= HARGS=;
-		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES BLOCK_CMD;
+		role= rest= tkn_ans= ans_tts= ans= buff= var= glob= out= pid= s= n=; arr=() tkn=();
+		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= PSKIP= SKIP= EDIT= HARGS= TRIM=;
+		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES BLOCK_CMD REPLY_CMD_BLOCK;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
 
 
-#   &=== &   & &==== ===== &==== &==== =====    &==== &   & 
-#   %  % %   % %   %   %   %   % %   %   %      %   " %   % 
+#   &=== &   & &==== ===== &==== &==== =====    &==== &   &
+#   %  % %   % %   %   %   %   % %   %   %      %   " %   %
 #   %=   %===% %===%   %=  %=    %===%   %=     %==== %===%     ^    ^ . 
 #   %%   %%  % %%  %   %%  %% "% %%      %%        %% %%  %    /a\  /i\  
 #   %%=% %%  % %%  %   %%  %%==% %%      %%  %% %==%% %%  %  ,<___><___>.
