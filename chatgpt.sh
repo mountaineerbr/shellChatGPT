@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.99  may/2025  by mountaineerbr  GPL+3
+# v0.99.1  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -123,8 +123,6 @@ OPTFOLD=1
 #Anthropic: budget tokens (integer)
 # Reasoning interactive
 #REASON_INTERACTIVE=  #true or false
-# Input and output prices (dollars per million tokens)
-#MOD_PRICE="0 0"
 # Currency rate against USD
 # e.g. BRL is 5.66 USD, JPY is 0.006665 USD
 #CURRENCY_RATE="1"
@@ -836,11 +834,109 @@ function set_model_epnf
 #set ``model capacity''
 function model_capf
 {
-	typeset -l model; model=${1##*/};
-	case "${model##ft:}" in  #ft: fine-tune models
-		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct)
+	typeset -l model nomatch;
+	model=${1##ft:};  #fine-tune
+
+	((NOVITAAI)) && {
+	case "${model}" in
+	meta-llama/llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1048576;;
+	deepseek/deepseek-prover-v2-671b) MODMAX=160000;;
+	meta-llama/llama-3.3-70b-instruct|meta-llama/llama-4-scout-17b-16e-instruct) MODMAX=131072;;
+	meta-llama/llama-3.2-1b-instruct) MODMAX=131000;;
+	deepseek/deepseek-r1-0528*|deepseek/deepseek-v3-0324|qwen/qwen3-[48]b-fp8) MODMAX=128000;;
+	qwen/qwen2.5-vl-72b-instruct) MODMAX=96000;;
+	microsoft/wizardlm-2-8x22b) MODMAX=65535;;
+	deepseek/deepseek-r1-distill-qwen*|deepseek/deepseek-r1-turbo|\
+	deepseek/deepseek-v3-turbo|mistralai/mistral-nemo) MODMAX=64000;;
+	qwen/qwen3-*-a*-fp8|qwen/qwen3-32b-fp8) MODMAX=40960;;
+	meta-llama/llama-3.2-3b-instruct|mistralai/mistral-7b-instruct) MODMAX=32768;;
+	deepseek/deepseek-r1-distill-llama*|google/gemma-3-27b-it|qwen/qwen-2.5-*-instruct|\
+	qwen/qwen2.5-*-instruct|thudm/glm-*-0414|thudm/glm-z1-rumination-32b-0414) MODMAX=32000;;
+	meta-llama/llama-3.1-8b-instruct) MODMAX=16384;;
+	cognitivecomputations/dolphin-mixtral-8x22b) MODMAX=16000;;
+	meta-llama/llama-3-*-instruct|meta-llama/llama-3.1-8b-instruct-bf16|\
+	nousresearch/hermes-2-pro-llama*|sao10k/l3*) MODMAX=8192;;
+	gryphe/mythomax-l2-13b|sophosympatheia/midnight-rose-70b) MODMAX=4096;;
+	*) nomatch=1;;
+	esac; ((nomatch)) || return 0; nomatch= ;}
+
+	((MISTRALAI)) && {
+	case "${model}" in
+	codestral-2411-rc5|codestral-2412|codestral-2501|codestral-latest) MODMAX=262144;;
+	devstral-small*|ministral-[38]b*|mistral-large-2407|mistral-large-2411|\
+	mistral-large-latest|mistral-large-pixtral-2411|mistral-medium|\
+	mistral-medium-2505|mistral-medium-latest|mistral-small-2503|mistral-small-latest|\
+	mistral-tiny-2407|mistral-tiny-latest|open-mistral-nemo*|pixtral-12b*|pixtral-large*) MODMAX=131072;;
+	open-mixtral-8x22b*) MODMAX=65536;;
+	codestral-2405|codestral-embed*|mistral-embed|mistral-large-2402|mistral-medium-2312|\
+	mistral-moderation*|mistral-ocr*|mistral-saba*|mistral-small-2[34]??|mistral-small-2501|mistral-small|\
+	mistral-tiny-2312|mistral-tiny|open-mistral-7b|open-mixtral-8x7b) MODMAX=32768;;
+	*) nomatch=1;;
+	esac; ((nomatch)) || return 0; nomatch= ;}
+
+	((GROQAI)) && {
+	case "${model}" in
+	deepseek-r1-distill-llama-70b|llama-3.[1-9]*|\
+	meta-llama/llama-4*|meta-llama/llama-guard-4-12b|\
+	qwen-qwq-32b) MODMAX=131072;;
+	mistral-saba-24b) MODMAX=32768;;
+	compound-beta*|gemma2-9b-it|llama3-*|llama-guard*) MODMAX=8192;;
+	allam-2-7b) MODMAX=4096;;
+	*) nomatch=1;;
+	esac; ((nomatch)) || return 0; nomatch= ;}
+
+	((GOOGLEAI)) && {
+	case "${model}" in
+	gemini-1.5-pro*) MODMAX=2000000;;
+	gemini-2.0-flash-preview-image-generation) MODMAX=32768;;
+	gemini-2.0-flash*|gemini-2.0-flash-exp*|\
+	gemini-2.[0-9]-pro*|gemini-exp*|\
+	learnlm-2.0-flash*) MODMAX=1048576;;
+	gemini-1.5-flash*) MODMAX=1000000;;
+	gemma-3-27b-it) MODMAX=131072;;
+	gemini-2.0-flash-preview-image-generation|\
+	gemini-1.0*-pro-vision*) MODMAX=12288;;
+	gemini-embedding-exp*|gemma-3n-e4b-it) MODMAX=8192;;
+	gemma-3*) MODMAX=32768;;
+	embedding-001|text-embedding-004) MODMAX=2048;;
+	embedding-gecko-001) MODMAX=1024;;
+	*) nomatch=1;;
+	esac; ((nomatch)) || return 0; nomatch= ;}
+
+	((GITHUBAI)) && {
+	case "${model}" in
+	meta/llama-4-scout-17b-16e-instruct) MODMAX=10000000;;
+	openai/gpt-4-1*) MODMAX=1048576;;
+	meta/llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
+	ai21-labs/ai21-jamba-1.5-*) MODMAX=262144;;
+	mistral-ai/codestral-2501) MODMAX=256000;;
+	openai/o1|openai/o1-mini|openai/o3|openai/o3-mini|openai/o4-mini) MODMAX=200000;;
+	microsoft/phi-4-mini*|microsoft/phi-4-multimodal*|\
+	mistral-ai/mistral-small-2503|mistral-ai/mistral-medium-2505|mistral-ai/mistral-large-2411|\
+	meta/llama-3.[23]-*|deepseek/deepseek-*|\
+	openai/o1-preview|microsoft/mai-ds-r1) MODMAX=128000;;
+	xai/grok-3*|cohere/cohere-command-*|\
+	mistral-ai/mistral-nemo|mistral-ai/ministral-3b|\
+	meta/meta-llama-3.1-*-instruct|microsoft/phi-3.5-*|\
+	microsoft/phi-3-*[8,128]k-instruct|openai/gpt-4o*) MODMAX=131072;;
+	microsoft/phi-4) MODMAX=16384;;
+	meta/meta-llama-3-70b-instruct|meta/meta-llama-3-8b-instruct|core42/jais-30b-chat) MODMAX=8192;;
+	openai/text-embedding-3-*) MODMAX=8191;;
+	cohere/cohere-embed-v3-*) MODMAX=512;;
+	microsoft/phi-3-*4k-instruct) MODMAX=4096;;
+	microsoft/phi-4-reasoning) MODMAX=32768;;
+	*) nomatch=1;;
+	esac; ((nomatch)) || return 0; nomatch= ;}
+
+	#openai models and fallback
+	#deepseek and grok have few models
+	#ollama and localai models vary too widely
+	model=${1##*/};
+	case "${model}" in
+		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*)
 			MODMAX=256000;;
-		deepseek-reasoner|deepseek-chat|open-mixtral-8x22b|text-davinci-002-render-sha)
+		deepseek-reasoner|deepseek-chat|open-mixtral-8x22b|text-davinci-002-render-sha|\
+		*-64k*|deepseek-r1*|deepseek-v3*)
 			MODMAX=64000;;
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
 		code-davinci-00[2-9]*|mistral-embed*|-8k*)
@@ -851,16 +947,13 @@ function model_capf
 			MODMAX=8191;;  #8192
 		davinci|curie|babbage|ada)
 			MODMAX=2049;;
-		#google vertex
-		chat-bison-001) MODMAX=4096;;
-		text-bison-001) MODMAX=8196;;
 		embedding-gecko-001) MODMAX=1024;;
 		aqa) MODMAX=7168;;
 		gemini-2.0-flash*) MODMAX=1048576;;
 		gemini-1.5-flash*) MODMAX=1000000;;
 		gemini-1.5-pro*) MODMAX=2000000;;
 		gemini-exp*|gemini-*) MODMAX=2097152;;
-		learnlm-1.5-pro*|*qwen-2.5-72b-instruct) MODMAX=32000;;
+		learnlm-1.5-pro*|*qwen-2.5-72b-instruct|-32k*) MODMAX=32000;;
 		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
 			MODMAX=16000;;
 		*llama-3.1-8b-instruct|davinci-00[2-9]|babbage-00[2-9]|gpt-3.5*16k*|\
@@ -876,7 +969,8 @@ function model_capf
 		*llama-[3-9].[1-9]*|*llama[4-9]-*|\
 		*llama[4-9]*|*ministral*|*pixtral*|*-128k*)
 			MODMAX=128000;;
-		*turbo*|*davinci*|teknium/openhermes-2.5-mistral-7b|openchat/openchat-7b) 	MODMAX=4096;;
+		*turbo*|*davinci*|openhermes-2.5-mistral-7b|openchat-7b|\
+		chat-bison-001|*-4k*) MODMAX=4096;;
 		grok*|*llama-3.1-405b-instruct|cohere-command-r*|grok-beta|grok-2-1212|grok-2*)
 			MODMAX=131072;;
 		claude*-[3-9]*|claude*-2.1*|o[1-9]*)
@@ -889,8 +983,6 @@ function model_capf
 			MODMAX=65535;;
 		cohere-embed-v3-*) 	MODMAX=1000;;
 		*embedding-gecko*) 	MODMAX=3072;;
-		*embed*) 	MODMAX=2046;;
-		*-4k*) 	MODMAX=4000;;
 		*) 	MODMAX=8192;;
 	esac
 }
@@ -1927,102 +2019,6 @@ function _set_browsercmdf
 	esac;
 }
 
-#calculate cost of query (dollars per million tokens)
-#usage: costf [input_tokens] [output_tokens] [input_price] [output_price] [scale]
-function costf  #[TO BE REMOVED]
-{
-	bc <<<"scale=${5:-8};
-( ( (${1:-0} / 1000000) * ${3:-0}) + ( (${2:-0} / 1000000) * ${4:-0}) ) * ${CURRENCY_RATE:-1}"
-}
-function _model_costf
-{
-	case "${MOD_PRICE[*]}" in
-	*[0-9]*[$IFS]*[0-9]*) 	echo ${MOD_PRICE[@]:0:2}; return;;
-	esac;
-	typeset model; model=${1};
-	case "${model##ft:}" in
-		claude-[3-9]-opus*|claude*-opus*-[3-9]*) 	echo 15 75;;
-		claude-[3-9]-sonnet*|claude*-sonnet*-[4-9]*|claude-3-[5-9]-sonnet*) echo 3 15;;
-		claude-3-haiku*) 	echo 0.25 1.25;;
-		claude-3.5-haiku*) 	echo 1 5;;
-		claude-2.1*|claude-2*) 	echo 8 24;;
-		claude-instant-1.2*) 	echo 0.8 2.4;;
-		open-mistral-nemo*) 	echo 0.3 0.3;;
-		mistral-large*) 	echo 2 6;;
-		codestral*|mistral-small*) echo 0.2 0.6;;
-		open-mistral-7b*) 	echo 0.25 0.25;;
-		open-mixtral-8x7b*) 	echo 0.7 0.7;;
-		open-mixtral-8x22b*|pixtral-large*) 	echo 2 6;;
-		pixtral-12b*) 	echo 0.15 0.15;;
-		mistral-medium*) 	echo 2.75 8.1;;
-		ministral-8b*) 	echo 0.1 0.1;;
-		ministral-3b*) 	echo 0.04 0.04;;
-		gpt-4.[1-4]*nano) 	echo 0.2 0.8;;
-		gpt-4.[1-4]*mini) 	echo 0.8 5;;
-		gpt-4.[1-4]*) 	echo 3 12;;
-		gpt-4.[5-9]*) 	echo 75 150;;
-		gpt-4o-audio-preview*|gpt-4o-audio-preview-2024-10-01) echo 2.5 10;;  #text only
-		o4-mini*|o3-mini*|o4-mini-2025-04-16|o3-mini-2025-01-31) echo 1.10 4.40;;
-		o1-mini*|o1-mini-2024-09-12) echo 1.10 4.40;;
-		o1*|o1-preview-2024-09-12) echo 15 60;;
-		gpt-4o-mini-audio-preview*|gpt-4o-mini-audio-preview-2024-12-17) echo 0.15 0.60;;  #text only
-		gpt-4o-mini*) 	echo 0.15 0.6;;
-		gpt-4o-2024-05-13|chatgpt-4o*) 	echo 5 15;;
-		gpt-4o-2024-08-06|gpt-4o*|gpt-4o*search-preview) echo 2.5 10;;
-		text-embedding-3-small) 	echo 0.02 0;;
-		text-embedding-3-large) 	echo 0.13 0;;
-		text-embedding-ada-002|mistral-embed*|mistral-moderation*) 	echo 0.1 0;;
-		gpt-4) 	echo 30 60;;
-		gpt-4-32k) 	echo 60 120;;
-		gpt-4-turbo*|gpt-4-*preview) 	echo 10 30;;
-		gpt-3.5-turbo-0125) 	echo 0.5 1.5;;
-		gpt-3.5-turbo-0613|gpt-3.5-turbo-0301|gpt-3.5-turbo-instruct) echo 1.5 2;;
-		gpt-3.5-turbo-1106) 	echo 1 2;;
-		gpt-3.5-turbo-16k-0613) echo 3 4;;
-		davinci-002) 	echo 2 2;;
-		babbage-002) 	echo 0.4 0.4;;
-		gemini-1.0-pro*) 	echo 0.5 1.5;;
-		gemini-1.5-flash*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 0.15 0.6 || echo 0.075 0.3;;
-		gemini-1.5*) ((MAX_PREV>128000||TOTAL_OLD>128000)) && echo 7 21 || echo 3.5 10.5;;
-		deepseek-chat) echo 0.07 0.27;;
-		deepseek-reasoner) echo 0.14 2.19;;
-		# Novita Models
-		deepseek/deepseek-r1) echo 4 4;;
-		deepseek/deepseek-r1-distill-llama-70b) echo 0.8 0.8;;
-		deepseek/deepseek_v3) echo 0.89 0.89;;
-		meta-llama/llama-3.1-8b-instruct|qwen/qwen-2-7b-instruct|Sao10K/L3-8B-Stheno-v3.2) 	echo 0.05 0.05;;
-		meta-llama/llama-3.1-70b-instruct) 	echo 0.34 0.39;;
-		meta-llama/llama-3.1-405b-instruct) 	echo 2.75 2.75;;
-		mistralai/mistral-7b-instruct|microsoft/wizardlm-2-7b|openchat/openchat-7b) 	echo 0.06 0.06;;
-		qwen/qwen-2-72b-instruct) 	echo 0.34 0.39;;
-		meta-llama/llama-3-8b-instruct) 	echo 0.04 0.04;;
-		meta-llama/llama-3-70b-instruct) 	echo 0.51 0.74;;
-		google/gemma-2-9b-it) 	echo 0.08 0.08;;
-		nousresearch/hermes-2-pro-llama-3-8b) 	echo 0.14 0.14;;
-		mistralai/mistral-nemo) 	echo 0.15 0.15;;
-		microsoft/wizardlm-2-8x22b) 	echo 0.62 0.62;;
-		gryphe/mythomax-l2-13b) 	echo 0.09 0.09;;
-		jondurbin/airoboros-l2-70b) 	echo 0.50 0.50;;
-		lzlv_70b) 	echo 0.58 0.78;;
-		nousresearch/nous-hermes-llama2-13b|teknium/openhermes-2.5-mistral-7b) 	echo 0.17 0.17;;
-		sophosympatheia/midnight-rose-70b) 	echo 0.80 0.80;;
-		qwen/qwen-2.5-72b-instruct) 	echo 0.38 0.40;;
-		sao10k/l3*-70b-euryale-v2.[1-9]) 	echo 1.48 1.48;;
-		cognitivecomputations/dolphin-mixtral-8x22b) 	echo 0.90 0.90;;
-		grok-3-mini-fast*) 	echo 0.6 4;;
-		grok-3-mini*) 	echo 0.3 0.5;;
-		grok-3-fast*) 	echo 5 25;;
-		grok-3*) 	echo 3 15;;
-		grok-beta|grok-vision-beta) 	echo 5 15;;
-		grok-2-*-1212|grok-*) 	echo 2 10;;
-		*) 	echo 0 0; false;;
-	esac;
-}
-#prices updated on aug/24
-#https://openai.com/api/pricing/
-#https://cloud.google.com/vertex-ai/generative-ai/pricing
-#https://ai.google.dev/pricing
-
 #check input and run a chat command  #tags: cmdrunf, runcmdf, run_cmdf
 function cmd_runf
 {
@@ -2121,12 +2117,6 @@ function cmd_runf
 			set -- "${*//[!0-9.,]}"
 			CURRENCY_RATE=${*:-$CURRENCY_RATE}
 			cmdmsgf 'Currency Rate:' "${*:-$CURRENCY_RATE} (vs Dollar)"
-			;;
-		prices*|price*)
-			set -- "${*##@(prices|price)$SPC}"
-			set -- "${*//[!0-9.,\ ]}"
-			MOD_PRICE=( ${*//,/.} )
-			cmdmsgf 'Price / 1M tkns:' "input: \$ ${MOD_PRICE[0]}  output: \$ ${MOD_PRICE[1]}"
 			;;
 		block*|blk*)
 			trim_lf "$*" "@(block|blk)$SPC"
@@ -2536,10 +2526,6 @@ function cmd_runf
 			${REASON_EFFORT:+reason-effort    "$REASON_EFFORT"} \
 			context-prev  "${MAX_PREV:-${TKN_PREV:-?}}  (${HIST_LOOP:-0} turns)" \
 			token-rate    "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
-			session-cost  "${SESSION_COST:-0} \$" \
-			turn-cost-max "$(
-			  case "$REASON_EFFORT" in *[0-9]*) 	:;; *) 	REASON_EFFORT= ;; esac;
-			  costf ${MAX_PREV:-0} $((${OPTMAX:-0}+${REASON_EFFORT:-0})) $(_model_costf "$MOD") 6 ) \$" \
 			browser-cli   "${BROWSER:-auto}" \
 			seed          "${OPTSEED:-unset}" \
 			tiktoken      "${OPTTIK:-0}" \
@@ -2792,7 +2778,7 @@ function cmd_runf
 				    if test_cmplsf
 				    then  _p_linerf "$REPLY_OLD";
 				    elif ((REGEN==1)) && ((!OPTV))
-				    then  printf '\n%s\n' '--- regenerate ---' >&2;
+				    then  echo '[regenerate]' >&2;
 				    fi;
 				    REGEN=1 REPLY= ;;
 			esac
@@ -3539,11 +3525,15 @@ function is_txturl
 {
 	((${#1}>512)) && set -- "${1: ${#1}-512}"
 
-	INDEX=64 trim_lrf "$1" "$SPC";
-	set -- "$1" "$TRIM";
+	trim_lf "$1" $'*\n';
+	INDEX=128 trim_lrf "$TRIM" "$SPC";
+	set -- "$TRIM";
+	case "$1" in \~\/*) 	set -- "$HOME/${1:2}";; esac;
+
 	if [[ -f ${2:-$1} ]]
 	then 	set -- "${2:-$1}";
-	else 	trim_lrf "$1" $'*[!\\\\][ \t\n]' "$SPC";
+	else 	trim_lf "$1" $'*[!\\\\][ \t\n]';
+		trim_lrf "$TRIM" "$SPC";
 		set -- "$TRIM";
 		[[ ${1:0:1} = [$IFS] ]] && set -- "${1:1}";
 	fi  #C#
@@ -3933,12 +3923,6 @@ function set_optsf
 	  case "$RESTART" in "$RESTART_OLD") 	:;; *) 	restart_compf;; esac;
 	  case "$START" in "$START_OLD") 	:;; *) 	start_compf;; esac;
 	}
-
-	case "${MOD_PRICE[*]}" in
-	*[0-9]*[$IFS]*[0-9]*) 	:;;
-	*[0-9]*|*[a-zA-Z]*) 	_warmsgf "err:" "bad model prices -- ${MOD_PRICE[*]}";
-			MOD_PRICE=();;
-	esac;
 
 	#update pid array
 	for p in ${PIDS[@]}
@@ -6228,10 +6212,6 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 ((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN)) ||
 MOD= MOD_REASON= MOD_THINK= set_optsf  #IPC#
 
-#model prices (promote var to array)
-(( ${#MOD_PRICE[@]}+${#COST_CUSTOM[@]} )) &&  #$COST_CUSTOM is deprecated
-  MOD_PRICE=( ${MOD_PRICE[@]:-${COST_CUSTOM[@]}} )
-
 #markdown rendering
 if ((OPTMD+${#MD_CMD}))
 then 	set_mdcmdf "$MD_CMD";
@@ -6859,7 +6839,7 @@ else
 					if ((REGEN>0))
 					then 	((MAIN_LOOP)) || [[ ! -s $FILECHAT ]] || REPLY_OLD=$(grep_usr_lastlinef);
 						REPLY="${REPLY_OLD:-$REPLY}"
-						((REGEN!=1)) || ((OPTV)) || test_cmplsf || printf '\n%s\n' '--- regenerate ---' >&2;
+						((REGEN!=1)) || ((OPTV)) || test_cmplsf || echo '[regenerate]' >&2;
 					else 	((SKIP+EDIT)) || REPLY=;
 					fi; RET= var=; set --; continue 2
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0  #!#
@@ -6902,29 +6882,30 @@ else
 					} || new_prompt_confirmf ed whisper
 					case $? in
 						202) 	exit 202;;  #exit
-						#201) 	break 2;;   #abort
-						200|201)  #redo / abort
+						201)  #abort
+							echo '[bye]' >&2; break 2;;
+						200)  #redo
 							REPLY=$REPLY_CMD;
 							REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
-							printf '\n%s\n' '--- redo ---' >&2; set --; continue;;
+							echo '[redo]' >&2; set --; continue;;
 						199)  #edit
 							WSKIP=1 EDIT=1;
-							printf '\n%s\n' '--- edit ---' >&2; continue;;
+							echo '[edit]' >&2; continue;;
 						198)  #editor one-shot
 							((OPTX)) || OPTX=2; EDIT=1 SKIP=1;
 							((OPTX==2)) &&
-							printf '\n%s\n' '--- text editor one-shot ---' >&2
+							echo '[text editor one-shot]' >&2
 							set -- ;continue 2;;
 						197)  #multiline one-shot
 							EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
-							((OPTCTRD==2)) && printf '\n%s\n' '--- prompter <ctr-d> one-shot ---' >&2
+							((OPTCTRD==2)) && echo '[prompter <ctr-d> one-shot]' >&2
 							REPLY="$REPLY"$'\n'; set -- ;continue;;  #A#
 						196)  #whisper off
 							WSKIP=1 EDIT=1 OPTW= ; continue 2;;
 						195)  #whisper append
 							WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=;
 							((OPTW)) || cmd_runf -ww;
-							printf '\n%s\n' '--- transcription append ---' >&2; continue;;
+							echo '[transcription append]' >&2; continue;;
 						194)  #whisper retry request
 							cmd_runf /resubmit;
 							set --; continue 2;;
@@ -7410,7 +7391,7 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		if ((!NO_OPTMD_AUTO)) && ((!OPTMD)) && ((!OPTEXIT)) &&
 			((OPTC)) && ((MTURN)) && is_mdf "${ans}"
 		then
-			printf '\n%s\n' '--- markdown ---' >&2;
+			printf '\n%s\n' '[markdown]' >&2;
 			MD_AUTO=1 cmd_runf /markdown;
 		fi
 
@@ -7423,10 +7404,6 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			TKN_RATE=( "${tkn[1]:-$tkn_ans}" "$(bc <<<"scale=8; ${var/,/.} - $SECONDS_REQ")"
 			"$(bc <<<"scale=2; ${tkn[1]:-${tkn_ans:-0}} / (${var/,/.}-$SECONDS_REQ)")" )
 		fi;
-		SESSION_COST=$(
-			cost=$(_model_costf "$MOD") || exit; set -- $cost;
-			bc <<<"scale=8; ${SESSION_COST:-0} + $(costf "$( ((tkn[0])) && echo ${tkn[0]} || __tiktokenf "$REPLY" )" "$( ((tkn[1])) && echo ${tkn[1]} || __tiktokenf "$(unescapef "$ans")" )" $@)"
-			)
 
 		if ((OPTW)) && ((!OPTZ))
 		then
