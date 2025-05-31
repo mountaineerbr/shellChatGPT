@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.99.1  may/2025  by mountaineerbr  GPL+3
+# v0.99.2  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -905,26 +905,26 @@ function model_capf
 
 	((GITHUBAI)) && {
 	case "${model}" in
-	meta/llama-4-scout-17b-16e-instruct) MODMAX=10000000;;
-	openai/gpt-4-1*) MODMAX=1048576;;
-	meta/llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
-	ai21-labs/ai21-jamba-1.5-*) MODMAX=262144;;
-	mistral-ai/codestral-2501) MODMAX=256000;;
-	openai/o1|openai/o1-mini|openai/o3|openai/o3-mini|openai/o4-mini) MODMAX=200000;;
-	microsoft/phi-4-mini*|microsoft/phi-4-multimodal*|\
-	mistral-ai/mistral-small-2503|mistral-ai/mistral-medium-2505|mistral-ai/mistral-large-2411|\
-	meta/llama-3.[23]-*|deepseek/deepseek-*|\
-	openai/o1-preview|microsoft/mai-ds-r1) MODMAX=128000;;
-	xai/grok-3*|cohere/cohere-command-*|\
-	mistral-ai/mistral-nemo|mistral-ai/ministral-3b|\
-	meta/meta-llama-3.1-*-instruct|microsoft/phi-3.5-*|\
-	microsoft/phi-3-*[8,128]k-instruct|openai/gpt-4o*) MODMAX=131072;;
-	microsoft/phi-4) MODMAX=16384;;
-	meta/meta-llama-3-70b-instruct|meta/meta-llama-3-8b-instruct|core42/jais-30b-chat) MODMAX=8192;;
-	openai/text-embedding-3-*) MODMAX=8191;;
-	cohere/cohere-embed-v3-*) MODMAX=512;;
-	microsoft/phi-3-*4k-instruct) MODMAX=4096;;
-	microsoft/phi-4-reasoning) MODMAX=32768;;
+	llama-4-scout-17b-16e-instruct) MODMAX=10000000;;
+	gpt-4-1*) MODMAX=1048576;;
+	llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
+	ai21-jamba-1.5-*) MODMAX=262144;;
+	codestral-2501) MODMAX=256000;;
+	o1|o1-mini|o3|o3-mini|o4-mini) MODMAX=200000;;
+	phi-4-mini*|phi-4-multimodal*|\
+	mistral-small-2503|mistral-medium-2505|mistral-large-2411|\
+	llama-3.[23]-*|deepseek-*|\
+	o1-preview|mai-ds-r1) MODMAX=128000;;
+	grok-3*|cohere-command-*|\
+	mistral-nemo|ministral-3b|\
+	meta-llama-3.1-*-instruct|phi-3.5-*|\
+	phi-3-*[8,128]k-instruct|gpt-4o*) MODMAX=131072;;
+	phi-4) MODMAX=16384;;
+	meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|jais-30b-chat) MODMAX=8192;;
+	text-embedding-3-*) MODMAX=8191;;
+	cohere-embed-v3-*) MODMAX=512;;
+	phi-3-*4k-instruct) MODMAX=4096;;
+	phi-4-reasoning) MODMAX=32768;;
 	*) nomatch=1;;
 	esac; ((nomatch)) || return 0; nomatch= ;}
 
