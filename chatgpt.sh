@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.99.2  may/2025  by mountaineerbr  GPL+3
+# v0.99.3  may/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -888,15 +888,14 @@ function model_capf
 	((GOOGLEAI)) && {
 	case "${model}" in
 	gemini-1.5-pro*) MODMAX=2000000;;
-	gemini-2.0-flash-preview-image-generation) MODMAX=32768;;
 	gemini-2.0-flash*|gemini-2.0-flash-exp*|\
 	gemini-2.[0-9]-pro*|gemini-exp*|\
 	learnlm-2.0-flash*) MODMAX=1048576;;
 	gemini-1.5-flash*) MODMAX=1000000;;
 	gemma-3-27b-it) MODMAX=131072;;
-	gemini-2.0-flash-preview-image-generation|\
 	gemini-1.0*-pro-vision*) MODMAX=12288;;
 	gemini-embedding-exp*|gemma-3n-e4b-it) MODMAX=8192;;
+	gemini-2.0-flash-preview-image-generation|\
 	gemma-3*) MODMAX=32768;;
 	embedding-001|text-embedding-004) MODMAX=2048;;
 	embedding-gecko-001) MODMAX=1024;;
@@ -1202,7 +1201,7 @@ function block_printf
 function new_prompt_confirmf
 {
 	typeset REPLY extra
-	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor, m[u]ltiline";; esac;
+	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor, [c]at";; esac;
 	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hsp_append, [w]hsp_off, w[h]sp_retry";; esac;
 	case \ $*\  in 	*\ abort\ *) extra="${extra}, [a]bort";; esac;
 
@@ -1212,9 +1211,10 @@ function new_prompt_confirmf
 		[Q]) 	return 202;;  #exit
 		[aq]) 	return 201;;  #abort
 		[Rr]) 	return 200;;  #redo
-		[Ee]|$'\e') 	return 199;;  #edit
+		[Ee]|$'\e') return 199;;  #edit
 		[VvXx]) return 198;;  #text editor
-		[UuMm]) return 197;;  #multiline
+		[CcU]) 	return 192;;  #cat prompter
+		[uMm]) 	return 197;;  #readline multiline
 		[w]) 	return 196;;  #whisper off
 		[WAPp]) return 195;;  #whisper append
 		[HhTt]) return 194;;  #whisper retry request
@@ -4824,16 +4824,20 @@ function awesomef
 	fi
 
 	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"[[:space:]]*$//; s/",[Ff][Aa][Ll][Ss][Ee][[:space:]]*$//; s/",[Tt][Rr][Uu][Ee][[:space:]]*$//; s/\\n$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
-	((CMD_CHAT)) ||
-	if _clr_ttystf; ((OPTX))  #edit chosen awesome prompt
-	then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
-		printf '%s\n\n' "$INSTRUCTION" >&2 ;
-	else 	read_mainf -i "$INSTRUCTION" INSTRUCTION
-		((OPTCTRD)) && {
-			trim_rf "$INSTRUCTION" $'*([\r])'
-			INSTRUCTION="$TRIM"
-		}
-	fi </dev/tty
+	((CMD_CHAT)) || {
+	    _clr_ttystf; 
+	    if ((OPTX))  #edit chosen awesome prompt
+	    then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
+	    	printf '%s\n\n' "$INSTRUCTION" >&2 ;
+	    elif ((CATPR)) && ((!${#INSTRUCTION}))
+	    then 	INSTRUCTION=$(cat </dev/tty)
+	    else 	read_mainf -i "$INSTRUCTION" INSTRUCTION </dev/tty
+	    fi
+	    ((OPTCTRD+CATPR)) && ((!OPTX)) && {
+	    	trim_rf "$INSTRUCTION" $'*([\r\b])'
+	    	INSTRUCTION="$TRIM"
+	    };
+	}
 	case "$INSTRUCTION" in ''|prompt|act)
 		_warmsgf 'Err:' 'awesome-chatgpt-prompts fail'
 		unset OPTAWE INSTRUCTION;return 1
@@ -4942,12 +4946,16 @@ function custom_prf
 		if ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 			printf '%s\n\n' "$INSTRUCTION" >&2 ;
-		else 	_printbf '>'; read_mainf -i "$INSTRUCTION" INSTRUCTION;
-			((OPTCTRD)) && {
-				trim_rf "$INSTRUCTION" $'*([\r])'
-				INSTRUCTION="$TRIM"
-			}
-		fi </dev/tty
+		elif ((CATPR)) && ((!${#INSTRUCTION}))
+		then 	_printbf '>';
+			INSTRUCTION=$(cat </dev/tty);
+		else 	_printbf '>';
+			read_mainf -i "$INSTRUCTION" INSTRUCTION </dev/tty;
+		fi
+		((OPTCTRD+CATPR)) && ((!OPTX)) && {
+			trim_rf "$INSTRUCTION" $'*([\r\b])'
+			INSTRUCTION="$TRIM"
+		}
 
 		if ((template))  #push changes to file
 		then 	printf '%s' "$INSTRUCTION"${INSTRUCTION:+$'\n'} >"$file"
@@ -5991,8 +5999,10 @@ if [[ -n $OPTMARG ]]
 then 	((OPTI)) && MOD_IMAGE=$OPTMARG  #default models for functions
 	((OPTW && !(OPTC+OPTCMPL+MTURN) )) && MOD_AUDIO=$OPTMARG
 	((OPTZ && !(OPTC+OPTCMPL+MTURN) )) && MOD_SPEECH=$OPTMARG
-	case "$MOD" in moderation|oderation) 	MOD="text-moderation-stable";; esac;
-	[[ $MOD = *moderation* ]] && unset OPTC OPTW OPTWW OPTZ OPTI OPTII MTURN OPTRESUME OPTCMPL OPTEMBED
+	case "$MOD" in moderation|oderation) 	MOD="omni-moderation-latest";; esac;
+	case "$MOD" in *moderation*)
+		unset OPTC OPTW OPTWW OPTZ OPTI OPTII MTURN OPTRESUME OPTCMPL OPTEMBED;;
+	esac;
 else
 	if ((OLLAMA))
 	then 	MOD=$MOD_OLLAMA
@@ -6261,7 +6271,8 @@ then
 fi; REPLY= RET=;
 
 #tips and warnings
-if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) && [[ $MOD != *moderation* ]]
+if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) &&
+	case "$MOD" in *moderation*) 	! :;; *) 	:;; esac
 then 	if ((!OPTHH)) && ((!OPTV))
 	then 	sysmsgf "Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+-inf} / $MODMAX tkns"
 	elif ((OPTHH>1))
@@ -6466,25 +6477,28 @@ then 	sysmsgf 'Image Generations'
 			((XAI)) || sysmsgf 'Image Size:' "${OPTS:-err}";
 			imggenf "$@";;
 	esac
-elif ((OPTEMBED))  #embeds
-then 	[[ $MOD = *embed* ]] || [[ $MOD = *moderation* ]] \
-	|| _warmsgf "Warning:" "Not an embedding model -- $MOD"
-	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM
-	if ((!${#}))
+elif ((OPTEMBED))  #embeds/moderation  #[minimally supported]
+then 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM;
+	case "$MOD" in *embed*|*moderation*) 	:;;
+		*) 	_warmsgf "Warning:" "Not an embedding/moderation model -- $MOD";;
+	esac;
+	if ((CATPR)) && ((!${#}))
+	then 	_clr_ttystf; echo 'Input:' >&2;
+		REPLY=$(cat </dev/tty);
+	elif ((!${#}))
 	then 	_clr_ttystf; echo 'Input:' >&2;
 		read_mainf REPLY </dev/tty
-		((OPTCTRD)) && {
-			trim_rf "$REPLY" $'*([\r])'
-			REPLY="$TRIM"
-		}
-		set -- "$REPLY"; echo >&2;
 	fi
-	if [[ $MOD = *embed* ]]
-	then 	embedf "$@"
-	else 	moderationf "$@" &&
+	((OPTCTRD+CATPR)) && ((!${#})) && {
+		trim_rf "$REPLY" $'*([\r\b])'
+		set -- "${TRIM:-$*}"; echo >&2;
+	}
+	case "$MOD" in *embed*)
+		embedf "$@";;
+	*) 	moderationf "$@" &&
 		printf '%-22s: %s\n' flagged $(lastjsonf | jq -r '.results[].flagged') &&
-		printf '%-22s: %.24f (%s)\n' $(lastjsonf | jq -r '.results[].categories|keys_unsorted[]' | while read -r; do 	lastjsonf | jq -r "\"$REPLY \" + (.results[].category_scores.\"$REPLY\"|tostring//empty) + \" \" + (.results[].categories.\"$REPLY\"|tostring//empty)"; done)
-	fi
+		printf '%-22s: %.24f (%s)\n' $(lastjsonf | jq -r '.results[].categories|keys_unsorted[]' | while read -r; do 	lastjsonf | jq -r "\"$REPLY \" + (.results[].category_scores.\"$REPLY\"|tostring//empty) + \" \" + (.results[].categories.\"$REPLY\"|tostring//empty)"; done);;
+	esac;
 else
 	CHAT_ENV=1;
 	((OPTW)) && unset OPTX; ((OPTW)) && OPTW=1; ((OPTWW)) && OPTWW=1;
@@ -6680,8 +6694,10 @@ else
 	((ANTHROPICAI)) && ((EPN==6)) && INSTRUCTION=;  #mind anthropic
 
 	#warnings and tips
-	((OPTCTRD)) && _warmsgf '*' '<Ctrl-V Ctrl-J> for newline * '
-	((OPTCTRD+CATPR)) && _warmsgf '*' '<Ctrl-D> to flush input * '
+	((OPTCTRD+CATPR)) && {
+		_warmsgf '*' '<Ctrl-V Ctrl-J> for newline * '
+		_warmsgf '*' '<Ctrl-D> to flush input * '
+	}
 	echo >&2  #!#
 
 	#option -e, edit first user input
@@ -6734,7 +6750,7 @@ else
 							200) 	set --; REPLY=;
 								REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 								continue 2;;  #redo
-							19[6789]) 	edf "${REPLY:-$*}" || break 1;;  #edit
+							19[26789]) edf "${REPLY:-$*}" || break 1;;  #edit
 							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=;
 								((OPTW)) || cmd_runf -ww;
 								set --; break;;  #whisper append (hidden option)
@@ -6817,14 +6833,14 @@ else
 				else
 					_clr_ttystf;
 					((EDIT)) || REPLY=""  #!#
-					if ((CATPR)) && ((!EDIT))
-					then 	REPLY=$(cat);
-					else 	read_mainf ${REPLY:+-i "$REPLY"} REPLY;
-					fi </dev/tty
-
+					if ((CATPR))
+					then 	printf '%s' "$REPLY" >&2;
+						REPLY=$(cat <(printf '%s' "$REPLY") <(</dev/tty) );
+					else 	read_mainf ${REPLY:+-i "$REPLY"} REPLY </dev/tty;
+					fi
 					((CATPR)) && echo >&2;
 					((OPTCTRD+CATPR)) && {
-						trim_rf "$REPLY" $'*([\r])'
+						trim_rf "$REPLY" $'*([\r\b])'
 						REPLY="$TRIM"
 					}
 				fi; printf "${NC}" >&2;
@@ -6897,9 +6913,19 @@ else
 							echo '[text editor one-shot]' >&2
 							set -- ;continue 2;;
 						197)  #multiline one-shot
-							EDIT=1 SKIP=1; ((OPTCTRD))||OPTCTRD=2
-							((OPTCTRD==2)) && echo '[prompter <ctr-d> one-shot]' >&2
-							REPLY="$REPLY"$'\n'; set -- ;continue;;  #A#
+							EDIT=1 SKIP=1;
+							((OPTCTRD))||OPTCTRD=2
+							((OPTCTRD)) && echo '[literal newline <ctr-j>]' >&2
+							((OPTCTRD==2)) && echo '[readline <ctr-d> one-shot]' >&2
+							((OPTCTRD==1)) && echo '[readline <ctr-d>]' >&2
+							set -- ;continue;;  #A#
+						192)  #cat one-shot
+							EDIT=1 SKIP=1;
+							((CATPR))||CATPR=2
+							((CATPR)) && echo '[literal newline <ctr-j>]' >&2
+							((CATPR==2)) && echo '[cat <ctr-d> one-shot]' >&2
+							((CATPR==1)) && echo '[cat <ctr-d>]' >&2
+							set -- ;continue;;  #A#
 						196)  #whisper off
 							WSKIP=1 EDIT=1 OPTW= ; continue 2;;
 						195)  #whisper append
@@ -7180,7 +7206,10 @@ $(
   max=""
   if ((ANTHROPICAI)) && ((EPN!=6))
   then 	max="max_tokens_to_sample"
-  elif ((ANTHROPICAI+MISTRALAI+NOVITAAI))
+  elif ((ANTHROPICAI+MISTRALAI+NOVITAAI)) ||
+  	case "$MOD" in *[Mm]i[xs]tral*|*[Mm]inistral*|*[Pp]ixtral*|*[Cc]odestral*|*[Dd]evstral*|*[Cc]laude*) 	:;;
+		*) 	! :;;
+	esac
   then 	max="max_tokens"
   fi
   ((OPTMAX_NILL && EPN==6 && !ANTHROPICAI)) || echo "\"${max:-max_completion_tokens}\": $OPTMAX,"
@@ -7205,7 +7234,10 @@ $(
   else  printf '"modalities": ["text"],'
   fi
 
-  ((ANTHROPICAI+MISTRALAI+LOCALAI)) || ((!STREAM)) || echo "\"stream_options\": {\"include_usage\": true},"
+  ((ANTHROPICAI+MISTRALAI+LOCALAI)) || ((!STREAM)) ||
+  	case "$MOD" in *[Mm]i[xs]tral*|*[Mm]inistral*|*[Pp]ixtral*|*[Cc]odestral*|*[Dd]evstral*|*[Cc]laude*) 	:;;
+  		*)  echo "\"stream_options\": {\"include_usage\": true},";;
+  	esac
 
   ((ANTHROPICAI)) && ((EPN==6)) && ((${#INSTRUCTION_OLD})) && echo "\"system\": \"$(escapef "$INSTRUCTION_OLD")\","
 )
