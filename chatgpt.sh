@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.99.3  may/2025  by mountaineerbr  GPL+3
+# v0.99.4  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2304,7 +2304,7 @@ function cmd_runf
 					  *)  cmd_runf /sh${append:+:} "${var}" "\"${1// /%20}\"";
 					    ;;
 					esac;
-					if ((RET))  #try curl hack on dump fail
+					if (( (RET>0 && RET<180) || RET>220))  #try curl hack on dump fail
 					then 	var=$(BROWSER=curl set_browsercmdf);
 						cmd_runf /sh${append:+:} "${var}" "\"${1// /%20}\" | $(BROWSER= set_browsercmdf)";
 					fi
@@ -6994,7 +6994,7 @@ else
 					_sysmsgf 'User Prompt append';
 				;;
 				esac;
-				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD= REPLY_CMD_DUMP= var= v=;
+				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD_BLOCK= REPLY_CMD_DUMP= var= v=;
 				set --; continue;
 			;;
 			esac;
@@ -7038,7 +7038,7 @@ else
 			  set -- "${*}${NL}${NL}${REPLY_CMD_DUMP}";
 			  REC_OUT="${*}";
 			else
-			  SKIP=1 EDIT=1 REPLY_CMD_DUMP= REPLY_CMD= REPLY_CMD_BLOCK=;
+			  SKIP=1 EDIT=1 REPLY_CMD= REPLY_CMD_DUMP= REPLY_CMD_BLOCK=;
 			  set --; continue 1;  #edit orig input
 			fi; RET=;
 		#vision / audio-model
@@ -7277,6 +7277,7 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		fi
 		((TRAP_EDIT)) && continue;
 		trap "exit" INT; TRAP_EDIT=;
+		REPLY_CMD_BLOCK= REPLY_CMD_DUMP=;
 
 		if ((${#BLOCK}>96000))  #96KB
 		then 	buff="${FILE%.*}.block.json"
@@ -7366,7 +7367,7 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
 					fi
 				fi  #adjust context err (OpenAI only)
-				unset REPLY_CMD_DUMP file;
+				unset file;
 			fi;
 
 			BAD_RES= PSKIP= ESC_OLD=;
@@ -7402,13 +7403,13 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			push_tohistf "$ans" "$((${tkn[1]:-${tkn_ans:-0}}-tkn[2]))" "${tkn[3]}" || OPTC= OPTRESUME= OPTCMPL= MTURN=;
 
 			((TOTAL_OLD=tkn[0]+tkn[1]-tkn[2])) && MAX_PREV=$TOTAL_OLD
-			HIST_TIME= BREAK_SET= REPLY_CMD_BLOCK=;
+			HIST_TIME= BREAK_SET=;
 		elif ((MTURN))
 		then
 			((OPTW)) && RESUBW=1;
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
 			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD=;
-			unset PSKIP JUMP REGEN REPLY_CMD REPLY_CMD_DUMP INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX OPTE BLOCK_CMD;
+			unset PSKIP JUMP REGEN REPLY_CMD INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX OPTE BLOCK_CMD;
 			((OPTX)) && read_charf -t 6 >/dev/null
 			set -- ;continue
 		fi;
@@ -7532,7 +7533,7 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		((++MAIN_LOOP)); ((WSKIP>1)) && WSKIP=1 || WSKIP=; set --;
 		role= rest= tkn_ans= ans_tts= ans= buff= var= glob= out= pid= s= n=; arr=() tkn=();
 		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= PSKIP= SKIP= EDIT= HARGS= TRIM=;
-		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES BLOCK_CMD REPLY_CMD_BLOCK;
+		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK BLOCK_CMD REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
