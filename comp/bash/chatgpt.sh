@@ -168,7 +168,7 @@ _chatgptsh()
       COMPREPLY=( mp3 opus aac flac wav pcm16  mulaw ogg )
       ;;
     --voice)
-      COMPREPLY=( alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Adelaide-PlayAI Angelo-PlayAI Arista-PlayAI Atlas-PlayAI Basil-PlayAI Briggs-PlayAI Calum-PlayAI Celeste-PlayAI Cheyenne-PlayAI Chip-PlayAI Cillian-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Judy-PlayAI Mamaw-PlayAI Mason-PlayAI Mikail-PlayAI Mitch-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI )
+      COMPREPLY=( alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Basil-PlayAI Calum-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Mamaw-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI )
       ;;
     -[.,]|-[!S.,-][.,]|\
     -[!-]*[!S.,][.,]|\
