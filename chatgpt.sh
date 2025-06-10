@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.99.5  jun/2025  by mountaineerbr  GPL+3
+# v0.99.6  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -7427,7 +7427,7 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		if ((!NO_OPTMD_AUTO)) && ((!OPTMD)) && ((!OPTEXIT)) &&
 			((OPTC)) && ((MTURN)) && is_mdf "${ans}"
 		then
-			printf '\n%s\n' '[markdown]' >&2;
+			printf "\\n${INV/0;/1;}%s${NC}\\n" '[markdown]' >&2;
 			MD_AUTO=1 cmd_runf /markdown;
 		fi
 
