@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: May 2025
-title: CHATGPT.SH(1) v0.99 \| General Commands Manual
+date: June 2025
+title: CHATGPT.SH(1) v0.99.7 \| General Commands Manual
 ---
 
 # NAME
@@ -1359,6 +1359,7 @@ Optional packages for specific features.
 - `poppler`/`gs`/`abiword`/`ebook-convert`/`LibreOffice` - Dump PDF or
   Doc as text
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
+- `yt-dlp` - Dump YouTube captions
 
 # CAVEATS
 

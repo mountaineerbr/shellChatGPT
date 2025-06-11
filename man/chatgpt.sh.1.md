@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.99 | General Commands Manual
+% CHATGPT.SH(1) v0.99.7 | General Commands Manual
 % mountaineerbr
-% May 2025
+% June 2025
 
 
 # NAME
@@ -1586,6 +1586,7 @@ Optional packages for specific features.
 - `termux-api`/`termux-tools`/`play-audio` - Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert`/`LibreOffice` - Dump PDF or Doc as text
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
+- `yt-dlp` - Dump YouTube captions
 
 
 # CAVEATS

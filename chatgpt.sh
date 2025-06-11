@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.99.6  jun/2025  by mountaineerbr  GPL+3
+# v0.99.7  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2280,15 +2280,34 @@ function cmd_runf
 			set -- "$TRIM";
 			case "$*" in
 			*youtube.com/watch*|*youtube.com/live*|*youtube.com/shorts*|*youtu.be/*)
-				{ yt_descf "$*" || _warmsgf 'YouTube:' 'Description unavailable';
-				  yt_transf "$*" || _warmsgf 'YouTube:' 'Transcript dump fail / unavailable';
-				} >"$FILEFIFO";
+				curl -Ls -H "$UAG" "$*" >"$FILEFIFO";
+				var=$(yt_descf <"$FILEFIFO") || _warmsgf 'YouTube:' 'Description unavailable';  #[DEPRECATED]
+				out=$(yt_transf <"$FILEFIFO") || _warmsgf 'YouTube:' 'Transcript dump fail / unavailable';  #[DEPRECATED]
+
+				if ((!${#out})) && command -v yt-dlp &>/dev/null
+				then 	_sysmsgf 'YouTube:' "Initialising \`yt-dlp'..";
+				out=$(
+					cd "$CACHEDIR" || exit;
+					name="${1##*\?v=}" name="${name%%[!a-zA-Z0-9_-]*}";
+					lang=$(sed -n 's/.*"baseUrl":"https:\/\/www.youtube.com\/api\/timedtext[^"]*lang=\(..\).*/\1/p' "$FILEFIFO");
+
+					yt-dlp --skip-download --write-auto-subs ${lang:+--sub-langs ${lang:-en}} --sub-format vtt -o "subtitle:${name}.%(ext)s" "$*";
+
+					#remove vtt markup, duplicate lines, and adjacent timestamps
+					sed 's/<c[^>]*>//g; s/<\/c>//g; s/<[0-9:.]*>//g; s/\.[0-9][0-9][0-9] -->.*//;' "${name}"*.vtt |
+					awk '!a[$0]++{if($0~/^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/)x=$0;else{if(x)print x;x="";print}}END{if(x)print x}';
+
+					rm -- "${name}"*.vtt;
+				)
+				fi
+
+				printf '%s' "${var}${var:+$NL$NL}${out}" >"$FILEFIFO";
 				[[ -s "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO";
 				return 0;
 				;;
 			*vimeo.com/[0-9][0-9]*|*vimeo.com/video*|*vimeo.com/channel*|*vimeo.com/group*|*vimeo.com/album*)
-				{ vimeo_descf "$*" || _warmsgf 'Vimeo:' 'Description unavailable';
-				  vimeo_transf "$*" || _warmsgf 'Vimeo:' 'Transcript dump fail / unavailable';
+				{ vimeo_descf "$*" || _warmsgf 'Vimeo:' 'Description unavailable';  #[DEPRECATED]
+				  vimeo_transf "$*" || _warmsgf 'Vimeo:' 'Transcript dump fail / unavailable';  #[DEPRECATED]
 				} >"$FILEFIFO";
 				[[ -s "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO";
 				return 0;
@@ -3634,16 +3653,16 @@ function sedhtmlf
 	-e 's/(&oline;|&#8254;)/‾/g ;s/(&euro;|&#8364;)/€/g ;s/(&trade;|&#8482;)/™/g ;s/(&larr;|&#8592;)/←/g' \
 	-e 's/(&uarr;|&#8593;)/↑/g ;s/(&rarr;|&#8594;)/→/g ;s/(&darr;|&#8595;)/↓/g ;s/(&harr;|&#8596;)/↔/g' \
 	-e 's/(&crarr;|&#8629;)/↵/g';
-}
+}  #[DEPRECATED DEPENDENCY]
 
 #dump youtube video transcription
 function yt_transf
 {
-	curl -Ls "$1" |
+	#curl -Ls -H "$UAG" "$1" |
 	grep -o '"baseUrl":"https://www.youtube.com/api/timedtext[^"]*' |
 	cut -d \" -f4 |
 	sed 's/\\u0026/\&/g' |
-	xargs curl -Ls |
+	xargs curl -Ls -H "$UAG" |
 	grep -o '<text[^<]*</text>' |
 	sed -E 's/<text start="([^"]*)".*>(.*)<.*/\1 \2/' |
 	sed 's/\xc2\xa0/ /g;s/&amp;/\&/g' |
@@ -3651,14 +3670,15 @@ function yt_transf
 	awk '{$1=sprintf("%02d:%02d:%02d",$1/3600,$1%3600/60,$1%60)}1' |
 	awk 'NR%n==1{printf"%s ",$1}{sub(/^[^ ]* /,"");printf"%s"(NR%n?FS:RS),$0}' n=2 |
 	awk 1 | sed 's/^00://';
-}
+}  #[DEPRECATED]
 #https://stackoverflow.com/questions/9611397
 
 #dump youtube video description
 function yt_descf
 {
-	curl -Ls "$1" | grep -o -e '"videoDetails":{[^}]*}' | grep -oe '":"[^"]*"' | { sedhtmlf || cat ;};
-}
+	#curl -Ls -H "$UAG" "$1" | 
+	grep -o -e '"videoDetails":{[^}]*}' | grep -oe '":"[^"]*"' | { sedhtmlf || cat ;};
+}  #[DEPRECATED]
 #"shortDescription",'eow-description'
 #https://stackoverflow.com/questions/72354649/
 #https://stackoverflow.com/questions/76876281/
@@ -3672,17 +3692,17 @@ function vimeo_transf
 		url=$( ${browser} "${*}" |
 		  grep -o -e 'src="/texttrack[^"]*.[sv][rt][t][^"]*"' | sed 's/^[^"]*"//; s/"$//' );
 
-		((${#url})) && curl -Ls "https://player.vimeo.com${url%%${IFS}*}";
+		((${#url})) && curl -Ls -H "$UAG" "https://player.vimeo.com${url%%${IFS}*}";
 	else
 		! _warmsgf 'Err:' 'Transcription dump requires JavaScript-capable cli-browser';
 	fi;
-}
+}  #[DEPRECATED]
 #https://developer.vimeo.com/api/reference/videos#get_transcript_metadata
 
 function vimeo_descf
 {
 	curl -Ls -H "$UAG" -H 'x-requested-with: XMLHttpRequest' "https://vimeo.com/api/oembed.json?url=${*}" | jq .;
-}
+}  #[DEPRECATED]
 
 #alternative to du
 function duf
