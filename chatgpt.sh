@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.99.7  jun/2025  by mountaineerbr  GPL+3
+# v0.100  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -505,16 +505,17 @@ Command List
      !ka      !keep-alive [NUM] Set duration of model load in memory
    !vision    !audio            Toggle model multimodality type.
    --- Session Management -------------------------------------------
+      -C      -                 Continue current session, see !break.
       -H      !hist             Edit raw history file in editor.
       -P      -HH, !print       Print session history.
       -L      !log  [FILEPATH]  Save to log file (pretty-print).
      !br      !break, !new      Start new session (session break).
-     !ls      !list    [GLOB]   List Hist files with glob in name. All: \`.'.
-                                Instruction prompts: \`pr'. Awesome: \`awe'.
+     !ls      !list    [GLOB]   List session/history files with glob in name;
+                                Files: \`.'; Prompts: \`pr'; Awesome: \`awe'.
      !grep    !sub    [REGEX]   Search sessions and copy to tail.
       !c      !copy [SRC_HIST] [DEST_HIST]
                                 Copy session from source to destination.
-      !f      !fork [DEST_HIST] Fork current session to destination.
+      !f      !fork [DEST_HIST] Fork current session, continue from destination.
       !k      !kill     [NUM]   Comment out n last entries in hist file.
      !!k     !!kill  [[0]NUM]   Dry-run of command !kill.
       !s      !session [HIST_NAME]
@@ -1219,7 +1220,7 @@ function new_prompt_confirmf
 		[WAPp]) return 195;;  #whisper append
 		[HhTt]) return 194;;  #whisper retry request
 		[NnOo]) REC_OUT=; return 1;;  #no
-		[-/!]) 	echo >&2; read_mainf -i "$REPLY" REPLY; echo >&2;
+		[-/!]) 	echo >&2; OPTCTRD= read_mainf -i "$REPLY" REPLY; echo >&2;
 			BLOCK_USR= BLOCK_CMD= BREAK_SET= OPTRESUME= EDIT= ENDPOINTS= \
 			HERR= JUMP= MAIN_LOOP= REGEN= REPLAY_FILES= REPLY= \
 			REPLY_CMD_BLOCK= REPLY_CMD_DUMP= REPLY_OLD= RESTART= START= \
@@ -1246,6 +1247,7 @@ function read_mainf
 {
 	IFS= read -r -e -d $'\r' ${OPTCTRD:+-d $'\04'} "$@"
 }
+#warning: `read -e -d $'\r'` may mess up terminal input handling and readline!
 #https://www.reddit.com/r/bash/comments/ppp6a2/is_there_a_way_to_paste_multiple_lines_where_read/
 
 #audio-model player
@@ -2078,13 +2080,8 @@ function cmd_runf
 			cmdmsgf 'Best_Of' "$OPTB"
 			;;
 		-C)
-			if ((BREAK_SET))
-			then 	BREAK_SET= OPTRESUME=1 INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION= GINSTRUCTION=;
-				cmdmsgf "Session Continue:" $(_onoff ${OPTRESUME:-0});
-			else 	BREAK_SET=1 OPTRESUME= INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
-				((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION:-$GINSTRUCTION} INSTRUCTION=;
-				cmd_runf /break;
-			fi
+			BREAK_SET= OPTRESUME=1 INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION= GINSTRUCTION=;
+			cmdmsgf "Session Continue:" $(_onoff ${OPTRESUME:-0});
 			;;
 		-c)
 			((OPTC)) && { 	cmd_runf -cc; return ;}
@@ -2284,7 +2281,9 @@ function cmd_runf
 				var=$(yt_descf <"$FILEFIFO") || _warmsgf 'YouTube:' 'Description unavailable';  #[DEPRECATED]
 				out=$(yt_transf <"$FILEFIFO") || _warmsgf 'YouTube:' 'Transcript dump fail / unavailable';  #[DEPRECATED]
 
-				if ((!${#out})) && command -v yt-dlp &>/dev/null
+				if ((!${#out})) && { 	command -v yt-dlp &>/dev/null ||
+					! _warmsgf 'YouTube:' "\`yt-dlp' is required to dump transcription"
+				}
 				then 	_sysmsgf 'YouTube:' "Initialising \`yt-dlp'..";
 				out=$(
 					cd "$CACHEDIR" || exit;
@@ -3046,7 +3045,7 @@ function edf
 	do 	_warmsgf "Bad edit:" "[E]dit, [r]edo, [c]ontinue, [a]bort, or [/]cmd? " ''
 		reply=$(read_charf)
 		case "$reply" in
-			[-/!]) read_mainf -i "$reply" reply;
+			[-/!]) OPTCTRD= read_mainf -i "$reply" reply;
 				cmd_runf "$reply"; _edf "$FILETXT";;  #cmd
 			[AQ]) echo '[bye]' >&2; return 202;;  #exit
 			[aq]) echo '[abort]' >&2; return 201;;  #abort
@@ -4837,7 +4836,7 @@ function awesomef
 				done;
 			done <<<"${act_keys}";
 			printf '\n#? <enter> ' >&2
-			_clr_ttystf; read -r -e act </dev/tty;
+			_clr_ttystf; read -r -e -d $'\r' act </dev/tty;
 			printf '\n\n' >&2;
 		fi ;set -- "$act"; glob= n= a= l=;
 	done
@@ -5168,10 +5167,10 @@ function session_globf
 	typeset REPLY file glob sglob ext ok options name
 	sglob="${SGLOB:-[Tt][Ss][Vv]}" ext="${EXT:-tsv}" name="$1"
 
-	[[ ! -f "$1" ]] || return
 	case "$1" in
 		[Nn]ew) 	return 2;;
 		[Cc]urrent|.) 	printf '%s' "${FILECHAT:-$1}"; return;;
+		*) 	[[ ! -f "$1" ]] || return;;
 	esac
 
 	cd -- "${CACHEDIR}"
@@ -5259,7 +5258,7 @@ function session_name_choosef
 				_clr_dialogf;
 			else
 				_sysmsgf "New ${item} name <enter/abort>:" \
-				_clr_ttystf; read -r -e -i "$fname" fname </dev/tty;
+				_clr_ttystf; read -r -e -d $'\r' -i "$fname" fname </dev/tty;
 			fi;
 			case "${fname}" in \~\/*) 	fname="$HOME/${fname:2}";; esac;
 			fname=${fname%%.${sglob}} fname=${fname//[ \<\>\*\;:,?!]/_} fname=${fname//__/_};
@@ -5358,6 +5357,8 @@ do 	_spinf 	#grep session with user regex
 			  fi
 			  ((OPTPRINT)) && break 2;
 
+			  echo "${buff:0:19}" >&2  #print timestamp
+
 			  if ((${regex:+1}))
 			  then 	_sysmsgf "Correct session?" '[Y/n/p/r/a] ' ''
 			  else 	_sysmsgf "Tail of the correct session?" '[Y]es, [n]o, [p]rint, [r]egex, [a]bort ' ''
@@ -5366,7 +5367,7 @@ do 	_spinf 	#grep session with user regex
 			  case "$reply" in
 				[]GgSsRr/?:\;-]|[$' \t']) _sysmsgf 'grep:' '<-opt> <regex> <enter>';
 					_clr_ttystf;
-					read -r -e -i "${regex:-${reply//[!-]}}" regex </dev/tty;
+					read -r -e -d $'\r' -i "${regex:-${reply//[!-]}}" regex </dev/tty;
 					skip=1 ok= ;
 					continue 2;
 					;;
@@ -5416,10 +5417,7 @@ function session_copyf
 	buff=$(session_sub_printf "$src") && {
 		[[ -f "$dest" ]] && { 	[[ $(tail -- "$dest") != *"$buff" ]] || return 0 ;}
 		FILECHAT="${dest}" INSTRUCTION_OLD= INSTRUCTION= OPTRESUME= BREAK_SET= cmd_runf /break 2>/dev/null;
-		FILECHAT="${dest}" _break_sessionf; OLD_DEST="${dest}";
-		#check if dest is the same as current
-		[[ "$dest" != "$FILECHAT" ]] || OPTRESUME=1 BREAK_SET= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= MAX_PREV=;
-		_sysmsgf 'SESSION FORK';
+		FILECHAT="${dest}" _break_sessionf; _sysmsgf 'SESSION FORK';
 		printf '%s\n' "$buff" >> "$dest" &&
 		printf '%s\n' "$dest";
 	}
@@ -5438,8 +5436,9 @@ function session_mainf
 
 	case "${name}" in
 		#list files: /list [awe|pr|all|session]
-		list*|ls*)
-			name="${name##@(list|ls)*([$IFS])}"
+		list*|ls*|sessionls*|session\ ls*|sls*|s\ ls*|\
+		sessionlist*|session\ list*|slist*|s\ list*)
+			name="${name##?(session|s\ )*([$IFS])@(list|ls)*([$IFS])}"
 			case "$name" in
 				[Aa]wesome|[Aa]we)
 					INSTRUCTION=/list awesomef;
@@ -5448,11 +5447,14 @@ function session_mainf
 					typeset SGLOB='[Pp][Rr]' EXT='pr' name= msg=Prompt;;  #duplicates opt `-S .list` fun
 				[Aa]ll|[Ee]verything|[Aa]nything|+([./*?-]))
 					typeset SGLOB='*' EXT='*' name= msg=All;;
-				[Tt][Ss][Vv]|[Ss]ession|[Ss]essions|*)
+				[Tt][Ss][Vv]|[Ss]ession|[Ss]essions)
 					name= msg=Session;;
+				*) 	msg=Session;;
 			esac
-			_cmdmsgf "$msg Files" $'list\n'
-			session_listf "$name"; ((OPTEXIT>1)) && exit;
+			_cmdmsgf "Directory" "${CACHEDIR/"$HOME"/\~}";
+			_cmdmsgf "$msg Files" $'list\n';
+			session_listf "$name";
+			((OPTEXIT>1)) && exit;
 			return 0;
 			;;
 		#fork current session to [dest_hist]: /fork
@@ -5498,10 +5500,16 @@ function session_mainf
 	#copy/fork session to destination
 	elif ((optsession>2))
 	then
-		session_copyf "$@" >/dev/null || unset file
-		[[ "${OLD_DEST}" = "${FILECHAT}" ]] &&  #check if target is the same as current
-		INSTRUCTION_OLD=${GINSTRUCTION:-${INSTRUCTION:-$INSTRUCTION_OLD}} INSTRUCTION= GINSTRUCTION= BREAK_SET= OPTRESUME=1;
-		unset OLD_DEST;
+		typeset dest ok;
+		dest=$(session_copyf "$@") || unset file
+
+		if case "${dest:-$2}" in "$FILECHAT"|[Cc]urrent|.) 	ok=1;;
+			*) 	((optsession>3));;
+		   esac
+		then
+			cmd_runf -C;  #continue session, change to destination
+			((ok)) || session_mainf /session "${dest:-${2:-$FILECHAT}}";
+		fi; dest= ok=;
 	#change to hist file
 	else
 		#set source session file
@@ -5538,7 +5546,7 @@ function session_mainf
 	fi
 
 	[[ ${file:-$FILECHAT} = "$FILECHAT" ]] && msg=Current || msg=Change;
-       	FILECHAT="${file:-$FILECHAT}"; _sysmsgf "History $msg:" "${FILECHAT/"$HOME"/"~"}"$'\n';
+       	FILECHAT="${file:-$FILECHAT}"; _sysmsgf "History $(printf '%7s' "$msg"):" "${FILECHAT/"$HOME"/"~"}"$'\n';
 	((OPTEXIT>1)) && exit;
        	return 0
 }
@@ -5969,7 +5977,7 @@ typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
 set -o ${READLINEOPT:-emacs};
-bind 'set enable-bracketed-paste on';
+bind 'set enable-bracketed-paste on';  #requires "read -e -d $'\r'" hack
 bind -x '"\C-x\C-e": "_edit_no_execf"';
 bind '"\C-j": "\C-v\C-j"';  #add newline with Ctrl-J
 [[ $BASH_VERSION = [5-9]* ]] || ((OPTV)) || _warmsgf 'Warning:' 'Bash 5+ recommended';
@@ -6730,7 +6738,7 @@ else
 	do 	trap "exit" INT;
 		((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
 		((TRAP_EDIT)) && {
-			EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= TRAP_EDIT=;
+			EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= OPTAWE= TRAP_EDIT=;
 			set -- ;}
 		if ((REGEN>0))  #regen + edit prompt
 		then 	if ((REGEN==1))
@@ -7317,7 +7325,7 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		((STREAM)) && ((MTURN || EPN==6)) && echo >&2;
 		if ((RET_PRF>120 && !STREAM))
 		then 	((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
-			PSKIP= JUMP= OPTE= SKIP=1 EDIT=1 RET_PRF= RET_APRF= BLOCK_CMD=; set --; continue;  #B#
+			PSKIP= JUMP= OPTE= SKIP=1 EDIT=1 RET_PRF= RET_APRF= BLOCK_CMD= OPTAWE=; set --; continue;  #B#
 		fi
 		((RET_PRF>120)) && INT_RES='#';
 		((RET_PRF)) || REPLY_OLD="${REPLY:-${REPLY_OLD:-$*}}";  #I#
@@ -7432,12 +7440,12 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			((OPTW)) && RESUBW=1;
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
 			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD=;
-			unset PSKIP JUMP REGEN REPLY_CMD INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX OPTE BLOCK_CMD;
+			unset PSKIP JUMP REGEN REPLY_CMD INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX OPTE BLOCK_CMD OPTAWE;
 			((OPTX)) && read_charf -t 6 >/dev/null
 			set -- ;continue
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_CMD_IND[@]}));
-		unset MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND INT_RES GINSTRUCTION REGEN JUMP PSKIP OPTE BLOCK_CMD;
+		unset MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND INT_RES GINSTRUCTION REGEN JUMP PSKIP OPTE BLOCK_CMD OPTAWE;
 		HIST_G= SKIP_SH_HIST=;
 
 		((OPTLOG)) && (usr_logf "$(unescapef "${ESC}\\n${ans}")" > "$USRLOG" &)

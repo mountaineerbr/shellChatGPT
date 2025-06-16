@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.99.7 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.100 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.99.7 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.100 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">June 2025</p>
 </header>
@@ -776,7 +776,9 @@ See detailed info on settings for each endpoint at:
 <h1 id="model-and-capacity">MODEL AND CAPACITY</h1>
 <p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
 <em>MODEL</em> as its name, or set it as “<em>.</em>” to pick from the
-model list. List available models with <code>option -l</code>.</p>
+model list.</p>
+<p>List models with <code>option -l</code> or run <code>/models</code>
+in chat mode.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
 defaults to <em>4096</em> tokens and <em>25000</em> for reasoning
@@ -789,8 +791,6 @@ capacity</em> will also be set. The option syntax takes the form of
 intuitively with <code>option</code> “<code>-N</code> <em>NUM</em>”,
 otherwise model capacity is set automatically for known models or to
 <em>8000</em> tokens as fallback.</p>
-<p>List models with <code>option -l</code> or run <code>/models</code>
-in chat mode.</p>
 <p><code>Option -y</code> sets python tiktoken instead of the default
 script hack to preview token count. This option makes token count
 preview accurate and fast (we fork tiktoken as a coprocess for fast
@@ -1358,66 +1358,73 @@ flush.</td>
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: left;"><code>-C</code></td>
+<td style="text-align: left;">-</td>
+<td>Continue current history session (see <code>!break</code>).</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>-H</code></td>
 <td style="text-align: left;"><code>!hist</code></td>
 <td>Edit history in editor.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-P</code></td>
 <td style="text-align: left;"><code>-HH</code>, <code>!print</code></td>
 <td>Print session history.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-L</code></td>
 <td style="text-align: left;"><code>!log</code> [<em>FILEPATH</em>]</td>
 <td>Save to log file.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!br</code></td>
 <td style="text-align: left;"><code>!break</code>,
 <code>!new</code></td>
 <td>Start new session (session break).</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!ls</code></td>
-<td style="text-align: left;"><code>!list</code> [<em>GLOB</em>]</td>
-<td>List History files with <em>glob</em> in <em>name</em>.</td>
-</tr>
 <tr class="even">
+<td style="text-align: left;"><code>!ls</code></td>
+<td style="text-align: left;"><code>!list</code>
+[<em>GLOB</em>|<em>.</em>|<em>pr</em>|<em>awe</em>]</td>
+<td>List history files with “<em>glob</em>” in <em>name</em>; Files:
+“<em>.</em>”; Prompts: “<em>pr</em>”; Awesome: “<em>awe</em>”.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
 <td>Grep sessions and copy session to hist tail.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!c</code></td>
 <td style="text-align: left;"><code>!copy</code> [<em>SRC_HIST</em>]
 [<em>DEST_HIST</em>]</td>
 <td>Copy session from source to destination.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!f</code></td>
 <td style="text-align: left;"><code>!fork</code>
 [<em>DEST_HIST</em>]</td>
-<td>Fork current session to destination.</td>
+<td>Fork current session and continue from destination.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!k</code></td>
 <td style="text-align: left;"><code>!kill</code> [<em>NUM</em>]</td>
 <td>Comment out <em>n</em> last entries in history file.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!k</code></td>
 <td style="text-align: left;"><code>!!kill</code>
 [[<em>0</em>]<em>NUM</em>]</td>
 <td>Dry-run of command <code>!kill</code>.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!s</code></td>
 <td style="text-align: left;"><code>!session</code>
 [<em>HIST_NAME</em>]</td>
 <td>Change to, search for, or create history file.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!s</code></td>
 <td style="text-align: left;"><code>!!session</code>
 [<em>HIST_NAME</em>]</td>
@@ -1425,10 +1432,6 @@ flush.</td>
 </tr>
 </tbody>
 </table>
-<!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
-<!--
- `!list` [GLOB]      Intruction prompts: "_pr_". Awesome: "_awe_". All: "_._".
- -->
 <div class="line-block"><em>:</em> Commands with a <em>colon</em> have
 their output appended to the prompt.</div>
 <div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
@@ -1465,6 +1468,11 @@ are the same. However, in case the user breaks a session, the last one
 at the script cache directory (“<code>~/.cache/chatgptsh/</code>”). The
 <strong>tail session</strong> of the history file can always be read and
 resumed.</p>
+<p>Run command “<code>/list [glob]</code>” with optional “<em>glob</em>”
+to list session / history “<em>tsv</em>” files. When glob is
+“<em>.</em>” list all files in the cache directory; when “<em>pr</em>”
+list all instruction prompt files; and when “<em>awe</em>” list all
+awesome prompts.</p>
 <h2 id="changing-session">Changing Session</h2>
 <p>A new history file can be created or changed to with command
 “<code>/session</code> [<em>HIST_NAME</em>]”, in which
@@ -1483,10 +1491,12 @@ on invocation.</p>
 to copy and resume from an older session (the dot means <em>current
 session</em>): “<code>/copy . .</code>”, “<code>/fork.</code>”,
 “<code>/sub</code>”, and “<code>/grep</code> [<em>REGEX</em>]”.</p>
-<p>From the command line on invocation, there is also, or simply
-“<code>.</code>”.</p>
+<p>From the command line on invocation, simply type “<code>.</code>” as
+the first positional argument.</p>
 <p>It is possible to copy sessions of a history file to another file
 when a second argument is given to the “<code>/copy</code>” command.</p>
+<p>Mind that forking a session will change to the destination history
+file and resume from it as opposed to just copying it.</p>
 <!--
 If "`/copy` _current_" is run, a selector is shown to choose and copy
 a session to the tail of the current history file, and resume it.
@@ -1870,7 +1880,7 @@ custom instructions (initial prompts).</li>
 input history. This file is trimmed according to the
 <strong>$HISTSIZE</strong> setting in the configuration file. While it
 improves session recall, a large <strong>history_bash</strong> file can
-slow script startup. It can be safely removed if necessary.</li>
+slow down script startup. It can be safely removed if necessary.</li>
 <li><strong>Temporary Buffers:</strong> Various files holding temporary
 text and data. These files are safe to remove and are not intended for
 backup.</li>

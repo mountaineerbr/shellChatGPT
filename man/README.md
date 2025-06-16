@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: June 2025
-title: CHATGPT.SH(1) v0.99.7 \| General Commands Manual
+title: CHATGPT.SH(1) v0.100 \| General Commands Manual
 ---
 
 # NAME
@@ -507,8 +507,9 @@ See detailed info on settings for each endpoint at:
 # MODEL AND CAPACITY
 
 Set model with “`-m` \[*MODEL*\]”, with *MODEL* as its name, or set it
-as “*.*” to pick from the model list. List available models with
-`option -l`.
+as “*.*” to pick from the model list.
+
+List models with `option -l` or run `/models` in chat mode.
 
 Set *maximum response tokens* with `option` “`-`*NUM*” or “`-M` *NUM*”.
 This defaults to *4096* tokens and *25000* for reasoning models.
@@ -520,8 +521,6 @@ also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
 *Model capacity* (maximum model tokens) can be set more intuitively with
 `option` “`-N` *NUM*”, otherwise model capacity is set automatically for
 known models or to *8000* tokens as fallback.
-
-List models with `option -l` or run `/models` in chat mode.
 
 `Option -y` sets python tiktoken instead of the default script hack to
 preview token count. This option makes token count preview accurate and
@@ -819,25 +818,21 @@ or “`/`” are equivalent.
 | `!ka`          | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama).   |
 | `!vision`      | `!audio`, `!multimodal` | Toggle multimodality type.                       |
 
-| Session | Management                             |                                                |
-|:--------|:---------------------------------------|------------------------------------------------|
-| `-H`    | `!hist`                                | Edit history in editor.                        |
-| `-P`    | `-HH`, `!print`                        | Print session history.                         |
-| `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                              |
-| `!br`   | `!break`, `!new`                       | Start new session (session break).             |
-| `!ls`   | `!list` \[*GLOB*\]                     | List History files with *glob* in *name*.      |
-| `!grep` | `!sub` \[*REGEX*\]                     | Grep sessions and copy session to hist tail.   |
-| `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.       |
-| `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session to destination.           |
-| `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.  |
-| `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                    |
-| `!s`    | `!session` \[*HIST_NAME*\]             | Change to, search for, or create history file. |
-| `!!s`   | `!!session` \[*HIST_NAME*\]            | Same as `!session`, break session.             |
-
-<!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
-<!--
- `!list` [GLOB]      Intruction prompts: "_pr_". Awesome: "_awe_". All: "_._".
- -->
+| Session | Management                             |                                                                                              |
+|:--------|:---------------------------------------|----------------------------------------------------------------------------------------------|
+| `-C`    | \-                                     | Continue current history session (see `!break`).                                             |
+| `-H`    | `!hist`                                | Edit history in editor.                                                                      |
+| `-P`    | `-HH`, `!print`                        | Print session history.                                                                       |
+| `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                                                            |
+| `!br`   | `!break`, `!new`                       | Start new session (session break).                                                           |
+| `!ls`   | `!list` \[*GLOB*\|*.*\|*pr*\|*awe*\]   | List history files with “*glob*” in *name*; Files: “*.*”; Prompts: “*pr*”; Awesome: “*awe*”. |
+| `!grep` | `!sub` \[*REGEX*\]                     | Grep sessions and copy session to hist tail.                                                 |
+| `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                                                     |
+| `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session and continue from destination.                                          |
+| `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.                                                |
+| `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                                                                  |
+| `!s`    | `!session` \[*HIST_NAME*\]             | Change to, search for, or create history file.                                               |
+| `!!s`   | `!!session` \[*HIST_NAME*\]            | Same as `!session`, break session.                                                           |
 
 *:* Commands with a *colon* have their output appended to the prompt.
 
@@ -881,6 +876,11 @@ The script uses a *TSV file* to record entries, which is kept at the
 script cache directory (“`~/.cache/chatgptsh/`”). The **tail session**
 of the history file can always be read and resumed.
 
+Run command “`/list [glob]`” with optional “*glob*” to list session /
+history “*tsv*” files. When glob is “*.*” list all files in the cache
+directory; when “*pr*” list all instruction prompt files; and when
+“*awe*” list all awesome prompts.
+
 ## Changing Session
 
 A new history file can be created or changed to with command “`/session`
@@ -901,10 +901,14 @@ fact, there are multiple commands to copy and resume from an older
 session (the dot means *current session*): “`/copy . .`”, “`/fork.`”,
 “`/sub`”, and “`/grep` \[*REGEX*\]”.
 
-From the command line on invocation, there is also, or simply “`.`”.
+From the command line on invocation, simply type “`.`” as the first
+positional argument.
 
 It is possible to copy sessions of a history file to another file when a
 second argument is given to the “`/copy`” command.
+
+Mind that forking a session will change to the destination history file
+and resume from it as opposed to just copying it.
 
 <!--
 If "`/copy` _current_" is run, a selector is shown to choose and copy
@@ -1300,7 +1304,7 @@ the following file types:
 - **Command History (history_bash):** Bash command-line input history.
   This file is trimmed according to the **\$HISTSIZE** setting in the
   configuration file. While it improves session recall, a large
-  **history_bash** file can slow script startup. It can be safely
+  **history_bash** file can slow down script startup. It can be safely
   removed if necessary.
 - **Temporary Buffers:** Various files holding temporary text and data.
   These files are safe to remove and are not intended for backup.

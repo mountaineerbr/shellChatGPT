@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.99.7 | General Commands Manual
+% CHATGPT.SH(1) v0.100 | General Commands Manual
 % mountaineerbr
 % June 2025
 
@@ -659,7 +659,8 @@ See detailed info on settings for each endpoint at:
 
 Set model with "`-m` \[_MODEL_]", with _MODEL_ as its name,
 or set it as "_._" to pick from the model list.
-List available models with `option -l`.
+
+List models with `option -l` or run `/models` in chat mode.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
 This defaults to _4096_ tokens and _25000_ for reasoning models.
@@ -671,8 +672,6 @@ and "`-M` _NUM-NUM_".
 _Model capacity_ (maximum model tokens) can be set more intuitively with
 `option` "`-N` _NUM_", otherwise model capacity is set automatically
 for known models or to _8000_ tokens as fallback.
-
-List models with `option -l` or run `/models` in chat mode.
 
 `Option -y` sets python tiktoken instead of the default script hack
 to preview token count. This option makes token count preview
@@ -984,26 +983,22 @@ Command operators "`!`" or "`/`" are equivalent.
  --------------    ------------------------    ------------------------------------------------
 
  Session           Management
- --------------    -------------------------------------    ------------------------------------------------
-      `-H`         `!hist`                                  Edit history in editor.
-      `-P`         `-HH`, `!print`                          Print session history.
-      `-L`         `!log`       \[_FILEPATH_]               Save to log file.
-     `!br`         `!break`, `!new`                         Start new session (session break).
-     `!ls`         `!list`      \[_GLOB_]                   List History files with _glob_ in _name_.
-   `!grep`         `!sub`       \[_REGEX_]                  Grep sessions and copy session to hist tail.
-      `!c`         `!copy` \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
-      `!f`         `!fork`      \[_DEST_HIST_]              Fork current session to destination.
-      `!k`         `!kill`      \[_NUM_]                    Comment out _n_ last entries in history file.
-     `!!k`         `!!kill`     \[\[_0_]_NUM_]              Dry-run of command `!kill`.
-      `!s`         `!session`   \[_HIST_NAME_]              Change to, search for, or create history file.
-     `!!s`         `!!session`  \[_HIST_NAME_]              Same as `!session`, break session.
- --------------    -------------------------------------    ------------------------------------------------
+ --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
+      `-C`          \-                                       Continue current history session (see `!break`).
+      `-H`         `!hist`                                   Edit history in editor.
+      `-P`         `-HH`, `!print`                           Print session history.
+      `-L`         `!log`       \[_FILEPATH_]                Save to log file.
+     `!br`         `!break`, `!new`                          Start new session (session break).
+     `!ls`         `!list`      \[_GLOB_|_._|_pr_|_awe_]     List history files with "_glob_" in _name_; Files: "_._"; Prompts: "_pr_"; Awesome: "_awe_".
+   `!grep`         `!sub`       \[_REGEX_]                   Grep sessions and copy session to hist tail.
+      `!c`         `!copy`  \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
+      `!f`         `!fork`      \[_DEST_HIST_]               Fork current session and continue from destination.
+      `!k`         `!kill`      \[_NUM_]                     Comment out _n_ last entries in history file.
+     `!!k`         `!!kill`     \[\[_0_]_NUM_]               Dry-run of command `!kill`.
+      `!s`         `!session`   \[_HIST_NAME_]               Change to, search for, or create history file.
+     `!!s`         `!!session`  \[_HIST_NAME_]               Same as `!session`, break session.
+ --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
 
-<!-- Developer: option -M should set model cap and -N response cap! Oh well.. -->
-
-<!--
- `!list` [GLOB]      Intruction prompts: "_pr_". Awesome: "_awe_". All: "_._".
- -->
 
 | _:_ Commands with a *colon* have their output appended to the prompt.
 
@@ -1047,6 +1042,11 @@ The script uses a _TSV file_ to record entries, which is kept at the script
 cache directory ("`~/.cache/chatgptsh/`"). The **tail session** of the
 history file can always be read and resumed.
 
+Run command "`/list [glob]`" with optional "_glob_" to list session / history "_tsv_" files.
+When glob is "_._" list all files in the cache directory;
+when "_pr_" list all instruction prompt files;
+and when "_awe_" list all awesome prompts.
+
 
 ## Changing Session
 
@@ -1069,10 +1069,15 @@ In fact, there are multiple commands to copy and resume from
 an older session (the dot means _current session_):
 "`/copy . .`", "`/fork.`", "`/sub`", and "`/grep` \[_REGEX_]".
 
-From the command line on invocation, there is also, or simply "`.`".
+From the command line on invocation, simply type "`.`" as
+the first positional argument.
 
 It is possible to copy sessions of a history file to another file
 when a second argument is given to the "`/copy`" command.
+
+Mind that forking a session will change to the destination
+history file and resume from it as opposed to just copying it.
+
 
 <!--
 If "`/copy` _current_" is run, a selector is shown to choose and copy
@@ -1528,7 +1533,7 @@ may contain the following file types:
 
 *   **Session Records (tsv):** Tab-separated value files storing session history.  The default session record is **chatgpt.tsv**.
 *   **Prompt Files (pr):** Files storing user-defined custom instructions (initial prompts).
-*   **Command History (history_bash):**  Bash command-line input history.  This file is trimmed according to the **$HISTSIZE** setting in the configuration file.  While it improves session recall, a large **history_bash** file can slow script startup. It can be safely removed if necessary.
+*   **Command History (history_bash):**  Bash command-line input history.  This file is trimmed according to the **$HISTSIZE** setting in the configuration file.  While it improves session recall, a large **history_bash** file can slow down script startup. It can be safely removed if necessary.
 *   **Temporary Buffers:** Various files holding temporary text and data. These files are safe to remove and are not intended for backup.
 
 **Backup Recommendation:**  It is strongly recommended to back up 
