@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.100  jun/2025  by mountaineerbr  GPL+3
+# v0.100.1  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2287,13 +2287,13 @@ function cmd_runf
 				then 	_sysmsgf 'YouTube:' "Initialising \`yt-dlp'..";
 				out=$(
 					cd "$CACHEDIR" || exit;
-					name="${1##*\?v=}" name="${name%%[!a-zA-Z0-9_-]*}";
+					name="y${1##*\?v=}" name="${name%%[!a-zA-Z0-9_-]*}";
 					lang=$(sed -n 's/.*"baseUrl":"https:\/\/www.youtube.com\/api\/timedtext[^"]*lang=\(..\).*/\1/p' "$FILEFIFO");
 
 					yt-dlp --skip-download --write-auto-subs ${lang:+--sub-langs ${lang:-en}} --sub-format vtt -o "subtitle:${name}.%(ext)s" "$*";
 
 					#remove vtt markup, duplicate lines, and adjacent timestamps
-					sed 's/<c[^>]*>//g; s/<\/c>//g; s/<[0-9:.]*>//g; s/\.[0-9][0-9][0-9] -->.*//;' "${name}"*.vtt |
+					sed -e 's/<c[^>]*>//g; s/<\/c>//g; s/<[0-9:.]*>//g; s/\.[0-9][0-9][0-9] -->.*//;' -- "${name}"*.vtt |
 					awk '!a[$0]++{if($0~/^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/)x=$0;else{if(x)print x;x="";print}}END{if(x)print x}';
 
 					rm -- "${name}"*.vtt;

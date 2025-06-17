@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.100 | General Commands Manual
+% CHATGPT.SH(1) v0.100.1 | General Commands Manual
 % mountaineerbr
 % June 2025
 
@@ -397,6 +397,11 @@ before the text prompt itself.
 **-p**, **\--top-p**   \[_VAL_]
 
 : Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
+
+
+**\--responses**, **\--resp**
+
+: Responses API calls. Minimum support. See --model.
 
 
 **-r**, **\--restart**   \[_SEQ_]
@@ -979,6 +984,7 @@ Command operators "`!`" or "`/`" are equivalent.
   `!think`          \-           \[_NUM_]      Thinking budget: max tokens (Anthropic).
 `!interactive`      \-                         Toggle reasoning interactive mode.
      `!ka`         `!keep-alive` \[_NUM_]      Set duration of model load in memory (Ollama).
+    `!resp`        `!responses`  \[_MOD_]      One-shot Responses API request (experimental). 
   `!vision`        `!audio`, `!multimodal`     Toggle multimodality type.
  --------------    ------------------------    ------------------------------------------------
 
@@ -1604,6 +1610,8 @@ options will be covered.
 This project _doesn't support_ "Function Calling", "Structured Outputs",
 "Real-Time Conversations", "Agents/Operators", nor "video generation / editing"
 capabilities.
+
+We may support "Responses API" minimally and experimentally for the time being.
 
 
 # BUGS

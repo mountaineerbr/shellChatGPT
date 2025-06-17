@@ -1681,6 +1681,8 @@ Only selected features of the API will be covered.
 
 - We _will not support_ "Real-Time" chatting, or video generation / editing.
 
+- We may support "Responses API" minimally and experimentally for now.
+
 - Bash shell truncates input on `\000` (null).
 
 - Bash "read command" may not correctly display input buffers larger than

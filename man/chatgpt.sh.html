@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.100 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.100.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.100 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.100.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">June 2025</p>
 </header>
@@ -550,6 +550,10 @@ Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
 <dt><strong>-p</strong>, <strong>--top-p</strong> [<em>VAL</em>]</dt>
 <dd>
 <p>Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
+</dd>
+<dt><strong>--responses</strong>, <strong>--resp</strong></dt>
+<dd>
+<p>Responses API calls. Minimum support. See –model.</p>
 </dd>
 <dt><strong>-r</strong>, <strong>--restart</strong> [<em>SEQ</em>]</dt>
 <dd>
@@ -1341,6 +1345,12 @@ flush.</td>
 <td>Set duration of model load in memory (Ollama).</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>!resp</code></td>
+<td style="text-align: left;"><code>!responses</code>
+[<em>MOD</em>]</td>
+<td>One-shot Responses API request (experimental).</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>!vision</code></td>
 <td style="text-align: left;"><code>!audio</code>,
 <code>!multimodal</code></td>
@@ -1951,6 +1961,8 @@ options will be covered.</p>
 <p>This project <em>doesn’t support</em> “Function Calling”, “Structured
 Outputs”, “Real-Time Conversations”, “Agents/Operators”, nor “video
 generation / editing” capabilities.</p>
+<p>We may support “Responses API” minimally and experimentally for the
+time being.</p>
 <h1 id="bugs">BUGS</h1>
 <p>Reasoning (thinking) and answers from certain API services may not
 have a distinct separation of output due to JSON processing

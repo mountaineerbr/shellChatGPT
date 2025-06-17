@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: June 2025
-title: CHATGPT.SH(1) v0.100 \| General Commands Manual
+title: CHATGPT.SH(1) v0.100.1 \| General Commands Manual
 ---
 
 # NAME
@@ -298,6 +298,9 @@ Number of results. Def=*1*.
 
 **-p**, **--top-p** \[*VAL*\]  
 Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
+
+**--responses**, **--resp**  
+Responses API calls. Minimum support. See –model.
 
 **-r**, **--restart** \[*SEQ*\]  
 Restart sequence string (cmpls).
@@ -816,6 +819,7 @@ or “`/`” are equivalent.
 | `!think`       | \- \[*NUM*\]            | Thinking budget: max tokens (Anthropic).         |
 | !interactive\` | \-                      | Toggle reasoning interactive mode.               |
 | `!ka`          | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama).   |
+| `!resp`        | `!responses` \[*MOD*\]  | One-shot Responses API request (experimental).   |
 | `!vision`      | `!audio`, `!multimodal` | Toggle multimodality type.                       |
 
 | Session | Management                             |                                                                                              |
@@ -1375,6 +1379,9 @@ options will be covered.
 This project *doesn’t support* “Function Calling”, “Structured Outputs”,
 “Real-Time Conversations”, “Agents/Operators”, nor “video generation /
 editing” capabilities.
+
+We may support “Responses API” minimally and experimentally for the time
+being.
 
 # BUGS
 
