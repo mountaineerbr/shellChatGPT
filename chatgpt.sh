@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.101  jun/2025  by mountaineerbr  GPL+3
+# v0.101.1  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1590,7 +1590,7 @@ function set_histf
 	do
 		[[ ${time}${token} = *([$IFS])\#* ]] && { ((OPTHH>2)) && com=1 || continue ;}
 		[[ ${time}${token} = *[Bb][Rr][Ee][Aa][Kk]* ]] && break
-		((!(${#time}+${#token}+${#string}) )) && continue;
+		((${#time}+${#token}+${#string})) || continue;
 		if ((!${#string}))
 		then 	((${#token})) && string=$token token=$time time=
 			((${#time})) && string=$time token= time=
@@ -1713,7 +1713,7 @@ function hist_lastlinef
 	| sed -e "s/^://; s/^${Q_TYPE//\\n}//; s/^${A_TYPE//\\n}//;"
 }
 
-#grep the last line of a history file that contains a REGEX '\t"Q:'
+#grep the last line of a history file that contains a regex '\t"Q:'
 #little slow with big tsv files
 function grep_usr_lastlinef
 {
@@ -6061,7 +6061,7 @@ no-time  format  voice  awesome-zh  awesome
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
