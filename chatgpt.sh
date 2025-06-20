@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.101.2  jun/2025  by mountaineerbr  GPL+3
+# v0.101.3  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1972,9 +1972,9 @@ function set_maxtknf
 			OPTMAX="${1##${1%[!0-9]*}}" MODMAX="${1%%"$OPTMAX"}"
 			OPTMAX="${OPTMAX##*[!0-9]}" MODMAX="${MODMAX##*[!0-9]}"
 			unset OPTMAX_NILL ;;
-		*[0-9]*|'')
-			OPTMAX="${1//[!0-9]}" OPTMAX="${OPTMAX:-4096}";  #IPC #K#
-			unset OPTMAX_NILL ;;
+		*[0-9]*)
+			OPTMAX="${1//[!0-9]}"; unset OPTMAX_NILL ;;
+		'') 	OPTMAX="${OPTMAX:-4096}" ;;  #K#
 	esac
 	if ((OPTMAX>MODMAX))
 	then 	buff="$MODMAX" MODMAX="$OPTMAX" OPTMAX="$buff"
@@ -6095,7 +6095,11 @@ def bpurple: null; \
 def reset:   null;"
 
 if ((OPTCMPL<0))
-then 	OPTCMPL=;  #single-turn text completions -d
+then 	OPTCMPL=;  #single-turn text completions -d option
+	#bug: input whitespace trimming is not blocked with single -d!
+	#note: text completions is deprecated by OpenAI
+	#workaround: emulate options -ddEE
+	OPTCMPL=1 OPTEXIT=2 HISTFILE="/dev/null";
 elif ((!(OPTCMPL+OPTC+OPTZZ+OPTL+OPTI+OPTTIKTOKEN+OPTFF+OPTSUFFIX) ))
 then 	OPTT=${OPTT-0.8} STURN=1;  #single-turn chat completions demo
 fi
@@ -7031,9 +7035,9 @@ else
 					set --; continue 2;
 				elif ((${#REPLY})) || ((${#RINSERT}))
 				then 	PSKIP=;
-					((!BAD_RES)) && ((!${#RINSERT})) && {
+					((!BAD_RES)) && {
 					  ((OPTV)) || [[ ${REPLY:0:32} = :* ]] \
-					  || [[ $REPLY != *[!$IFS]* ]] \
+					  || [[ ${REPLY:0:1024}${RINSERT:0:512} != *[!$IFS]* ]] \
 					  || { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY: ind}" >/dev/null ;};
 					} || new_prompt_confirmf ed whisper
 					case $? in
@@ -7108,16 +7112,20 @@ else
 
 		}  #awesome 1st pass skip end
 
-		if ((MTURN+OPTRESUME)) && [[ -n "${*}" ]]
+		if [[ -n "${*}" ]]
 		then
 			((${#REPLY})) || REPLY="${*}"  #set buffer for EDIT
-			((SKIP_SH_HIST)) || shell_histf "${REPLY_CMD:-$*}"; SKIP_SH_HIST=;
-			history -a;
+			((MTURN+OPTRESUME)) && {
+			  ((SKIP_SH_HIST)) || shell_histf "${REPLY_CMD:-$*}"; SKIP_SH_HIST=;
+			  history -a;
+			}
 
 			#system/instruction?
 			case "${1:0:32}${2:0:16}" in :*)
-				trim_lf "$*" "+([:$IFS])"
-				var="$TRIM"
+				if ((OPTCMPL))
+				then 	trim_lf "$*" "+([:])";
+				else 	trim_lf "$*" "+([:$IFS])";
+				fi; var="$TRIM";
 
 				case "${1:0:32}${2:0:16}" in ::*)
 					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=append || v=set;
@@ -7133,18 +7141,28 @@ else
 						INSTRUCTION=${INSTRUCTION}${INSTRUCTION:+${NL}${NL}}${var}
 						((ANTHROPICAI)) && INSTRUCTION_OLD=${INSTRUCTION_OLD}${NL}${NL}${var} INSTRUCTION=
 					fi;
-				;;
-					*)
-					RINSERT=${RINSERT}${var}${NL};
-					_sysmsgf 'User Prompt inserted';
-				;;
+					;;
+				:*|*)
+					if ((${#var}))
+					then 	if ((OPTCMPL))
+						then 	RINSERT="${RINSERT}${var}";
+						else 	RINSERT="${RINSERT}${RINSERT:+${NL}${NL}}${var}";
+						fi;
+						_sysmsgf 'User Prompt inserted' $'\n';
+					else
+						echo '(empty)' >&2;
+					fi;
+					;;
 				esac;
 				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD_BLOCK= REPLY_CMD_DUMP= var= v=;
 				set --; continue;
-			;;
+				;;
 			esac;
-			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY} RINSERT= ;}  #J#
-			REC_OUT="${*}"  #J#
+			((${#RINSERT})) && {
+				set -- "${RINSERT}""${*:+${NL}${NL}}""${*:-$REPLY}";  #J#
+				REPLY="${RINSERT}""${REPLY:+${NL}${NL}}""${REPLY}";
+				REC_OUT="${*}" RINSERT=;
+			}
 		fi
 
 		#insert mode
@@ -7241,10 +7259,9 @@ else
 
 		if ((JUMP)) || ((${#RINSERT}))
 		then 	((OPTCMPL || !EPN)) || rest=;
-			((${#RINSERT})) && var=1 || var=0;
-			set -- "${RINSERT:0:${#RINSERT}-var}${*:-$REPLY}";
-			REPLY="${RINSERT:0:${#RINSERT}-var}$REPLY";  #J#
-			REC_OUT="${*}" RINSERT= var=;  #J#
+			set -- "${RINSERT}""${RINSERT:+${*:+${NL}${NL}}}""${*:-$REPLY}";  #J#
+			REPLY="${RINSERT}""${RINSERT:+${REPLY:+${NL}${NL}}}""$REPLY";
+			REC_OUT="${*}" RINSERT=;
 		fi
 
 		var="$(escapef "${INSTRUCTION}")${INSTRUCTION:+\\n\\n}";
