@@ -58,58 +58,59 @@ If no suffix is provided, it works as plain text completions.
 - 6. [Chat Mode of Text Completions](#chat-mode-of-text-completions)
 - 7. [Text Completions](#-text-completions)
   - 7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
-- 8. [Markdown](#markdown)
-- 9. [Prompts](#-prompts)
-  - 9.1 [Instruction Prompt](#instruction-prompt)
-  - 9.2 [Custom Prompts](#-custom-prompts)
-  - 9.3 [Awesome Prompts](#-awesome-prompts)
-- 10. [Shell Completion](#shell-completion)
-  - 10.1 [Bash](#bash)
-  - 10.2 [Zsh](#zsh)
-  - 10.3 [Troubleshoot](#troubleshoot-shell)
-- 11. [Notes and Tips](#-notes-and-tips)
-- 12. [Image Generations](#%EF%B8%8F-image-generations)
-- 13. [Image Variations](#image-variations)
-- 14. [Image Edits](#image-edits)
-  - 14.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
-  - 14.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
-- 15. [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
-- 16. [Service Providers](#service-providers)
-  - 16.1 [LocalAI](#localai)
-    - 16.1.1 [LocalAI Server](#localai-server)
-    - 16.1.2 [Tips](#tips)
-    - 16.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
-    - 16.1.4 [Installing Models](#installing-models)
-    - 16.1.5 [Host API Configuration](#base-url-configuration)
-    - 16.1.6 [OpenAI Web Search](#openai-web-search)
-  - 16.2 [Ollama](#ollama)
-  - 16.3 [Google AI](#google-ai)
-    - 16.3.1 [Google AI](#google-search)
-  - 16.4 [Mistral AI](#mistral-ai)
-  - 16.5 [Groq](#groq)
-    - 16.5.1 [Groq Whisper](#groq-whisper-stt)
-    - 16.5.2 [Groq TTS](#groq-tts)
-  - 16.6 [Anthropic](#anthropic)
-    - 16.6.1 [Anthropic Web Search](#anthropic-web-search)
-  - 16.7 [GitHub Models](#github-models)
-  - 16.8 [Novita AI](#novita-ai)
-  - 16.9 [xAI](#xai)
-    - 16.9.1 [xAI Live Search](#xai-live-search)
-    - 16.9.2 [xAI Image Generation](#xai-image-generation)
-  - 16.10 [DeepSeek](#deepseek)
-- 17. [Arch Linux Users](#arch-linux-users)
-- 18. [Termux Users](#termux-users)
-  - 18.1 [Dependencies](#dependencies-termux)
-  - 18.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
-  - 18.3 [Tiktoken](#tiktoken)
-  - 18.4 [Troubleshoot](#troubleshoot-termux)
-- 19. [Project Objectives](#--project-objectives)
-- 20. [Roadmap](#roadmap)
-- 21. [Limitations](#%EF%B8%8F-limitations)
-- 22. [Bug report](#bug-report)
-- 23. [Help Pages](#-help-pages)
-- 24. [Contributors](#-contributors)
-- 25. [Acknowledgements](#acknowledgements)
+- 8. [Responses  API](#responses-api)
+- 9. [Markdown](#markdown)
+- 10. [Prompts](#-prompts)
+  - 10.1 [Instruction Prompt](#instruction-prompt)
+  - 10.2 [Custom Prompts](#-custom-prompts)
+  - 10.3 [Awesome Prompts](#-awesome-prompts)
+- 11. [Shell Completion](#shell-completion)
+  - 11.1 [Bash](#bash)
+  - 11.2 [Zsh](#zsh)
+  - 11.3 [Troubleshoot](#troubleshoot-shell)
+- 12. [Notes and Tips](#-notes-and-tips)
+- 13. [Image Generations](#%EF%B8%8F-image-generations)
+- 14. [Image Variations](#image-variations)
+- 15. [Image Edits](#image-edits)
+  - 15.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
+  - 15.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
+- 16. [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
+- 17. [Service Providers](#service-providers)
+  - 17.1 [LocalAI](#localai)
+    - 17.1.1 [LocalAI Server](#localai-server)
+    - 17.1.2 [Tips](#tips)
+    - 17.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
+    - 17.1.4 [Installing Models](#installing-models)
+    - 17.1.5 [Host API Configuration](#base-url-configuration)
+    - 17.1.6 [OpenAI Web Search](#openai-web-search)
+  - 17.2 [Ollama](#ollama)
+  - 17.3 [Google AI](#google-ai)
+    - 17.3.1 [Google AI](#google-search)
+  - 17.4 [Mistral AI](#mistral-ai)
+  - 17.5 [Groq](#groq)
+    - 17.5.1 [Groq Whisper](#groq-whisper-stt)
+    - 17.5.2 [Groq TTS](#groq-tts)
+  - 17.6 [Anthropic](#anthropic)
+    - 17.6.1 [Anthropic Web Search](#anthropic-web-search)
+  - 17.7 [GitHub Models](#github-models)
+  - 17.8 [Novita AI](#novita-ai)
+  - 17.9 [xAI](#xai)
+    - 17.9.1 [xAI Live Search](#xai-live-search)
+    - 17.9.2 [xAI Image Generation](#xai-image-generation)
+  - 17.10 [DeepSeek](#deepseek)
+- 18. [Arch Linux Users](#arch-linux-users)
+- 19. [Termux Users](#termux-users)
+  - 19.1 [Dependencies](#dependencies-termux)
+  - 19.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
+  - 19.3 [Tiktoken](#tiktoken)
+  - 19.4 [Troubleshoot](#troubleshoot-termux)
+- 20. [Project Objectives](#--project-objectives)
+- 21. [Roadmap](#roadmap)
+- 22. [Limitations](#%EF%B8%8F-limitations)
+- 23. [Bug report](#bug-report)
+- 24. [Help Pages](#-help-pages)
+- 25. [Contributors](#-contributors)
+- 26. [Acknowledgements](#acknowledgements)
 
 <!-- - 9. [Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
 
@@ -251,6 +252,7 @@ The `chatgpt.sh` script can be run in various modes by setting
 
 | Option | Description                                                                          |
 |--------|--------------------------------------------------------------------------------------|
+| `-bb`  | [Responses API](#responses-api) / multi-turn                                         |
 | `-c`   | [Text Chat Completions](#chat-mode-of-text-completions) / multi-turn                 |
 | `-cc`  | [Chat Completions (Native)](#--native-chat-completions) / multi-turn                 |
 | `-d`   | Text Completions / single-turn                                                       |
@@ -620,6 +622,18 @@ works with model `instruct models`.
 
 Mistral AI has a nice FIM (fill-in-the-middle) endpoint that works
 with `code` models and is really good!
+
+
+### Responses API
+
+Responses API is a superset of Chat Completions API. Set command
+line `option -b` (with `-cc`), or set `options -bb` for multiturn.
+
+To activate it during multiturn chat, set `/responses [model]`,
+where _model_ is the name of a model which works with the Responses API.
+Aliased to `/resp [model]` and `-b [model]`. This can be toggled.
+
+Limited support.
 
 
 <!--
@@ -1635,6 +1649,15 @@ no models compatible with this endpoint anymore.
 not change the user interface significantly.
 
 
+<!--
+
+    Portability across LLM providers is impractical anyways!
+    Even switching models within OpenAI (e.g., gpt-4o to gpt-4.1)
+    can alter behavior, and different providers require unique
+    optimizations and careful prompt refining.
+
+-->
+
 <!-- in these poor circumstances. The models are not worth the value or expectations. -->
 <!--
 - We expect to **go apoptosis**.
@@ -1681,7 +1704,7 @@ Only selected features of the API will be covered.
 
 - We _will not support_ "Real-Time" chatting, or video generation / editing.
 
-- We may support "Responses API" minimally and experimentally for now.
+- Support for "Responses API" is limited and experimental for now.
 
 - Bash shell truncates input on `\000` (null).
 

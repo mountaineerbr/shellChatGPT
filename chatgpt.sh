@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.100.1  jun/2025  by mountaineerbr  GPL+3
+# v0.101  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -31,7 +31,7 @@ MOD_LOCALAI="${MOD_LOCALAI:-phi-4}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-llama4}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.5-flash-preview-04-17}"
+MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.5-flash}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
 # Groq models
@@ -281,6 +281,12 @@ Insert Mode (FIM)
 	to the prompt at the location to be filled in (instruct	models).
 
 
+Responses API
+	Responses API is a superset of Chat Completions API. Set command
+	line option -b, or set -bb for multiturn chat. Toggle this mode
+	with chat command \`/responses' or \`-b'. Limited support.
+
+
 Instruction Prompts
 	The SYSTEM INSTRUCTION prompt may be set with option -S or via
 	envars \`\$INSTRUCTION' and \`\$INSTRUCTION_CHAT'.
@@ -486,7 +492,8 @@ Command List
      !!NUM    -N        [NUM]   Model token capacity.
       -a      !pre      [VAL]   Presence penalty.
       -A      !freq     [VAL]   Frequency penalty.
-      -b      !best     [NUM]   Best-of n results.
+      -b      !responses [MOD]  Responses API request (experimental).
+     !best    !best-of  [NUM]   Best-of n results.
       -j      !seed     [NUM]   Seed number (integer).
       -K      !topk     [NUM]   Top_k.
       -m      !mod      [MOD]   Model by name or pick from list.
@@ -601,6 +608,9 @@ Options
 		Options -eex to edit last text buffer from cache.
 
 	Interface Modes
+	-b, --responses
+		Responses API calls (may be used with -cc). Limited
+		support. See --model.
 	-c, --chat
 		Chat mode in text completions (used with -wzvv).
 	-cc 	Chat mode in chat completions (used with -wzvv).
@@ -669,10 +679,10 @@ Options
 		Presence penalty  (cmpls/chat, -2.0 - 2.0).
 	-A, --frequency-penalty  [VAL]
 		Frequency penalty (cmpls/chat, -2.0 - 2.0).
-	-b, --best-of   [NUM]
-		Best of, must be greater than opt -n (cmpls). Def=1.
-	-B, --logprobs  [NUM]
-		Request log probabilities, see -Z (cmpls, 0 - 5),
+	--best-of   [NUM]
+		Best of results, must be greater than opt -n (cmpls). Def=1.
+	--logprobs  [NUM]
+		Request log probabilities (cmpls, 0 - 5). See option -Z.
 	--effort  [ high | medium | low ]    (OpenAI)
 	--think   [ token_num ]             (Anthropic)
 		Amount of effort in reasoning models.
@@ -761,7 +771,7 @@ ENDPOINTS=(
 	/audio/speech              #10
 	/models                    #11
 	/organization              #12
-	#/responses                #
+	/responses                 #13
 	#/realtime                 #
 )
 #https://platform.openai.com/docs/{deprecations/,models/,model-index-for-researchers/}
@@ -776,29 +786,29 @@ function set_model_epnf
 
 	case "${1##ft:}" in
 		*dalle-e*|*stable*diffusion*)
-				# 3 generations  4 variations  9 edits
-				((OPTII)) && EPN=4 || EPN=3;
-				((OPTII_EDITS)) && EPN=9;;
+			# 3 generations  4 variations  9 edits
+			((OPTII)) && EPN=4 || EPN=3;
+			((OPTII_EDITS)) && EPN=9;;
 		tts-*|*-tts-*|*-tts) 	EPN=10;;
 		*whisper*|*transcribe*|*transcription*|stt-*|*-stt-*|*-stt) 	((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	EPN=0;;
 		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|*moderation*|*embed*|*similarity*)
-				is_amodelf "$1" || is_visionf "$1";
-				case "$1" in
-					*embed*|*similarity*) 	EPN=5 OPTEMBED=1;;
-					*moderation*) 	EPN=1 OPTEMBED=1;;
-					*) 		EPN=0;;
-				esac;;
+			is_amodelf "$1" || is_visionf "$1";
+			case "$1" in
+				*embed*|*similarity*) 	EPN=5 OPTEMBED=1;;
+				*moderation*) 	EPN=1 OPTEMBED=1;;
+				*) 		EPN=0;;
+			esac;;
 		o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*|*audio*)
-				is_amodelf "$1" || is_visionf "$1";
-				EPN=6 OPTB= OPTBB=
-				((OPTC)) && OPTC=2
-				#set token adjustment per message
-				case "$MOD" in
-					gpt-3.5-turbo-0301) 	((TKN_ADJ=4+1));;
-					gpt-3.5-turbo*|gpt-4*|*) 	((TKN_ADJ=3+1));;
-				esac #https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
-				#also: <https://tiktokenizer.vercel.app/>
+			is_amodelf "$1" || is_visionf "$1";
+			EPN=6 OPTB= OPTBB=
+			((OPTC)) && OPTC=2
+			#set token adjustment per message
+			case "$MOD" in
+				gpt-3.5-turbo-0301) 	((TKN_ADJ=4+1));;
+				gpt-3.5-turbo*|gpt-4*|*) 	((TKN_ADJ=3+1));;
+			esac #https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+			#also: <https://tiktokenizer.vercel.app/>
 				;;
 		*) 		#fallback
 				case "$1" in
@@ -994,6 +1004,8 @@ function model_capf
 #make cmpls request
 function __promptf
 {
+	((RESPONSES_API)) && typeset EPN=13
+
 	if curl "$@" ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
@@ -1100,10 +1112,15 @@ function promptf
 #print tokens from response
 function response_tknf
 {
-	jq -r '(.usage.prompt_tokens)//"0",
-		(.usage.completion_tokens)//"0",
-		(.usage.completion_tokens_details|(.reasoning_tokens//.audio_tokens))//"0",
-		(.created//empty|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$@";
+	if ((RESPONSES_API)) && ((STREAM))
+	then
+		jq 'select(.type == "response.completed")' "$@" | RESPONSES_API= response_tknf;
+	else
+		jq -r '((.usage//(.response.usage))|(.prompt_tokens//.input_tokens))//"0",
+                ((.usage//(.response.usage))|(.completion_tokens//.output_tokens))//"0",
+                ((.usage//(.response.usage))|(.completion_tokens_details//.output_tokens_details)|(.reasoning_tokens//.audio_tokens))//"0",
+                ((.created//.created_at//(.response.created_at)//empty)|strflocaltime("%Y-%m-%dT%H:%M:%S%Z"))' "$@";
+	fi
 }
 #https://community.openai.com/t/usage-stats-now-available-when-using-streaming-with-the-chat-completions-api-or-completions-api/738156
 
@@ -1222,7 +1239,7 @@ function new_prompt_confirmf
 		[NnOo]) REC_OUT=; return 1;;  #no
 		[-/!]) 	echo >&2; OPTCTRD= read_mainf -i "$REPLY" REPLY; echo >&2;
 			BLOCK_USR= BLOCK_CMD= BREAK_SET= OPTRESUME= EDIT= ENDPOINTS= \
-			HERR= JUMP= MAIN_LOOP= REGEN= REPLAY_FILES= REPLY= \
+			JUMP= MAIN_LOOP= REGEN= REPLAY_FILES= REPLY= \
 			REPLY_CMD_BLOCK= REPLY_CMD_DUMP= REPLY_OLD= RESTART= START= \
 			RESUBW= RET= SKIP= SKIP_SH_HIST=  BCYAN= CYAN= ON_CYAN= \
 			cmd_runf "$REPLY";
@@ -1324,6 +1341,11 @@ function prompt_prettyf
 {
 	((STREAM)) || unset STREAM;
 
+	if ((RESPONSES_API))
+	then  	prompt_pf -r ${STREAM:+-j --unbuffered} "$@";
+		return;
+	fi
+
 	jq -r ${STREAM:+-j --unbuffered} "${JQCOLNULL} ${JQCOL}
 	  byellow
 	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
@@ -1346,16 +1368,40 @@ function prompt_pf
 	for var
 	do 	[[ -f $var ]] || { 	opt=("${opt[@]}" "$var"); shift ;}
 	done
-	set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
-		(.delta.content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//( (.content // []) | .[]? | .text)//(.message.content${ANTHROPICAI:+skip})//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@"
+
+	if ((RESPONSES_API))
+	then 	typeset SUFFIX
+		if ((STREAM))
+		then 	set -- 'select(.type == "response.output_text.delta") | .delta' "$@";
+		else 	set -- '.output[] | (.content//[]) | .[] | .text' "$@";
+		fi
+		#missing: thinking and audio transcriptions
+	else
+		set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
+		(.delta.content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//( (.content // []) | .[]? | .text)//(.message.content${ANTHROPICAI:+skip})//(.delta.reasoning_content)//(.delta.thinking)//(.message.reasoning_content)//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@"
+	fi
+
 	jq "${opt[@]}" "$@" && _p_suffixf || ! _warmsgf 'Err';
 }
-#//(.delta.reasoning_content)//(.delta.thinking)//(.message.reasoning_content)  #dont record reasoning
 #https://stackoverflow.com/questions/57298373/print-colored-raw-output-with-jq-on-terminal
 #https://stackoverflow.com/questions/40321035/
 
 #print suffix string
 function _p_suffixf { 	((!${#SUFFIX} )) || printf '%s' "${SUFFIX}" ;}
+
+#check if model is responses-api-compatible
+function is_responses_apif
+{
+	typeset -l model; model=${1##*/} model=${model##ft:};
+
+	case "${model:-$MOD}" in
+	o[1-9]*|gpt-[4-9]o*|gpt-[4-9][.-][0-9]*|chatgpt*-[4-9]o*|chatgpt*-[4-9][.-][0-9]o*) 	:;;
+	*) 	! :;;
+	esac
+
+	#!#update globs in is_visionf()!
+}
+#These tools are available across our GPT‑4o series, GPT‑4.1 series, and OpenAI o-series reasoning models.
 
 #print last line of input that is within $columns range
 #usage: _p_linerf [string]
@@ -1534,26 +1580,21 @@ function set_histf
 	typeset -a MEDIA MEDIA_CMD; MEDIA=(); MEDIA_CMD=(); HIST_LOOP=0;
 	[[ -s $FILECHAT ]] || return; HIST= HIST_C=;
 	((BREAK_SET)) && return;
-	((OPTTIK)) && HERR_DEF=1 || HERR_DEF=4
-	((herr = HERR_DEF + HERR))  #context limit error
+	((OPTTIK)) && herr=1 || herr=4;  #context limit error pc
 	q_type=${Q_TYPE##$SPC1} a_type=${A_TYPE##$SPC1}
 	((OPTC>1 || EPN==6)) && typeset A_TYPE="${A_TYPE} "  #pretty-print seq "\\nA: " ($rest)
-	((${#})) && token_prevf "${*}"
+	((${#1}+${#2})) && token_prevf "${*}"
 
 	while _spinf
 		IFS=$'\t' read -r time token string
 	do
-		case "${time}${token}" in *([$IFS])\#*)
-				((OPTHH>2)) && com=1 || continue;;
-		esac;
-		case "${time}${token}" in *[Bb][Rr][Ee][Aa][Kk]*)
-				break;;
-		esac;
-		case "${time}${token}${string}" in '') 	continue;; esac;
-		case "$string" in '')
-			case "$token" in *[!$IFS]*) 	string=$token token=$time time=;; esac;
-			case "$time" in *[!$IFS]*) 	string=$time  token=  time=;; esac;;
-		esac;
+		[[ ${time}${token} = *([$IFS])\#* ]] && { ((OPTHH>2)) && com=1 || continue ;}
+		[[ ${time}${token} = *[Bb][Rr][Ee][Aa][Kk]* ]] && break
+		((!(${#time}+${#token}+${#string}) )) && continue;
+		if ((!${#string}))
+		then 	((${#token})) && string=$token token=$time time=
+			((${#time})) && string=$time token= time=
+		fi
 
 		((${#string}>1)) && string=${string:1:${#string}-2}  #del lead and trail ""
 		#improve bash globbing speed with substring manipulation
@@ -1561,7 +1602,7 @@ function set_histf
 		stringc="${sub}${string:32}"  #del lead seqs `\nQ: ' and `\nA:'
 
 		((MOD_REASON)) && case "$MOD" in o1-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
-			case "${string}" in :*) 	continue;; esac;;
+			[[ "${string:0:32}" = :* ]] && continue;;
 		esac;
 
 		if ((OPTTIK || token<1))
@@ -1594,17 +1635,12 @@ function set_histf
 			fi
 
 			role_last=$role role= rest= nl=
-			case "${string}" in
-				::*) 	role=system rest=  #[DEPRECATED]
-					((MOD_REASON)) && role=developer;
-					INDEX=32 trim_lf "$stringc" ":"
-					stringc="$TRIM"  #append (txt cmpls)
-					;;
+			case "${string:0:32}" in
 				:*) 	role=system;
 					((MOD_REASON)) && role=developer;
 					((OPTC)) && rest="$S_TYPE" nl="\\n"  #system message
 					;;
-				"${a_type:-%#}"*|"${START:-%#}"*)
+				"${a_type:-%#%#}"*)  #START
 					role=assistant
 					if ((OPTC)) || [[ -n "${START}" ]]
 					then 	rest="${START-${A_TYPE}}"
@@ -2036,7 +2072,7 @@ function cmd_runf
 	args=("$@"); set -- "$*";
 
 	case "$*" in
-		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3|0|*[/-]0|0[/-]*|*[/-]0[/-]*)
+		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3|0|[0-9]*[/-]0|0[/-]*|[0-9]*[/-]0[/-]*)
 			set_maxtknf nill
 			cmdmsgf 'Response' "$OPTMAX${OPTMAX_NILL:+-inf} tkns"
 			;;
@@ -2057,10 +2093,7 @@ function cmd_runf
 				;;
 			esac;
 			((OPTMAX<MODMAX)) || ((OPTMAX=(MODMAX/2)+1));
-			if ((HERR))
-			then 	unset HERR
-				_sysmsgf 'Context Length:' 'error reset'
-			fi ;cmdmsgf 'Response / Capacity' "$OPTMAX${OPTMAX_NILL:+-inf} / $MODMAX tkns"
+			cmdmsgf 'Response / Capacity' "$OPTMAX${OPTMAX_NILL:+-inf} / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
 			set -- "${*//[!0-9.]}"
@@ -2074,7 +2107,7 @@ function cmd_runf
 			fix_dotf OPTAA
 			cmdmsgf 'Frequency Penalty' "$OPTAA"
 			;;
-		-b*|best[_-]of*)
+		best[_-]of*|best*)
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
 			OPTB="${*:-$OPTB}"
 			cmdmsgf 'Best_Of' "$OPTB"
@@ -2107,7 +2140,10 @@ function cmd_runf
 			  ((OPTV>99)) || _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-${INSTRUCTION:-$GINSTRUCTION}} GINSTRUCTION_PERM=$GINSTRUCTION INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
-			}; CKSUM_OLD= MAX_PREV= WCHAT_C= MAIN_LOOP= HIST_LOOP= TOTAL_OLD= xskip=1;
+			}; xskip=1;
+			unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP HIST_LOOP TOTAL_OLD \
+			  REPLY_CMD_BLOCK REPLY_CMD_DUMP RESUBW REPLY_CMD BAD_RES EDIT RINSERT \
+			  PSKIP WSKIP SKIP JUMP REGEN REPLY_CMD INT_RES MEDIA MEDIA_IND MEDIA_CMD_IND BLOCK_CMD;
 			;;
 		currency[_-]rate*|currency*)  #currency rate
 			set -- "${*##@(currency[_-]rate|currency)$SPC}"
@@ -2173,7 +2209,7 @@ function cmd_runf
 		-HH|-HHH*|HH|HHH*|request|print)
 			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
 			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
-			  MOD= OLLAMA= HERR= TKN_PREV= MAX_PREV= set_histf
+			  MOD= OLLAMA= TKN_PREV= MAX_PREV= set_histf
 			var=$( usr_logf "$(unescapef "$HIST")" )
 			if ((OPTMD))
 			then 	set_mdcmdf "$MD_CMD";
@@ -2277,9 +2313,9 @@ function cmd_runf
 			set -- "$TRIM";
 			case "$*" in
 			*youtube.com/watch*|*youtube.com/live*|*youtube.com/shorts*|*youtu.be/*)
-				curl -Ls -H "$UAG" "$*" >"$FILEFIFO";
+				curl -Ls -H "$UAG" "$*" >"$FILEFIFO"; var= out=;
 				var=$(yt_descf <"$FILEFIFO") || _warmsgf 'YouTube:' 'Description unavailable';  #[DEPRECATED]
-				out=$(yt_transf <"$FILEFIFO") || _warmsgf 'YouTube:' 'Transcript dump fail / unavailable';  #[DEPRECATED]
+				#out=$(yt_transf <"$FILEFIFO") || _warmsgf 'YouTube:' 'Transcript dump fail / unavailable';  #[DEPRECATED]
 
 				if ((!${#out})) && { 	command -v yt-dlp &>/dev/null ||
 					! _warmsgf 'YouTube:' "\`yt-dlp' is required to dump transcription"
@@ -2301,14 +2337,14 @@ function cmd_runf
 				fi
 
 				printf '%s' "${var}${var:+$NL$NL}${out}" >"$FILEFIFO";
-				[[ -s "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO";
+				[[ -s "$FILEFIFO" ]] && cmd_runf /cat${append:+:} "$FILEFIFO";
 				return 0;
 				;;
 			*vimeo.com/[0-9][0-9]*|*vimeo.com/video*|*vimeo.com/channel*|*vimeo.com/group*|*vimeo.com/album*)
 				{ vimeo_descf "$*" || _warmsgf 'Vimeo:' 'Description unavailable';  #[DEPRECATED]
 				  vimeo_transf "$*" || _warmsgf 'Vimeo:' 'Transcript dump fail / unavailable';  #[DEPRECATED]
 				} >"$FILEFIFO";
-				[[ -s "$FILEFIFO" ]] && cmd_runf /cat "$FILEFIFO";
+				[[ -s "$FILEFIFO" ]] && cmd_runf /cat${append:+:} "$FILEFIFO";
 				return 0;
 				;;
 			*)
@@ -2363,6 +2399,22 @@ function cmd_runf
 			OPTP="${*:-$OPTP}"
 			fix_dotf OPTP
 			cmdmsgf 'Top_P' "$OPTP"
+			;;
+		-b*|response*|resp*)
+			set -- "${*##@(responses|response|resp|-b)}";
+			set -- "${1//[$IFS]}"; var=$MOD;
+
+			if ((RESPONSES_API)) && [[ "${1:-$MOD}" = "$MOD" ]]
+			then  	RESPONSES_API=;
+				MOD=${MOD_RESPONSES:-$MOD} MOD_RESPONSES=;
+			else
+				EPN=6 RESPONSES_API=1;
+				is_responses_apif "$MOD" && set -- "${1:-$MOD}";
+				MOD_RESPONSES=${MOD_RESPONSES:-$MOD} MOD=${1:-gpt-4.1};
+			fi
+
+			[[ "$var" = "$MOD" ]] || cmd_runf /model "$MOD";
+			cmdmsgf 'Responses API' $(_onoff $RESPONSES_API);
 			;;
 		-r*|restart*)
 			set -- "${*##@(-r|restart)?( )}"
@@ -2716,7 +2768,7 @@ function cmd_runf
 				esac; set --;
 			done; _clr_lineupf $((12+1+58));  #!#
 
-			((append)) && [[ $REPLY != [/!]* ]] && REPLY=:$REPLY;
+			((append)) && [[ ${REPLY:0:32} != [/!]* ]] && REPLY=:$REPLY;
 			shell_histf "!${HARGS[*]:-${args[*]}}"; SKIP_SH_HIST=1 HARGS=;
 			((RET==200||RET==201)) || REPLY_CMD_BLOCK=1;
 			;;
@@ -2897,10 +2949,14 @@ function cmd_runf
 			      return 0;
 			    elif ((!(ANTHROPICAI+GROQAI+GOOGLEAI+LOCALAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK) )) && case "$MOD" in
 			    	*-search*) 	:;;
-			    	*) 	! :;;
+			    	*) 	((RESPONSES_API));;
 			    	esac;
 			    then  #OpenAI API
-			      BLOCK_CMD="\"web_search_options\": { \"search_context_size\": \"medium\" }";
+			      case "${MOD##*/}" in gpt*-search*|chatgpt*-search*)
+			        BLOCK_CMD="\"web_search_options\": { \"search_context_size\": \"medium\" }";;
+			      *)
+			        BLOCK_CMD="\"tools\": [{\"type\": \"web_search_preview\",\"search_context_size\": \"medium\"}]";;
+			      esac;
 			      ((OPTV)) || printf "${BWHITE}%s\\n${NC}" "OpenAI Web Search Tool" >&2;
 			      REPLY="$*" SKIP=1 PSKIP=1 JUMP=1;
 			      return 0;
@@ -2993,10 +3049,10 @@ function ed_outf
 #text editor chat wrapper
 function edf
 {
-	typeset ed_msg pre rest pos ind sub inst instruction prev reply
+	typeset ed_msg pre rest pos ind sub inst_edit instruction prev reply
 	ed_msg=",,,,,,(edit below this line),,,,,,"
-	((OPTC)) && rest="${RESTART-$Q_TYPE}" || rest="${RESTART}"
-	rest="$(_unescapef "$rest")"
+	((${#RESTART})) && rest="$(_unescapef "$RESTART")";
+	#((OPTC)) && rest="${RESTART-$Q_TYPE}" || rest="${RESTART}"; rest="$(_unescapef "$rest")";
 	instruction=${GINSTRUCTION:-${INSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}};
 
 	if ((CHAT_ENV)) && ((MTURN+OPTRESUME))  #G#
@@ -3005,11 +3061,12 @@ function edf
 	fi
 
 	set_filetxtf
-	pre="${instruction}${instruction:+$'\n\n'}""$(unescapef "$HIST")"
+	pre="${instruction}${instruction:+$'\n\n'}""$(unescapef "$HIST")""${RINSERT:+$'\n\n'}${RINSERT}"
 
+	((${#RINSERT})) ||
 	if ((${#instruction}==${#pre}-2)) || ((${#INSTRUCTION_OLD}==${#pre}-2)) ||
 	   ((CHAT_ENV && MTURN+OPTRESUME && HIST_LOOP==1))  #G#
-	then 	inst=1 &&  #instruction editing on
+	then 	inst_edit=1 &&  #instruction editing on
 		ed_msg=",,,,,,(edit ABOVE AND BELOW this line),,,,,,"
 	fi
 
@@ -3023,8 +3080,8 @@ function edf
 
 	while [[ -f $FILETXT ]] && pos="$(<"$FILETXT")"
 
-		if ((inst)) && [[ "$pos" != "${pre}"* ]]
-		then 	inst= ;  #instruction editing
+		if ((inst_edit)) && [[ "$pos" != "${pre}"* ]]
+		then 	inst_edit= ;  #instruction editing
 			prev=$(sed -n "1,/${ed_msg}/ p" <<<"${pos}");
 			instruction=$(sed "/${ed_msg}/ d" <<<"${prev}");
 		    ((${#prev}==${#instruction})) || {  #skip?
@@ -3041,7 +3098,7 @@ function edf
  			((HIST_LOOP==1)) && OPTX= cmd_runf /break
 		    }
 		fi
-		[[ "$pos" != "${pre}"* ]] || [[ "$pos" = *"${rest:-%#%#}" ]]
+		[[ "$pos" != "${pre}"* ]]  #|| [[ "$pos" = *"${rest:-%#%#}" ]]
 	do 	_warmsgf "Bad edit:" "[E]dit, [r]edo, [c]ontinue, [a]bort, or [/]cmd? " ''
 		reply=$(read_charf)
 		case "$reply" in
@@ -3059,7 +3116,9 @@ function edf
 	if ((OPTCMPL))
 	then 	((${#rest})) &&
 		sub="${sub##$SPC"${rest}"}"
-	else 	sub="${sub##?($SPC"${rest%%$SPC}")$SPC}"
+	elif ((${#rest}))
+	then 	sub="${sub##?($SPC"${rest%%$SPC}")$SPC}"
+	else 	sub="${sub##$SPC}"
 	fi
 	pos="${sub}${pos:$((${#pre}+${ind}))}"
 
@@ -3188,10 +3247,14 @@ function fmt_ccf
 		fi;
 
 		((${#1})) &&
-		printf '{ "type": "text", "text": "%s" }' "$1";
+		if ((RESPONSES_API))
+		then 	printf '{ "type": "input_text", "text": "%s" }' "$1";
+		else 	printf '{ "type": "text", "text": "%s" }' "$1";
+		fi
+
 		for var in "${MEDIA[@]}" "${MEDIA_CMD[@]}"
 		do
-			case "$var" in \~\/*) 	var="$HOME/${var:2}";; esac;
+			[[ "$var" = \~\/* ]] && var="$HOME/${var:2}";
 			if [[ $var != *[!$IFS]* ]]
 			then 	continue;
 			elif [[ -s $var ]] && is_audiof "$var"
@@ -3213,13 +3276,25 @@ function fmt_ccf
 				then
 				  printf '\n{ "type": "image", "source": { "type": "base64", "media_type": "image/%s", "data": "%s" } }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
 				else
+				  if ((RESPONSES_API))
+				  then
+				  printf '\n{ "type": "input_image", "image_url": "data:image/%s;base64,%s" }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
+
+				  else
 				  printf '\n{ "type": "image_url", "image_url": { "url": "data:image/%s;base64,%s" } }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
 				  #groq: detail  string  Optional  #groq: image URL or base64
+				  fi
 				fi
 			else  #img url
 				((ANTHROPICAI)) || {  #mistral groq
 				  ((${#1})) && printf ',';
+				  if ((RESPONSES_API))
+				  then
+				  printf '\n{ "type": "input_image", "image_url": "%s" }' "$var";
+
+				  else
 				  printf '\n{ "type": "image_url", "image_url": { "url": "%s" } }' "$var";
+				  fi
 				};
 			fi
 		done;
@@ -3422,16 +3497,16 @@ function media_pathf
 	#process only the last line of input
 	set -- "$(sed -e 's/\\n/\n/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";
 
-	while case "$1" in *[[:alnum:]]*) 	((m<128));; *) 	! :;; esac
+	while [[ "$1" = *[[:alnum:]]* ]] && ((m<128))
 	do
 		((++m)); var=;
 		if [[ -f $1 ]]
 		then 	var="$1";
-		else 	case "$1" in *[\|]*) 	var=$(sed 's/^.*[|][[:space:]|]*//' <<<"$1");; esac;
+		else 	[[ "$1" = *[\|]* ]] && var=$(sed 's/^.*[|][[:space:]|]*//' <<<"$1");
 			[[ -f ${var//\\} ]] || var=$(sed 's/^.*[^\\][[:space:]]//; s/^[[:space:]|]*//' <<<"$1");
 		fi; ind=${#var};
-		case "$var" in *\\*) 	var="${var//\\}";; esac;
-		case "$var" in \~\/*) 	var="$HOME/${var:2}";; esac;
+		[[ "$var" = *\\* ]] && var="${var//\\}";
+		[[ "$var" = \~\/* ]] && var="$HOME/${var:2}";
 
 		#check if file or url and add to array (max 20MB)
 		if is_imagef "$var" || is_audiof "$var" ||
@@ -3546,7 +3621,7 @@ function is_txturl
 	trim_lf "$1" $'*\n';
 	INDEX=128 trim_lrf "$TRIM" "$SPC";
 	set -- "$TRIM";
-	case "$1" in \~\/*) 	set -- "$HOME/${1:2}";; esac;
+	[[ "$1" = \~\/* ]] && set -- "$HOME/${1:2}";
 
 	if [[ -f ${2:-$1} ]]
 	then 	set -- "${2:-$1}";
@@ -3555,7 +3630,7 @@ function is_txturl
 		set -- "$TRIM";
 		[[ ${1:0:1} = [$IFS] ]] && set -- "${1:1}";
 	fi  #C#
-	case "$1" in \~\/*) 	set -- "$HOME/${1:2}";; esac;
+	[[ "$1" = \~\/* ]] && set -- "$HOME/${1:2}";
 
 	[[ $1 = *\\* ]] && set -- "${1//\\}";  #path with spaces must be backslash-quoted
 	is_txtfilef "$1" || is_pdff "$1" || is_docf "$1" ||
@@ -3567,13 +3642,17 @@ function is_txturl
 function is_visionf
 {
 	typeset -l model; model=${1##*/};
+
 	case "${model##ft:}" in
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
-	o[1-9]*|gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
+	o[1-9]*|gpt-[4-9]o*|gpt-[4-9][.-][0-9]*|chatgpt*-[4-9]o*|chatgpt*-[4-9][.-][0-9]o*|chatgpt*-[4-9]*|\
+	gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|grok-[3-9]*|*multimodal*|\
 	claude*-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
 	*) 	((MULTIMODAL));;
 	esac;
+
+	#!#update globs in is_responses_apif()!
 }
 
 #check for audio-model
@@ -3675,7 +3754,7 @@ function yt_transf
 #dump youtube video description
 function yt_descf
 {
-	#curl -Ls -H "$UAG" "$1" | 
+	#curl -Ls -H "$UAG" "$1" |
 	grep -o -e '"videoDetails":{[^}]*}' | grep -oe '":"[^"]*"' | { sedhtmlf || cat ;};
 }  #[DEPRECATED]
 #"shortDescription",'eow-description'
@@ -3735,11 +3814,11 @@ function foldf
 		while IFS= read -r -d ' ' && REPLY=$REPLY' ' || ((${#REPLY}))
 		do
 			r=$REPLY;
-			case "$r" in *$'\t'*) 	r=${r//$'\t'/        };; esac;  #fix for tabs
+			[[ $r = *$'\t'* ]] && r=${r//$'\t'/        };  #fix for tabs
 
 			((OPTK)) || {  #delete ansi codes
 			  text="$r" result=""
-			  while case "$text" in *$'\e'*[mG]*) 	:;; *) 	! :;; esac
+			  while [[ "$text" = *$'\e'*[mG]* ]]
 			  do
 			    result="${result}${text%%$'\e'*}"
 			    text="${text#*$'\e'*[mGa-zA-Z]}"
@@ -3747,7 +3826,7 @@ function foldf
 			  r="${result}${text}"
 			}
 
-			case "$r" in *$'\n'*) 	x=${r##*$'\n'} r=${r%%$'\n'*};; esac;
+			[[ $r = *$'\n'* ]] && x=${r##*$'\n'} r=${r%%$'\n'*};
 
 			if (( ${#r}>COLUMNS ))  #REPLY alone is bigger than COLUMNS
 			then
@@ -3794,7 +3873,7 @@ function set_optsf
 		;;
 		gpt*-search*preview*) 	OPTA= OPTAA= OPTT=;;
 		claude-3-[7-9]*|claude-[4-9]*|claude*-[4-9]*)
-		case "${REASON_EFFORT}" in *[a-zA-Z]*) 	REASON_EFFORT=16000;; esac;
+		[[ "${REASON_EFFORT}" = *[a-zA-Z]* ]] && REASON_EFFORT=16000;
 		((MOD_THINK)) || {
 		    ((!${REASON_EFFORT:+1}0)) || {
 			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
@@ -3900,21 +3979,20 @@ function set_optsf
 	  #change temp or top_p but not both
 	}
 	((OPTI)) && check_optrangef "$OPTN"  1 10 'Number of Results'
-	case "$OPTSEED" in *[!0-9]*)
-	  printf "${RED}Warning: Bad %s${NC}${BRED} -- %s  ${NC}${YELLOW}(integer)${NC}\\n" "seed" "$OPTSEED" >&2;;
-	esac
+	[[ "$OPTSEED" = *[!0-9]* ]] &&
+	  printf "${RED}Warning: Unexpected %s${NC}${BRED} -- %s  ${NC}${YELLOW}(integer)${NC}\\n" "seed" "$OPTSEED" >&2;
 
 	((OPTN<2)) && unset OPTN_OPT || ((MISTRALAI+GROQAI+ANTHROPICAI)) || OPTN_OPT="\"n\": ${OPTN:-1},";
-	case "$OPTT" in *[!$IFS]*) 	OPTT_OPT="\"temperature\": ${OPTT:-0},";; *) 	unset OPTT_OPT;; esac;
-	case "$OPTA" in *[!$IFS]*) 	OPTA_OPT="\"presence_penalty\": $OPTA,";; *) 	unset OPTA_OPT;; esac;
-	case "$OPTAA" in *[!$IFS]*) 	OPTAA_OPT="\"frequency_penalty\": $OPTAA,";; *) 	unset OPTAA_OPT;; esac;
+	[[ "$OPTT" = *[!$IFS]* ]] && OPTT_OPT="\"temperature\": ${OPTT:-0}," || unset OPTT_OPT;
+	[[ "$OPTA" = *[!$IFS]* ]] && OPTA_OPT="\"presence_penalty\": $OPTA," || unset OPTA_OPT;
+	[[ "$OPTAA" = *[!$IFS]* ]] && OPTAA_OPT="\"frequency_penalty\": $OPTAA," || unset OPTAA_OPT;
 	{ ((OPTB)) && OPTB_OPT="\"best_of\": $OPTB," || unset OPTB OPTB_OPT;
 	  ((OPTBB)) && OPTBB_OPT="\"logprobs\": $OPTBB," || unset OPTBB OPTBB_OPT; }  #2>/dev/null
-	case "$OPTP" in *[!$IFS]*) 	OPTP_OPT="\"top_p\": $OPTP,";; *) 	unset OPTP_OPT;; esac;
-	case "$OPTKK" in *[!$IFS]*) 	OPTKK_OPT="\"top_k\": $OPTKK,";; *) 	unset OPTKK_OPT;; esac;
+	[[ "$OPTP" = *[!$IFS]* ]] && OPTP_OPT="\"top_p\": $OPTP," || unset OPTP_OPT;
+	[[ "$OPTKK" = *[!$IFS]* ]] && OPTKK_OPT="\"top_k\": $OPTKK," || unset OPTKK_OPT;
 	if ((OPTSUFFIX+${#SUFFIX})); then 	OPTSUFFIX_OPT="\"suffix\": \"$(escapef "$SUFFIX")\","; else 	unset OPTSUFFIX_OPT; fi;
 	#seed  integer or null: openai, groq, ollama.
-	case "$OPTSEED" in *[!$IFS]*) 	OPTSEED_OPT="\"${MISTRALAI:+random_}seed\": $OPTSEED,";; *) 	unset OPTSEED;; esac;
+	[[ "$OPTSEED" = *[!$IFS]* ]] && OPTSEED_OPT="\"${MISTRALAI:+random_}seed\": $OPTSEED," || unset OPTSEED;
 	if ((STREAM))
 	then 	STREAM_OPT="\"stream\": true,";
 	else 	STREAM_OPT="\"stream\": false,"; unset STREAM;
@@ -3939,8 +4017,8 @@ function set_optsf
 		fi; STOPS_OLD=("${STOPS[@]}");
 	fi #https://help.openai.com/en/articles/5072263-how-do-i-use-stop-sequences
 	((EPN==6)) || {
-	  case "$RESTART" in "$RESTART_OLD") 	:;; *) 	restart_compf;; esac;
-	  case "$START" in "$START_OLD") 	:;; *) 	start_compf;; esac;
+	  [[ "$RESTART" = "$RESTART_OLD" ]] || restart_compf;
+	  [[ "$START" = "$START_OLD" ]] || start_compf;
 	}
 
 	#update pid array
@@ -3988,7 +4066,7 @@ function recordf
 	[[ -n $TERMUX_VERSION ]] &&
 	if is_amodelf "$MOD"
 	then 	OPTV=2 set_termuxpulsef;
-		case "$REC_CMD" in *termux*) 	_warmsgf 'Warning:' 'Audio-models require SoX or FFmpeg';; esac;
+		[[ "$REC_CMD" = *termux* ]] && _warmsgf 'Warning:' 'Audio-models require SoX or FFmpeg';
 	else 	set_termuxpulsef;
 	fi
 
@@ -4844,7 +4922,7 @@ function awesomef
 
 	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"[[:space:]]*$//; s/",[Ff][Aa][Ll][Ss][Ee][[:space:]]*$//; s/",[Tt][Rr][Uu][Ee][[:space:]]*$//; s/\\n$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
 	((CMD_CHAT)) || {
-	    _clr_ttystf; 
+	    _clr_ttystf;
 	    if ((OPTX))  #edit chosen awesome prompt
 	    then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
 	    	printf '%s\n\n' "$INSTRUCTION" >&2 ;
@@ -5311,11 +5389,12 @@ function session_name_choosef
 #pick and print a session from hist file
 function session_sub_printf
 {
-	typeset REPLY reply file time token string buff buff_end index regex skip sopt copt ok m n
+	typeset REPLY reply file time token string buff buff_end index skip sopt copt ok m n
+	typeset regex="${regex%%${NL}*}";
 	typeset -a SPIN_CHARS=("${SPIN_CHARS0[@]}");
 	sopt= copt= ok= buff= buff_end=;
 	[[ -s ${file:=$1} ]] || return; [[ $file = */* ]] || [[ ! -e "./$file" ]] || file="./$file";
-	FILECHAT_OLD="$file" regex="${REGEX%%${NL}*}";
+	FILECHAT_OLD="$file";
 
 	while ((skip)) || IFS= read -r
 	do 	_spinf; skip= ;
@@ -5425,12 +5504,12 @@ function session_copyf
 #create or copy a session, search for and change to a session file.
 function session_mainf
 {
-	typeset name file optsession arg break msg
+	typeset name file optsession arg break regex msg
 	typeset -a args
 	name="${*}"; ((${#name}<512)) || return
 	trim_lrf "${name}" "*([$IFS])"
 	name="$TRIM"
-	case "${name}" in [/!]*) 	:;; *) 	return 1;; esac
+	[[ "${name}" = [/!]* ]] || return
 	trim_lf "${name}" "?([/!])*([$IFS])"
 	name="$TRIM"
 
@@ -5466,7 +5545,7 @@ function session_mainf
 			;;
 		#search for and copy session to tail: /sub [regex]
 		sub*|grep*) 	set -- current current
-			REGEX="${name##@(sub|grep)*([$IFS])}" optsession=3
+			regex="${name##@(sub|grep)*([$IFS])}" optsession=3
 			unset name
 			;;
 		#copy session from hist option: /copy
@@ -5500,16 +5579,23 @@ function session_mainf
 	#copy/fork session to destination
 	elif ((optsession>2))
 	then
-		typeset dest ok;
-		dest=$(session_copyf "$@") || unset file
+		typeset dest
 
-		if case "${dest:-$2}" in "$FILECHAT"|[Cc]urrent|.) 	ok=1;;
-			*) 	((optsession>3));;
-		   esac
+		if dest=$(session_copyf "$@")
 		then
-			cmd_runf -C;  #continue session, change to destination
-			((ok)) || session_mainf /session "${dest:-${2:-$FILECHAT}}";
-		fi; dest= ok=;
+			case "${dest:-$2}" in "$FILECHAT"|[Cc]urrent|.)
+			  cmd_runf -C;
+			  ;;
+			*) if ((optsession>3))
+			   then  #command /fork
+			    cmd_runf -C;
+			    session_mainf /session "${dest:-${2:-$FILECHAT}}";
+			  fi
+			  ;;
+			esac;
+		else
+			unset file;
+		fi; dest=;
 	#change to hist file
 	else
 		#set source session file
@@ -5796,9 +5882,9 @@ function set_anthropicf
 #@#[[ ${BASH_SOURCE[0]} != "${0}" ]] && return 0;  #!#important for the test script
 
 
-#parse opts  #DIJQX
+#parse opts  #BDIJQX
 unset OPTMM OPTMARG MAIN_LOOP HIST_LOOP; STOPS=();
-optstring="a:A:b:B:cCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
+optstring="a:A:bcCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
 do
 	case "$opt" in -)  #order matters: anthropic anthropic:ant
@@ -5806,12 +5892,12 @@ do
 google  google:goo  mistral  openai  groq  grok  grok:xai  anthropic \
 anthropic:ant  github  github:git  novita  novita:nov  deepseek deepseek:deep \
 w:transcribe  w:stt  W:translate  z:tts  z:speech  Z:last  api-key  multimodal \
-interactive  no-interactive  effort  effort:budget  effort:think \
+interactive  no-interactive  effort  effort:budget  effort:think  b:responses \
 vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
-a:presence  a:pre  A:frequency-penalty  A:frequency  A:freq  b:best-of \
-b:best  B:logprobs  c:chat  C:resume  C:resume  C:continue  d:text  e:edit \
+a:presence  a:pre  A:frequency-penalty  A:frequency  A:freq  best-of \
+best-of:best  logprobs  c:chat  C:resume  C:resume  C:continue  d:text  e:edit \
 E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist  i:image 'k:no-colo*' \
 K:top-k  K:topk  l:list-models  L:log  m:model  m:mod  n:results  o:clipboard \
 o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
@@ -5827,7 +5913,7 @@ no-time  format  voice  awesome-zh  awesome
 
 		case "$OPTARG" in
 			$name|$name=)
-				if [[ ${optstring}effort:budget:think:format:voice: = *"$opt":* ]]
+				if [[ ${optstring}effort:budget:think:format:voice:best-of:logprobs: = *"$opt":* ]]
 				then 	OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
 				fi;;
@@ -5865,8 +5951,11 @@ no-time  format  voice  awesome-zh  awesome
 			else 	OPENAI_API_KEY=${@: OPTIND:1}; ((++OPTIND));
 			fi;;
 		A) 	OPTAA="$OPTARG";;
-		b) 	OPTB="$OPTARG";;
-		B) 	OPTBB="$OPTARG";;
+		best-of) OPTB=$(( ${OPTARG:-1} ));;
+		logprobs) OPTBB=$(( ${OPTARG:-0} ));;
+		b)  #responses api
+			((RESPONSES_API)) && OPTC=2;
+			EPN=6 RESPONSES_API=1;;
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		d) 	((OPTCMPL)) && OPTCMPL=1 || OPTCMPL=-1;;  #-1: single-turn, 1: multi-turn
@@ -5874,7 +5963,7 @@ no-time  format  voice  awesome-zh  awesome
 			REASON_EFFORT=${OPTARG:?--effort/--think -- level/integer};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME REASON_EFFORT REASON_INTERACTIVE;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL CHAT_ENV OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME REASON_EFFORT REASON_INTERACTIVE RESPONSES_API;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -5913,7 +6002,7 @@ no-time  format  voice  awesome-zh  awesome
 			if [[ $OPTARG != @(markdown|md) ]]
 			then 	MD_CMD=$OPTARG;
 			elif var=${@: OPTIND:1}
-				case "$var" in 
+				case "$var" in
 					[.,!-]*|'') 	! :;;
 					*) 	command -v "${var%% *}" &>/dev/null;;
 				esac
@@ -5972,7 +6061,7 @@ no-time  format  voice  awesome-zh  awesome
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX HERR BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
@@ -6109,14 +6198,16 @@ then 	#command -v base64 >/dev/null 2>&1 || OPTI_FMT=url;
 fi
 
 #google integration
-if case "${GOOGLE_BASE_URL:-$OPENAI_BASE_URL}" in *googleapis.com*) :;; *) ((GOOGLEAI));; esac
+if ((GOOGLEAI)) ||
+	[[ "${GOOGLE_BASE_URL:-$OPENAI_BASE_URL}" = *googleapis.com* ]]
 then 	set_googleaif;
 	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else 	unset GOOGLEAI;
 fi
 
 #groq integration
-if case "${GROQ_BASE_URL:-$OPENAI_BASE_URL}" in *api.groq.com*) :;; *) ((GROQAI));; esac
+if ((GROQAI)) ||
+	[[ "${GROQ_BASE_URL:-$OPENAI_BASE_URL}" = *api.groq.com* ]]
 then
 	BASE_URL=${GROQ_BASE_URL:-${OPENAI_BASE_URL:-$GROQ_BASE_URL_DEF}};
 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
@@ -6127,7 +6218,8 @@ else 	unset GROQAI;
 fi  #https://console.groq.com/docs/api-reference
 
 #grok integration
-if case "${XAI_BASE_URL:-$OPENAI_BASE_URL}" in *api.x.ai*) :;; *) ((XAI));; esac
+if ((XAI)) ||
+	[[ "${XAI_BASE_URL:-$OPENAI_BASE_URL}" = *api.x.ai* ]]
 then
 	BASE_URL=${XAI_BASE_URL:-${OPENAI_BASE_URL:-$XAI_BASE_URL_DEF}};
 	OPENAI_API_KEY=${XAI_API_KEY:?Required};
@@ -6136,21 +6228,24 @@ else 	unset XAI;
 fi  #https://docs.x.ai/api
 
 #anthropic integration
-if case "${ANTHROPIC_BASE_URL:-$OPENAI_BASE_URL}" in *api.anthropic.com*) :;; *) ((ANTHROPICAI));; esac
+if ((ANTHROPICAI)) ||
+	[[ "${ANTHROPIC_BASE_URL:-$OPENAI_BASE_URL}" = *api.anthropic.com* ]]
 then 	set_anthropicf;
 	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else 	unset ANTHROPICAI;
 fi
 
 #ollama integration
-if case "${OPENAI_BASE_URL}" in *localhost:11434*) :;; *) ((OLLAMA));; esac
+if ((OLLAMA)) ||
+	[[ "${OPENAI_BASE_URL}" = *localhost:11434* ]]
 then 	set_ollamaf;
 	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else  	unset OLLAMA OLLAMA_BASE_URL;
 fi
 
 #custom host / localai
-if case "${OPENAI_URL_PATH}${OPENAI_BASE_URL}" in *[!$IFS]*) :;; *) ((LOCALAI));; esac
+if ((LOCALAI)) ||
+	[[ "${OPENAI_URL_PATH}${OPENAI_BASE_URL}" = *[!$IFS]* ]]
 then
 	[[ ${OPENAI_URL_PATH} = *[!$IFS]* ]] && OPENAI_BASE_URL=$OPENAI_URL_PATH ENDPOINTS=();  #endpoint auto select
 	[[ ${OPENAI_BASE_URL} = *[!$IFS]* ]] || OPENAI_BASE_URL=;
@@ -6160,7 +6255,8 @@ else 	unset OPENAI_URL_PATH;
 fi
 
 #mistral ai api
-if case "${MISTRAL_BASE_URL:-$OPENAI_BASE_URL}" in *api.mistral.ai*) :;; *) ((MISTRALAI));; esac
+if ((MISTRALAI)) ||
+	[[ "${MISTRAL_BASE_URL:-$OPENAI_BASE_URL}" = *api.mistral.ai* ]]
 then
 	OPENAI_API_KEY=${MISTRAL_API_KEY:?Required};
 	BASE_URL=${MISTRAL_BASE_URL:-${OPENAI_BASE_URL:-$MISTRAL_BASE_URL_DEF}};
@@ -6174,7 +6270,8 @@ then
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTB NOVITAAI XAI DEEPSEEK;
 elif unset MISTRAL_API_KEY MISTRAL_BASE_URL MISTRALAI;
 #github azure api
-	case "${GITHUB_BASE_URL:-$OPENAI_BASE_URL}" in *ai.azure.com*) :;; *) ((GITHUBAI));; esac
+	((GITHUBAI)) ||
+	[[ "${GITHUB_BASE_URL:-$OPENAI_BASE_URL}" = *ai.azure.com* ]]
 then
 	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}
 	BASE_URL=${GITHUB_BASE_URL:-${OPENAI_BASE_URL:-$GITHUB_BASE_URL_DEF}};
@@ -6210,7 +6307,8 @@ then
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI DEEPSEEK;
 elif unset GITHUB_TOKEN GITHUB_BASE_URL GITHUBAI;
 #deepseek
-	case "${DEEPSEEK_BASE_URL:-$OPENAI_BASE_URL}" in *deepseek.com*) :;; *) ((DEEPSEEK));; esac
+	((DEEPSEEK)) ||
+	[[ "${DEEPSEEK_BASE_URL:-$OPENAI_BASE_URL}" = *deepseek.com* ]]
 then
 	OPENAI_API_KEY=${DEEPSEEK_API_KEY:?Required};
 	BASE_URL=${DEEPSEEK_BASE_URL:-$DEEPSEEK_BASE_URL_DEF};
@@ -6226,7 +6324,8 @@ then
 
 elif unset DEEPSEEK_API_KEY DEEPSEEK_BASE_URL DEEPSEEK;
 #novita ai
-	case "${NOVITA_BASE_URL:-$OPENAI_BASE_URL}" in *api.novita.ai*) :;; *) ((NOVITAAI));; esac
+	((NOVITAAI)) ||
+	[[ "${NOVITA_BASE_URL:-$OPENAI_BASE_URL}" = *api.novita.ai* ]]
 then
 	OPENAI_API_KEY=${NOVITA_API_KEY:?Required};
 	BASE_URL=${NOVITA_BASE_URL:-${OPENAI_BASE_URL:-$NOVITA_BASE_URL_DEF}};
@@ -6303,7 +6402,7 @@ fi; REPLY= RET=;
 
 #tips and warnings
 if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL && OPTW+OPTZ) )) &&
-	case "$MOD" in *moderation*) 	! :;; *) 	:;; esac
+	[[ "$MOD" != *moderation* ]]
 then 	if ((!OPTHH)) && ((!OPTV))
 	then 	sysmsgf "Response / Capacity:" "$OPTMAX${OPTMAX_NILL:+-inf} / $MODMAX tkns"
 	elif ((OPTHH>1))
@@ -6536,10 +6635,11 @@ else
 	((OPTC+OPTCMPL+OPTSUFFIX)) && ((!OPTEXIT)) && test_dialogf;
 
 	#custom / awesome prompts
-	case "$1" in
-		[.,][[:alnum:]]*|[.,][.,][[:alnum:]]*) 	((${#INSTRUCTION})) || INSTRUCTION=$1 && shift;;
+	case "${1:0:32}${2:0:32}" in
+		[.,][[:alnum:]]*|[.,][.,][[:alnum:]]*)
+		((${#INSTRUCTION})) || INSTRUCTION="$1" && shift;;
 	esac;
-	case "$INSTRUCTION" in
+	case "${INSTRUCTION:0:32}" in
 		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
 			awesomef || case $? in 	210|202|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
 			_sysmsgf $'\nHist   File:' "${FILECHAT}"
@@ -6574,7 +6674,9 @@ else
 	#text/chat completions
 	if ((OPTC))
 	then 	((OPTV)) ||
-		  if ((OPTSUFFIX))
+		  if ((RESPONSES_API))
+		  then 	sysmsgf 'Responses API'"$var";
+		  elif ((OPTSUFFIX))
 		  then 	sysmsgf 'Text Completions Insert (FIM)'"$var";
 		  elif ((OPTC==1 || EPN==0))
 		  then 	sysmsgf 'Text Chat Completions'"$var";
@@ -6600,7 +6702,9 @@ else
 		  STOPS+=("${RESTART-$Q_TYPE}" "${START-$A_TYPE}")
 	else
 		((OPTV)) ||
-		  if ((OPTSUFFIX))
+		  if ((RESPONSES_API))
+		  then 	sysmsgf 'Responses API'"$var";
+		  elif ((OPTSUFFIX))
 		  then 	sysmsgf 'Text Completions Insert (FIM)'"$var";
 		  elif ((STURN))
 		  then 	sysmsgf 'Chat Completions'"$var";  #demo - special case
@@ -6652,10 +6756,11 @@ else
 		((MULTIMODAL>1)) && [[ $INSTRUCTION_CHAT = "$INSTRUCTION_CHAT_EN" ]] &&
 		  INSTRUCTION_CHAT="${INSTRUCTION_CHAT} Your voice and personality should be warm and engaging, with a lively and playful tone. If interacting in a non-English language, start by using the standard accent or dialect familiar to the user. Talk quickly.";
 
-		case "$INSTRUCTION" in *[!$IFS]*)
+		if [[ "${INSTRUCTION:0:1024}" = *[!$IFS]* ]]
+		then
 			trim_lf "$INSTRUCTION" "$SPC:$SPC"
 			INSTRUCTION="$TRIM"
-		esac
+		fi
 		if ((OPTC))
 		then 	if ((INST_TIME))
 			then 	INSTRUCTION="${INSTRUCTION-$INSTRUCTION_CHAT}";  #IPC#
@@ -6754,14 +6859,15 @@ else
 
 		#prompter pass-through
 		if ((PSKIP))
-		then 	[[ -z $* ]] && [[ -n ${REPLY:-$REPLY_OLD} ]] && set -- "${REPLY:-$REPLY_OLD}";
+		then 	[[ -z $* ]] && ((${#REPLY}+${#REPLY_OLD})) &&
+				set -- "${REPLY:-$REPLY_OLD}";
 		elif ((OPTX))
 		#text editor prompter
 		then 	((EDIT)) || REPLY=""  #!#
 			edf "${REPLY:-$@}"
 			case $? in
 				179|180) :;;        #jumps
-				200) 	set --; REPLY=;
+				200) 	set --; REPLY= RINSERT=;
 					REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 					continue;;  #redo
 				201) 	set --; OPTX= SKIP_SH_HIST=; false;;   #abort
@@ -6778,7 +6884,7 @@ else
 						case $? in
 							202) 	exit 202;;  #exit
 							201) 	set --; OPTX= SKIP_SH_HIST=; break 1;;  #abort
-							200) 	set --; REPLY=;
+							200) 	set --; REPLY= RINSERT=;
 								REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 								continue 2;;  #redo
 							19[26789]) edf "${REPLY:-$*}" || break 1;;  #edit
@@ -6797,10 +6903,12 @@ else
 		((JUMP)) ||
 		#defaults prompter
 		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ -z "$*" ]]
-		then 	((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
-			B=${Q:0:128} B=${B##*$'\n'} B=${B##*\\n} B=${B//?/\\b}  #backspaces
+		then
+			while ((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
+				((${#RINSERT})) && Q=">>"
+				B=${Q:0:128} B=${B##*$'\n'} B=${B##*\\n} B=${B//?/\\b}  #backspaces
 
-			while ((SKIP)) ||
+				((SKIP)) ||
 				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE: }${NC}" >&2
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
 			do
@@ -6920,19 +7028,19 @@ else
 					set -- "$TRIM";
 					cmd_runf /${var:-pick} "$*";
 					set --; continue 2;
-				elif ((${#REPLY}))
+				elif ((${#REPLY})) || ((${#RINSERT}))
 				then 	PSKIP=;
-					((!BAD_RES)) && {
-					((OPTV)) || [[ $REPLY = :* ]] \
-					|| [[ $REPLY != *[!$IFS]* ]] \
-					|| { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY: ind}" >/dev/null ;};
+					((!BAD_RES)) && ((!${#RINSERT})) && {
+					  ((OPTV)) || [[ ${REPLY:0:32} = :* ]] \
+					  || [[ $REPLY != *[!$IFS]* ]] \
+					  || { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY: ind}" >/dev/null ;};
 					} || new_prompt_confirmf ed whisper
 					case $? in
 						202) 	exit 202;;  #exit
 						201)  #abort
 							echo '[bye]' >&2; break 2;;
 						200)  #redo
-							REPLY=$REPLY_CMD;
+							REPLY=$REPLY_CMD RINSERT=;
 							REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 							echo '[redo]' >&2; set --; continue;;
 						199)  #edit
@@ -6981,12 +7089,17 @@ else
 		fi; RET=;
 		((TRAP_EDIT)) && continue;
 
-		if ((!(JUMP+OPTCMPL) )) && [[ $1 != *[!$IFS]* ]]
-		then 	_warmsgf "(empty)"
-			set -- ; continue
+		if ((!(JUMP+OPTCMPL) )) && [[ "${*}" != *[!$IFS]* ]]
+		then
+			if ((${#RINSERT}))  #prompt-content pass
+			then 	echo "[jump]" >&2
+			else 	_warmsgf "(empty)"
+				set -- ; continue
+			fi
 		fi
 		if ((!OPTCMPL)) && ((OPTC)) && [[ "${*}" = *[!$IFS]* ]]
-		then 	trim_lrf "$*" "$SPC1"
+		then
+			trim_lrf "$*" "$SPC1"
 			set -- "$TRIM"  #!#
 			REPLY="$*"
 		fi
@@ -6996,7 +7109,7 @@ else
 
 		if ((MTURN+OPTRESUME)) && [[ -n "${*}" ]]
 		then
-			[[ -n $REPLY ]] || REPLY="${*}" #set buffer for EDIT
+			((${#REPLY})) || REPLY="${*}"  #set buffer for EDIT
 			((SKIP_SH_HIST)) || shell_histf "${REPLY_CMD:-$*}"; SKIP_SH_HIST=;
 			history -a;
 
@@ -7022,15 +7135,15 @@ else
 				;;
 					*)
 					RINSERT=${RINSERT}${var}${NL};
-					_sysmsgf 'User Prompt append';
+					_sysmsgf 'User Prompt inserted';
 				;;
 				esac;
 				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD_BLOCK= REPLY_CMD_DUMP= var= v=;
 				set --; continue;
 			;;
 			esac;
-			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY} RINSERT= ;}
-			REC_OUT="${*}"
+			((${#RINSERT})) && { 	set -- "${RINSERT}${*}"; REPLY=${RINSERT}${REPLY} RINSERT= ;}  #J#
+			REC_OUT="${*}"  #J#
 		fi
 
 		#insert mode
@@ -7125,11 +7238,12 @@ else
 			((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
 		fi
 
-		if ((JUMP))
+		if ((JUMP)) || ((${#RINSERT}))
 		then 	((OPTCMPL || !EPN)) || rest=;
 			((${#RINSERT})) && var=1 || var=0;
 			set -- "${RINSERT:0:${#RINSERT}-var}${*:-$REPLY}";
-			REPLY="${RINSERT:0:${#RINSERT}-var}$REPLY" RINSERT= var=;
+			REPLY="${RINSERT:0:${#RINSERT}-var}$REPLY";  #J#
+			REC_OUT="${*}" RINSERT= var=;  #J#
 		fi
 
 		var="$(escapef "${INSTRUCTION}")${INSTRUCTION:+\\n\\n}";
@@ -7172,7 +7286,10 @@ else
 			_sysmsgf "$var #${media_i}" "${media:0: COLUMNS-6-${#media_i}}$([[ -n ${media: COLUMNS-6-${#media_i}} ]] && printf '\b\b\b%s' ...)";
 		done; media= media_i=;
 
-		if ((EPN==6))
+		if ((RESPONSES_API))  #responses api
+		then
+			BLOCK="\"input\": [ ${*} ],";
+		elif ((EPN==6))
 		then 	set -- "$(sed -e '/^[[:space:]]*$/d' <<<"$*" | sed -e '$s/,[[:space:]]*$//')";
 			if ((GOOGLEAI))
 			then 	BLOCK="\"contents\": [ ${*} ],${BLOCK_CMD}${BLOCK_CMD:+,}";
@@ -7185,15 +7302,32 @@ else
 			fi
 		fi
 
-		if ((GOOGLEAI))
+		if ((RESPONSES_API))  #responses api, limited support
+		then
+			BLOCK="{
+$(
+  ((OPTMAX_NILL)) || echo "\"max_output_tokens\": $OPTMAX,"
+
+  case "$MOD" in o[1-9]*|gpt-[4-9]o*|chatgpt*-[4-9]o*|chatgpt*-[4-9].[0-9]o*)
+        ((${REASON_EFFORT:+1}0)) && echo "\"reasoning\": { \"effort\": \"${REASON_EFFORT:-medium}\" },";;
+  esac
+
+  #echo "\"instructions\": \"$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")\","
+  #https://platform.openai.com/docs/guides/text#message-roles-and-instruction-following
+)
+$BLOCK
+$STREAM_OPT $OPTT_OPT $OPTP_OPT
+\"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
+}"
+
+		elif ((GOOGLEAI))
 		then
     			var="  $( ((OPTMAX_NILL)) || echo "\"maxOutputTokens\": ${OPTMAX}," )
   ${OPTSTOP/stop/stopSequences} ${OPTP_OPT/_p/P}
   ${OPTKK_OPT/_k/K} ${OPTT_OPT}
   ${BLOCK_USR}"
-    			case "$var" in *[!$IFS]*)
-				var="\"generationConfig\": {${NL}${var%%,*([$'\n '])}${NL}  },";;
-			esac
+    			[[ "$var" = *[!$IFS]* ]] &&
+			var="\"generationConfig\": {${NL}${var%%,*([$'\n '])}${NL}  },";
 			BLOCK="{
 $(
   case "$MOD" in *gemini-1.0*) 	((MAIN_LOOP)) || _warmsgf 'gemini-1.0:' 'system instruction unsupported'; exit;; esac;  #gemini-1.0 series deprecation: 15/feb/2025
@@ -7234,19 +7368,19 @@ $BLOCK
 		else
 			BLOCK="{
 $(
-  max=""
-  if ((ANTHROPICAI)) && ((EPN!=6))
-  then 	max="max_tokens_to_sample"
-  elif ((ANTHROPICAI+MISTRALAI+NOVITAAI)) ||
-  	case "$MOD" in *[Mm]i[xs]tral*|*[Mm]inistral*|*[Pp]ixtral*|*[Cc]odestral*|*[Dd]evstral*|*[Cc]laude*) 	:;;
-		*) 	! :;;
-	esac
-  then 	max="max_tokens"
-  fi
-  ((OPTMAX_NILL && EPN==6 && !ANTHROPICAI)) || echo "\"${max:-max_completion_tokens}\": $OPTMAX,"
+  ((ANTHROPICAI)) && ((EPN!=6)) && max="max_tokens_to_sample" || max="max_tokens"
+  ((DEEPSEEK||xRESPONSES_APIx)) && max="max_completion_tokens"
+  case "${MOD##*/}" in o[1-9]*)
+          max="max_completion_tokens";;
+  esac
+  ((OPTMAX_NILL && EPN==6 && !ANTHROPICAI)) || echo "\"${max:-max_tokens}\": $OPTMAX,"
+  #compat issues: anthropicai, mistralai, novitaai, github with mistral models
+  #compat fine: localai, deepseek, groq, grok
+  #unaffected: ollama, googleai
 
   case "$MOD" in
   	o[1-9]*-preview*)  REASON_EFFORT=;;
+        #*)  ((ANTHROPICAI)) || REASON_EFFORT=;;
   esac
   if ((ANTHROPICAI)) && ((${REASON_EFFORT:+1}0))
   then 	case "$MOD" in claude-3-[5-9]-sonnet*|claude*-[4-9]*)
@@ -7283,7 +7417,6 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 
 		#request and response prompts
 		SECONDS_REQ=${EPOCHREALTIME:-$SECONDS} SECONDS_REQ=${SECONDS_REQ/,/.}
-		((${#START})) && printf "${YELLOW}%b\\n" "$START" >&2;
 		((OLLAMA)) && base_url=$BASE_URL BASE_URL=$OLLAMA_BASE_URL;
 
 		#move cursor to the end of user input in previous line
@@ -7304,7 +7437,9 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			  fi; var=0;
 			else  var=$OPTFOLD;
 			fi;
-		else 	var=$OPTFOLD;
+		else
+			((${#START})) && printf "${YELLOW}%b\\n" "$START" >&2;
+			var=$OPTFOLD;
 		fi
 		((TRAP_EDIT)) && continue;
 		trap "exit" INT; TRAP_EDIT=;
@@ -7383,25 +7518,10 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				_warmsgf "(response empty)";
 				((${#REPLY}<1640)) || read_charf -t 3 >/dev/null 2>&1;
 
-				((!(ANTHROPICAI+GROQAI+GOOGLEAI+LOCALAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK) )) &&
-				if ((!OPTTIK)) && ((MTURN+OPTRESUME)) && ((HERR<=${HERR_DEF:=1}*5)) \
-					&& var=$(jq -e '(.error.message?)//(.[]?|.error?)//empty' "$file" 2>/dev/null) \
-					&& [[ $var = *[Cc]ontext\ length*[Rr]educe* ]] \
-					&& [[ $ESC != "$ESC_OLD" ]]
-				then 	#[0]modmax [1]resquested [2]prompt [3]cmpl
-					arr=(${var//[!0-9$IFS]})
-					if ((${#arr[@]}<2 || arr[1]<=(arr[0]*3)/2))
-					then    ESC_OLD=$ESC; ((OPTW)) && RESUBW=1;
-					  ((HERR+=HERR_DEF*2)) ;BAD_RES=1 PSKIP=1; set --
-					  _warmsgf "Adjusting Context:" -$((HERR_DEF+HERR))%
-					  ((HERR<HERR_DEF*4)) && _sysmsgf '' "* Set \`option -y' to use Tiktoken! * "
-					  sleep $(( (HERR/HERR_DEF)+1)) ;continue
-					fi
-				fi  #adjust context err (OpenAI only)
 				unset file;
 			fi;
 
-			BAD_RES= PSKIP= ESC_OLD=;
+			BAD_RES= PSKIP=;
 			((${#tkn[@]}>1 || STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
 			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]

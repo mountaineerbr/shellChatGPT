@@ -63,8 +63,9 @@ _chatgptsh()
         --modmax
         -a --presence-penalty
         -A --frequency-penalty
-        -b --best-of
-        -B --logprobs
+        -b --responses
+	--best-of
+        --logprobs
 	-j --seed
         -K --top-k
         --keep-alive --ka

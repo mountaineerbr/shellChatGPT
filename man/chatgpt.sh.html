@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.100.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.101 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.100.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.101 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">June 2025</p>
 </header>
@@ -329,6 +329,12 @@ first user input.</p>
 </dl>
 <h2 id="interface-modes">Interface Modes</h2>
 <dl>
+<dt><strong>-b</strong>, <strong>--responses</strong></dt>
+<dd>
+<p>Responses API calls (may be used with <code>options -cc</code>).
+Limited support. Set a valid model with “<strong>--model</strong>
+[<em>name</em>]”.</p>
+</dd>
 <dt><strong>-c</strong>, <strong>--chat</strong></dt>
 <dd>
 <p>Chat mode in text completions (used with
@@ -492,14 +498,14 @@ Fallback=<em>8000</em>.</p>
 <dd>
 <p>Frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
 </dd>
-<dt><strong>-b</strong>, <strong>--best-of</strong> [<em>NUM</em>]</dt>
+<dt><strong>--best-of</strong> [<em>NUM</em>]</dt>
 <dd>
-<p>Best of, must be greater than <code>option -n</code> (cmpls).
+<p>Best of results, must be greater than <code>option -n</code> (cmpls).
 Def=<em>1</em>.</p>
 </dd>
-<dt><strong>-B</strong>, <strong>--logprobs</strong> [<em>NUM</em>]</dt>
+<dt><strong>--logprobs</strong> [<em>NUM</em>]</dt>
 <dd>
-<p>Request log probabilities, also see -Z (cmpls, 0 - 5),</p>
+<p>Request log probabilities (cmpls, 0 - 5). Also see option -Z.</p>
 </dd>
 </dl>
 <p><strong>--effort</strong>
@@ -550,10 +556,6 @@ Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
 <dt><strong>-p</strong>, <strong>--top-p</strong> [<em>VAL</em>]</dt>
 <dd>
 <p>Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
-</dd>
-<dt><strong>--responses</strong>, <strong>--resp</strong></dt>
-<dd>
-<p>Responses API calls. Minimum support. See –model.</p>
 </dd>
 <dt><strong>-r</strong>, <strong>--restart</strong> [<em>SEQ</em>]</dt>
 <dd>
@@ -703,6 +705,16 @@ single-turn and <code>option -qq</code> for multiturn. The flag
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.</p>
 <p>Insert mode works with `instruct’ and Mistral `code’ models.</p>
+<h1 id="responses-api">RESPONSES API</h1>
+<p>Responses API is a superset of Chat Completions API. Set command line
+<code>option -b</code> (with <code>-cc</code>), or set
+<code>options -bb</code> for multiturn.</p>
+<p>To activate it during multiturn chat, set
+<code>/responses [model]</code>, where <em>model</em> is the name of a
+model which works with the Responses API. Aliased to
+<code>/resp [model]</code> and <code>-b [model]</code>. This can be
+toggled.</p>
+<p>Limited support.</p>
 <h1 id="instruction-prompts">INSTRUCTION PROMPTS</h1>
 <p>The SYSTEM INSTRUCTION prompt may be set with <code>option -S</code>
 or via envars <code>$INSTRUCTION</code> and
@@ -1260,95 +1272,95 @@ flush.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-b</code></td>
-<td style="text-align: left;"><code>!best</code> [<em>NUM</em>]</td>
-<td>Best-of n results.</td>
+<td style="text-align: left;"><code>!responses</code>
+[<em>MOD</em>]</td>
+<td>Responses API request (experimental).</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>best</code></td>
+<td style="text-align: left;"><code>!best-of</code> [<em>NUM</em>]</td>
+<td>Best-of n results.</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>-j</code></td>
 <td style="text-align: left;"><code>!seed</code> [<em>NUM</em>]</td>
 <td>Seed number (integer).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-K</code></td>
 <td style="text-align: left;"><code>!topk</code> [<em>NUM</em>]</td>
 <td>Top_k.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-m</code></td>
 <td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
 <td>Model by name, empty to pick from list.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-n</code></td>
 <td style="text-align: left;"><code>!results</code> [<em>NUM</em>]</td>
 <td>Number of results.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-p</code></td>
 <td style="text-align: left;"><code>!topp</code> [<em>VAL</em>]</td>
 <td>Top_p.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-r</code></td>
 <td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]</td>
 <td>Restart sequence.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-R</code></td>
 <td style="text-align: left;"><code>!start</code> [<em>SEQ</em>]</td>
 <td>Start sequence.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-s</code></td>
 <td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>]</td>
 <td>One stop sequence.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-t</code></td>
 <td style="text-align: left;"><code>!temp</code> [<em>VAL</em>]</td>
 <td>Temperature.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-w</code></td>
 <td style="text-align: left;"><code>!rec</code> [<em>ARGS</em>]</td>
 <td>Toggle voice-in STT. Optionally, set arguments.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-z</code></td>
 <td style="text-align: left;"><code>!tts</code> [<em>ARGS</em>]</td>
 <td>Toggle TTS chat mode (speech out).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!blk</code></td>
 <td style="text-align: left;"><code>!block</code> [<em>ARGS</em>]</td>
 <td>Set and add custom options to JSON request.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!effort</code></td>
 <td style="text-align: left;">- [<em>MODE</em>]</td>
 <td>Reasoning effort: high, medium, or low (OpenAI).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!think</code></td>
 <td style="text-align: left;">- [<em>NUM</em>]</td>
 <td>Thinking budget: max tokens (Anthropic).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">!interactive`</td>
 <td style="text-align: left;">-</td>
 <td>Toggle reasoning interactive mode.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!ka</code></td>
 <td style="text-align: left;"><code>!keep-alive</code>
 [<em>NUM</em>]</td>
 <td>Set duration of model load in memory (Ollama).</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!resp</code></td>
-<td style="text-align: left;"><code>!responses</code>
-[<em>MOD</em>]</td>
-<td>One-shot Responses API request (experimental).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!vision</code></td>
@@ -1961,8 +1973,8 @@ options will be covered.</p>
 <p>This project <em>doesn’t support</em> “Function Calling”, “Structured
 Outputs”, “Real-Time Conversations”, “Agents/Operators”, nor “video
 generation / editing” capabilities.</p>
-<p>We may support “Responses API” minimally and experimentally for the
-time being.</p>
+<p>Support for “Responses API” is limited and experimental at this
+point.</p>
 <h1 id="bugs">BUGS</h1>
 <p>Reasoning (thinking) and answers from certain API services may not
 have a distinct separation of output due to JSON processing

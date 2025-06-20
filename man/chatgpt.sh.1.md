@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.100.1 | General Commands Manual
+% CHATGPT.SH(1) v0.101 | General Commands Manual
 % mountaineerbr
 % June 2025
 
@@ -163,6 +163,12 @@ before the text prompt itself.
 
 
 ## Interface Modes
+
+**-b**, **\--responses**
+
+: Responses API calls (may be used with `options -cc`). Limited support.
+  Set a valid model with "**\--model** \[_name_]".
+
 
 **-c**, **\--chat**
 
@@ -335,14 +341,14 @@ before the text prompt itself.
 : Frequency penalty (cmpls/chat, -2.0 - 2.0).
 
 
-**-b**, **\--best-of**   \[_NUM_]
+**\--best-of**   \[_NUM_]
 
-: Best of, must be greater than `option -n` (cmpls). Def=_1_.
+: Best of results, must be greater than `option -n` (cmpls). Def=_1_.
 
 
-**-B**, **\--logprobs**   \[_NUM_]
+**\--logprobs**   \[_NUM_]
 
-: Request log probabilities, also see -Z (cmpls, 0 - 5),
+: Request log probabilities (cmpls, 0 - 5). Also see option -Z.
 
 
 **\--effort**  \[_high_|_medium_|_low_]  (OpenAI)
@@ -397,11 +403,6 @@ before the text prompt itself.
 **-p**, **\--top-p**   \[_VAL_]
 
 : Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
-
-
-**\--responses**, **\--resp**
-
-: Responses API calls. Minimum support. See --model.
 
 
 **-r**, **\--restart**   \[_SEQ_]
@@ -569,6 +570,18 @@ Insert mode works completing between the end of the text preceding the flag,
 and ends completion with the succeeding text after the flag.
 
 Insert mode works with \`instruct' and Mistral \`code' models.
+
+
+# RESPONSES API
+
+Responses API is a superset of Chat Completions API. Set command
+line `option -b` (with `-cc`), or set `options -bb` for multiturn.
+
+To activate it during multiturn chat, set `/responses [model]`,
+where _model_ is the name of a model which works with the Responses API.
+Aliased to `/resp [model]` and `-b [model]`. This can be toggled.
+
+Limited support.
 
 
 # INSTRUCTION PROMPTS
@@ -967,7 +980,8 @@ Command operators "`!`" or "`/`" are equivalent.
    `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
       `-a`         `!pre`        \[_VAL_]      Presence penalty.
       `-A`         `!freq`       \[_VAL_]      Frequency penalty.
-      `-b`         `!best`       \[_NUM_]      Best-of n results.
+      `-b`         `!responses`  \[_MOD_]      Responses API request (experimental). 
+    `best`         `!best-of`    \[_NUM_]      Best-of n results.
       `-j`         `!seed`       \[_NUM_]      Seed number (integer).
       `-K`         `!topk`       \[_NUM_]      Top_k.
       `-m`         `!mod`        \[_MOD_]      Model by name, empty to pick from list.
@@ -984,7 +998,6 @@ Command operators "`!`" or "`/`" are equivalent.
   `!think`          \-           \[_NUM_]      Thinking budget: max tokens (Anthropic).
 `!interactive`      \-                         Toggle reasoning interactive mode.
      `!ka`         `!keep-alive` \[_NUM_]      Set duration of model load in memory (Ollama).
-    `!resp`        `!responses`  \[_MOD_]      One-shot Responses API request (experimental). 
   `!vision`        `!audio`, `!multimodal`     Toggle multimodality type.
  --------------    ------------------------    ------------------------------------------------
 
@@ -1611,7 +1624,7 @@ This project _doesn't support_ "Function Calling", "Structured Outputs",
 "Real-Time Conversations", "Agents/Operators", nor "video generation / editing"
 capabilities.
 
-We may support "Responses API" minimally and experimentally for the time being.
+Support for "Responses API" is limited and experimental at this point.
 
 
 # BUGS

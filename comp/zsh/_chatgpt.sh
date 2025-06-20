@@ -107,8 +107,9 @@ _chatgpt.sh()
     {-N,--modmax}'[Model capacity tokens]:model capacity -- [integer]' \
     {-a,--presence-penalty}'[Presence penalty]:presence-penalty -- [float]' \
     {-A,--frequency-penalty}'[Frequency penalty]:frequency-penalty -- [float]' \
-    {-b,--best-of}'[Best-of]:best-of -- [integer]' \
-    {-B,--logprobs}'[Log probabilities]:log-probs -- [integer]' \
+    {-b,--responses}'[Use Responses API]' \
+    --best-of'[Best-of]:best-of -- [integer]' \
+    --logprobs'[Log probabilities]:log-probs -- [integer]' \
     {-j,--seed}'[Seed number]:seed -- [integer]' \
     {-K,--top-k}'[Top_k value]:top_k -- [integer]' \
     {--ka,--keep-alive}'[Keep-alive seconds]:keep-alive -- [integer]' \
