@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.101.1  jun/2025  by mountaineerbr  GPL+3
+# v0.101.2  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -67,7 +67,7 @@ OPTTW=0
 # Top_p probability mass (nucleus sampling)
 #OPTP=1
 # Maximum response tokens (unset with 0)
-OPTMAX=4096
+OPTMAX=4096  #IPC #K#
 # Model capacity (auto)
 #MODMAX=
 # Presence penalty
@@ -1972,8 +1972,9 @@ function set_maxtknf
 			OPTMAX="${1##${1%[!0-9]*}}" MODMAX="${1%%"$OPTMAX"}"
 			OPTMAX="${OPTMAX##*[!0-9]}" MODMAX="${MODMAX##*[!0-9]}"
 			unset OPTMAX_NILL ;;
-		*[0-9]*)
-			OPTMAX="${1//[!0-9]}"; unset OPTMAX_NILL ;;
+		*[0-9]*|'')
+			OPTMAX="${1//[!0-9]}" OPTMAX="${OPTMAX:-4096}";  #IPC #K#
+			unset OPTMAX_NILL ;;
 	esac
 	if ((OPTMAX>MODMAX))
 	then 	buff="$MODMAX" MODMAX="$OPTMAX" OPTMAX="$buff"
