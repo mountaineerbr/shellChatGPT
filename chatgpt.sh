@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.102.1  jun/2025  by mountaineerbr  GPL+3
+# v0.102.2  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -7034,8 +7034,7 @@ else
 					*) 	false;; esac;
 				then
 					trim_rf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#|[/!]g|g)";
-					set -- "$TRIM";
-					cmd_runf /${var:-pick} "$*";
+					cmd_runf /${var:-pick} "$TRIM";
 					set --; continue 2;
 				elif ((${#REPLY})) || ((${#RINSERT}))
 				then 	PSKIP=;
