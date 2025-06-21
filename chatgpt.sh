@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.101.4  jun/2025  by mountaineerbr  GPL+3
+# v0.101.5  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2064,7 +2064,7 @@ function cmd_runf
 	typeset append filein fileinq onutdir out var wc xskip pid n
 	typeset -a args arr;
 	((${#HARGS})) || typeset HARGS;
-	case "${1:0:128}${2:0:128}" in [/!-]*|*([$IFS:])[/!-]*) 	:;; *) 	return 1;; esac
+	[[ "${1:0:256}${2:0:128}" = *([$IFS:])[/!-]* ]] || return;
 	((${#1}+${#2}<1024)) || return;
 	printf "${NC}" >&2;
 
@@ -3496,7 +3496,7 @@ function media_pathf
 {
 	typeset var ind m n
 	#process only the last line of input
-	set -- "$(sed -e 's/\\n/\n/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";
+	set -- "$(sed -e 's/\\n/\n/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";  #L#
 
 	while [[ "$1" = *[[:alnum:]]* ]] && ((m<128))
 	do
@@ -3617,10 +3617,10 @@ function is_audiof { 	[[ -f $1 ]] && _is_audiof "$1" ;}
 #test whether file is text, pdf file, or url and print out filepath
 function is_txturl
 {
-	((${#1}>512)) && set -- "${1: ${#1}-512}"
+	((${#1}>1024)) && set -- "${1: ${#1}-1024}"
 
-	trim_lf "$1" $'*\n';
-	INDEX=128 trim_lrf "$TRIM" "$SPC";
+	INDEX=${#1} trim_lf "$1" $'*\n';  #last line only  #L#
+	INDEX=256 trim_lrf "$TRIM" "$SPC";
 	set -- "$TRIM";
 	[[ "$1" = \~\/* ]] && set -- "$HOME/${1:2}";
 
@@ -5507,7 +5507,7 @@ function session_mainf
 {
 	typeset name file optsession arg break regex msg
 	typeset -a args
-	name="${*}"; ((${#name}<512)) || return
+	name="${*}"; ((${#name}<1024)) || return
 	trim_lrf "${name}" "*([$IFS])"
 	name="$TRIM"
 	[[ "${name}" = [/!]* ]] || return
@@ -7175,7 +7175,7 @@ else
 			fi;
 			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE_STR}}"
 		#basic text and pdf file, and text url dumps
-		elif ((!REPLY_CMD_BLOCK)) && var=$(is_txturl "$1")  #C#
+		elif 		((!REPLY_CMD_BLOCK)) && var=$(is_txturl "$1")  #C#
 		then 	RET=;
 			if ((!${#REPLY_CMD_DUMP}))
 			then
