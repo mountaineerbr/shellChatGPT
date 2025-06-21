@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.101.5  jun/2025  by mountaineerbr  GPL+3
+# v0.102  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3619,14 +3619,17 @@ function is_txturl
 {
 	((${#1}>1024)) && set -- "${1: ${#1}-1024}"
 
-	INDEX=${#1} trim_lf "$1" $'*\n';  #last line only  #L#
+	INDEX=${#1} trim_lf "$1" $'*\n';  #last line, last file only  #L#
 	INDEX=256 trim_lrf "$TRIM" "$SPC";
 	set -- "$TRIM";
 	[[ "$1" = \~\/* ]] && set -- "$HOME/${1:2}";
 
 	if [[ -f ${2:-$1} ]]
 	then 	set -- "${2:-$1}";
-	else 	trim_lf "$1" $'*[!\\\\][ \t\n]';
+	else 	if [[ $1 = *[\|]* ]]
+		then 	INDEX=${#1} trim_lf "$1" $'*[|]';
+		else 	INDEX=${#1} trim_lf "$1" $'*[!\\\\][ \t\n]';
+		fi;
 		trim_lrf "$TRIM" "$SPC";
 		set -- "$TRIM";
 		[[ ${1:0:1} = [$IFS] ]] && set -- "${1:1}";
