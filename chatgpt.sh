@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.102  jun/2025  by mountaineerbr  GPL+3
+# v0.102.1  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -7013,16 +7013,17 @@ else
 				then
 					trim_rf "$REPLY" "${SPC}[/!]@(/shell|shell|/sh|sh)";
 					set -- "$TRIM";
-					REPLY_CMD_DUMP=$(
-						REPLY=;
-						cmd_runf /${var:-shell};
-						trim_rf "$REPLY" "[/!]@(/shell|shell|/sh|sh)"
-						printf '%s' "$TRIM"
-					)
+
+					#run cmd, trim output, restore $REPLY
+					buff="$REPLY" REPLY=;
+					cmd_runf /${var:-shell};
+					trim_rf "$REPLY" "[/!]@(/shell|shell|/sh|sh)"
+					REPLY_CMD_DUMP="$TRIM" REPLY="$buff";
+
 					if ((${#REPLY_CMD_DUMP}))
 					then 	REPLY="${*} ${REPLY_CMD_DUMP}";
 					fi
-			    		SKIP=1 EDIT=1 REPLY_CMD=;
+			    		SKIP=1 EDIT=1 REPLY_CMD= buff=;
 					set -- ; continue 2;
 				elif case "${REPLY: ind}" in  #cmd: /photo, /pick, /save, /g
 					*[$IFS][/!]photo|*[$IFS][/!]photo[0-9]) var=photo;;
