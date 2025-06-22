@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.102.3  jun/2025  by mountaineerbr  GPL+3
+# v0.103  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2327,7 +2327,7 @@ function cmd_runf
 					name="y${1##*\?v=}" name="${name%%[!a-zA-Z0-9_-]*}";
 					lang=$(sed -n 's/.*"baseUrl":"https:\/\/www.youtube.com\/api\/timedtext[^"]*lang=\(..\).*/\1/p' "$FILEFIFO");
 
-					yt-dlp --skip-download --write-auto-subs ${lang:+--sub-langs ${lang:-en}} --sub-format vtt -o "subtitle:${name}.%(ext)s" "$*";
+					yt-dlp --skip-download --write-auto-subs ${lang:+--sub-langs ${lang:-en}} --sub-format vtt -o "subtitle:${name}.%(ext)s" "$*" >&2;
 
 					#remove vtt markup, duplicate lines, and adjacent timestamps
 					sed -e 's/<c[^>]*>//g; s/<\/c>//g; s/<[0-9:.]*>//g; s/\.[0-9][0-9][0-9] -->.*//;' -- "${name}"*.vtt |
@@ -2761,7 +2761,7 @@ function cmd_runf
 					[AaDdq]) REPLY= RET=201 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;
 						WSKIP= SKIP= EDIT= append=; break;;  #abort / discard
 					[Rr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
-		  				REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
+						REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 						break;;  #redo
 					[EeYy]|$'\e') 	SKIP=1 EDIT=1 RET=199; break;; #yes, bash `read`
 					[VvXx]|$'\t'|' ') 	SKIP=1 EDIT=1 RET=198; ((OPTX)) || OPTX=2; break;; #yes, text editor
@@ -2859,7 +2859,7 @@ function cmd_runf
 				wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
 				&& sed -i -e "$((wc-1)),${wc} s/^/#/" "$FILECHAT";
 				CKSUM_OLD=;
-			fi
+			fi  #M#
 			;;
 		replay|rep)
 			if ((${#REPLAY_FILES[@]})) || [[ -f $FILEOUT_TTS ]]
@@ -3882,7 +3882,7 @@ function set_optsf
 		    ((!${REASON_EFFORT:+1}0)) || {
 			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
 				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
-		    		OPTMAX_REASON=$OPTMAX OPTMAX=25000;
+				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
 			case "$REASON_EFFORT" in
 				*[a-zA-Z]*) 	_warmsgf 'Warning:' "Thinking budget_tokens must be an integer -- $REASON_EFFORT";;
@@ -6850,16 +6850,15 @@ else
 	while :
 	do 	trap "exit" INT;
 		((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
-		((TRAP_EDIT)) && {
-			EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= OPTAWE= TRAP_EDIT=;
-			set -- ;}
+		((TRAP_EDIT)) && set -- &&
+		  EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= OPTAWE= TRAP_EDIT=;
 		if ((REGEN>0))  #regen + edit prompt
 		then 	if ((REGEN==1))
-       			then 	((OPTX)) && PSKIP=1;
-		       		set -- "${REPLY_OLD:-$@}"
+			then 	((OPTX)) && PSKIP=1;
+				set -- "${REPLY_OLD:-$@}"
 			elif ((REGEN>1)) && ((OPTX))
-       			then 	PSKIP= ;
-		       		set -- "${REPLY_OLD:-$@}"
+			then 	PSKIP= ;
+				set -- "${REPLY_OLD:-$@}"
 			fi;
 			REGEN=-1; ((--MAIN_LOOP));
 		fi; RET=;
@@ -6867,22 +6866,21 @@ else
 
 		#prompter pass-through
 		if ((PSKIP))
-		then 	[[ -z $* ]] && ((${#REPLY}+${#REPLY_OLD})) &&
-				set -- "${REPLY:-$REPLY_OLD}";
+		then 	[[ -z $* ]] && ((${#REPLY})) && set -- "${REPLY}";
 		elif ((OPTX))
 		#text editor prompter
 		then 	((EDIT)) || REPLY=""  #!#
 			edf "${REPLY:-$@}"
 			case $? in
 				179|180) :;;        #jumps
-				200) 	set --; REPLY= RINSERT=;
+				200) 	set --; ((PSKIP)) || REPLY=;
 					REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 					continue;;  #redo
 				201) 	set --; OPTX= SKIP_SH_HIST=; false;;   #abort
 				202) 	exit 202;;  #exit
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
-						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(EMPTY)}" | tail -n $((LINES-2))
+						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(${RINSERT:+NOT_}EMPTY)}" | tail -n $((LINES-2))
 					do
 					((!BAD_RES)) && {
 					((OPTV)) || [[ $REPLY = :* ]] \
@@ -6892,7 +6890,7 @@ else
 						case $? in
 							202) 	exit 202;;  #exit
 							201) 	set --; OPTX= SKIP_SH_HIST=; break 1;;  #abort
-							200) 	set --; REPLY= RINSERT=;
+							200) 	set --; ((PSKIP)) || REPLY=;
 								REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 								continue 2;;  #redo
 							19[26789]) edf "${REPLY:-$*}" || break 1;;  #edit
@@ -6901,7 +6899,7 @@ else
 								set --; break;;  #whisper append (hidden option)
 							0) 	set -- "$REPLY" ; break;
 								trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
-							*) 	set -- ; SKIP_SH_HIST=; break;;  #no
+							*) 	set -- ; SKIP_SH_HIST= RINSERT=; break;;  #no
 						esac
 					done;
 					((OPTX>1)) && OPTX=;
@@ -6976,7 +6974,7 @@ else
 					199) 	EDIT=1; continue 1;;  #text edit
 					*) 	REPLY=; continue 1;;
 					esac; unset RESUBW;
-					printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(EMPTY)"}" | foldf >&2;
+					printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(${RINSERT:+NOT_}EMPTY)"}" | foldf >&2;
 				else
 					_clr_ttystf;
 					((EDIT)) || REPLY=""  #!#
@@ -7023,7 +7021,7 @@ else
 					if ((${#REPLY_CMD_DUMP}))
 					then 	REPLY="${*} ${REPLY_CMD_DUMP}";
 					fi
-			    		SKIP=1 EDIT=1 REPLY_CMD=;
+					SKIP=1 EDIT=1 REPLY_CMD=;
 					set -- ; continue 2;
 				elif case "${REPLY: ind}" in  #cmd: /photo, /pick, /save, /g
 					*[$IFS][/!]photo|*[$IFS][/!]photo[0-9]) var=photo;;
@@ -7048,7 +7046,7 @@ else
 						201)  #abort
 							echo '[bye]' >&2; break 2;;
 						200)  #redo
-							REPLY=$REPLY_CMD RINSERT=;
+							REPLY=$REPLY_CMD;
 							REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
 							echo '[redo]' >&2; set --; continue;;
 						199)  #edit
@@ -7084,7 +7082,7 @@ else
 							set --; continue 2;;
 						0) 	:;
 							trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
-						*) 	REPLY=; set -- ;break;;  #no
+						*) 	REPLY= RINSERT=; set -- ;break;;  #no
 					esac; unset REPLY_CMD;
 				else
 					set --; unset REPLY_CMD;
@@ -7101,7 +7099,17 @@ else
 		then
 			if ((${#RINSERT}))  #prompt-content pass
 			then 	echo "[jump]" >&2
-			else 	_warmsgf "(empty)"
+			else
+				if ((REGEN)) && [[ -s "$FILECHAT" ]] &&
+				[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]*([$' \t'])$'\n'* ]]
+				then 	# un-comment two lines from tail
+					wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
+					&& sed -i -e "$((wc-1)),${wc} s/^#//" "$FILECHAT";
+					CKSUM_OLD= REGEN=;
+					echo "[regenerate abort]" >&2;
+				fi  #M#
+
+				_warmsgf "(empty)"
 				set -- ; continue
 			fi
 		fi
@@ -7238,7 +7246,7 @@ else
 					*"${FILEINW}") 	REC_OUT=${REC_OUT:0:${#REC_OUT}-${#FILEINW}};
 							set -- "${1:0:${#1}-${#FILEINW}}";;
 					*"${var}"*|*"${FILEINW}"*)
-				      		REC_OUT=$(sed -e "s/${var}/ /" -e "s/${FILEINW}/ /" <<<"$REC_OUT" || printf '%s' "$REC_OUT");;
+						REC_OUT=$(sed -e "s/${var}/ /" -e "s/${FILEINW}/ /" <<<"$REC_OUT" || printf '%s' "$REC_OUT");;
 				esac;;
 			esac; unset var;
 			REPLY_OLD="${REPLY_TRANS}${REPLY_TRANS:+${REPLY:+ }}${REPLY}";
@@ -7303,7 +7311,7 @@ else
 
 		for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 		do 	((media_i++));
-		  	var=$(is_audiof "$media" && echo aud || echo img)
+			var=$(is_audiof "$media" && echo aud || echo img)
 			[[ -f $media ]] && media=$(duf "$media");
 			_sysmsgf "$var #${media_i}" "${media:0: COLUMNS-6-${#media_i}}$([[ -n ${media: COLUMNS-6-${#media_i}} ]] && printf '\b\b\b%s' ...)";
 		done; media= media_i=;
