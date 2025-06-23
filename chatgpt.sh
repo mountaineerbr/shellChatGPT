@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.103  jun/2025  by mountaineerbr  GPL+3
+# v0.103.1  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -6899,7 +6899,8 @@ else
 								set --; break;;  #whisper append (hidden option)
 							0) 	set -- "$REPLY" ; break;
 								trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
-							*) 	set -- ; SKIP_SH_HIST= RINSERT=; break;;  #no
+							*) 	((${#RINSERT})) && echo '[buffer clear]' >&2;
+								set -- ; SKIP_SH_HIST= RINSERT=; break;;  #no
 						esac
 					done;
 					((OPTX>1)) && OPTX=;
@@ -7082,7 +7083,8 @@ else
 							set --; continue 2;;
 						0) 	:;
 							trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
-						*) 	REPLY= RINSERT=; set -- ;break;;  #no
+						*) 	((${#RINSERT})) && echo '[buffer clear]' >&2;
+							REPLY= RINSERT=; set -- ;break;;  #no
 					esac; unset REPLY_CMD;
 				else
 					set --; unset REPLY_CMD;
