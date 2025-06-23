@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.103.1  jun/2025  by mountaineerbr  GPL+3
+# v0.103.2  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1709,7 +1709,7 @@ function set_histf
 #print the last line of tsv history file
 function hist_lastlinef
 {
-	sed -n -e 's/\t"/\t/; s/"$//;' -e '$s/^[^\t]*\t[^\t]*\t//p' "$@" \
+	sed -n -e $'s/\t"/\t/; s/"$//;' -e $'$s/^[^\t]*\t[^\t]*\t//p' "$@" \
 	| sed -e "s/^://; s/^${Q_TYPE//\\n}//; s/^${A_TYPE//\\n}//;"
 }
 
@@ -1825,7 +1825,7 @@ function _tiktokenf
 
 	# 1 TOKEN ~= ¾ WORDS
 	var=$(sed 's/\\[ntrvf]/ x /g' <<<"$var")  #escaped special chars
-	var=$(sed 's/[^[:alnum:] \t\n]/ x/g' <<<"$var")
+	var=$(sed 's/[^[:alnum:] '$'\t''\n]/ x/g' <<<"$var")
 	wc=$(wc -w <<<"$var")
 	tkn=$(( (wc * 4) / ${by:-3}))
 
@@ -3496,7 +3496,7 @@ function media_pathf
 {
 	typeset var ind m n
 	#process only the last line of input
-	set -- "$(sed -e 's/\\n/\n/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";  #L#
+	set -- "$(sed -e 's/\\n/\'$'\n''/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";  #L#
 
 	while [[ "$1" = *[[:alnum:]]* ]] && ((m<128))
 	do
@@ -5454,7 +5454,7 @@ do 	_spinf 	#grep session with user regex
 					skip=1 ok= ;
 					continue 2;
 					;;
-				[Pp]) 	_unescapef "\\n\\n$(sed -e $'s/^.*\t//' -e 's/^"//; s/"$/\n/' <<<"${buff:-err}")\\n---\\n" >&2;
+				[Pp]) 	_unescapef "\\n\\n$(sed -e $'s/^.*\t//' -e 's/^"//' -e $'s/"$/\\\n/' <<<"${buff:-err}")\\n---\\n" >&2;
 					skip=1 m=0 buff_end= ;
 					continue 1;
 					;;
