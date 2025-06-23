@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.103.2  jun/2025  by mountaineerbr  GPL+3
+# v0.103.3  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -7037,6 +7037,8 @@ else
 					set --; continue 2;
 				elif ((${#REPLY})) || ((${#RINSERT}))
 				then 	PSKIP=;
+					((${#RINSERT})) && [[ ${REPLY:0:1024} != *[!$IFS]* ]] \
+					  && echo '[prompt buffer]' >&2;
 					((!BAD_RES)) && {
 					  ((OPTV)) || [[ ${REPLY:0:32} = :* ]] \
 					  || [[ ${REPLY:0:1024}${RINSERT:0:512} != *[!$IFS]* ]] \
