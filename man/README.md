@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: June 2025
-title: CHATGPT.SH(1) v0.103 \| General Commands Manual
+title: CHATGPT.SH(1) v0.103.5 \| General Commands Manual
 ---
 
 # NAME
@@ -461,13 +461,6 @@ the prompt name after any command line options, such as
 “`chatgpt;sh -cc .[_prompt_name_]`”. This loads the prompt file unless
 instruction was set with command line options.
 
-In multi-turn interactions, prompts prefixed with a single colon “*:*”
-are appended to the current request buffer as user messages without
-making a new API call. Conversely, prompts starting with double colons
-“*::*” are appended as instruction / system messages. <!-- [DEPRECATED]
-For text cmpls only, triple colons append the text immediately to the previous prompt
-without a restart sequence. -->
-
 To insert the current date and time to the instruction prompt, set
 command line `option --time`.
 
@@ -692,11 +685,20 @@ The defaults chat format is “**Q & A**”. The **restart sequence**
 “*\nQ: *” and the **start text** “*\nA:*” are injected for the chat bot
 to work well with text cmpls.
 
-In native chat completions, setting a prompt with “*:*” as the initial
+In multi-turn interactions, prompts prefixed with a single colon “*:*”
+are appended to the current request buffer as **USER MESSAGES** without
+making a new API call. Conversely, prompts starting with double colons
+“*::*” are appended as **INSTRUCTION / SYSTEM MESSAGES**.
+
+<!-- [DEPRECATED]
+In native chat completions, setting a prompt with "_:_" as the initial
 character sets the prompt as a **SYSTEM** message. In text completions,
-however, typing a colon “*:*” at the start of the prompt causes the text
-following it to be appended immediately to the last (response) prompt
-text.
+however, typing a colon "_:_" at the start of the prompt
+causes the text following it to be appended immediately to the last
+(response) prompt text. -->
+<!-- [DEPRECATED]
+For text cmpls only, triple colons append the text immediately to the previous prompt
+without a restart sequence. -->
 
 ### 2.4 Voice input (STT), and voice output (TTS)
 
@@ -731,7 +733,7 @@ Make sure file paths containing spaces are backslash-escaped!
 ### 2.6 Text, PDF, Doc, and URL Dumps
 
 The user may add a *filepath* or *URL* to the end of the prompt. The
-file is then read and the text content appended to the user prompt. This
+file is then read and the text content inserted to the user prompt. This
 is a basic text feature that works with any model.
 
     chatgpt.sh -cc
@@ -777,7 +779,7 @@ or “`/`” are equivalent.
 | `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.           |
 | `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text*, *PDF* file, or dump *URL*.                  |
 | `!dialog` | \-                              | Toggle the “dialog” interface.                          |
-| `!img`    | `!media` \[*FILE*\|*URL*\]      | Append image, media, or URL to prompt.                  |
+| `!img`    | `!media` \[*FILE*\|*URL*\]      | Add image, media, or URL to prompt.                     |
 | `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                  |
 | `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                       |
 | `!rep`    | `!replay`                       | Replay last TTS audio response.                         |
@@ -850,7 +852,8 @@ or “`/`” are equivalent.
 | `!s`    | `!session` \[*HIST_NAME*\]             | Change to, search for, or create history file.                                               |
 | `!!s`   | `!!session` \[*HIST_NAME*\]            | Same as `!session`, break session.                                                           |
 
-*:* Commands with a *colon* have their output appended to the prompt.
+*:* Commands with a *colon* have their output inserted to the current
+prompt.
 
 *‡* Commands with *double dagger* may be invoked at the very end of the
 input prompt (preceded by space).
@@ -1332,7 +1335,7 @@ settings.
 
 # NOTES
 
-Stdin text is appended to any existing PROMPT.
+Stdin text is appended to any existing command line PROMPT.
 
 Input sequences “*\n*” and “*\t*” are only treated specially (as escaped
 new lines and tabs) in restart, start and stop sequences!

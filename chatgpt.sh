@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.103.4  jun/2025  by mountaineerbr  GPL+3
+# v0.103.5  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -459,7 +459,7 @@ Command List
      !cat     -                 Cat prompter (one-shot, ctrl-d).
      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL.
      !dialog  -                 Toggle the \`dialog' interface.
-     !img     !media [FILE|URL] Append image, media, or URL to prompt.
+     !img     !media [FILE|URL] Add image, media, or URL to prompt.
      !md      !markdown [SOFTW] Toggle markdown support in response.
     !!md     !!markdown [SOFTW] Render last response in markdown.
      !rep     !replay           Replay last TTS audio response.
@@ -531,7 +531,7 @@ Command List
                                  Same as !session, break session.
    -------    ----------    -----------------------------------------
 
-      : Commands with a colon have their output appended to the prompt.
+      : Commands with colon have their output inserted to the current prompt.
 
       ‡ Commands with double dagger may be invoked at the very end of
         the prompt.
@@ -2308,7 +2308,7 @@ function cmd_runf
 			;;
 		url*|[/!]url*)
 			HARGS=${HARGS:-$*} xskip=1;
-			case "$*" in [/!]url:*|url:*) 	append=1;; esac;  #append as user
+			case "$*" in [/!]url:*|url:*) 	append=1;; esac;  #prompt buffer
 			trim_lf "$*" '@(url|[/!]url)*(:)';
 			trim_lrf "$TRIM" "$SPC";
 			set -- "$TRIM";
@@ -2643,7 +2643,7 @@ function cmd_runf
 			;;
 		cat*|file*)
 			set -- "${*}"; HARGS=${HARGS:-$*};
-			case "$*" in cat:*|file:*) 	append=1;; esac;  #append as user
+			case "$*" in cat:*|file:*) 	append=1;; esac;  #prompt buffer
 			trim_lf "$1" "@(cat|file)*(:)";
 			trim_lrf "$TRIM" "$SPC";
 			filein="$TRIM";
@@ -2738,7 +2738,7 @@ function cmd_runf
 			fi  </dev/tty  >&2;  #>/dev/tty
 			;;
 		shell*|sh*)
-			case "$*" in shell:*|sh:*) 	append=1;; esac;  #append as user
+			case "$*" in shell:*|sh:*) 	append=1;; esac;  #prompt buffer
 			trim_lf "$*" "@(shell|sh)*([:$IFS])";
 			set -- "$TRIM";
 			[[ -n $* ]] || set --; xskip=1;
@@ -2885,7 +2885,7 @@ function cmd_runf
 			;;
 		[/!]g*|g*)  #ground context
 			HARGS=${HARGS:-$*};
-			case "$*" in [/!]g:*|g:*) 	append=1;; esac;  #append as user
+			case "$*" in [/!]g:*|g:*) 	append=1;; esac;  #prompt buffer
 			trim_lf "$*" "?([/!])g*(:)$SPC";
 			set -- "$TRIM";
 

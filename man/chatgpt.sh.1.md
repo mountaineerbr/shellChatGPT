@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.103 | General Commands Manual
+% CHATGPT.SH(1) v0.103.5 | General Commands Manual
 % mountaineerbr
 % June 2025
 
@@ -607,14 +607,6 @@ and the prompt name after any command line options, such as
 "`chatgpt;sh -cc .[_prompt_name_]`". This loads the prompt file unless instruction
 was set with command line options.
 
-In multi-turn interactions, prompts prefixed with a single colon "_:_"
-are appended to the current request buffer as user messages without
-making a new API call. Conversely, prompts starting with double colons
-"_::_" are appended as instruction / system messages.
-<!-- [DEPRECATED]
-For text cmpls only, triple colons append the text immediately to the previous prompt
-without a restart sequence. -->
-
 To insert the current date and time to the instruction prompt, set
 command line `option --time`.
 
@@ -848,11 +840,21 @@ The defaults chat format is "**Q & A**". The **restart sequence**
 "_\\nQ:\ _" and the **start text** "_\\nA:_" are injected
 for the chat bot to work well with text cmpls.
 
+In multi-turn interactions, prompts prefixed with a single colon "_:_"
+are appended to the current request buffer as **USER MESSAGES** without
+making a new API call. Conversely, prompts starting with double colons
+"_::_" are appended as **INSTRUCTION / SYSTEM MESSAGES**.
+
+<!-- [DEPRECATED]
 In native chat completions, setting a prompt with "_:_" as the initial
 character sets the prompt as a **SYSTEM** message. In text completions,
 however, typing a colon "_:_" at the start of the prompt
 causes the text following it to be appended immediately to the last
-(response) prompt text.
+(response) prompt text. -->
+
+<!-- [DEPRECATED]
+For text cmpls only, triple colons append the text immediately to the previous prompt
+without a restart sequence. -->
 
 
 ### 2.4 Voice input (STT), and voice output (TTS)
@@ -891,7 +893,7 @@ Make sure file paths containing spaces are backslash-escaped!
 ### 2.6 Text, PDF, Doc, and URL Dumps
 
 The user may add a _filepath_ or _URL_ to the end of the prompt.
-The file is then read and the text content appended to the user prompt.
+The file is then read and the text content inserted to the user prompt.
 This is a basic text feature that works with any model.
 
 
@@ -941,7 +943,7 @@ Command operators "`!`" or "`/`" are equivalent.
      `!cat`         \-                               Cat prompter as one-shot, \<_CTRL-D_> flush.
      `!cat`        `!cat:` \[_TXT_|_URL_|_PDF_]      Cat _text_, _PDF_ file, or dump _URL_.
   `!dialog`         \-                               Toggle the "dialog" interface.
-     `!img`        `!media` \[_FILE_|_URL_]          Append image, media, or URL to prompt.
+     `!img`        `!media` \[_FILE_|_URL_]          Add image, media, or URL to prompt.
       `!md`        `!markdown`  \[_SOFTW_]           Toggle markdown rendering in response.
      `!!md`        `!!markdown` \[_SOFTW_]           Render last response in markdown.
      `!rep`        `!replay`                         Replay last TTS audio response.
@@ -1019,7 +1021,7 @@ Command operators "`!`" or "`/`" are equivalent.
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
 
 
-| _:_ Commands with a *colon* have their output appended to the prompt.
+| _:_ Commands with a *colon* have their output inserted to the current prompt.
 
 | _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt (preceded by space).
 
@@ -1563,7 +1565,7 @@ to preserve session history, custom promptsnd settings.
 
 # NOTES
 
-Stdin text is appended to any existing PROMPT.
+Stdin text is appended to any existing command line PROMPT.
 
 Input sequences "_\\n_" and "_\\t_" are only treated specially
 (as escaped new lines and tabs) in restart, start and stop sequences!
