@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.103.5 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.103.6 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.103.5 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.103.6 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">June 2025</p>
 </header>
@@ -938,9 +938,9 @@ cases.</p>
 text</strong> “<em>\nA:</em>” are injected for the chat bot to work well
 with text cmpls.</p>
 <p>In multi-turn interactions, prompts prefixed with a single colon
-“<em>:</em>” are appended to the current request buffer as <strong>USER
+“<em>:</em>” are added to the current request buffer as <strong>USER
 MESSAGES</strong> without making a new API call. Conversely, prompts
-starting with double colons “<em>::</em>” are appended as
+starting with double colons “<em>::</em>” are added as
 <strong>INSTRUCTION / SYSTEM MESSAGES</strong>.</p>
 <!-- [DEPRECATED]
 In native chat completions, setting a prompt with "_:_" as the initial

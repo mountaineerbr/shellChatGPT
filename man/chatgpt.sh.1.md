@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.103.5 | General Commands Manual
+% CHATGPT.SH(1) v0.103.6 | General Commands Manual
 % mountaineerbr
 % June 2025
 
@@ -841,9 +841,9 @@ The defaults chat format is "**Q & A**". The **restart sequence**
 for the chat bot to work well with text cmpls.
 
 In multi-turn interactions, prompts prefixed with a single colon "_:_"
-are appended to the current request buffer as **USER MESSAGES** without
+are added to the current request buffer as **USER MESSAGES** without
 making a new API call. Conversely, prompts starting with double colons
-"_::_" are appended as **INSTRUCTION / SYSTEM MESSAGES**.
+"_::_" are added as **INSTRUCTION / SYSTEM MESSAGES**.
 
 <!-- [DEPRECATED]
 In native chat completions, setting a prompt with "_:_" as the initial

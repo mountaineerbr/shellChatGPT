@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.103.5 | General Commands Manual
+CHATGPT.SH(1) v0.103.6 | General Commands Manual
 mountaineerbr
 June 2025
 
@@ -719,9 +719,9 @@ the start text “\nA:” are injected for the chat bot to work well with
 text cmpls.
 
 In multi-turn interactions, prompts prefixed with a single colon “:” are
-appended to the current request buffer as USER MESSAGES without making a
+added to the current request buffer as USER MESSAGES without making a
 new API call. Conversely, prompts starting with double colons “::” are
-appended as INSTRUCTION / SYSTEM MESSAGES.
+added as INSTRUCTION / SYSTEM MESSAGES.
 
 2.4 Voice input (STT), and voice output (TTS)
 
