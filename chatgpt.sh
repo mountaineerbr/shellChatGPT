@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.103.3  jun/2025  by mountaineerbr  GPL+3
+# v0.103.4  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2376,7 +2376,7 @@ function cmd_runf
 			cmdmsgf "Multimodal Model [${var}]" $(_onoff $MULTIMODAL)
 			;;
 		media*|img*|audio*|aud*)
-			trim_lrf "$*" "@(media|img|audio|aud)*([$IFS])" "*([$IFS])";
+			trim_lrf "$*" "@(media|img|audio|aud)*([$IFS:])" "*([$IFS])";
 			set -- "$TRIM";
 			CMD_CHAT=1 media_pathf "$1" && {
 			  [[ -f $1 ]] && set -- "$(duf "$1")";
@@ -2643,6 +2643,7 @@ function cmd_runf
 			;;
 		cat*|file*)
 			set -- "${*}"; HARGS=${HARGS:-$*};
+			case "$*" in cat:*|file:*) 	append=1;; esac;  #append as user
 			trim_lf "$1" "@(cat|file)*(:)";
 			trim_lrf "$TRIM" "$SPC";
 			filein="$TRIM";
@@ -2652,13 +2653,13 @@ function cmd_runf
 			fi  #paths with spaces must be backslash-escaped
 
 			if is_imagef "$filein" || is_audiof "$filein"
-			then 	cmd_runf /media"${filein}";
+			then 	cmd_runf /media "${filein}";
 			elif is_pdff "$filein"
-			then 	cmd_runf /pdf"${filein}";
+			then 	cmd_runf /pdf${append:+:} "${filein}";
 			elif is_docf "$filein"
-			then 	cmd_runf /doc"${filein}";
+			then 	cmd_runf /doc${append:+:} "${filein}";
 			elif _is_linkf "$filein"
-			then 	cmd_runf /url"${filein}";
+			then 	cmd_runf /url${append:+:} "${filein}";
 			else
 				case "$*" in
 					cat:*[!$IFS]*)

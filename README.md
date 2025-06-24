@@ -1381,7 +1381,7 @@ set Novita AI integration manually instead:
 export OPENAI_API_KEY=novita-api-key
 export OPENAI_BASE_URL="https://api.novita.ai/v3/openai"
 
-chatgpt.sh -cc -m meta-llama/llama-3.1-405b-instruct
+chatgpt.sh -cc -m meta-llama/llama-3.3-70b-instruct
 ```
 
 We are grateful to Novita AI for their support and collaboration. For more
