@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.103.6  jun/2025  by mountaineerbr  GPL+3
+# v0.103.7  jun/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2357,6 +2357,13 @@ function cmd_runf
 					    cmd_runf /sh${append:+:} "${var} \"${1// /%20}\" | $(BROWSER= set_browsercmdf)";
 					    ;;
 					  *)  cmd_runf /sh${append:+:} "${var}" "\"${1// /%20}\"";
+					      if ((!${#REPLY})) ||
+					          [[ ${REPLY:0:64} = 'gzip: stdin: not in gzip format' ]]  #w3m bug
+					      then
+					          ((RET)) || RET=1;
+					      fi
+					      #w3m -o accept_encoding=identity URL
+					      #https://gist.github.com/lidgnulinux/8b5365a870ad81caf35fc8537c614d5c
 					    ;;
 					esac;
 					if (( (RET>0 && RET<180) || RET>220))  #try curl hack on dump fail
