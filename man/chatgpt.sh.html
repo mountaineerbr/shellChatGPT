@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.103.6 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.104 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.103.6 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.104 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">June 2025</p>
+<p class="date">July 2025</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
@@ -576,7 +576,7 @@ Def=<em>gpt-3.5-turbo-instruct</em>/<em>gpt-4o</em>.</p>
 </dd>
 <dt><strong>--time</strong>, <strong>--no-time</strong></dt>
 <dd>
-<p>Insert the current date and time (timestamp) to the instruction
+<p>Prepend the current date and time (timestamp) to the instruction
 prompt.</p>
 </dd>
 <dt><strong>-t</strong>, <strong>--temperature</strong>
@@ -735,7 +735,7 @@ respectively-named history file.</p>
 and the prompt name after any command line options, such as
 “<code>chatgpt;sh -cc .[_prompt_name_]</code>”. This loads the prompt
 file unless instruction was set with command line options.</p>
-<p>To insert the current date and time to the instruction prompt, set
+<p>To prepend the current date and time to the instruction prompt, set
 command line <code>option --time</code>.</p>
 <p>For TTS <em>gpt-4o-tts</em> model type instructions, set command line
 option <code>-S "[instruction]"</code> when invoking the script with
@@ -917,11 +917,6 @@ pasted or typed, even without setting <code>options -uU</code>
 <p>Language model <strong>SKILLS</strong> can be activated with specific
 prompts, see <a href="https://platform.openai.com/examples"
 class="uri">https://platform.openai.com/examples</a>.</p>
-<!--  [DISABLED]
-Type in a backslash "_\\_" as the last character of the input line
-to append a literal newline once and return to edition,
-or press \<_CTRL-V_ _CTRL-J_>.
--->
 <h2 id="interactive-conversations">2. Interactive Conversations</h2>
 <h3 id="text-completions-chat">2.1 Text Completions Chat</h3>
 <p>Set <code>option -c</code> to start chat mode of text completions. It
@@ -937,20 +932,11 @@ cases.</p>
 <strong>restart sequence</strong> “<em>\nQ: </em>” and the <strong>start
 text</strong> “<em>\nA:</em>” are injected for the chat bot to work well
 with text cmpls.</p>
-<p>In multi-turn interactions, prompts prefixed with a single colon
-“<em>:</em>” are added to the current request buffer as <strong>USER
-MESSAGES</strong> without making a new API call. Conversely, prompts
-starting with double colons “<em>::</em>” are added as
-<strong>INSTRUCTION / SYSTEM MESSAGES</strong>.</p>
-<!-- [DEPRECATED]
-In native chat completions, setting a prompt with "_:_" as the initial
-character sets the prompt as a **SYSTEM** message. In text completions,
-however, typing a colon "_:_" at the start of the prompt
-causes the text following it to be appended immediately to the last
-(response) prompt text. -->
-<!-- [DEPRECATED]
-For text cmpls only, triple colons append the text immediately to the previous prompt
-without a restart sequence. -->
+<p>In multi-turn interactions, prompts prefixed with double colons
+“<em>:</em>” are prepended to the current request buffer as a
+<strong>USER MESSAGE</strong> without incurring an API call. Conversely,
+prompts starting with two double colons “<em>::</em>” are added as a
+<strong>INSTRUCTION / SYSTEM MESSAGE</strong>.</p>
 <h3 id="voice-input-stt-and-voice-output-tts">2.4 Voice input (STT), and
 voice output (TTS)</h3>
 <p>The <code>options -ccwz</code> may be combined to have voice
@@ -978,8 +964,8 @@ Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpe
 <h3 id="text-pdf-doc-and-url-dumps">2.6 Text, PDF, Doc, and URL
 Dumps</h3>
 <p>The user may add a <em>filepath</em> or <em>URL</em> to the end of
-the prompt. The file is then read and the text content inserted to the
-user prompt. This is a basic text feature that works with any model.</p>
+the prompt. The file is then read and the text content added to the user
+prompt. This is a basic text feature that works with any model.</p>
 <pre><code>chatgpt.sh -cc
 
 [...]
@@ -993,7 +979,7 @@ required. See the <strong>Optional Packages</strong> section.</p>
 <p>Also note that <em>file paths</em> containing white spaces must be
 <strong>blackslash-escaped</strong>, or the <em>file path</em> must be
 preceded by a pipe `|’ character.</p>
-<p>Multiple images and audio files may be appended the prompt in this
+<p>Multiple images and audio files may be added to the request in this
 way!</p>
 <h1 id="command-list">COMMAND LIST</h1>
 <p>While in chat mode, the following commands can be invoked in the new
@@ -1012,7 +998,7 @@ prompt to change parameters and manage sessions. Command operators
 <td style="text-align: left;"><code>-S</code></td>
 <td style="text-align: left;"><code>:</code>, <code>::</code>
 [<em>PROMPT</em>]</td>
-<td>Append user or system prompt to request buffer.</td>
+<td>Add user or system prompt to request buffer.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-S.</code></td>
@@ -1137,17 +1123,18 @@ prompt to change parameters and manage sessions. Command operators
 <tr class="odd">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
-<td>Run shell or <em>command</em>, and edit output. <em>‡</em></td>
+<td>Run shell <em>command</em> and edit stdout (make request).
+<em>‡</em></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!sh:</code></td>
 <td style="text-align: left;"><code>!shell:</code> [<em>CMD</em>]</td>
-<td>Same as <code>!sh</code> but apppend output as user.</td>
+<td>Same as <code>!sh</code> and insert stdout into current prompt.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!!sh</code></td>
 <td style="text-align: left;"><code>!!shell</code> [<em>CMD</em>]</td>
-<td>Run interactive shell (with <em>command</em>) and exit.</td>
+<td>Run interactive shell <em>command</em> and return.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!url</code></td>
@@ -1456,8 +1443,8 @@ flush.</td>
 </tr>
 </tbody>
 </table>
-<div class="line-block"><em>:</em> Commands with a <em>colon</em> have
-their output inserted to the current prompt.</div>
+<div class="line-block"><em>:</em> Commands with <em>double colons</em>
+have their output added to the current prompt.</div>
 <div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
 may be invoked at the very end of the input prompt (preceded by
 space).</div>
@@ -1482,6 +1469,9 @@ current prompt.</p>
 <p>Command “<code>!block</code> [<em>ARGS</em>]” may be run to set raw
 model options in JSON syntax according to each API. Alternatively, set
 envar <strong>$BLOCK_USR</strong>.</p>
+<p>Any “<code>!CMD</code>” not matching a chat command is executed by
+the shell as an alias for “<code>!sh CMD</code>”. Note that this
+shortcut only works with operator exclamation mark.</p>
 <h1 id="session-management">Session Management</h1>
 <p>A history file can hold a single session or multiple sessions. When
 it holds a single session, the name of the history file and the session

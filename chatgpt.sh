@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.103.7  jun/2025  by mountaineerbr  GPL+3
+# v0.104  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -141,7 +141,7 @@ INSTRUCTION_CHAT_JA="以下は、AIアシスタントとの会話です。アシ
 INSTRUCTION_CHAT_ZH="以下是对话内容与一位人工智能助手之间的对话。该助手乐于助人、富有创造力、聪明且友好。"
 INSTRUCTION_CHAT_ZH_TW="以下是对话內容與一位人工智慧助手之間的對話。該助手樂於助人、富有創造力、聰明且友善。"
 INSTRUCTION_CHAT_HI="निम्न एक एआई सहायक के साथ एक वार्तालाप है। सहायक मददगार, रचनात्मक, चतुर और मित्रवत है।"
-# Insert timestamp in instruction prompt
+# Prepend timestamp to instruction prompt
 #INST_TIME=0
 
 # Awesome-chatgpt-prompts URL
@@ -301,8 +301,8 @@ Instruction Prompts
 	Alternatively, set the first positional argument with the operator
 	dot \`.' and the prompt name, such as \`${0##*/} -cc .[prompt]'.
 
-	To insert the current date and time to the instruction prompt, set
-	command line option \`--time'.
+	To prepend the current date and time to the instruction prompt,
+	set command line option \`--time'.
 
 	For TTS gpt-4o-tts model instructions, set envar \`\$INSTRUCTION_SPEECH'
 	or command line option \`-S [instruction]' when invoking the script
@@ -426,14 +426,14 @@ Command Interface
 	\`/' on script invocation, the command \`/session [HIST_NAME]' is
 	assumed. This changes to or creates a history file (with -ccCdPP).
 
-	To append image and audio file paths at the end of the prompt with
+	Image and audio file paths can be set at the end of the prompt with
 	multimodal and reasoning models. All models work with PDF, DOC, and
-	URL text dump, provided required software is installed. Make sure
-	file paths containing spaces are backslash-escaped.
+	URL text dumps (see required software). Make sure file paths
+	containing spaces are backslash-escaped.
 
-	In multi-turn interactions, prompts starting with a colon \`:' are
-	appended as user messages to the request block, while double colons
-	\`::' append the prompt as instruction / system without initiating
+	In multi-turn interactions, prompts starting with double colons \`:'
+	are prepended to the current prompt as user message, while two double
+	colons \`::' add the prompt as instruction / system without initiating
 	a new API request.
 
 
@@ -443,7 +443,7 @@ Command List
 
    -------    ----------    -----------------------------------------
    --- Misc Commands ------------------------------------------------
-      -S      :, ::   [PROMPT]  Append user/system prompt to request.
+      -S      :, ::   [PROMPT]  Add user/system prompt to request.
       -S.     -.       [NAME]   Load and edit custom prompt.
       -S/    !awe      [NAME]   Load and edit awesome prompt (en).
       -S%    !awe-zh   [NAME]   Load and edit awesome prompt (zh).
@@ -467,9 +467,9 @@ Command List
      !p       !pick  [PROMPT]   File picker, appends filepath to prompt. ‡
      !pdf     !pdf:    [FILE]   Dump PDF text.
     !photo   !!photo   [INDEX]  Take a photo, camera index (Termux). ‡
-     !sh      !shell    [CMD]   Run shell or command, and edit output. ‡
-     !sh:     !shell:   [CMD]   Same as !sh but apppend output as user.
-    !!sh     !!shell    [CMD]   Run interactive shell (w/ cmd) and exit.
+     !sh      !shell    [CMD]   Run shell cmd, edit stdout (make request). ‡
+     !sh:     !shell:   [CMD]   Same as !sh, insert into current prompt.
+    !!sh     !!shell    [CMD]   Run interactive shell cmd and return.
      !url     !url:     [URL]   Dump URL text or YouTube transcript.
    --- Script Settings and UX ---------------------------------------
     !fold     !wrap             Toggle response wrapping.
@@ -531,7 +531,7 @@ Command List
                                  Same as !session, break session.
    -------    ----------    -----------------------------------------
 
-      : Commands with colon have their output inserted to the current prompt.
+      : Commands with double colons have their output added to current prompt.
 
       ‡ Commands with double dagger may be invoked at the very end of
         the prompt.
@@ -551,6 +551,9 @@ Command List
         To regenerate a response, type in the command \`!regen' or a single
         exclamation mark or forward slash in the new empty prompt. In order
         to edit the prompt before the request, try \`!!' (or \`//').
+
+	Any \`!CMD' not matching a chat command is executed by the shell
+	as a shortcut for \`!sh CMD'.
 
         Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
         Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
@@ -714,7 +717,7 @@ Options
 	-S, --instruction  [INSTRUCTION|FILE]
 		Set an instruction prompt. It may be a text file.
 	--time, --no-time
-		Insert the current date and time to the instruction prompt.
+		Prepend current date and time to the instruction prompt.
 	-t, --temperature  [VAL]
 		Temperature value (cmpls/chat/stt),
 		Def=${OPTT:-0} (0.0 - 2.0), STT=${OPTTW:-0} (0.0 - 1.0).
@@ -2062,12 +2065,13 @@ function _set_browsercmdf
 function cmd_runf
 {
 	typeset append filein fileinq onutdir out var wc xskip pid n
-	typeset -a args arr;
+	typeset -a argv args arr;
 	((${#HARGS})) || typeset HARGS;
 	[[ "${1:0:256}${2:0:128}" = *([$IFS:])[/!-]* ]] || return;
 	((${#1}+${#2}<1024)) || return;
 	printf "${NC}" >&2;
 
+	argv=("$@");
 	trim_lf "$1" "*([$IFS:])?([/!])";
 	set -- "$TRIM" "${@:2}";
 	args=("$@"); set -- "$*";
@@ -2143,7 +2147,7 @@ function cmd_runf
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; xskip=1;
 			unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP HIST_LOOP TOTAL_OLD \
-			  REPLY_CMD_BLOCK REPLY_CMD_DUMP RESUBW REPLY_CMD BAD_RES EDIT RINSERT \
+			  REPLY_CMD_BLOCK REPLY_CMD_DUMP RESUBW REPLY_CMD BAD_RES EDIT PREPEND \
 			  PSKIP WSKIP SKIP JUMP REGEN REPLY_CMD INT_RES MEDIA MEDIA_IND MEDIA_CMD_IND BLOCK_CMD;
 			;;
 		currency[_-]rate*|currency*)  #currency rate
@@ -2236,7 +2240,12 @@ function cmd_runf
 			return 179
 			;;
 		[/!]j|[/!]jump|J|Jump)
-			cmdmsgf 'Jump:' 'no response primer'
+			if ((OPTCMPL || !EPN))
+			then
+				cmdmsgf 'Jump:' 'no response primer';
+			else
+				echo '[jump]' >&2;
+			fi
 			JUMP=2 REPLY=
 			return 180
 			;;
@@ -2492,6 +2501,13 @@ function cmd_runf
 		-V|-VV|debug)  #debug
 			((++OPTVV)) ;((OPTVV%=2));
 			cmdmsgf 'Debug Request' $(_onoff $OPTVV)
+			;;
+		xtrace)
+			#Xtrace mode
+			if [[ $- = *x* ]]
+			then 	set +x;
+			else 	set -x;
+			fi
 			;;
 		-xx|[/!]editor|[/!]ed|[/!]vim|[/!]vi)
 			((!OPTX)) && cmdmsgf 'Text Editor' 'one-shot'
@@ -2781,8 +2797,10 @@ function cmd_runf
 			shell_histf "!${HARGS[*]:-${args[*]}}"; SKIP_SH_HIST=1 HARGS=;
 			((RET==200||RET==201)) || REPLY_CMD_BLOCK=1;
 			;;
-		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
-			echo Session and History >&2; [[ $* = . ]] && args=('fork current');
+		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|\
+		[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
+			echo Session and History >&2;
+			[[ $* = . ]] && args=('fork current');
 			session_mainf /"${args[@]}"
 			;;
 		photo*)
@@ -2867,7 +2885,7 @@ function cmd_runf
 				wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
 				&& sed -i -e "$((wc-1)),${wc} s/^/#/" "$FILECHAT";
 				CKSUM_OLD=;
-			fi  #M#
+			fi
 			;;
 		replay|rep)
 			if ((${#REPLAY_FILES[@]})) || [[ -f $FILEOUT_TTS ]]
@@ -2985,7 +3003,19 @@ function cmd_runf
 			send_tiktokenf '/END_TIKTOKEN/' && wait
 			echo '[bye]' >&2; exit 0
 			;;
-		*) 	return 181;  #illegal command
+		*)
+			#run shell command?
+			if [[ ${argv[*]} = *([$IFS:-])\!\![!$IFS!:-]* ]]
+			then
+				cmd_runf //sh "${1##*([$IFS!:-])}";
+				return;
+			elif [[ ${argv[*]} = *([$IFS:-])\![!$IFS!:-]* ]]
+			then
+				cmd_runf  /sh "${1##*([$IFS!:-])}";
+				return;
+			else
+				return 181;  #illegal command
+			fi
 			;;
 	esac;
 	((OPTEXIT>1)) && exit;
@@ -3070,9 +3100,9 @@ function edf
 	fi
 
 	set_filetxtf
-	pre="${instruction}${instruction:+$'\n\n'}""$(unescapef "$HIST")""${RINSERT:+$'\n\n'}${RINSERT}"
+	pre="${instruction}${instruction:+$'\n\n'}""$(unescapef "$HIST")""${PREPEND:+$'\n\n'}${PREPEND}"
 
-	((${#RINSERT})) ||
+	((${#PREPEND})) ||
 	if ((${#instruction}==${#pre}-2)) || ((${#INSTRUCTION_OLD}==${#pre}-2)) ||
 	   ((CHAT_ENV && MTURN+OPTRESUME && HIST_LOOP==1))  #G#
 	then 	inst_edit=1 &&  #instruction editing on
@@ -3888,7 +3918,7 @@ function set_optsf
 		[[ "${REASON_EFFORT}" = *[a-zA-Z]* ]] && REASON_EFFORT=16000;
 		((MOD_THINK)) || {
 		    ((!${REASON_EFFORT:+1}0)) || {
-			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
+			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && ((!OPTMAX_NILL)) && {
 				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
 				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
@@ -3904,7 +3934,7 @@ function set_optsf
 		;;
 		gemini-[2-9]*-thinking*)
 		((MOD_THINK)) || {
-			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
+			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
 				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
 				OPTMAX=8000;
 			}
@@ -3919,14 +3949,14 @@ function set_optsf
 			:
 		;;
 		gemini-[2-9].5*|gemini-[3-9]*)
-			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
+			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
 				_warmsgf 'Warning:' 'Gemini models require large numbers of output tokens';
 				OPTMAX=8000;
 			}
 		;;
 		o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12)
 		((MOD_REASON)) || {
-			((OPTMM<1024*4 && OPTMAX<1024*5)) && {
+			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
 				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
@@ -5248,9 +5278,9 @@ function cksumf
 
 #list session files in cache dir
 function session_listf
-{
+(
 	SESSION_LIST=1 session_globf "$@"
-}
+)
 #pick session files by globbing cache dir
 function session_globf
 {
@@ -5263,7 +5293,7 @@ function session_globf
 		*) 	[[ ! -f "$1" ]] || return;;
 	esac
 
-	cd -- "${CACHEDIR}"
+	cd -- "${CACHEDIR}"  #beware of secondary effects!
 	glob="${1%%.${sglob}}" glob="${glob##*/}"
 	#input is exact filename, or ends with extension wo whitespaces?
 	[[ -f "${glob}".${ext} ]] || [[ "$1" = *?.${sglob} && "$1" != *\ * ]] \
@@ -6073,7 +6103,7 @@ no-time  format  voice  awesome-zh  awesome
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP RINSERT BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
@@ -6888,7 +6918,7 @@ else
 				202) 	exit 202;;  #exit
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
-						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(${RINSERT:+NOT_}EMPTY)}" | tail -n $((LINES-2))
+						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(${PREPEND:+NOT_}EMPTY)}" | tail -n $((LINES-2))
 					do
 					((!BAD_RES)) && {
 					((OPTV)) || [[ $REPLY = :* ]] \
@@ -6907,8 +6937,8 @@ else
 								set --; break;;  #whisper append (hidden option)
 							0) 	set -- "$REPLY" ; break;
 								trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
-							*) 	((${#RINSERT})) && echo '[buffer clear]' >&2;
-								set -- ; SKIP_SH_HIST= RINSERT=; break;;  #no
+							*) 	((${#PREPEND})) && echo '[buffer clear]' >&2;
+								set -- ; SKIP_SH_HIST= PREPEND=; break;;  #no
 						esac
 					done;
 					((OPTX>1)) && OPTX=;
@@ -6920,7 +6950,7 @@ else
 		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ -z "$*" ]]
 		then
 			while ((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
-				((${#RINSERT})) && Q=">>"
+				((${#PREPEND})) && Q=">>"
 				B=${Q:0:128} B=${B##*$'\n'} B=${B##*\\n} B=${B//?/\\b}  #backspaces
 
 				((SKIP)) ||
@@ -6983,7 +7013,7 @@ else
 					199) 	EDIT=1; continue 1;;  #text edit
 					*) 	REPLY=; continue 1;;
 					esac; unset RESUBW;
-					printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(${RINSERT:+NOT_}EMPTY)"}" | foldf >&2;
+					printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(${PREPEND:+NOT_}EMPTY)"}" | foldf >&2;
 				else
 					_clr_ttystf;
 					((EDIT)) || REPLY=""  #!#
@@ -7043,13 +7073,13 @@ else
 					trim_rf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#|[/!]g|g)";
 					cmd_runf /${var:-pick} "$TRIM";
 					set --; continue 2;
-				elif ((${#REPLY})) || ((${#RINSERT}))
+				elif ((${#REPLY})) || ((${#PREPEND}))
 				then 	PSKIP=;
-					((${#RINSERT})) && [[ ${REPLY:0:1024} != *[!$IFS]* ]] \
+					((${#PREPEND})) && [[ ${REPLY:0:1024} != *[!$IFS]* ]] \
 					  && echo '[prompt buffer]' >&2;
 					((!BAD_RES)) && {
 					  ((OPTV)) || [[ ${REPLY:0:32} = :* ]] \
-					  || [[ ${REPLY:0:1024}${RINSERT:0:512} != *[!$IFS]* ]] \
+					  || [[ ${REPLY:0:1024}${PREPEND:0:512} != *[!$IFS]* ]] \
 					  || { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY: ind}" >/dev/null ;};
 					} || new_prompt_confirmf ed whisper
 					case $? in
@@ -7093,8 +7123,8 @@ else
 							set --; continue 2;;
 						0) 	:;
 							trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
-						*) 	((${#RINSERT})) && echo '[buffer clear]' >&2;
-							REPLY= RINSERT=; set -- ;break;;  #no
+						*) 	((${#PREPEND})) && echo '[buffer clear]' >&2;
+							REPLY= PREPEND=; set -- ;break;;  #no
 					esac; unset REPLY_CMD;
 				else
 					set --; unset REPLY_CMD;
@@ -7109,18 +7139,10 @@ else
 
 		if ((!(JUMP+OPTCMPL) )) && [[ "${*}" != *[!$IFS]* ]]
 		then
-			if ((${#RINSERT}))  #prompt-content pass
+			if ((${#PREPEND}))  #prompt-content pass
 			then 	echo "[jump]" >&2
 			else
-				if ((REGEN)) && [[ -s "$FILECHAT" ]] &&
-				[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]*([$' \t'])$'\n'* ]]
-				then 	# un-comment two lines from tail
-					wc=$(wc -l <"$FILECHAT") && ((wc>2)) \
-					&& sed -i -e "$((wc-1)),${wc} s/^#//" "$FILECHAT";
-					CKSUM_OLD= REGEN=;
-					echo "[regenerate abort]" >&2;
-				fi  #M#
-
+				((REGEN)) && echo "[regenerate mode]" >&2;
 				_warmsgf "(empty)"
 				set -- ; continue
 			fi
@@ -7168,8 +7190,8 @@ else
 				:*|*)
 					if ((${#var}))
 					then 	if ((OPTCMPL))
-						then 	RINSERT="${RINSERT}${var}";
-						else 	RINSERT="${RINSERT}${RINSERT:+${NL}${NL}}${var}";
+						then 	PREPEND="${PREPEND}${var}";
+						else 	PREPEND="${PREPEND}${PREPEND:+${NL}${NL}}${var}";
 						fi;
 						_sysmsgf 'User Prompt inserted' $'\n';
 					else
@@ -7181,10 +7203,10 @@ else
 				set --; continue;
 				;;
 			esac;
-			((${#RINSERT})) && {
-				set -- "${RINSERT}""${*:+${NL}${NL}}""${*:-$REPLY}";  #J#
-				REPLY="${RINSERT}""${REPLY:+${NL}${NL}}""${REPLY}";
-				RINSERT=;
+			((${#PREPEND})) && {
+				set -- "${PREPEND}""${*:+${NL}${NL}}""${*:-$REPLY}";  #J#
+				REPLY="${PREPEND}""${REPLY:+${NL}${NL}}""${REPLY}";
+				PREPEND=;
 			}
 			REC_OUT="${*}";
 		fi
@@ -7281,11 +7303,11 @@ else
 			((OPTC && EPN==0)) && [[ ${HIST:+x}$rest = \\n* ]] && rest=${rest:2}  #!#del \n at start of string
 		fi
 
-		if ((JUMP)) || ((${#RINSERT}))
+		if ((JUMP)) || ((${#PREPEND}))
 		then 	((OPTCMPL || !EPN)) || rest=;
-			set -- "${RINSERT}""${RINSERT:+${*:+${NL}${NL}}}""${*:-$REPLY}";  #J#
-			REPLY="${RINSERT}""${RINSERT:+${REPLY:+${NL}${NL}}}""$REPLY";
-			REC_OUT="${*}" RINSERT=;
+			set -- "${PREPEND}""${PREPEND:+${*:+${NL}${NL}}}""${*:-$REPLY}";  #J#
+			REPLY="${PREPEND}""${PREPEND:+${REPLY:+${NL}${NL}}}""$REPLY";
+			REC_OUT="${*}" PREPEND=;
 		fi
 
 		var="$(escapef "${INSTRUCTION}")${INSTRUCTION:+\\n\\n}";

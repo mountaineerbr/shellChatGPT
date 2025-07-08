@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.103.6 | General Commands Manual
+% CHATGPT.SH(1) v0.104 | General Commands Manual
 % mountaineerbr
-% June 2025
+% July 2025
 
 
 # NAME
@@ -427,7 +427,7 @@ before the text prompt itself.
 
 **\--time**, **\--no-time**
 
-: Insert the current date and time (timestamp) to the instruction prompt.
+: Prepend the current date and time (timestamp) to the instruction prompt.
 
 
 **-t**, **\--temperature**   \[_VAL_]
@@ -607,7 +607,7 @@ and the prompt name after any command line options, such as
 "`chatgpt;sh -cc .[_prompt_name_]`". This loads the prompt file unless instruction
 was set with command line options.
 
-To insert the current date and time to the instruction prompt, set
+To prepend the current date and time to the instruction prompt, set
 command line `option --time`.
 
 For TTS _gpt-4o-tts_ model type instructions, set command line option
@@ -811,12 +811,6 @@ pasted or typed, even without setting `options -uU` (_v25.2+_).
 Language model **SKILLS** can be activated with specific prompts,
 see <https://platform.openai.com/examples>.
 
-<!--  [DISABLED]
-Type in a backslash "_\\_" as the last character of the input line
-to append a literal newline once and return to edition,
-or press \<_CTRL-V_ _CTRL-J_>.
--->
-
 
 ## 2. Interactive Conversations
 
@@ -840,21 +834,10 @@ The defaults chat format is "**Q & A**". The **restart sequence**
 "_\\nQ:\ _" and the **start text** "_\\nA:_" are injected
 for the chat bot to work well with text cmpls.
 
-In multi-turn interactions, prompts prefixed with a single colon "_:_"
-are added to the current request buffer as **USER MESSAGES** without
-making a new API call. Conversely, prompts starting with double colons
-"_::_" are added as **INSTRUCTION / SYSTEM MESSAGES**.
-
-<!-- [DEPRECATED]
-In native chat completions, setting a prompt with "_:_" as the initial
-character sets the prompt as a **SYSTEM** message. In text completions,
-however, typing a colon "_:_" at the start of the prompt
-causes the text following it to be appended immediately to the last
-(response) prompt text. -->
-
-<!-- [DEPRECATED]
-For text cmpls only, triple colons append the text immediately to the previous prompt
-without a restart sequence. -->
+In multi-turn interactions, prompts prefixed with double colons "_:_"
+are prepended to the current request buffer as a **USER MESSAGE** without
+incurring an API call. Conversely, prompts starting with two double colons
+"_::_" are added as a **INSTRUCTION / SYSTEM MESSAGE**.
 
 
 ### 2.4 Voice input (STT), and voice output (TTS)
@@ -893,7 +876,7 @@ Make sure file paths containing spaces are backslash-escaped!
 ### 2.6 Text, PDF, Doc, and URL Dumps
 
 The user may add a _filepath_ or _URL_ to the end of the prompt.
-The file is then read and the text content inserted to the user prompt.
+The file is then read and the text content added to the user prompt.
 This is a basic text feature that works with any model.
 
 
@@ -915,7 +898,7 @@ Also note that _file paths_ containing white spaces must be
 **blackslash-escaped**, or the _file path_ must be preceded
 by a pipe \`|' character.
 
-Multiple images and audio files may be appended the prompt in this way!
+Multiple images and audio files may be added to the request in this way!
 
 
 # COMMAND LIST
@@ -926,8 +909,8 @@ Command operators "`!`" or "`/`" are equivalent.
 
 
  Misc              Commands
- --------------    ------------------------------    ----------------------------------------------------------
-       `-S`        `:`, `::`    \[_PROMPT_]          Append user or system prompt to request buffer.
+ --------------    ------------------------------    -------------------------------------------------------------
+       `-S`        `:`, `::`    \[_PROMPT_]          Add user or system prompt to request buffer.
       `-S.`        `-.`         \[_NAME_]            Load and edit custom prompt.
       `-S/`        `!awesome`    \[_NAME_]           Load and edit awesome prompt (english).
       `-S%`        `!awesome-zh` \[_NAME_]           Load and edit awesome prompt (chinese).
@@ -951,11 +934,11 @@ Command operators "`!`" or "`/`" are equivalent.
        `!p`        `!pick`      \[_PROPMT_]          File picker, appends filepath to user prompt. _‡_
      `!pdf`        `!pdf:`      \[_FILE_]            Convert PDF and dump text.
    `!photo`        `!!photo`   \[_INDEX_]            Take a photo, optionally set camera index (Termux). _‡_
-      `!sh`        `!shell`      \[_CMD_]            Run shell or _command_, and edit output. _‡_
-     `!sh:`        `!shell:`     \[_CMD_]            Same as `!sh` but apppend output as user.
-     `!!sh`        `!!shell`     \[_CMD_]            Run interactive shell (with _command_) and exit.
+      `!sh`        `!shell`      \[_CMD_]            Run shell _command_ and edit stdout (make request). _‡_
+     `!sh:`        `!shell:`     \[_CMD_]            Same as `!sh` and insert stdout into current prompt.
+     `!!sh`        `!!shell`     \[_CMD_]            Run interactive shell _command_ and return.
      `!url`        `!url:`       \[_URL_]            Dump URL text or YouTube transcript text.
- --------------    ------------------------------    ----------------------------------------------------------
+ --------------    ------------------------------    -------------------------------------------------------------
 
  Script            Settings and UX
  --------------    -----------------------    ----------------------------------------------------------
@@ -1021,7 +1004,7 @@ Command operators "`!`" or "`/`" are equivalent.
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
 
 
-| _:_ Commands with a *colon* have their output inserted to the current prompt.
+| _:_ Commands with *double colons* have their output added to the current prompt.
 
 | _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt (preceded by space).
 
@@ -1049,6 +1032,11 @@ or file path is appended to the current prompt.
 
 Command "`!block` \[_ARGS_]" may be run to set raw model options
 in JSON syntax according to each API. Alternatively, set envar **$BLOCK_USR**.
+
+
+Any "`!CMD`" not matching a chat command is executed by the shell
+as an alias for "`!sh CMD`".
+Note that this shortcut only works with operator exclamation mark.
 
 
 # Session Management
