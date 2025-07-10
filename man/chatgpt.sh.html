@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.104 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.104.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.104 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.104.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2025</p>
 </header>
@@ -791,7 +791,8 @@ in chat mode.</p>
 <p>Set <em>maximum response tokens</em> with <code>option</code>
 “<code>-</code><em>NUM</em>” or “<code>-M</code> <em>NUM</em>”. This
 defaults to <em>4096</em> tokens and <em>25000</em> for reasoning
-models.</p>
+models, or disabled when running on chat completions and responses
+endpoints.</p>
 <p>If a second <em>NUM</em> is given to this option, <em>maximum model
 capacity</em> will also be set. The option syntax takes the form of
 “<code>-</code><em>NUM/NUM</em>”, and “<code>-M</code>
@@ -1929,8 +1930,8 @@ at: <a href="https://gitlab.com/fenixdragao/shellchatgpt"
 class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
 <h1 id="required-packages">REQUIRED PACKAGES</h1>
 <ul>
-<li><code>Bash</code></li>
-<li><code>cURL</code>, and <code>JQ</code></li>
+<li><code>Bash</code> shell</li>
+<li><code>cURL</code> and <code>JQ</code></li>
 </ul>
 <h1 id="optional-packages">OPTIONAL PACKAGES</h1>
 <p>Optional packages for specific features.</p>
@@ -1963,8 +1964,8 @@ API version 1. As text is the only universal interface, voice and image
 features will only be partially supported, and not all endpoints or
 options will be covered.</p>
 <p>This project <em>doesn’t support</em> “Function Calling”, “Structured
-Outputs”, “Real-Time Conversations”, “Agents/Operators”, nor “video
-generation / editing” capabilities.</p>
+Outputs”, “Real-Time Conversations”, “Agents/Operators”, “MCP Servers”,
+nor “video generation / editing” capabilities.</p>
 <p>Support for “Responses API” is limited and experimental at this
 point.</p>
 <h1 id="bugs">BUGS</h1>

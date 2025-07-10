@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.104 | General Commands Manual
+% CHATGPT.SH(1) v0.104.1 | General Commands Manual
 % mountaineerbr
 % July 2025
 
@@ -673,7 +673,8 @@ or set it as "_._" to pick from the model list.
 List models with `option -l` or run `/models` in chat mode.
 
 Set _maximum response tokens_ with `option` "`-`_NUM_" or "`-M` _NUM_".
-This defaults to _4096_ tokens and _25000_ for reasoning models.
+This defaults to _4096_ tokens and _25000_ for reasoning models, or
+disabled when running on chat completions and responses endpoints.
 
 If a second _NUM_ is given to this option, _maximum model capacity_
 will also be set. The option syntax takes the form of "`-`_NUM/NUM_",
@@ -1581,8 +1582,8 @@ See the online man page and `chatgpt.sh` usage examples at:
 
 # REQUIRED PACKAGES
 
-- `Bash`
-- `cURL`, and `JQ`
+- `Bash` shell
+- `cURL` and `JQ`
 
 
 # OPTIONAL PACKAGES
@@ -1611,7 +1612,7 @@ features will only be partially supported, and not all endpoints or
 options will be covered.
 
 This project _doesn't support_ "Function Calling", "Structured Outputs",
-"Real-Time Conversations", "Agents/Operators", nor "video generation / editing"
+"Real-Time Conversations", "Agents/Operators", "MCP Servers", nor "video generation / editing"
 capabilities.
 
 Support for "Responses API" is limited and experimental at this point.

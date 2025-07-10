@@ -168,8 +168,8 @@ If no suffix is provided, it works as plain text completions.
 
 ### ✔️ Required Packages
 
-- `Bash` <!-- [Ksh93u+](https://github.com/ksh93/ksh), Bash or Zsh -->
-- `cURL`, and `JQ`
+- `Bash` and `readline`
+- `cURL` and `JQ`
 
 
 ### Optional Packages 
@@ -1700,7 +1700,7 @@ Only selected features of the API will be covered.
 
 - The script _will not execute commands_ on behalf of users.
 
-- This project _doesn't_ support "Function Calling", "Structured Outputs", nor "Agents/Operators".
+- This project _doesn't_ support "Function Calling", "Structured Outputs", "Agents/Operators", nor "MCP Servers".
 
 - We _will not support_ "Real-Time" chatting, or video generation / editing.
 
@@ -1756,22 +1756,25 @@ Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mo
 The following projects are worth remarking.
 They were studied during development of this script and used as referencial code sources.
 
-1. [sigoden's aichat](https://github.com/sigoden/aichat)
-2. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
-3. [andrew's tgpt](https://github.com/aandrew-me/tgpt)
-4. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
-5. [ErikBjare's gptme](https://github.com/ErikBjare/gptme)
-6. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
-7. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
-8. [mudler's LocalAI](https://github.com/mudler/LocalAI)
-9. [Ollama](https://github.com/ollama/ollama/)
-10. [Google Gemini](https://gemini.google.com/)
-11. [Groq](https://console.groq.com/docs/api-reference)
-12. [Antropic AI](https://docs.anthropic.com/)
-13. [Novita AI](https://novita.ai/)
-14. [xAI](https://docs.x.ai/docs/quickstart)
-15. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-16. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+1. [Claude Code](https://github.com/anthropics/claude-code)
+2. [Gemini CLI](https://github.com/google-gemini/gemini-cli)
+3. [OpenAI Codex CLI](https://github.com/openai/codex)
+4. [sigoden's aichat](https://github.com/sigoden/aichat)
+5. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
+6. [andrew's tgpt](https://github.com/aandrew-me/tgpt)
+7. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
+8. [ErikBjare's gptme](https://github.com/ErikBjare/gptme)
+9. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
+10. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
+11. [mudler's LocalAI](https://github.com/mudler/LocalAI)
+12. [Ollama](https://github.com/ollama/ollama/)
+13. [Google Gemini](https://gemini.google.com/)
+14. [Groq](https://console.groq.com/docs/api-reference)
+15. [Antropic AI](https://docs.anthropic.com/)
+16. [Novita AI](https://novita.ai/)
+17. [xAI](https://docs.x.ai/docs/quickstart)
+18. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+19. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 <!-- 17. [Kardolu's chatgpt-cli](https://github.com/kardolus/chatgpt-cli) -->
 
 
