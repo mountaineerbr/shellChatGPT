@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.104.1 | General Commands Manual
+CHATGPT.SH(1) v0.104.2 | General Commands Manual
 mountaineerbr
 July 2025
 
@@ -105,7 +105,7 @@ Configuration File
 
     Dump template configuration file to stdout.
 
-Sessions and History Files
+Session and History Files
 
 -H, --hist [/HIST_NAME]
 
@@ -121,6 +121,10 @@ Sessions and History Files
     options -ccdrR.
 
     These are aliases to -HH and -HHH, respectively.
+
+--tmp
+
+    Temporary cache (usually at /tmp).
 
 Input Modes
 
@@ -1170,7 +1174,7 @@ OPENAI_URL_PATH
 PROVIDER_BASE_URL
 
     Base URLs for each service provider: LOCALAI, OLLAMA, MISTRAL,
-    GOOGLE, ANTHROPIC, GROQ, GITHUB, NOVITA, xAI, and DeepSeek.
+    GOOGLE, ANTHROPIC, GROQ, GITHUB, NOVITA, XAI, and DEEPSEEK.
 
 OPENAI_API_KEY
 

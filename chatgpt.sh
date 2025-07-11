@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.104.1  jul/2025  by mountaineerbr  GPL+3
+# v0.104.2  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -172,6 +172,7 @@ HISTSIZE=256;
 [[ -f "${OPTF}${CHATGPTRC}" ]] && . "$CHATGPTRC";
 
 # Set file paths
+function set_pathsf {
 FILE="${CACHEDIR%/}/chatgpt.json"
 FILESTREAM="${CACHEDIR%/}/chatgpt_stream.json"
 FILECHAT="${FILECHAT:-${CACHEDIR%/}/chatgpt.tsv}"
@@ -189,6 +190,9 @@ USRLOG="${OUTDIR%/}/${FILETXT##*/}"
 HISTFILE="${CACHEDIR%/}/history_bash"
 HISTCONTROL=erasedups:ignoredups
 SAVEHIST=$HISTSIZE HISTTIMEFORMAT='%F %T '
+
+}
+set_pathsf;
 
 # API URL / endpoint
 OPENAI_BASE_URL_DEF="https://api.openai.com/v1";
@@ -601,7 +605,7 @@ Options
 	-P, -PP, --print  [/HIST_NAME]    (aliases to -HH and -HHH)
 		Print out last history session. Set twice to print
 		commented out entries, too. Heeds -ccdrR.
-
+	--tmp 	Temporary cache (usually at \`/tmp').
 	Input Modes
 	-u, --multiline
 		Toggle multiline prompter, <CTRL-D> flush.
@@ -1112,7 +1116,10 @@ function promptf
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2;" INT;
 	wait $pid; echo >&2;
 	trap 'exit' INT; RET_APRF=;
-	[[ -s $FILETXT ]] && { 	RET_APRF=$(<$FILETXT); : >"$FILETXT" ;}
+	((STREAM)) && [[ -s $FILETXT ]] && {
+	  RET_APRF=$(<$FILETXT); : >"$FILETXT";
+	  #don't remove file as recreating it costs time!
+	}
 
 	if ((OPTCLIP)) || [[ ! -t 1 ]]
 	then 	typeset out; out=$(
@@ -1423,7 +1430,7 @@ function is_responses_apif
 		;;
 	esac
 
-	#!#sync globs with is_visionf()!
+	#!#sync globs with is_visionf()!  #L#
 }
 #These tools are available across our GPT‑4o series, GPT‑4.1 series, and OpenAI o-series reasoning models.
 #https://platform.openai.com/docs/models
@@ -3721,7 +3728,7 @@ function is_visionf
 	*) 	((MULTIMODAL));;
 	esac;
 
-	#!#sync globs with is_responses_apif()!
+	#!#sync globs with is_responses_apif()!  #L#
 }
 
 #check for audio-model
@@ -5728,7 +5735,8 @@ function session_sub_fifof
 function cleanupf
 {
 	typeset ret=$?
-	((${#PIDS[@]})) || return 0
+	[[ -d $CACHEDIR_TMP ]] && rm -r -- "$CACHEDIR_TMP";
+	((${#PIDS[@]})) || return $ret;
 	for pid in ${PIDS[@]}
        	do 	kill -- $pid 2>/dev/null;
        	done;
@@ -5980,7 +5988,7 @@ o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
 S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
 U:cat  v:verbose  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
-no-time  format  voice  awesome-zh  awesome  source
+no-time  format  voice  awesome-zh  awesome  source  tmp
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -6117,6 +6125,7 @@ no-time  format  voice  awesome-zh  awesome  source
 			else 	INSTRUCTION="${opt##S}$OPTARG"
 			fi; OPTSSARG="$OPTARG";
 			;;
+		tmp) 	CACHEDIR=/dev/null;;
 		time) 	INST_TIME=1;;
 		no-time) 	INST_TIME=-1;;
 		source) ((OPTV)) || echo '[source]' >&2;
@@ -6143,7 +6152,7 @@ no-time  format  voice  awesome-zh  awesome  source
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT EPN_OLD  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT EPN_OLD CACHEDIR_TMP  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
@@ -6567,8 +6576,13 @@ then 	typeset -a argn; argn=();
 fi
 
 ((${#TERMUX_VERSION})) && [[ ! -d $OUTDIR ]] && _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
-[[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR" ||
-  { _warmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
+[[ -d "$CACHEDIR" ]] || mkdir -p -- "$CACHEDIR" || {
+	CACHEDIR=$(mktemp -d) || exit;
+	CACHEDIR_TMP=$CACHEDIR OUTDIR=$CACHEDIR FILECHAT=;
+	_warmsgf 'Warning:' "Temporary cache directory -- \`$CACHEDIR/\`";
+	set_pathsf;  #reset file paths!
+}
+
 if ! command -v jq >/dev/null 2>&1
 then 	function jq { 	false ;}
 	function escapef { 	_escapef "$@" ;}

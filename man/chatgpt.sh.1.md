@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.104.1 | General Commands Manual
+% CHATGPT.SH(1) v0.104.2 | General Commands Manual
 % mountaineerbr
 % July 2025
 
@@ -121,7 +121,7 @@ before the text prompt itself.
 : Dump template configuration file to stdout.
 
 
-## Sessions and History Files
+## Session and History Files
 
 **-H**, **\--hist**   \[`/`_HIST_NAME_]
 
@@ -138,6 +138,11 @@ before the text prompt itself.
       Heeds `options -ccdrR`.
 
       These are aliases to **-HH** and **-HHH**, respectively.
+
+
+**\--tmp**
+
+: Temporary cache (usually at `/tmp`).
 
 
 ## Input Modes
@@ -1376,7 +1381,7 @@ set command-line `option -c` instead.
 **PROVIDER_BASE_URL**
 
 :    Base URLs for each service provider:
-     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, _NOVITA_, _xAI_, and _DeepSeek_.
+     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, _NOVITA_, _XAI_, and _DEEPSEEK_.
 
 
 **OPENAI_API_KEY**

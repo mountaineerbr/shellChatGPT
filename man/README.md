@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2025
-title: CHATGPT.SH(1) v0.104.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.104.2 \| General Commands Manual
 ---
 
 # NAME
@@ -104,7 +104,7 @@ Edit configuration file with text editor, if it exists.
 **-FF**  
 Dump template configuration file to stdout.
 
-## Sessions and History Files
+## Session and History Files
 
 **-H**, **--hist** \[`/`*HIST_NAME*\]  
 Edit history file with text editor or pipe to stdout.
@@ -118,6 +118,9 @@ Set twice to print commented out history entries, inclusive. Heeds
 `options -ccdrR`.
 
 These are aliases to **-HH** and **-HHH**, respectively.
+
+**--tmp**  
+Temporary cache (usually at `/tmp`).
 
 ## Input Modes
 
@@ -1165,8 +1168,8 @@ with the full url path to disable endpoint auto selection.
 
 **PROVIDER_BASE_URL**  
 Base URLs for each service provider: *LOCALAI*, *OLLAMA*, *MISTRAL*,
-*GOOGLE*, *ANTHROPIC*, *GROQ*, *GITHUB*, *NOVITA*, *xAI*, and
-*DeepSeek*.
+*GOOGLE*, *ANTHROPIC*, *GROQ*, *GITHUB*, *NOVITA*, *XAI*, and
+*DEEPSEEK*.
 
 **OPENAI_API_KEY**
 

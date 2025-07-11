@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.104.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.104.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.104.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.104.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2025</p>
 </header>
@@ -290,7 +290,7 @@ before the text prompt itself.</p>
 <p>Dump template configuration file to stdout.</p>
 </dd>
 </dl>
-<h2 id="sessions-and-history-files">Sessions and History Files</h2>
+<h2 id="session-and-history-files">Session and History Files</h2>
 <dl>
 <dt><strong>-H</strong>, <strong>--hist</strong>
 [<code>/</code><em>HIST_NAME</em>]</dt>
@@ -306,6 +306,10 @@ before the text prompt itself.</p>
 <code>options -ccdrR</code>.</p>
 <p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
 respectively.</p>
+</dd>
+<dt><strong>--tmp</strong></dt>
+<dd>
+<p>Temporary cache (usually at <code>/tmp</code>).</p>
 </dd>
 </dl>
 <h2 id="input-modes">Input Modes</h2>
@@ -1755,8 +1759,8 @@ parameter with the full url path to disable endpoint auto selection.</p>
 <dd>
 <p>Base URLs for each service provider: <em>LOCALAI</em>,
 <em>OLLAMA</em>, <em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>,
-<em>GROQ</em>, <em>GITHUB</em>, <em>NOVITA</em>, <em>xAI</em>, and
-<em>DeepSeek</em>.</p>
+<em>GROQ</em>, <em>GITHUB</em>, <em>NOVITA</em>, <em>XAI</em>, and
+<em>DEEPSEEK</em>.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_API_KEY</strong></p>
