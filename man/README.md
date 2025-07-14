@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2025
-title: CHATGPT.SH(1) v0.104.2 \| General Commands Manual
+title: CHATGPT.SH(1) v0.104.3 \| General Commands Manual
 ---
 
 # NAME
@@ -782,6 +782,7 @@ or “`/`” are equivalent.
 
 | Script  | Settings and UX      |                                                          |
 |:--------|:---------------------|----------------------------------------------------------|
+| `!conf` | \-                   | Runtime configuration form.                              |
 | `!fold` | `!wrap`              | Toggle response wrapping.                                |
 | `-g`    | `!stream`            | Toggle response streaming.                               |
 | `-h`    | `!help` \[*REGEX*\]  | Print help or grep help for regex.                       |

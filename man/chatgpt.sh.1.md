@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.104.2 | General Commands Manual
+% CHATGPT.SH(1) v0.104.3 | General Commands Manual
 % mountaineerbr
 % July 2025
 
@@ -948,6 +948,7 @@ Command operators "`!`" or "`/`" are equivalent.
 
  Script            Settings and UX
  --------------    -----------------------    ----------------------------------------------------------
+   `!conf`          \-                        Runtime configuration form.
    `!fold`         `!wrap`                    Toggle response wrapping.
       `-g`         `!stream`                  Toggle response streaming.
       `-h`         `!help`     \[_REGEX_]     Print help or grep help for regex.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.104.2  jul/2025  by mountaineerbr  GPL+3
+# v0.104.3  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -795,7 +795,7 @@ function set_model_epnf
 	if ((OPENAI)) && case "$1" in
 		o[1-9]*-pro*|*-deep-research*|computer-use*|codex-mini*)
 			:;;
-		*) 	((OPTMAX_NILL));
+		*) 	((RESPONSES_API));
 			;;
 		esac
 	then
