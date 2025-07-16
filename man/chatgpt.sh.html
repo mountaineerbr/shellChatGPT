@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.104.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.105 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.104.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.105 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2025</p>
 </header>
@@ -1158,14 +1158,14 @@ prompt to change parameters and manage sessions. Command operators
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>!conf</code></td>
-<td style="text-align: left;">-</td>
-<td>Runtime configuration form.</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;"><code>!fold</code></td>
 <td style="text-align: left;"><code>!wrap</code></td>
 <td>Toggle response wrapping.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-F</code></td>
+<td style="text-align: left;"><code>!conf</code></td>
+<td>Runtime configuration form TUI.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-g</code></td>
@@ -1399,6 +1399,52 @@ flush.</td>
 <td>Save to log file.</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>!c</code></td>
+<td style="text-align: left;"><code>!copy</code> [<em>SRC_HIST</em>]
+[<em>DEST_HIST</em>]</td>
+<td>Copy session from source to destination.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!f</code></td>
+<td style="text-align: left;"><code>!fork</code>
+[<em>DEST_HIST</em>]</td>
+<td>Fork current session and continue from destination.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!k</code></td>
+<td style="text-align: left;"><code>!kill</code> [<em>NUM</em>]</td>
+<td>Comment out <em>n</em> last entries in history file.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!!k</code></td>
+<td style="text-align: left;"><code>!!kill</code>
+[[<em>0</em>]<em>NUM</em>]</td>
+<td>Dry-run of command <code>!kill</code>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!s</code></td>
+<td style="text-align: left;"><code>!session</code>
+[<em>HIST_NAME</em>]</td>
+<td>Change to, search for, or create history file.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!!s</code></td>
+<td style="text-align: left;"><code>!!session</code>
+[<em>HIST_NAME</em>]</td>
+<td>Same as <code>!session</code>, break session.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!u</code></td>
+<td style="text-align: left;"><code>!unkill</code> [<em>NUM</em>]</td>
+<td>Uncomment <em>n</em> last entries in history file.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!!u</code></td>
+<td style="text-align: left;"><code>!!unkill</code>
+[[<em>0</em>]<em>NUM</em>]</td>
+<td>Dry-run of command <code>!unkill</code>.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!br</code></td>
 <td style="text-align: left;"><code>!break</code>,
 <code>!new</code></td>
@@ -1415,41 +1461,6 @@ flush.</td>
 <td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
 <td>Grep sessions and copy session to hist tail.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!c</code></td>
-<td style="text-align: left;"><code>!copy</code> [<em>SRC_HIST</em>]
-[<em>DEST_HIST</em>]</td>
-<td>Copy session from source to destination.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!f</code></td>
-<td style="text-align: left;"><code>!fork</code>
-[<em>DEST_HIST</em>]</td>
-<td>Fork current session and continue from destination.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!k</code></td>
-<td style="text-align: left;"><code>!kill</code> [<em>NUM</em>]</td>
-<td>Comment out <em>n</em> last entries in history file.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!!k</code></td>
-<td style="text-align: left;"><code>!!kill</code>
-[[<em>0</em>]<em>NUM</em>]</td>
-<td>Dry-run of command <code>!kill</code>.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>!s</code></td>
-<td style="text-align: left;"><code>!session</code>
-[<em>HIST_NAME</em>]</td>
-<td>Change to, search for, or create history file.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>!!s</code></td>
-<td style="text-align: left;"><code>!!session</code>
-[<em>HIST_NAME</em>]</td>
-<td>Same as <code>!session</code>, break session.</td>
 </tr>
 </tbody>
 </table>

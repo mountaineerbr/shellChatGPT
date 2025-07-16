@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.104.3 | General Commands Manual
+% CHATGPT.SH(1) v0.105 | General Commands Manual
 % mountaineerbr
 % July 2025
 
@@ -948,8 +948,8 @@ Command operators "`!`" or "`/`" are equivalent.
 
  Script            Settings and UX
  --------------    -----------------------    ----------------------------------------------------------
-   `!conf`          \-                        Runtime configuration form.
    `!fold`         `!wrap`                    Toggle response wrapping.
+      `-F`         `!conf`                    Runtime configuration form TUI.
       `-g`         `!stream`                  Toggle response streaming.
       `-h`         `!help`     \[_REGEX_]     Print help or grep help for regex.
       `-l`         `!models`    \[_NAME_]     List language models or show model details.
@@ -999,15 +999,17 @@ Command operators "`!`" or "`/`" are equivalent.
       `-H`         `!hist`                                   Edit history in editor.
       `-P`         `-HH`, `!print`                           Print session history.
       `-L`         `!log`       \[_FILEPATH_]                Save to log file.
-     `!br`         `!break`, `!new`                          Start new session (session break).
-     `!ls`         `!list`      \[_GLOB_|_._|_pr_|_awe_]     List history files with "_glob_" in _name_; Files: "_._"; Prompts: "_pr_"; Awesome: "_awe_".
-   `!grep`         `!sub`       \[_REGEX_]                   Grep sessions and copy session to hist tail.
       `!c`         `!copy`  \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
       `!f`         `!fork`      \[_DEST_HIST_]               Fork current session and continue from destination.
       `!k`         `!kill`      \[_NUM_]                     Comment out _n_ last entries in history file.
      `!!k`         `!!kill`     \[\[_0_]_NUM_]               Dry-run of command `!kill`.
       `!s`         `!session`   \[_HIST_NAME_]               Change to, search for, or create history file.
      `!!s`         `!!session`  \[_HIST_NAME_]               Same as `!session`, break session.
+      `!u`         `!unkill`    \[_NUM_]                     Uncomment _n_ last entries in history file.
+     `!!u`         `!!unkill`   \[\[_0_]_NUM_]               Dry-run of command `!unkill`.
+     `!br`         `!break`, `!new`                          Start new session (session break).
+     `!ls`         `!list`      \[_GLOB_|_._|_pr_|_awe_]     List history files with "_glob_" in _name_; Files: "_._"; Prompts: "_pr_"; Awesome: "_awe_".
+   `!grep`         `!sub`       \[_REGEX_]                   Grep sessions and copy session to hist tail.
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
 
 

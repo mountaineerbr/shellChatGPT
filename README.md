@@ -260,12 +260,21 @@ The `chatgpt.sh` script can be run in various modes by setting
 | `-q`   | [Text Completions Insert Mode](#insert-mode-of-text-completions) (FIM) / single-turn |
 | `-qq`  | Text Completions Insert Mode (FIM) / multi-turn                                      |
 
+<!--
+| `-b`   | [Responses API](#responses-api) / single-turn                                        |
+-->
+
 | Option  | Description  (all multi-turn)                                                   |
 |---------|---------------------------------------------------------------------------------|
 | `-cw`   | Text Chat Completions + voice-in                                                |
 | `-cwz`  | Text Chat Completions + voice-in + voice-out                                    |
 | `-ccw`  | Chat Completions + voice-in                                                     |
 | `-ccwz` | [Chat Completions + voice-in + voice-out](#voice-in-and-out--chat-completions)  |
+
+<!--
+| `-bbw`  | Responses API + voice-in                                                        |
+| `-bbwz` | Responses API + voice-in + voice-out                                            |
+-->
 
 | Option | Description   (independent modes)                                   |
 |--------|---------------------------------------------------------------------|
@@ -283,14 +292,14 @@ Start a new session in chat mode, and set a different temperature:
     chatgpt.sh -cc -t0.7
 
 
-Change the maximum response length to 4k tokens:
+Change the **maximum response length** to 4k tokens:
 
     chatgpt.sh -cc -4000
     
     chatgpt.sh -cc -M 4000
 
 
-And change a model token capacity to 200k tokens:
+And change **model token capacity** to 200k tokens:
 
     chatgpt.sh -cc -N 200000
 
@@ -299,7 +308,6 @@ Create **Marv, the sarcastic bot**:
 
     chatgpt.sh -512 -cc --frequency-penalty=0.7 --temp=0.8 --top_p=0.4 --restart-seq='\nYou: ' --start-seq='\nMarv:' --stop='You:' --stop='Marv:' -S'Marv is a factual chatbot that reluctantly answers questions with sarcastic responses.'
 
-
 <!--
 {"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "What's the capital of France?"}, {"role": "assistant", "content": "Paris, as if everyone doesn't know that already."}]}
 {"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "Who wrote 'Romeo and Juliet'?"}, {"role": "assistant", "content": "Oh, just some guy named William Shakespeare. Ever heard of him?"}]}
@@ -307,8 +315,10 @@ Create **Marv, the sarcastic bot**:
 -->
 <!-- https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset -->
 
+**Tip:** Easily set runtime options with chat command `!conf`!
 
-Load the custom *unix instruction file* ("unix.pr") for a new session.
+
+Load the *custom-made unix* **instruction file** ("unix.pr") for a new session.
 The command line syntaxes below are all aliases:
 
 
@@ -324,7 +334,7 @@ The command line syntaxes below are all aliases:
 In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "unix.tsv" file at the cache directory.
 -->
 
-To only change the history file that the session will be recorded,
+To **change the history file** in which the session will be recorded,
 set the first positional argument in the command line with the operator forward slash "`/`"
 and the name of the history file (this executes the `/session` command).
 
@@ -346,7 +356,7 @@ The command below starts a chat session, loads the "unix" instruction, and chang
 -->
 
 
-There is a shortcut to load an older session from the defaults (or current)
+There is a **shortcut to load an older session** from the default (or current)
 history file. This opens a basic interactive interface.
 
     chatgpt.sh -cc .
@@ -624,7 +634,7 @@ Mistral AI has a nice FIM (fill-in-the-middle) endpoint that works
 with `code` models and is really good!
 
 
-### Responses API
+## Responses API
 
 Responses API is a superset of Chat Completions API. Set command
 line `option -b` (with `-cc`), or set `options -bb` for multiturn.
@@ -675,7 +685,7 @@ To enable markdown rendering of responses, set command line `option --markdown`,
 or run `/md` in chat mode. To render last response in markdown once,
 run `//md`.
 
-The markdown option uses `bat` as it has line buffering on by defaults,
+The markdown option uses `bat` as it has line buffering on by default,
 however other software is supported.
 Set the software of choice such as `--markdown=glow` or `/md mdless`.
 
@@ -1069,7 +1079,7 @@ a model and set it up.
 
 *3.* Set up `$GALLERIES` before starting up the server:
 
-    export GALLERIES='[{"name":"localai", "url":"github:mudler/localai/gallery/index.yaml"}]'  #defaults
+    export GALLERIES='[{"name":"localai", "url":"github:mudler/localai/gallery/index.yaml"}]'  #default
 
     export GALLERIES='[{"name":"model-gallery", "url":"github:go-skynet/model-gallery/index.yaml"}]'
 
@@ -1141,7 +1151,8 @@ Gallery defaults to [HuggingFace](https://huggingface.co/).
 
 #### BASE URL Configuration
 
-If the service provider Base URL is different from the defaults.
+If the service provider Base URL is different from defaults,
+these tips may help make the script work with your API.
 
 The environment variable `$OPENAI_BASE_URL` is read at invocation.
 
@@ -1211,7 +1222,7 @@ and the name of the model in `chatgpt.sh`:
     chatgpt.sh -cc -O -m llama2
 
 
-If Ollama server URL is not the defaults `http://localhost:11434`,
+If Ollama server URL is not the default `http://localhost:11434`,
 edit `chatgpt.sh` configuration file, and set the following variable:
 
     # ~/.chatgpt.conf
@@ -1440,7 +1451,7 @@ It works with chat completions  (`option -cc`) and text completions (`option -c`
 
 - Optionally, set `$CHATGPTRC` with path to the configuration file (run
 `chatgpt.sh -FF` to download a template configuration file.
-Defaults location = `~/.chatgpt.conf`.
+Default location = `~/.chatgpt.conf`.
 -->
 
 <!--
@@ -1678,7 +1689,7 @@ Merry 2024 [Grav Mass!](https://stallman.org/grav-mass.html)
 <!--
 ## Distinct Features
 
-- **Run as single** or **multi-turn**, response streaming on by defaults.
+- **Run as single** or **multi-turn**, response streaming on by default.
 
 - **Text editor interface**, and **multiline prompters**. 
 
