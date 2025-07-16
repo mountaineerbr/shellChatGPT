@@ -252,6 +252,7 @@ The `chatgpt.sh` script can be run in various modes by setting
 
 | Option | Description                                                                          |
 |--------|--------------------------------------------------------------------------------------|
+| `-b`   | [Responses API](#responses-api) / single-turn                                        |
 | `-bb`  | [Responses API](#responses-api) / multi-turn                                         |
 | `-c`   | [Text Chat Completions](#chat-mode-of-text-completions) / multi-turn                 |
 | `-cc`  | [Chat Completions (Native)](#--native-chat-completions) / multi-turn                 |
@@ -260,9 +261,6 @@ The `chatgpt.sh` script can be run in various modes by setting
 | `-q`   | [Text Completions Insert Mode](#insert-mode-of-text-completions) (FIM) / single-turn |
 | `-qq`  | Text Completions Insert Mode (FIM) / multi-turn                                      |
 
-<!--
-| `-b`   | [Responses API](#responses-api) / single-turn                                        |
--->
 
 | Option  | Description  (all multi-turn)                                                   |
 |---------|---------------------------------------------------------------------------------|
@@ -275,6 +273,7 @@ The `chatgpt.sh` script can be run in various modes by setting
 | `-bbw`  | Responses API + voice-in                                                        |
 | `-bbwz` | Responses API + voice-in + voice-out                                            |
 -->
+
 
 | Option | Description   (independent modes)                                   |
 |--------|---------------------------------------------------------------------|
