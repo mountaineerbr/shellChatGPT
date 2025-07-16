@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.105.1  jul/2025  by mountaineerbr  GPL+3
+# v0.105.2  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -569,6 +569,41 @@ Command List
 
 
 Options
+	Miscellanous Settings
+	--api-key  [KEY]
+		The API key to use.
+	--fold (defaults), --no-fold
+		Set or unset response folding (wrap at white spaces).
+	-h, --help
+		Print this help page.
+	--info  Print OpenAI usage status (envar \`\$OPENAI_ADMIN_KEY\`).
+	-k, --no-colour
+		Disable colour output. Def=auto.
+	-l, --list-models  [MOD]
+		List models or print details of MODEL.
+	-L, --log   [FILEPATH]
+		Log file. FILEPATH is required.
+	--md, --markdown, --markdown=[SOFTWARE]
+		Enable markdown rendering in response. Software is optional:
+		\`bat', \`pygmentize', \`glow', \`mdcat', or \`mdless'.
+	--no-md, --no-markdown
+		Disable markdown rendering.
+	-o, --clipboard
+		Copy response to clipboard.
+	-v, --verbose
+		Less verbose. With -ccwv, sleep after response. With
+		-ccwzvv, stop recording voice input on silence and play
+		TTS response right away. May be set multiple times.
+	-V  	Dump raw request block to stderr (debug).
+	--version
+		Print script version.
+	-y, --tik
+		Tiktoken for token count (cmpls/chat).
+	-Y, --no-tik  (defaults)
+		Unset tiktoken use (cmpls/chat).
+	-Z, -ZZ, -ZZZ, --last
+		Print data from the last JSON responses.
+
 	Service Providers
 	--anthropic
 		Anthropic integration (cmpls/chat). See --think.
@@ -606,6 +641,7 @@ Options
 		Print out last history session. Set twice to print
 		commented out entries, too. Heeds -ccdrR.
 	--tmp 	Temporary cache (usually at \`/tmp').
+
 	Input Modes
 	-u, --multiline
 		Toggle multiline prompter, <CTRL-D> flush.
@@ -614,62 +650,6 @@ Options
 	-x, -xx, --editor
 		Edit prompt in text editor. Set twice for single-shot.
 		Options -eex to edit last text buffer from cache.
-
-	Interface Modes
-	-b, --responses
-		Responses API calls (may be used with -cc). Limited
-		support. See --model.
-	-c, --chat
-		Chat mode in text completions (used with -wzvv).
-	-cc 	Chat mode in chat completions (used with -wzvv).
-	-C, --continue, --resume
-		Continue from (resume) last session (cmpls/chat).
-	-d, --text
-		Single-turn session of plain text completions.
-	-dd 	Same as -d, multi-turn and history support.
-	-e, --edit
-		Edit the first input before request. (cmpls/chat).
-		With options -eex, edit the last text editor buffer.
-	-E, -EE, --exit
-		Exit on first run (even with -cc).
-	-g, --stream  (defaults)
-		Response streaming.
-	-G, --no-stream
-		Unset response streaming.
-	-i, --image   [PROMPT]
-		Generate images given a prompt.
-	-i  [PNG]
-		Create variations of a given image.
-	-i  [PNG] [MASK] [PROMPT]
-		Edit image with mask, and prompt (required).
-	-q, -qq, --insert
-		Insert text mode. Use \`[insert]' tag within the prompt.
-		Set twice for multi-turn (\`instruct', Mistral \`code' models).
-	-S .[PROMPT_NAME],  -.[PROMPT_NAME]
-	-S ,[PROMPT_NAME],  -,[PROMPT_NAME]
-		Load, search for, or create custom prompt.
-		Set \`.[prompt]' to load prompt silently.
-		Set \`,[prompt]' to single-shot edit prompt.
-		Set \`,,[prompt]' to edit the prompt template.
-		Set \`.?' to list all prompt template files.
-	-S, --awesome  /[AWESOME_PROMPT_NAME]
-	-S, --awesome-zh  %[AWESOME_PROMPT_NAME_ZH]
-		Set or search an awesome-chatgpt-prompt(-zh).
-		Set \`//' or \`%%' to refresh cache.
-	-T, -TT, -TTT, --tiktoken
-		Count input tokens with Tiktoken. Set twice to print
-		tokens, thrice to available encodings. Set the model
-		or encoding with option -m. It heeds options -ccm.
-	-w, --transcribe  [AUD] [LANG] [PROMPT]
-		Transcribe audio file into text (transcription models, STT).
-		LANG is optional. A prompt that matches the audio language
-		is optional. Set twice to phrase or thrice for word-level
-		timestamps (-www). With -vv, stop voice recorder on silence.
-	-W, --translate   [AUD] [PROMPT-EN]
-		Translate audio file into English text (whisper models).
-		Set twice to phrase or thrice for word-level timestamps (-WWW).
-	-z, --tts   [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
-		Synthesise speech from text prompt, set -v to not play.
 
 	Model Settings
 	-@, --alpha  [[VAL%]COLOUR]
@@ -730,40 +710,62 @@ Options
 		  [ ash | ballad | coral | sage | verse ]
 		  [ Adelaide-PlayAI | Angelo-PlayAI | Arista-PlayAI.. ]
 		TTS voice name (OpenAI, Groq). Def=echo, Aaliyah-PlayAI.
-	Miscellanous Settings
-	--api-key  [KEY]
-		The API key to use.
-	--fold (defaults), --no-fold
-		Set or unset response folding (wrap at white spaces).
-	-h, --help
-		Print this help page.
-	--info  Print OpenAI usage status (envar \`\$OPENAI_ADMIN_KEY\`).
-	-k, --no-colour
-		Disable colour output. Def=auto.
-	-l, --list-models  [MOD]
-		List models or print details of MODEL.
-	-L, --log   [FILEPATH]
-		Log file. FILEPATH is required.
-	--md, --markdown, --markdown=[SOFTWARE]
-		Enable markdown rendering in response. Software is optional:
-		\`bat', \`pygmentize', \`glow', \`mdcat', or \`mdless'.
-	--no-md, --no-markdown
-		Disable markdown rendering.
-	-o, --clipboard
-		Copy response to clipboard.
-	-v, --verbose
-		Less verbose. With -ccwv, sleep after response. With
-		-ccwzvv, stop recording voice input on silence and play
-		TTS response right away. May be set multiple times.
-	-V  	Dump raw request block to stderr (debug).
-	--version
-		Print script version.
-	-y, --tik
-		Tiktoken for token count (cmpls/chat).
-	-Y, --no-tik  (defaults)
-		Unset tiktoken use (cmpls/chat).
-	-Z, -ZZ, -ZZZ, --last
-		Print data from the last JSON responses."
+
+	Interface Modes
+	-b, --responses
+		Responses API calls (may be used with -cc). Limited
+		support. See --model.
+	-c, --chat
+		Chat mode in text completions (used with -wzvv).
+	-cc 	Chat mode in chat completions (used with -wzvv).
+	-C, --continue, --resume
+		Continue from (resume) last session (cmpls/chat).
+	-d, --text
+		Single-turn session of plain text completions.
+	-dd 	Same as -d, multi-turn and history support.
+	-e, --edit
+		Edit the first input before request. (cmpls/chat).
+		With options -eex, edit the last text editor buffer.
+	-E, -EE, --exit
+		Exit on first run (even with -cc).
+	-g, --stream  (defaults)
+		Response streaming.
+	-G, --no-stream
+		Unset response streaming.
+	-i, --image   [PROMPT]
+		Generate images given a prompt.
+	-i  [PNG]
+		Create variations of a given image.
+	-i  [PNG] [MASK] [PROMPT]
+		Edit image with mask, and prompt (required).
+	-q, -qq, --insert
+		Insert text mode. Use \`[insert]' tag within the prompt.
+		Set twice for multi-turn (\`instruct', Mistral \`code' models).
+	-S .[PROMPT_NAME],  -.[PROMPT_NAME]
+	-S ,[PROMPT_NAME],  -,[PROMPT_NAME]
+		Load, search for, or create custom prompt.
+		Set \`.[prompt]' to load prompt silently.
+		Set \`,[prompt]' to single-shot edit prompt.
+		Set \`,,[prompt]' to edit the prompt template.
+		Set \`.?' to list all prompt template files.
+	-S, --awesome  /[AWESOME_PROMPT_NAME]
+	-S, --awesome-zh  %[AWESOME_PROMPT_NAME_ZH]
+		Set or search an awesome-chatgpt-prompt(-zh).
+		Set \`//' or \`%%' to refresh cache.
+	-T, -TT, -TTT, --tiktoken
+		Count input tokens with Tiktoken. Set twice to print
+		tokens, thrice to available encodings. Set the model
+		or encoding with option -m. It heeds options -ccm.
+	-w, --transcribe  [AUD] [LANG] [PROMPT]
+		Transcribe audio file into text (transcription models, STT).
+		LANG is optional. A prompt that matches the audio language
+		is optional. Set twice to phrase or thrice for word-level
+		timestamps (-www). With -vv, stop voice recorder on silence.
+	-W, --translate   [AUD] [PROMPT-EN]
+		Translate audio file into English text (whisper models).
+		Set twice to phrase or thrice for word-level timestamps (-WWW).
+	-z, --tts   [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
+		Synthesise speech from text prompt, set -v to not play."
 
 ENDPOINTS=(
 	/completions               #0

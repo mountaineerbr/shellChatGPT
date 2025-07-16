@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.105 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.105.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.105 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.105.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2025</p>
 </header>
@@ -226,111 +226,6 @@ text-to-speech models.</p>
 as Whisper (STT) and TTS may handle optional positional parameters
 before the text prompt itself.</p>
 <h1 id="options">OPTIONS</h1>
-<h2 id="service-providers">Service Providers</h2>
-<dl>
-<dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
-<dd>
-<p>Anthropic integration (cmpls/chat). Also see
-<strong>--think</strong>.</p>
-</dd>
-<dt><strong>--deepseek</strong>, <strong>--deep</strong></dt>
-<dd>
-<p>DeepSeek integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--github</strong>, <strong>--git</strong></dt>
-<dd>
-<p>GitHub Models integration (chat).</p>
-</dd>
-<dt><strong>--google</strong>, <strong>-goo</strong></dt>
-<dd>
-<p>Google Gemini integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--groq</strong></dt>
-<dd>
-<p>Groq AI integration (chat).</p>
-</dd>
-<dt><strong>--localai</strong></dt>
-<dd>
-<p>LocalAI integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--mistral</strong></dt>
-<dd>
-<p>Mistral AI integration (chat).</p>
-</dd>
-<dt><strong>--novita</strong></dt>
-<dd>
-<p>Novita AI integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--openai</strong></dt>
-<dd>
-<p>Reset service integrations.</p>
-</dd>
-<dt><strong>-O</strong>, <strong>--ollama</strong></dt>
-<dd>
-<p>Ollama server integration (cmpls/chat).</p>
-</dd>
-<dt><strong>--xai</strong></dt>
-<dd>
-<p>xAI’s Grok integration (cmpls/chat).</p>
-</dd>
-</dl>
-<h2 id="configuration-file">Configuration File</h2>
-<dl>
-<dt><strong>-f</strong>, <strong>--no-conf</strong></dt>
-<dd>
-<p>Ignore user configuration file.</p>
-</dd>
-<dt><strong>-F</strong></dt>
-<dd>
-<p>Edit configuration file with text editor, if it exists.</p>
-<p>$CHATGPTRC="<em>~/.chatgpt.conf</em>".</p>
-</dd>
-<dt><strong>-FF</strong></dt>
-<dd>
-<p>Dump template configuration file to stdout.</p>
-</dd>
-</dl>
-<h2 id="session-and-history-files">Session and History Files</h2>
-<dl>
-<dt><strong>-H</strong>, <strong>--hist</strong>
-[<code>/</code><em>HIST_NAME</em>]</dt>
-<dd>
-<p>Edit history file with text editor or pipe to stdout.</p>
-<p>A history file name can be optionally set as argument.</p>
-</dd>
-<dt><strong>-P</strong>, <strong>-PP</strong>, <strong>--print</strong>
-[<code>/</code><em>HIST_NAME</em>]</dt>
-<dd>
-<p>Print out last history session.</p>
-<p>Set twice to print commented out history entries, inclusive. Heeds
-<code>options -ccdrR</code>.</p>
-<p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
-respectively.</p>
-</dd>
-<dt><strong>--tmp</strong></dt>
-<dd>
-<p>Temporary cache (usually at <code>/tmp</code>).</p>
-</dd>
-</dl>
-<h2 id="input-modes">Input Modes</h2>
-<dl>
-<dt><strong>-u</strong>, <strong>--multiline</strong></dt>
-<dd>
-<p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
-</dd>
-<dt><strong>-U</strong>, <strong>--cat</strong></dt>
-<dd>
-<p>Cat prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
-</dd>
-<dt><strong>-x</strong>, <strong>-xx</strong>,
-<strong>--editor</strong></dt>
-<dd>
-<p>Edit prompt in text editor.</p>
-<p>Set twice to run the text editor interface a single time for the
-first user input.</p>
-<p>Set <code>options -eex</code> to edit last buffer from cache.</p>
-</dd>
-</dl>
 <h2 id="interface-modes">Interface Modes</h2>
 <dl>
 <dt><strong>-b</strong>, <strong>--responses</strong></dt>
@@ -466,6 +361,25 @@ text prompt.</p>
 <p>Set <code>option -v</code> to not play response automatically.</p>
 </dd>
 </dl>
+<h2 id="input-modes">Input Modes</h2>
+<dl>
+<dt><strong>-u</strong>, <strong>--multiline</strong></dt>
+<dd>
+<p>Toggle multiline prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
+</dd>
+<dt><strong>-U</strong>, <strong>--cat</strong></dt>
+<dd>
+<p>Cat prompter, &lt;<em>CTRL-D</em>&gt; flush.</p>
+</dd>
+<dt><strong>-x</strong>, <strong>-xx</strong>,
+<strong>--editor</strong></dt>
+<dd>
+<p>Edit prompt in text editor.</p>
+<p>Set twice to run the text editor interface a single time for the
+first user input.</p>
+<p>Set <code>options -eex</code> to edit last buffer from cache.</p>
+</dd>
+</dl>
 <h2 id="model-settings">Model Settings</h2>
 <dl>
 <dt><strong>-@</strong>, <strong>--alpha</strong>
@@ -594,6 +508,92 @@ Def=<em>0</em>.</p>
 <dd>
 <p>TTS voice name. OpenAI or PlayAI (Groq) voice names.
 Def=<em>echo</em>, <em>Aaliyah-PlayAI</em>.</p>
+</dd>
+</dl>
+<h2 id="session-and-history-files">Session and History Files</h2>
+<dl>
+<dt><strong>-H</strong>, <strong>--hist</strong>
+[<code>/</code><em>HIST_NAME</em>]</dt>
+<dd>
+<p>Edit history file with text editor or pipe to stdout.</p>
+<p>A history file name can be optionally set as argument.</p>
+</dd>
+<dt><strong>-P</strong>, <strong>-PP</strong>, <strong>--print</strong>
+[<code>/</code><em>HIST_NAME</em>]</dt>
+<dd>
+<p>Print out last history session.</p>
+<p>Set twice to print commented out history entries, inclusive. Heeds
+<code>options -ccdrR</code>.</p>
+<p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
+respectively.</p>
+</dd>
+<dt><strong>--tmp</strong></dt>
+<dd>
+<p>Temporary cache (usually at <code>/tmp</code>).</p>
+</dd>
+</dl>
+<h2 id="configuration-file">Configuration File</h2>
+<dl>
+<dt><strong>-f</strong>, <strong>--no-conf</strong></dt>
+<dd>
+<p>Ignore user configuration file.</p>
+</dd>
+<dt><strong>-F</strong></dt>
+<dd>
+<p>Edit configuration file with text editor, if it exists.</p>
+<p>$CHATGPTRC="<em>~/.chatgpt.conf</em>".</p>
+</dd>
+<dt><strong>-FF</strong></dt>
+<dd>
+<p>Dump template configuration file to stdout.</p>
+</dd>
+</dl>
+<h2 id="service-providers">Service Providers</h2>
+<dl>
+<dt><strong>--anthropic</strong>, <strong>--ant</strong></dt>
+<dd>
+<p>Anthropic integration (cmpls/chat). Also see
+<strong>--think</strong>.</p>
+</dd>
+<dt><strong>--deepseek</strong>, <strong>--deep</strong></dt>
+<dd>
+<p>DeepSeek integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--github</strong>, <strong>--git</strong></dt>
+<dd>
+<p>GitHub Models integration (chat).</p>
+</dd>
+<dt><strong>--google</strong>, <strong>-goo</strong></dt>
+<dd>
+<p>Google Gemini integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--groq</strong></dt>
+<dd>
+<p>Groq AI integration (chat).</p>
+</dd>
+<dt><strong>--localai</strong></dt>
+<dd>
+<p>LocalAI integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--mistral</strong></dt>
+<dd>
+<p>Mistral AI integration (chat).</p>
+</dd>
+<dt><strong>--novita</strong></dt>
+<dd>
+<p>Novita AI integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--openai</strong></dt>
+<dd>
+<p>Reset service integrations.</p>
+</dd>
+<dt><strong>-O</strong>, <strong>--ollama</strong></dt>
+<dd>
+<p>Ollama server integration (cmpls/chat).</p>
+</dd>
+<dt><strong>--xai</strong></dt>
+<dd>
+<p>xAI’s Grok integration (cmpls/chat).</p>
 </dd>
 </dl>
 <h2 id="miscellaneous-settings">Miscellaneous Settings</h2>

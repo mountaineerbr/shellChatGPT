@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2025
-title: CHATGPT.SH(1) v0.105 \| General Commands Manual
+title: CHATGPT.SH(1) v0.105.2 \| General Commands Manual
 ---
 
 # NAME
@@ -55,88 +55,6 @@ Whisper (STT) and TTS may handle optional positional parameters before
 the text prompt itself.
 
 # OPTIONS
-
-## Service Providers
-
-**--anthropic**, **--ant**  
-Anthropic integration (cmpls/chat). Also see **--think**.
-
-**--deepseek**, **--deep**  
-DeepSeek integration (cmpls/chat).
-
-**--github**, **--git**  
-GitHub Models integration (chat).
-
-**--google**, **-goo**  
-Google Gemini integration (cmpls/chat).
-
-**--groq**  
-Groq AI integration (chat).
-
-**--localai**  
-LocalAI integration (cmpls/chat).
-
-**--mistral**  
-Mistral AI integration (chat).
-
-**--novita**  
-Novita AI integration (cmpls/chat).
-
-**--openai**  
-Reset service integrations.
-
-**-O**, **--ollama**  
-Ollama server integration (cmpls/chat).
-
-**--xai**  
-xAI’s Grok integration (cmpls/chat).
-
-## Configuration File
-
-**-f**, **--no-conf**  
-Ignore user configuration file.
-
-**-F**  
-Edit configuration file with text editor, if it exists.
-
-\$CHATGPTRC="*~/.chatgpt.conf*".
-
-**-FF**  
-Dump template configuration file to stdout.
-
-## Session and History Files
-
-**-H**, **--hist** \[`/`*HIST_NAME*\]  
-Edit history file with text editor or pipe to stdout.
-
-A history file name can be optionally set as argument.
-
-**-P**, **-PP**, **--print** \[`/`*HIST_NAME*\]  
-Print out last history session.
-
-Set twice to print commented out history entries, inclusive. Heeds
-`options -ccdrR`.
-
-These are aliases to **-HH** and **-HHH**, respectively.
-
-**--tmp**  
-Temporary cache (usually at `/tmp`).
-
-## Input Modes
-
-**-u**, **--multiline**  
-Toggle multiline prompter, \<*CTRL-D*\> flush.
-
-**-U**, **--cat**  
-Cat prompter, \<*CTRL-D*\> flush.
-
-**-x**, **-xx**, **--editor**  
-Edit prompt in text editor.
-
-Set twice to run the text editor interface a single time for the first
-user input.
-
-Set `options -eex` to edit last buffer from cache.
 
 ## Interface Modes
 
@@ -240,6 +158,22 @@ prompt.
 
 Set `option -v` to not play response automatically.
 
+## Input Modes
+
+**-u**, **--multiline**  
+Toggle multiline prompter, \<*CTRL-D*\> flush.
+
+**-U**, **--cat**  
+Cat prompter, \<*CTRL-D*\> flush.
+
+**-x**, **-xx**, **--editor**  
+Edit prompt in text editor.
+
+Set twice to run the text editor interface a single time for the first
+user input.
+
+Set `options -eex` to edit last buffer from cache.
+
 ## Model Settings
 
 **-@**, **--alpha** \[\[*VAL%*\]*COLOUR*\]  
@@ -327,6 +261,72 @@ Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0). Def=*0*.
 **--voice** \[*alloy*\|*fable*\|*onyx*\|*nova*\|*shimmer*\|*ash*\|*ballad*\|*coral*\|*sage*\|*verse*\|*Adelaide-PlayAI*\|*Angelo-PlayAI*\|*Arista-PlayAI..*\]  
 TTS voice name. OpenAI or PlayAI (Groq) voice names. Def=*echo*,
 *Aaliyah-PlayAI*.
+
+## Session and History Files
+
+**-H**, **--hist** \[`/`*HIST_NAME*\]  
+Edit history file with text editor or pipe to stdout.
+
+A history file name can be optionally set as argument.
+
+**-P**, **-PP**, **--print** \[`/`*HIST_NAME*\]  
+Print out last history session.
+
+Set twice to print commented out history entries, inclusive. Heeds
+`options -ccdrR`.
+
+These are aliases to **-HH** and **-HHH**, respectively.
+
+**--tmp**  
+Temporary cache (usually at `/tmp`).
+
+## Configuration File
+
+**-f**, **--no-conf**  
+Ignore user configuration file.
+
+**-F**  
+Edit configuration file with text editor, if it exists.
+
+\$CHATGPTRC="*~/.chatgpt.conf*".
+
+**-FF**  
+Dump template configuration file to stdout.
+
+## Service Providers
+
+**--anthropic**, **--ant**  
+Anthropic integration (cmpls/chat). Also see **--think**.
+
+**--deepseek**, **--deep**  
+DeepSeek integration (cmpls/chat).
+
+**--github**, **--git**  
+GitHub Models integration (chat).
+
+**--google**, **-goo**  
+Google Gemini integration (cmpls/chat).
+
+**--groq**  
+Groq AI integration (chat).
+
+**--localai**  
+LocalAI integration (cmpls/chat).
+
+**--mistral**  
+Mistral AI integration (chat).
+
+**--novita**  
+Novita AI integration (cmpls/chat).
+
+**--openai**  
+Reset service integrations.
+
+**-O**, **--ollama**  
+Ollama server integration (cmpls/chat).
+
+**--xai**  
+xAI’s Grok integration (cmpls/chat).
 
 ## Miscellaneous Settings
 
