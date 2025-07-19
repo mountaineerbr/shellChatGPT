@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.105.3  jul/2025  by mountaineerbr  GPL+3
+# v0.105.4  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1099,10 +1099,10 @@ function promptf
 	fi
 
 	if ((STREAM))
-	then 	: >"$FILETXT"; RET_APRF=;
+	then 	: >"$FILEFIFO"; RET_APRF=;
 		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%s\\b${NC}" "C" >&2;
 		{ _promptf || exit ;} |  #!#
-		{ prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILETXT"; exit $ret ;}
+		{ prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILEFIFO"; exit $ret ;}
 	else
 		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "C" >&2;
 		COLUMNS=$((COLUMNS-1)) _promptf ||
@@ -1121,8 +1121,8 @@ function promptf
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2;" INT;
 	wait $pid; echo >&2;
 	trap 'exit' INT; RET_APRF=;
-	((STREAM)) && [[ -s $FILETXT ]] && {
-	  RET_APRF=$(<$FILETXT); : >"$FILETXT";
+	((STREAM)) && [[ -s $FILEFIFO ]] && {
+	  RET_APRF=$(<$FILEFIFO); : >"$FILEFIFO";
 	  #don't remove file as recreating it costs time!
 	}
 
@@ -2208,7 +2208,7 @@ CONF_DIALOG="\Zr# RUNTIME OPTIONS #\ZR
 
   * \ZbOverrides (*)\ZB:
     Fields such as  '\ZbGroq STT\ZB', '\ZbMistral STT\ZB', and '\ZbGroq TTS\ZB' are \Zbbooleans\ZB.
-    Setting any of these to \Zb1\ZB (true) prefers the use of that specific service for the task, while \Zb-1\ZB to avoid it."
+    Setting any of these to \Zb1\ZB (true) prefers the use of that specific service for the task, while \Zb-1\ZB avoids it."
 
 #dynamic window title
 #outer title / inner name
@@ -3471,7 +3471,7 @@ function edf
 	fi
 
 	((OPTCMPL)) || [[ $pre != *[!$IFS]* ]] || pre="${pre}"$'\n\n'"${ed_msg}"
-	if ((OPTE>1))
+	if ((OPTE>1))  #options -eex edit last buffer
 	then 	printf "%s\\n" "${1:+${NL}${NL}}${*}" >> "$FILETXT"; OPTE= pre= ;  #dont clear buffer
 	else 	printf "%s\\n" "${pre}${pre:+${NL}${NL}}${rest}${*}" > "$FILETXT";
 	fi
@@ -7105,7 +7105,7 @@ then 	OPTRESUME=1 BREAK_SET=
 		then 	usr_logf "$HIST" | mdf
 		else 	usr_logf "$HIST" | foldf
 		fi
-		[[ ! -e $FILEFIFO ]] || rm -- "$FILEFIFO"
+		#[[ ! -e $FILEFIFO ]] || rm -- "$FILEFIFO"
 	elif [[ -t 1 ]]
 	then 	_edf "$FILECHAT"
 	else 	cat -- "$FILECHAT"
