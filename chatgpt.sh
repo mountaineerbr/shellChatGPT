@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.106  jul/2025  by mountaineerbr  GPL+3
+# v0.106.1  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2825,7 +2825,7 @@ function cmdf
 			;;
 		source)   #resource own functions (devel)
 			OPTF=1 OPTIND=1 OPTARG=;
-			. <(sed -n "/^function/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
+			. <(sed -n "/^ENDPOINTS=/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
 			;;
 		xtrace)
 			#Xtrace mode
