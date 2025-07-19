@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.105.2 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.105.3 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.105.2 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.105.3 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">July 2025</p>
 </header>
@@ -421,15 +421,12 @@ Fallback=<em>8000</em>.</p>
 <p>Best of results, must be greater than <code>option -n</code> (cmpls).
 Def=<em>1</em>.</p>
 </dd>
-<dt><strong>--logprobs</strong> [<em>NUM</em>]</dt>
-<dd>
-<p>Request log probabilities (cmpls, 0 - 5). Also see option -Z.</p>
-</dd>
 </dl>
 <p><strong>--effort</strong>
 [<em>high</em>|<em>medium</em>|<em>low</em>] (OpenAI)</p>
 <dl>
-<dt><strong>--think</strong> [<em>token_num</em>] (Anthropic)</dt>
+<dt><strong>--think</strong> [<em>token_num</em>] (Anthropic /
+Google)</dt>
 <dd>
 <p>Amount of effort in reasoning models.</p>
 </dd>
@@ -1753,13 +1750,14 @@ command-line <code>option -c</code> instead.</p>
 <strong>MOD_AUDIO</strong>,</p>
 <p><strong>MOD_SPEECH</strong>, <strong>MOD_LOCALAI</strong>,
 <strong>MOD_OLLAMA</strong>,</p>
-<p><strong>MOD_MISTRAL</strong>, <strong>MOD_GOOGLE</strong>,
-<strong>MOD_GROQ</strong>,</p>
-<p><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_SPEECH_GROQ</strong>,
-<strong>MOD_ANTHROPIC</strong>,</p>
+<p><strong>MOD_MISTRAL</strong>, <strong>MOD_AUDIO_MISTRAL</strong>,
+<strong>MOD_GOOGLE</strong>,</p>
+<p><strong>MOD_GROQ</strong>, <strong>MOD_AUDIO_GROQ</strong>,
+<strong>MOD_SPEECH_GROQ</strong>,</p>
+<p><strong>MOD_ANTHROPIC</strong>, <strong>MOD_GITHUB</strong>,
+<strong>MOD_NOVITA</strong>,</p>
 <dl>
-<dt><strong>MOD_GITHUB</strong>, <strong>MOD_NOVITA</strong>,
-<strong>MOD_XAI</strong>, <strong>MOD_DEEPSEEK</strong></dt>
+<dt><strong>MOD_XAI</strong>, <strong>MOD_DEEPSEEK</strong></dt>
 <dd>
 <p>Set default model for each endpoint / provider.</p>
 </dd>

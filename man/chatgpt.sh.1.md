@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.105.2 | General Commands Manual
+% CHATGPT.SH(1) v0.105.3 | General Commands Manual
 % mountaineerbr
 % July 2025
 
@@ -251,14 +251,9 @@ before the text prompt itself.
 : Best of results, must be greater than `option -n` (cmpls). Def=_1_.
 
 
-**\--logprobs**   \[_NUM_]
-
-: Request log probabilities (cmpls, 0 - 5). Also see option -Z.
-
-
 **\--effort**  \[_high_|_medium_|_low_]  (OpenAI)
 
-**\--think**   \[_token_num_]            (Anthropic)
+**\--think**   \[_token_num_]            (Anthropic / Google)
 
 : Amount of effort in reasoning models.
 
@@ -1365,11 +1360,13 @@ set command-line `option -c` instead.
 
 **MOD_SPEECH**, **MOD_LOCALAI**, **MOD_OLLAMA**,
 
-**MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
+**MOD_MISTRAL**, **MOD_AUDIO_MISTRAL**, **MOD_GOOGLE**,
 
-**MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**, **MOD_ANTHROPIC**,
+**MOD_GROQ**, **MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**,
 
-**MOD_GITHUB**, **MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**
+**MOD_ANTHROPIC**, **MOD_GITHUB**, **MOD_NOVITA**,
+
+**MOD_XAI**, **MOD_DEEPSEEK**
 
 :    Set default model for each endpoint / provider.
 

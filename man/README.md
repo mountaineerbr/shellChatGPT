@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: July 2025
-title: CHATGPT.SH(1) v0.105.2 \| General Commands Manual
+title: CHATGPT.SH(1) v0.105.3 \| General Commands Manual
 ---
 
 # NAME
@@ -203,12 +203,9 @@ Frequency penalty (cmpls/chat, -2.0 - 2.0).
 **--best-of** \[*NUM*\]  
 Best of results, must be greater than `option -n` (cmpls). Def=*1*.
 
-**--logprobs** \[*NUM*\]  
-Request log probabilities (cmpls, 0 - 5). Also see option -Z.
-
 **--effort** \[*high*\|*medium*\|*low*\] (OpenAI)
 
-**--think** \[*token_num*\] (Anthropic)  
+**--think** \[*token_num*\] (Anthropic / Google)  
 Amount of effort in reasoning models.
 
 **--format** \[*mp3*\|*wav*\|*flac*\|*opus*\|*aac*\|*pcm16*\|*mulaw*\|*ogg*\]  
@@ -1156,11 +1153,13 @@ Default instruction language in chat mode.
 
 **MOD_SPEECH**, **MOD_LOCALAI**, **MOD_OLLAMA**,
 
-**MOD_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
+**MOD_MISTRAL**, **MOD_AUDIO_MISTRAL**, **MOD_GOOGLE**,
 
-**MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**, **MOD_ANTHROPIC**,
+**MOD_GROQ**, **MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**,
 
-**MOD_GITHUB**, **MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**  
+**MOD_ANTHROPIC**, **MOD_GITHUB**, **MOD_NOVITA**,
+
+**MOD_XAI**, **MOD_DEEPSEEK**  
 Set default model for each endpoint / provider.
 
 **OPENAI_BASE_URL**

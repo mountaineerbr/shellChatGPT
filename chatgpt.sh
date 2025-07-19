@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.105.2  jul/2025  by mountaineerbr  GPL+3
+# v0.105.3  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -34,6 +34,9 @@ MOD_OLLAMA="${MOD_OLLAMA:-llama4}"
 MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.5-pro}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
+MOD_AUDIO_MISTRAL="${MOD_AUDIO_MISTRAL:-voxtral-mini-latest}"
+# Prefer Mistral Whisper (chat mode)
+#WHISPER_MISTRAL=0
 # Groq models
 MOD_GROQ="${MOD_GROQ:-llama-3.3-70b-versatile}"
 MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
@@ -381,11 +384,11 @@ Environment
 	LC_ALL
 	LANG 		Default instruction language (chat mode).
 
-	MOD_CHAT        MOD_IMAGE        MOD_AUDIO
-	MOD_SPEECH      MOD_LOCALAI      MOD_OLLAMA
-	MOD_MISTRAL     MOD_GOOGLE       MOD_GROQ
-	MOD_AUDIO_GROQ  MOD_SPEECH_GROQ  MOD_ANTHROPIC
-	MOD_GITHUB      MOD_NOVITA       MOD_XAI
+	MOD_CHAT        MOD_IMAGE          MOD_AUDIO
+	MOD_SPEECH      MOD_LOCALAI        MOD_OLLAMA
+	MOD_MISTRAL     MOD_AUDIO_MISTRAL  MOD_GOOGLE
+	MOD_GROQ        MOD_AUDIO_GROQ     MOD_SPEECH_GROQ
+	MOD_ANTHROPIC   MOD_GITHUB         MOD_NOVITA       MOD_XAI
 			Set default model for each endpoint / provider.
 
 	OPENAI_BASE_URL
@@ -512,7 +515,7 @@ Command List
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
     !effort   -        [MODE]   Reasoning: high, medium, or low (OpenAI).
-    !think    -         [NUM]   Thinking budget: max tokens (Anthropic).
+    !think    -         [NUM]   Thinking budget: max tokens (Anthropic/Google).
 !interactive  -                 Toggle reasoning interactive mode.
      !ka      !keep-alive [NUM] Set duration of model load in memory
    !vision    !audio            Toggle model multimodality type.
@@ -669,10 +672,8 @@ Options
 		Frequency penalty (cmpls/chat, -2.0 - 2.0).
 	--best-of   [NUM]
 		Best of results, must be greater than opt -n (cmpls). Def=1.
-	--logprobs  [NUM]
-		Request log probabilities (cmpls, 0 - 5). See option -Z.
 	--effort  [ high | medium | low ]    (OpenAI)
-	--think   [ token_num ]             (Anthropic)
+	--think   [ token_num ]             (Anthropic/Google)
 		Amount of effort in reasoning models.
 	--format  [ mp3 | wav | flac | opus | aac | pcm16 | mulaw | ogg ]
 		TTS output format. Def=mp3.
@@ -801,7 +802,7 @@ function set_model_epnf
 			;;
 		esac
 	then
-		EPN=12 OPTCMPL=;  #OPTB= OPTBB=;
+		EPN=12 OPTB= OPTCMPL=;
 		((OPTC)) && OPTC=2;
 		((TKN_ADJ=3+1));
 		((OPTMAX>1024*5)) || OPTMAX_NILL=1;
@@ -814,7 +815,9 @@ function set_model_epnf
 			((OPTII)) && EPN=4 || EPN=3;
 			((OPTII_EDITS)) && EPN=9;;
 		tts-*|*-tts-*|*-tts) 	EPN=10;;
-		*whisper*|*transcribe*|*transcription*|stt-*|*-stt-*|*-stt) 	((OPTWW)) && EPN=8 || EPN=7;;
+		*whisper*|*transcribe*|*transcription*|stt-*|*-stt-*|*-stt|\
+		*voxtral-mini${OPTC}${OPTCMPL}${MTURN}*)  #K#
+			((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	EPN=0;;
 		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|*moderation*|*embed*|*similarity*)
 			is_amodelf "$1" || is_visionf "$1";
@@ -823,9 +826,9 @@ function set_model_epnf
 				*moderation*) 	EPN=1 OPTEMBED=1;;
 				*) 		EPN=0;;
 			esac;;
-		o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*|*audio*)
+		o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*|*audio*|*voxtral*)
 			is_amodelf "$1" || is_visionf "$1";
-			EPN=6 OPTB= OPTBB= OPTCMPL=;
+			EPN=6 OPTB= OPTCMPL=;
 			((OPTC)) && OPTC=2
 			#set token adjustment per message
 			case "$MOD" in
@@ -905,7 +908,7 @@ function model_capf
 	open-mixtral-8x22b*) MODMAX=65536;;
 	codestral-2405|codestral-embed*|mistral-embed|mistral-large-2402|mistral-medium-2312|\
 	mistral-moderation*|mistral-ocr*|mistral-saba*|mistral-small-2[34]??|mistral-small-2501|mistral-small|\
-	mistral-tiny-2312|mistral-tiny|open-mistral-7b|open-mixtral-8x7b) MODMAX=32768;;
+	mistral-tiny-2312|mistral-tiny|open-mistral-7b|open-mixtral-8x7b|*voxtral-mini*|*voxtral-small*) MODMAX=32768;;
 	*) nomatch=1;;
 	esac; ((nomatch)) || return 0; nomatch= ;}
 
@@ -1325,7 +1328,6 @@ function prompt_printf
 	if ((STREAM))
 	then 	typeset OPTC OPTV;
 	else 	set -- "$FILE"; unset STREAM;
-		((OPTBB)) && jq -r '(.choices[].logprobs)?' "$@" >&2
 	fi
 	if ((OPTEMBED))
 	then 	jq -r '(.data),
@@ -1495,7 +1497,9 @@ function prompt_imgprintf
 
 function prompt_audiof
 {
-	((OPTVV)) && _warmsgf "Transcription:" "Model: ${MOD_AUDIO:-unset},  Temperature: ${OPTTW:-${OPTT:-unset}}${*:+,  }${*}" >&2
+	((OPTVV)) && { _warmsgf "Transcription:" "BaseURL: ${BASE_URL}${ENDPOINTS[EPN]}";
+		_warmsgf "Transcription:" "Model: ${MOD_AUDIO:-unset},  Temp: ${OPTTW:-${OPTT:-unset}}";
+		_warmsgf "Transcription:" "Args[$#]: ${*:-unset}" ;}
 
 	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-X POST \
@@ -1945,6 +1949,12 @@ stripped_text = remove_markdown(markdown_text)
 print(stripped_text)"
 }
 
+#check whether to use mistral whisper
+function is_whisper_mistralf
+{
+	((!MISTRALAI && WHISPER_MISTRAL > 0)) || ((MISTRALAI && WHISPER_MISTRAL >= 0))
+}
+
 #check whether to use groq whisper
 function is_whisper_groqf
 {
@@ -1960,7 +1970,7 @@ function is_tts_groqf
 #set runtime config
 function set_conff
 {
-    typeset varname optchange foo var env
+    typeset varname optchange foo var env ret
 
     if ! command -v dialog >/dev/null 2>&1
     then  _warmsgf 'Err:' "command \`dialog' is required!";
@@ -1981,11 +1991,11 @@ function set_conff
         fi
 
         if ((OPTLOG))
-        then  logfile=( "Log File Path:"  38 2 "${USRLOG/"$HOME"/"~"}"  38 22 50 $((${#USRLOG}+10)) );
+        then  logfile=( "Log File Path:"  39 2 "${USRLOG/"$HOME"/"~"}"  39 22 50 $((${#USRLOG}+10)) );
         else  logfile=( );
         fi
 
-        dialog \
+        dialog --help-button \
         --backtitle "ChatGPT Configuration" \
         --title "Runtime Options" \
         --form "Model & Interface" \
@@ -1995,7 +2005,7 @@ function set_conff
         "Response Max:"        3 2 "$OPTMAX"       3 22 10 0 \
         "Resp Max Disable:"    4 2 "$OPTMAX_NILL"   4 22  2 0 \
         "$reason_label"        5 2 "$REASON_EFFORT" 5 22 10 0 \
-        "Multi-Modal:"         6 2 "$MULTIMODAL"   6 22  2 0 \
+        "Multimodal:"          6 2 "$MULTIMODAL"   6 22  2 0 \
         "Stream Response:"     7 2 "$STREAM"       7 22  2 0 \
         \
         "Temperature:"         9 2 "$OPTT"         9 22  6 0 \
@@ -2015,122 +2025,190 @@ function set_conff
         "Markdown Command:"   23 2 "$MD_CMD"      23 22 $((${#MD_CMD}+22)) 0 \
         \
         "Speech-To-Text:"     25 2 "$OPTW"        25 22  2 0 \
-        "STT Model:"          26 2 "$(is_whisper_groqf &&
-            echo "$MOD_AUDIO_GROQ" || echo "$MOD_AUDIO")"   26 22 30 0 \
+        "STT Model:"          26 2 "$(
+        if is_whisper_groqf; then echo "$MOD_AUDIO_GROQ"; elif is_whisper_mistralf; then echo "$MOD_AUDIO_MISTRAL"; else echo "$MOD_AUDIO"; fi
+	  )"                                      26 22 30 0 \
         "STT Args:"           27 2 "${WARGS[*]}"  27 22 $((${#WARGS[${#WARGS[@]}?${#WARGS[@]}-1:0]}+30)) 0 \
         "STT Model Temp:"     28 2 "$OPTTW"       28 22  6 0 \
-        "Prefer Groq STT:"    29 2 "$WHISPER_GROQ" 29 22  2 0 \
+        "*Groq STT:"          29 2 "$WHISPER_GROQ"    29 22  3 0 \
+        "*Mistral STT:"       30 2 "$WHISPER_MISTRAL" 30 22  3 0 \
         \
-        "Text-To-Speech:"     31 2 "$OPTZ"        31 22  2 0 \
-        "TTS Model:"          32 2 "$(is_tts_groqf &&
-            echo "$MOD_SPEECH_GROQ" || echo "$MOD_SPEECH")" 32 22 30 0 \
-        "TTS Args:"           33 2 "${ZARGS[*]}"  33 22 $((${#ZARGS[${#ZARGS[@]}?${#ZARGS[@]}-1:0]}+30)) 0 \
-        "TTS Voice:"          34 2 "$(is_tts_groqf &&
-            echo "$OPTZ_VOICE_GROQ" || echo "$OPTZ_VOICE")" 34 22 30 0 \
-        "Prefer Groq TTS:"    35 2 "$SPEECH_GROQ" 35 22  2 0 \
+        "Text-To-Speech:"     32 2 "$OPTZ"        32 22  2 0 \
+        "TTS Model:"          33 2 "$(is_tts_groqf &&
+            echo "$MOD_SPEECH_GROQ" || echo "$MOD_SPEECH")" 33 22 30 0 \
+        "TTS Args:"           34 2 "${ZARGS[*]}"  34 22 $((${#ZARGS[${#ZARGS[@]}?${#ZARGS[@]}-1:0]}+30)) 0 \
+        "TTS Voice:"          35 2 "$(is_tts_groqf &&
+            echo "$OPTZ_VOICE_GROQ" || echo "$OPTZ_VOICE")" 35 22 30 0 \
+        "*Groq TTS:"          36 2 "$SPEECH_GROQ" 36 22  3 0 \
         \
-        "Log Enable:"         37 2 "$OPTLOG"      37 22  2 60 \
+        "Log Enable:"         38 2 "$OPTLOG"      38 22  2 60 \
         "${logfile[@]}" \
-        2>&1 >/dev/tty </dev/tty
+        2>&1 >/dev/tty </dev/tty;
     )
+    ret=$?;  #help: 2, esc: 255
 
-    if ((!$?)) && ((${#foo}))
+    if ((!ret)) && ((${#foo}))
     then
-            _clr_dialogf;
-            for varname in MOD MODMAX OPTMAX OPTMAX_NILL REASON_EFFORT \
-                MULTIMODAL STREAM OPTT OPTP OPTK OPTA OPTAA OPTSEED OPTFOLD \
-                OPTCLIP VISUAL BROWSER OPTMD MD_CMD OPTW \
-                $(is_whisper_groqf && echo "MOD_AUDIO_GROQ" || echo "MOD_AUDIO") \
-                WARGS OPTTW WHISPER_GROQ OPTZ \
-                $(is_tts_groqf && echo "MOD_SPEECH_GROQ" || echo "MOD_SPEECH") \
-                ZARGS \
-                $(is_tts_groqf && echo "OPTZ_VOICE_GROQ" || echo "OPTZ_VOICE") \
-                SPEECH_GROQ OPTLOG $( ((OPTLOG)) && echo "USRLOG" )
-            do
-                read -r var;
+        _clr_dialogf;
+        for varname in MOD MODMAX OPTMAX OPTMAX_NILL REASON_EFFORT \
+            MULTIMODAL STREAM OPTT OPTP OPTK OPTA OPTAA OPTSEED OPTFOLD \
+            OPTCLIP VISUAL BROWSER OPTMD MD_CMD OPTW \
+            $(if is_whisper_groqf; then echo "MOD_AUDIO_GROQ"; elif is_whisper_mistralf; then echo "MOD_AUDIO_MISTRAL"; else echo "MOD_AUDIO"; fi) \
+            WARGS OPTTW WHISPER_GROQ WHISPER_MISTRAL OPTZ \
+            $(is_tts_groqf && echo "MOD_SPEECH_GROQ" || echo "MOD_SPEECH") \
+            ZARGS \
+            $(is_tts_groqf && echo "OPTZ_VOICE_GROQ" || echo "OPTZ_VOICE") \
+            SPEECH_GROQ OPTLOG $( ((OPTLOG)) && echo "USRLOG" )
+        do
+            read -r var;
 
-                #set variables only when value changes or is cleared
-                if if ((${#var}))
-                   then
-                        [[ $env != *"$varname=\"$var\""* ]]
-                   else
-                        [[ $env = *[$' \n']"$varname"* ]] ||
-                        [[ $env = *[$' \n']"$varname=\"\""* ]] ||
-                        [[ $env$'\n' = *[$' \n']"$varname"$'\n'* ]] &&
-                        [[ $env = *"$varname=\""[!\"]* ]]
-                   fi
-                then
-                    optchange=1;
-                    case "$varname" in MOD|MD_CMD|[WZ]ARGS)  :;;
-                        *)  eval "$varname=\$var";;
-                    esac;
+            #set variables only when value changes or is cleared
+            if if ((${#var}))
+               then
+                    [[ $env != *"$varname=\"$var\""* ]]
+               else
+                    [[ $env = *[$' \n']"$varname"* ]] ||
+                    [[ $env = *[$' \n']"$varname=\"\""* ]] ||
+                    [[ $env$'\n' = *[$' \n']"$varname"$'\n'* ]] &&
+                    [[ $env = *"$varname=\""[!\"]* ]]
+               fi
+            then
+                optchange=1;
+                case "$varname" in MOD|MD_CMD|[WZ]ARGS)  :;;
+                    *)  eval "$varname=\$var";;
+                esac;
 
-                    case "$varname" in
-                        MOD)
-                            cmdf /model "${var:-$MOD}";
-                            ;;
-                        STREAM)
-                            ((++STREAM));
-                            cmdf /stream;
-                            ;;
-                        OPTMD)
-                            ((++OPTMD));
-                            cmdf /markdown;
-                            ;;
-                        MD_CMD)
-                            if ((${#var}))
-                            then  cmdf /markdown "$var";
-                            else  MD_CMD=;
-                            fi
-                            ;;
-                        OPTFOLD)
-                            ((++OPTFOLD));
-                            cmdf /fold;
-                            ;;
-                        OPTCLIP)
-                            ((++OPTCLIP));
-                            cmdf /clipboard;
-                            ;;
-                        OPTW)
-                            ((++OPTW));
-                            cmdf /whisper;
-                            ;;
-                        WARGS)
-                            if ((${#var}))
-                            then  cmdf /whisper "$var";
-                            else  WARGS=();
-                            fi
-                            ;;
-                        OPTZ)
-                            ((++OPTZ));
-                            cmdf /tts;
-                            ;;
-                        ZARGS)
-                            if ((${#var}))
-                            then  cmdf /tts "$var";
-                            else  ZARGS=();
-                            fi
-                            ;;
-                        OPTLOG)
-                            ((++OPTLOG));
-                            cmdf /log;
-                            ;;
-                        USRLOG)
-                            [[ "$USRLOG" = \~\/* ]] && USRLOG="$HOME/${USRLOG:2}";
-                            ;;
-                    esac
-                fi
-            done <<<"$foo";
-            if ((optchange))
-            then    sysmsgf 'Runtime changes applied!';
-            else    sysmsgf 'No changes';
+                case "$varname" in
+                    MOD)
+                        cmdf /model "${var:-$MOD}";
+                        ;;
+                    WHISPER_GROQ)
+                        ((GROQAI+MISTRALAI)) || continue;
+                        ((WHISPER_GROQ>0)) && ((MISTRALAI)) && WHISPER_MISTRAL=-1;
+                        ((WHISPER_MISTRAL>0)) && [[ -n $WHISPER_GROQ ]] && WHISPER_GROQ=-1;
+                        ;;
+                    WHISPER_MISTRAL)
+                        ((MISTRALAI+GROQAI)) || continue;
+                        ((WHISPER_MISTRAL>0)) && ((GROQAI)) && WHISPER_GROQ=-1;
+                        ((WHISPER_GROQ>0)) && [[ -n $WHISPER_MISTRAL ]] && WHISPER_MISTRAL=-1;
+                        ;;
+                    STREAM)
+                        ((++STREAM));
+                        cmdf /stream;
+                        ;;
+                    OPTMD)
+                        ((++OPTMD));
+                        cmdf /markdown;
+                        ;;
+                    MD_CMD)
+                        if ((${#var}))
+                        then  cmdf /markdown "$var";
+                        else  MD_CMD=;
+                        fi
+                        ;;
+                    OPTFOLD)
+                        ((++OPTFOLD));
+                        cmdf /fold;
+                        ;;
+                    OPTCLIP)
+                        ((++OPTCLIP));
+                        cmdf /clipboard;
+                        ;;
+                    OPTW)
+                        ((++OPTW));
+                        cmdf /whisper;
+                        ;;
+                    WARGS)
+                        if ((${#var}))
+                        then  cmdf /whisper "$var";
+                        else  WARGS=();
+                        fi
+                        ;;
+                    OPTZ)
+                        ((++OPTZ));
+                        cmdf /tts;
+                        ;;
+                    ZARGS)
+                        if ((${#var}))
+                        then  cmdf /tts "$var";
+                        else  ZARGS=();
+                        fi
+                        ;;
+                    OPTLOG)
+                        ((++OPTLOG));
+                        cmdf /log;
+                        ;;
+                    USRLOG)
+                        [[ "$USRLOG" = \~\/* ]] && USRLOG="$HOME/${USRLOG:2}";
+                        ;;
+                esac
             fi
+        done <<<"$foo";
+        if ((optchange))
+        then    sysmsgf 'Runtime changes applied!';
+                ((WHISPER_GROQ>0)) && ((MISTRALAI)) && WHISPER_MISTRAL=-1;
+                ((WHISPER_MISTRAL>0)) && ((GROQAI)) && WHISPER_GROQ=-1;
+        else    sysmsgf 'No changes';
+        fi
+    elif ((ret==2))  #help
+    then
+        dialog --colors \
+        --backtitle "ChatGPT Configuration" \
+	--title "Help & Tips" --msgbox \
+	"$CONF_DIALOG" 40 80  >/dev/tty 2>&1;
+	ret=$?;
+
+	_clr_dialogf;
+        ((ret)) || set_conff "$@";
     else
-            _clr_dialogf;
-            ! _warmsgf 'Err:' 'configuration setup abort';
+        _clr_dialogf;
+        ! _warmsgf 'Err:' 'configuration setup abort';
     fi
 }
 #https://github.com/gptme/gptme/issues/591
+
+CONF_DIALOG="\Zr# RUNTIME OPTIONS #\ZR
+
+\ZuGENERAL\ZU
+  Use \ZbTAB\ZB and \ZbShift-TAB\ZB to navigate between fields and buttons.
+  Press \ZbENTER\ZB or select \ZbOK\ZB to save.
+  Press \ZbESC\ZB to cancel and exit without saving.
+  
+  Enabling features like STT or TTS may update or reveal sub-options. To see them, \Zbrun '!conf' again\ZB.
+
+\ZuFIELD TYPES\ZU
+  Most fields accept a specific type of value:
+
+  * \ZbBoolean (0/1)\ZB:
+    Fields like '\ZbStream Response\ZB', '\ZbText Folding\ZB', and '\ZbSTT\ZB' are toggled with \Zb0\ZB (false) or \Zb1\ZB (true).
+
+  * \ZbInteger\ZB:
+    '\ZbModel Capacity\ZB' and '\ZbResponse Max\ZB' usually require large whole numbers.
+
+  * \ZbFloat\ZB:
+    '\ZbTemperature\ZB', '\ZbTop_p\ZB', and '\ZbPenalty fields\ZB' accept decimal values (e.g., \Zb0.7\ZB).
+
+\ZuSPECIAL FIELDS & LOGIC\ZU
+
+  * \ZbResponse Max / Disable\ZB:
+    '\ZbResponse Max\ZB' must be a positive number (e.g., 4086).
+    It can only be \Zb0\ZB (tokens) if '\ZbResp Max Disable\ZB' is set to \Zb1\ZB (true) and the model/API accepts not including the '\Zbmax response token\ZB' parameter.
+
+  * \ZbReasoning / Thinking / Effort\ZB:
+    This field's meaning \ZbCHANGES\ZB based on the API provider:
+    - For \ZbAnthropic\ZB:  Set an \Zbinteger\ZB as reasoning budget.
+    - For \ZbGoogle\ZB:  Set a positive \Zbinteger\ZB; \Zb0\ZB to turn off; \Zb-1\ZB for dynamic thinking.
+    - For \ZbOpenAI\ZB:  Set effort as \Zblow\ZB, \Zbmedium\ZB, or \Zbhigh\ZB.
+
+  * \ZbMultimodal\ZB:
+    This option accepts three values:
+    - \Zb0\ZB: Off (default text-only model)
+    - \Zb1\ZB: Vision capable (image input)
+    - \Zb2\ZB: Audio capable (native audio input)
+
+  * \ZbOverrides (*)\ZB:
+    Fields such as  '\ZbGroq STT\ZB', '\ZbMistral STT\ZB', and '\ZbGroq TTS\ZB' are \Zbbooleans\ZB.
+    Setting any of these to \Zb1\ZB (true) prefers the use of that specific service for the task, while \Zb-1\ZB to avoid it."
 
 #dynamic window title
 #outer title / inner name
@@ -2319,7 +2397,9 @@ function cmdf
 
 	case "$*" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3|0|[0-9]*[/-]0|0[/-]*|[0-9]*[/-]0[/-]*)
-			set_maxtknf nill
+			((++OPTMAX_NILL)) ;((OPTMAX_NILL%=2));
+			((OPTMAX_NILL)) || unset OPTMAX_NILL;
+			((!OPTMAX_NILL && OPTMAX<1)) && OPTMAX=${OPTMAX_DEF:-4096}  #M#
 			cmdmsgf 'Response' "$( ((OPTMAX_NILL)) && echo "inf" || echo "$OPTMAX") tkns"
 			;;
 		-.[0-9]*|-[0-9]*.*|.*[0-9]*|[0-9]*.*|[/!].*[0-9]*|[/!][0-9]*.*|--.*[0-9]*|--[0-9]*.*)
@@ -2632,9 +2712,9 @@ function cmdf
 			CMD_CHAT=1 media_pathf "$1" && {
 			  [[ -f $1 ]] && set -- "$(duf "$1")";
 			  var=$((MEDIA_IND_LAST+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]}))
-			  out=$(is_audiof "$1" && echo aud || echo img)
+			  out=$(_is_audiof "$1" && echo aud || echo img)
 			  _sysmsgf "$out ?$var" "${1:0: COLUMNS-6-${#var}}$([[ -n ${1: COLUMNS-6-${#var}} ]] && printf '\b\b\b%s' ...)";
-			  ((MULTIMODAL)) || if is_audiof "$1"
+			  ((MULTIMODAL)) || if _is_audiof "$1"
 			  then 	MULTIMODAL=2;
 			  else 	MULTIMODAL=1;
 			  fi;
@@ -2901,7 +2981,6 @@ function cmdf
 			top-p         "${OPTP:-unset}" \
 			num-results   "${OPTN:-unset}" \
 			best-of       "${OPTB:-unset}" \
-			logprobs      "${OPTBB:-unset}" \
 			insert-mode   "${OPTSUFFIX:-unset}" \
 			streaming     "${STREAM:-unset}" \
 			clipboard     "${OPTCLIP:-unset}" \
@@ -3532,7 +3611,7 @@ function json_minif
 #usage: fmt_ccf [prompt] [role]
 function fmt_ccf
 {
-	typeset var
+	typeset var type
 	typeset -l ext
 	typeset -a settings
 	settings=();
@@ -3576,22 +3655,34 @@ function fmt_ccf
 		for var in "${MEDIA[@]}" "${MEDIA_CMD[@]}"
 		do
 			[[ "$var" = \~\/* ]] && var="$HOME/${var:2}";
+
 			if [[ $var != *[!$IFS]* ]]
-			then 	continue;
-			elif [[ -s $var ]] && is_audiof "$var"
-			then 	ext=${var##*.};
+			then
+				continue;
+			elif { [[ -s $var ]] && is_audiof "$var" ;} ||
+				{ ((MISTRALAI)) && _is_audiof "$var" ;}
+			then
+				ext=${var##*.};
 				((${#ext}<7)) || ext=;
 				case "$ext" in mp3|opus|aac|flac|wav|pcm16|ogg) :;;
 					*)  _warmsgf 'Warning:' "Filetype may be unsupported -- ${ext:-extension_err}" ;;
 				esac
+
 				((${#1})) && printf ',';
-				printf '\n{ "type": "input_audio", "input_audio": { "data": "%s", "format": "%s" } }' "$(base64 "$var" | tr -d $'\n')" "${ext:-mp3}" ;
+				if ((MISTRALAI)) && [[ ! -e $var ]]  #mistral img url
+				then
+				  printf '\n{ "type": "input_audio", "input_audio": { "data": "%s", "format": "%s" } }' "$var" "${ext:-mp3}";
+				else
+				  printf '\n{ "type": "input_audio", "input_audio": { "data": "%s", "format": "%s" } }' "$(base64 "$var" | tr -d $'\n')" "${ext:-mp3}";
+				fi
 			elif [[ -s $var ]]
-			then 	ext=${var##*.} ext=${ext/[Jj][Pp][Gg]/jpeg};
+			then
+				ext=${var##*.} ext=${ext/[Jj][Pp][Gg]/jpeg};
 				((${#ext}<7)) || ext=;
 				case "$ext" in jpeg|png|gif|webp) :;;  #20MB per image
 					*)  _warmsgf 'Warning:' "Filetype may be unsupported -- ${ext:-extension_err}" ;;
 				esac
+
 				((${#1})) && printf ',';
 				if ((ANTHROPICAI))
 				then
@@ -3608,13 +3699,15 @@ function fmt_ccf
 				fi
 			else  #img url
 				((ANTHROPICAI)) || {  #mistral groq
+				  _is_audiof "$var" && type="audio" || type="image";
+
 				  ((${#1})) && printf ',';
 				  if ((EPN==12))
 				  then
-				  printf '\n{ "type": "input_image", "image_url": "%s" }' "$var";
+				  printf '\n{ "type": "input_%s", "%s_url": "%s" }' "$type" "$type" "$var";
 
 				  else
-				  printf '\n{ "type": "image_url", "image_url": { "url": "%s" } }' "$var";
+				  printf '\n{ "type": "%s_url", "%s_url": { "url": "%s" } }' "$type" "$type" "$var";
 				  fi
 				};
 			fi
@@ -3885,12 +3978,39 @@ function is_linkf
 	  *) false;;
 	  esac
 }
+function is_link_nomediaf
+{
+	is_linkf "$@" && ! _is_mediaf "$@";
+}
+
+#check if input is media
+function _is_mediaf
+{
+	_is_imagef "$@" || _is_audiof "$@" ||
+	_is_videof "$@" || _is_pdff "$@" ||
+	_is_docf "$@" || (__set_outfmtf "$@") ||
+	case "$1" in  #extra extensions
+		# Archives & Disk Images
+		*?.[Zz][Ii][Pp]|*?.[Tt][Aa][Rr]|*?.[Gg][Zz]|*?.[Bb][Zz]2|*?.[Xx][Zz]|*?.[7][Zz]|*?.[Rr][Aa][Rr]|*?.[Ii][Ss][Oo]|*?.[Ii][Mm][Gg]|*?.[Dd][Mm][Gg]) :;;
+		# Spreadsheets & Presentations
+		*?.[Xx][Ll][Ss][Xx]?|*?.[Pp][Pp][Tt][Xx]?|*?.[Oo][Dd][SsPp]) :;;
+		# Executables, Libraries & Packages
+		*?.[Ee][Xx][Ee]|*?.[Bb][Ii][Nn]|*?.[Dd][Ll][Ll]|*?.[Ss][Oo]|*?.[Jj][Aa][Rr]|*?.[Cc][Ll][Aa][Ss][Ss]|*?.[Dd][Ee][Bb]|*?.[Rr][Pp][Mm]) :;;
+		# Additional Video/Media
+		*?.[Mm][Kk][Vv]|*?.[Mm]4[Vv]|*?.[3][Gg][Pp]|*?.[Ww][Mm][AaVv]|*?.[Ss][Vv][Gg]|*?.[Ss][Ww][Ff]) :;;
+		*) return 1 ;;
+	esac;
+}
+function is_mediaf
+{
+	[[ -f $1 ]] && _is_mediaf "$@";
+}
 
 function is_txtfilef
 {
 	[[ -f $1 ]] || return
 	case "$1" in
-        	*?.[Tt][Xx][Tt] | *?.[Mm][Dd] | *?.[Cc][Ff][Gg] | *?.[Ii][Nn][Ii] | *?.[Ll][Oo][Gg] | *?.[TtCc][Ss][Vv] | *?.[Jj][Ss][Oo][Nn] | *?.[Xx][Mm][Ll] | *?.[Cc][Oo][Nn][Ff] | *?.[Rr][Cc] | *?.[Yy][Aa][Mm][Ll] | *?.[Yy][Mm][Ll] | *?.[Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm] | *?.[Ss][Hh] | *?.[CcZz][Ss][Hh] | *?.[Bb][Aa][Ss][Hh] | *?.[Pp][Yy] | *?.[Jj][Ss] | *?.[Cc][Ss][Ss] | *?.[Jj][Aa][Vv][Aa] | *?.[Rr][Bb] | *?.[Pp][Hh][Pp] | *?.[Tt][Cc][Ll] | *?.[Pp][LlSs] | *?.[Rr][Ss][Tt] | *?.[Tt][Ee][Xx] | *?.[Ss][Qq][Ll] | *?.[Ll][Oo][Gg] | *?.c | *.bashrc | *.bash_profile | *.profile | *.zshrc | *.zshenv ) return;;
+        	*?.[Tt][Xx][Tt] | *?.[Mm][Dd] | *?.[Cc][Ff][Gg] | *?.[Ii][Nn][Ii] | *?.[Ll][Oo][Gg] | *?.[TtCc][Ss][Vv] | *?.[Jj][Ss][Oo][Nn] | *?.[Xx][Mm][Ll] | *?.[Cc][Oo][Nn][Ff] | *?.[Rr][Cc] | *?.[Yy][Aa][Mm][Ll] | *?.[Yy][Mm][Ll] | *?.[Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm] | *?.[Ss][Hh] | *?.[CcZz][Ss][Hh] | *?.[Bb][Aa][Ss][Hh] | *?.[Pp][Yy] | *?.[Jj][Ss] | *?.[Cc][Ss][Ss] | *?.[Jj][Aa][Vv][Aa] | *?.[Rr][Bb] | *?.[Pp][Hh][Pp] | *?.[Tt][Cc][Ll] | *?.[Pp][LlSs] | *?.[Rr][Ss][Tt] | *?.[Tt][Ee][Xx] | *?.[Ss][Qq][Ll] | *?.[Ll][Oo][Gg] | *.conf | *?.c | *.bashrc | *.bash_profile | *.profile | *.zshrc | *.zshenv ) return 0;;
 	esac
 	! _is_imagef "$@" && ! _is_videof "$@" &&
 	! _is_audiof "$@" && ! (__set_outfmtf "$@") &&
@@ -3934,12 +4054,23 @@ function _is_audiof
 }
 function is_audiof { 	[[ -f $1 ]] && _is_audiof "$1" ;}
 
+function _is_docf
+{
+	typeset -l ext=$1
+	case "$ext" in
+	*.doc|*.docx|*.odt|*.ott|*.rtf) :;;
+	*) false;;
+	esac;
+}
+function is_docf { 	[[ -f $1 ]] && _is_docf "$1" ;}
+
 #test whether file is text, pdf file, or url and print out filepath
 function is_txturl
 {
 	((${#1}>1024)) && set -- "${1: ${#1}-1024}"
 
-	INDEX=${#1} trim_lf "$1" $'*\n';  #last line, last file only  #L#
+	#last line, last file only  #L#
+	INDEX=${#1} trim_lf "$1" $'*\n';
 	INDEX=256 trim_lrf "$TRIM" "$SPC";
 	set -- "$TRIM";
 	[[ "$1" = \~\/* ]] && set -- "$HOME/${1:2}";
@@ -3956,9 +4087,10 @@ function is_txturl
 	fi  #C#
 	[[ "$1" = \~\/* ]] && set -- "$HOME/${1:2}";
 
-	[[ $1 = *\\* ]] && set -- "${1//\\}";  #path with spaces must be backslash-quoted
-	is_txtfilef "$1" || is_pdff "$1" || is_docf "$1" ||
-	{ _is_linkf "$1" && ! _is_imagef "$1" && ! _is_videof "$1" ;}
+	#path with spaces must be backslash-quoted
+	[[ $1 = *\\* ]] && set -- "${1//\\}";
+	is_txtfilef "$1" || is_pdff "$1" ||
+	    is_docf "$1" || is_link_nomediaf "$1";
 	((!${?})) && printf '%s' "$1";
 }
 
@@ -3984,7 +4116,7 @@ function is_amodelf
 {
 	typeset -l model; model=${1##*/};
 	case "${model##ft:}" in
-	*audio*|*speech*|*speaker*|*bark*|*lalm*|*music*|*yi-vl*) :;;
+	*audio*|*speech*|*speaker*|*bark*|*lalm*|*music*|*yi-vl*|*voxtral*) :;;
 	*) 	((MULTIMODAL>1));;
 	esac;
 }
@@ -3999,16 +4131,6 @@ function is_mdf
 \\n\ \ *[0-9IiVvXx][0-9IiVvXx]*\.\ |\
 \[[^\]]*\]\([^\)]*\)) ]]
 }
-
-function _is_docf
-{
-	typeset -l ext=$1
-	case "$ext" in
-	*.doc|*.docx|*.odt|*.ott|*.rtf) :;;
-	*) false;;
-	esac;
-}
-function is_docf { 	[[ -f $1 ]] && _is_docf "$1" ;}
 
 # Filtro HTML
 #https://ascii.cl/htmlcodes.htm
@@ -4289,6 +4411,11 @@ function set_optsf
 		}
 		;;
 	esac
+
+	#resolve collinding settings
+	((!OPTMAX_NILL && OPTMAX<1)) && OPTMAX=${OPTMAX_DEF:-4096}  #M#
+	((WHISPER_GROQ>0 && WHISPER_MISTRAL>0)) && WHISPER_GROQ=1 WHISPER_MISTRAL=;
+
 	((GITHUBAI)) && [[ $OPTA$OPTAA = *[1-9]* ]] &&
 	case "$MOD" in
 		Mistral-*|AI21-Jamba*)
@@ -4302,10 +4429,10 @@ function set_optsf
 	    check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
 	    check_optrangef "$OPTAA"  -2.0 2.0 'Frequency-penalty'
 	    ((OPTB)) && check_optrangef "${OPTB:-$OPTN}"  "$OPTN" 50 'Best_of'
-	    check_optrangef "$OPTBB" 0   5 'Logprobs'
+	    #logprobs: 0-5, top_logprobs: 0-20
 
 	    check_optrangef "$OPTP"  0.0 1.0 'Top_p'
-	    ((!OPTMAX && OPTBB)) || ((OPTMAX_NILL)) ||
+	    ((OPTMAX_NILL)) ||
 	    check_optrangef "$OPTMAX"  1 "$MODMAX" 'Response Max Tokens'
 	  }
 	  check_optrangef "$OPTT"  0.0 $( ((MISTRALAI+ANTHROPICAI)) && echo 1.0 || echo 2.0) 'Temperature'  #whisper 0.0 - 1.0
@@ -4319,8 +4446,7 @@ function set_optsf
 	[[ "$OPTT" = *[!$IFS]* ]] && OPTT_OPT="\"temperature\": ${OPTT:-0}," || unset OPTT_OPT;
 	[[ "$OPTA" = *[!$IFS]* ]] && OPTA_OPT="\"presence_penalty\": $OPTA," || unset OPTA_OPT;
 	[[ "$OPTAA" = *[!$IFS]* ]] && OPTAA_OPT="\"frequency_penalty\": $OPTAA," || unset OPTAA_OPT;
-	{ ((OPTB)) && OPTB_OPT="\"best_of\": $OPTB," || unset OPTB OPTB_OPT;
-	  ((OPTBB)) && OPTBB_OPT="\"logprobs\": $OPTBB," || unset OPTBB OPTBB_OPT; }  #2>/dev/null
+	((OPTB)) && OPTB_OPT="\"best_of\": $OPTB," || unset OPTB OPTB_OPT;
 	[[ "$OPTP" = *[!$IFS]* ]] && OPTP_OPT="\"top_p\": $OPTP," || unset OPTP_OPT;
 	[[ "$OPTKK" = *[!$IFS]* ]] && OPTKK_OPT="\"top_k\": $OPTKK," || unset OPTKK_OPT;
 	if ((OPTSUFFIX+${#SUFFIX})); then 	OPTSUFFIX_OPT="\"suffix\": \"$(escapef "$SUFFIX")\","; else 	unset OPTSUFFIX_OPT; fi;
@@ -4560,7 +4686,7 @@ function whisperf
 	fi
 
 	((OPTW>1||OPTWW>1)) &&
-	case "$MOD_AUDIO" in *[Ww]hisper*) 	:;; *)
+	case "$MOD_AUDIO" in *[Ww]hisper*|*[Vv]oxtral*) 	:;; *)
 		_warmsgf 'Warning:' "Timestamps may only be supported by Whisper";
 		read_charf -t 2 >/dev/null 2>&1;;
 	esac;
@@ -4585,10 +4711,17 @@ function whisperf
 	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "${1:-nill}" >&2
 		return 1
 	fi ;[[ -f $1 ]] && shift  #get rid of eventual second filename
+
+	((MISTRALAI)) ||
 	if var=$(wc -c <"$file"); ((var > 25000000));
 	then 	du -h "$file" >&2;
 		_warmsgf 'Warning:' "Transcripting input exceeds API limit of 25 MB";
 	fi
+	#MistralAI: The maximum length will depend on the endpoint used, currently the limits are as follows:
+	# ≈20 minutes for Chat with Audio for both models
+	# ≈15 minutes for Transcription, longer transcriptions will be available soon.
+	#Chat with Audio: requires audio file web url!
+	#Transcription: may set `--form file_url="https://docs.mistral.ai/audio/obama.mp3"`
 
 	#set a prompt (224 tokens, GPT2 encoding)
 	max=490  #2-3 chars/tkn code and foreign languages, 4 chars/tkn english
@@ -4603,9 +4736,15 @@ function whisperf
 
 	if [[ $granule = segment ]] || ((GROQAI))
 	then 	scale=2;
+		if ((MISTRALAI)) && ((OPTW>1||OPTWW>1))
+		then 	set -- -F "timestamp_granularities=${granule}" "$@";
+		fi
 	else  #word level
 		scale=${OPTW:-3};
-		set -- -F "timestamp_granularities[]=${granule}" "$@";
+		if ((MISTRALAI))  #not yet available in mistral-api!
+		then 	set -- -F "timestamp_granularities=${granule}" "$@";
+		else 	set -- -F "timestamp_granularities[]=${granule}" "$@";
+		fi
 	fi
 
 	[[ -s $FILE ]] && mv -f -- "$FILE" "${FILE%.*}.2.${FILE##*.}";
@@ -4621,7 +4760,7 @@ function whisperf
 			\"Task: \(.task)\" +
 			\"    \" + \"Gran: ${granule}\" +
 			\"    \" + \"Lang: \(.language)\" +
-			\"    \" + \"Dur: \(.duration|seconds_to_time_string)\" +
+			\"    \" + \"Dur: \( (.duration // (.${granule}s| map(.end-.start) | add) // 0) |seconds_to_time_string)\" +
 			\"\\n\", (.text//empty) +
 			\"\\n\", (.${granule}s[]| \"[\" + yellow + \"\(.start|seconds_to_time_string)\" + reset + \"]\" +
 			\" \" + bpurple + (.text//.${granule}) + reset)" "$FILE" | foldf \
@@ -4638,7 +4777,7 @@ function whisperf
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; BAD_RES=1" INT;
 
 	wait $pid; trap 'exit' INT; wait $pid &&  #check exit code
-	if WHISPER_OUT=$(jq -r "def scale: ${scale}; ${JQDATE} if .${granule}s then (.${granule}s[] | \"[\(.start|seconds_to_time_string)]\" + (.text//.${granule}//empty)) else (.text//.${granule}//empty) end" "$FILE" 2>/dev/null) &&
+	if WHISPER_OUT=$(jq -r "def scale: ${scale}; ${JQDATE} if .${granule}s then (.${granule}s[] | \"[\(.start|seconds_to_time_string)]\" + (.text//.${granule}//empty)) // (.text//.${granule}//empty) else (.text//.${granule}//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
 	then
 		((!CHAT_ENV)) && [[ -d ${FILEWHISPERLOG%/*} ]] &&  #log output
@@ -6298,7 +6437,7 @@ vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
 a:presence  a:pre  A:frequency-penalty  A:frequency  A:freq  best-of \
-best-of:best  logprobs  c:chat  C:resume  C:resume  C:continue  d:text  e:edit \
+best-of:best  c:chat  C:resume  C:resume  C:continue  d:text  e:edit \
 E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist  i:image 'k:no-colo*' \
 K:top-k  K:topk  l:list-models  L:log  m:model  m:mod  n:results  o:clipboard \
 o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
@@ -6314,7 +6453,7 @@ no-time  format  voice  awesome-zh  awesome  source  tmp
 
 		case "$OPTARG" in
 			$name|$name=)
-				if [[ ${optstring}effort:budget:think:format:voice:best-of:logprobs: = *"$opt":* ]]
+				if [[ ${optstring}effort:budget:think:format:voice:best-of: = *"$opt":* ]]
 				then 	OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
 				fi;;
@@ -6353,18 +6492,17 @@ no-time  format  voice  awesome-zh  awesome  source  tmp
 			fi;;
 		A) 	OPTAA="$OPTARG";;
 		best-of) OPTB=$(( ${OPTARG:-1} ));;
-		logprobs) OPTBB=$(( ${OPTARG:-0} ));;
 		b)  #responses api
 			((EPN==12)) && OPTC=2;
 			EPN=12 RESPONSES_API=1;;
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		d) 	((OPTCMPL)) && OPTCMPL=1 || OPTCMPL=-1;;  #-1: single-turn, 1: multi-turn
-		effort) case "$OPTARG" in -*) 	OPTARG= ;; esac;
+		effort) case "$OPTARG" in -[!0-9]*) 	OPTARG= ;; esac;
 			REASON_EFFORT=${OPTARG:?--effort/--think -- level/integer};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTBB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ INST_TIME REASON_EFFORT REASON_INTERACTIVE;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT REASON_INTERACTIVE;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -6543,6 +6681,7 @@ else
 	then 	MOD=$MOD_GOOGLE
 	elif ((MISTRALAI)) || [[ $OPENAI_BASE_URL = *mistral* ]]
 	then 	MOD=$MOD_MISTRAL
+		((WHISPER_MISTRAL >= 0)) && MOD_AUDIO=$MOD_AUDIO_MISTRAL
 	elif ((GROQAI))
 	then 	MOD=$MOD_GROQ
 		((WHISPER_GROQ >= 0)) && MOD_AUDIO=$MOD_AUDIO_GROQ
@@ -6565,6 +6704,7 @@ else
 		then 	MOD=$MOD_CHAT
 		elif ((OPTW)) && ((!MTURN))  #whisper endpoint
 		then 	((GROQAI)) && MOD_AUDIO=$MOD_AUDIO_GROQ
+			((MISTRALAI)) && MOD_AUDIO=$MOD_AUDIO_MISTRAL
 			MOD=$MOD_AUDIO
 		elif ((OPTZ)) && ((!MTURN))  #speech endpoint
 		then 	((GROQAI)) && MOD_SPEECH=$MOD_SPEECH_GROQ
@@ -6991,12 +7131,24 @@ then
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then
 	[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
-	if [[ $1 = @(.|last|retry) ]] && [[ -s $FILEINW ]]
+	
+	#when no file is provided, retry last submission?
+	var= ok=;
+	for var; do 	[[ -f $var ]] && ok=1 && break; done;
+	((!ok)) && [[ -s $FILEINW ]] &&
+	if [[ $1 = @(.|last|retry) ]]
 	then 	set -- "$FILEINW" "${@:2}";
-	elif ((${#} >1)) && [[ ${@:${#}} = @(.|last|retry) ]] && [[ -s $FILEINW ]]
+		_sysmsgf 'Cached recording';
+	elif ((${#} >1)) && [[ ${@:${#}} = @(.|last|retry) ]]
 	then 	set -- "$FILEINW" "${@:1:${#}-1}";
-	fi
-	((${#OPTTARG})) && OPTTW=$OPTTARG;
+		_sysmsgf 'Cached recording';
+	elif [[ $2 = @(.|last|retry) ]]
+	then 	set -- "$FILEINW" "$1" "${@:3}";
+		_sysmsgf 'Cached recording';
+	fi; var= ok=;
+
+	((${#OPTTARG})) && OPTTW=$OPTTARG;  #model temp from cmd line
+
 	whisperf "$@" &&
 	if ((OPTZ)) && WHISPER_OUT=$(jq -r "if .segments then (.segments[].text//empty) else (.text//empty) end" "$FILE" 2>/dev/null) &&
 		((${#WHISPER_OUT}))
@@ -7362,13 +7514,16 @@ else
 						then
 							is_amodelf "$MOD" && _sysmsgf $'\nTranscription:' 'generating..';
 							REPLY=$(
-								set --;
+								set --; OPTC= OPTCMPL= MTURN=;  #K#
 								((OPENAI+LOCALAI)) ||
 								  BASE_URL=$OPENAI_BASE_URL_DEF OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
 
 								if is_whisper_groqf
 								then 	MOD_AUDIO=$MOD_AUDIO_GROQ;
 									BASE_URL=${GROQ_BASE_URL:-$GROQ_BASE_URL_DEF} OPENAI_API_KEY=${GROQ_API_KEY:-$OPENAI_API_KEY};
+								elif is_whisper_mistralf
+								then 	MOD_AUDIO=$MOD_AUDIO_MISTRAL;
+									BASE_URL=${MISTRAL_BASE_URL:-$MISTRAL_BASE_URL_DEF} OPENAI_API_KEY=${MISTRAL_API_KEY:-$OPENAI_API_KEY};
 								fi
 
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= MULTIMODAL=;
@@ -7605,7 +7760,7 @@ else
 			fi;
 			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE_STR}}"
 		#basic text and pdf file, and text url dumps
-		elif 		((!REPLY_CMD_BLOCK)) && var=$(is_txturl "$1")  #C#
+		elif ((!REPLY_CMD_BLOCK)) && var=$(is_txturl "$1")  #C#
 		then 	RET=;
 			if ((!${#REPLY_CMD_DUMP}))
 			then
@@ -7730,7 +7885,7 @@ else
 
 		for media in "${MEDIA_IND[@]}" "${MEDIA_CMD_IND[@]}"
 		do 	((media_i++));
-			var=$(is_audiof "$media" && echo aud || echo img)
+			var=$(_is_audiof "$media" && echo aud || echo img)
 			[[ -f $media ]] && media=$(duf "$media");
 			_sysmsgf "$var #${media_i}" "${media:0: COLUMNS-6-${#media_i}}$([[ -n ${media: COLUMNS-6-${#media_i}} ]] && printf '\b\b\b%s' ...)";
 		done; media= media_i=;
@@ -7778,6 +7933,7 @@ $STREAM_OPT $OPTT_OPT $OPTP_OPT
 		elif ((GOOGLEAI))
 		then
     			var="  $( ((OPTMAX_NILL)) || echo "\"maxOutputTokens\": ${OPTMAX}," )
+  $( ((${REASON_EFFORT:+1}0)) && echo "\"thinkingConfig\": { \"thinkingBudget\": ${REASON_EFFORT:-1024} },")
   ${OPTSTOP/stop/stopSequences} ${OPTP_OPT/_p/P}
   ${OPTKK_OPT/_k/K} ${OPTT_OPT}
   ${BLOCK_USR}"
@@ -7802,6 +7958,14 @@ $var
     ]
 }"; var=;
 #PaLM: HARM_CATEGORY_UNSPECIFIED HARM_CATEGORY_DEROGATORY HARM_CATEGORY_TOXICITY HARM_CATEGORY_VIOLENCE HARM_CATEGORY_SEXUAL HARM_CATEGORY_MEDICAL HARM_CATEGORY_DANGEROUS
+#"generationConfig": {
+#    "thinkingConfig": {
+#          "thinkingBudget": 1024
+#          # Thinking off:
+#          # "thinkingBudget": 0
+#          # Turn on dynamic thinking:
+#          # "thinkingBudget": -1
+#  }  }
 		elif ((OLLAMA))
 		then
 			BLOCK="{
@@ -7815,7 +7979,7 @@ $BLOCK
   $( ((OPTMAX_NILL)) && echo "\"num_predict\": -2" || echo "\"num_predict\": $OPTMAX" ),
   $OPTT_OPT $OPTSEED_OPT
   $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
-  $OPTB_OPT $OPTBB_OPT $OPTSTOP
+  $OPTB_OPT $OPTSTOP
   \"num_ctx\": ${MODMAX}${BLOCK_USR:+,$NL}${BLOCK_USR}
   }
 }"
@@ -7863,7 +8027,7 @@ $(
 )
 $BLOCK $OPTSUFFIX_OPT
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
-$OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
+$OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 \"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
 }"
 		fi
@@ -8139,7 +8303,7 @@ $OPTB_OPT $OPTBB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		((++MAIN_LOOP)); ((WSKIP>1)) && WSKIP=1 || WSKIP=; set --;
 		role= rest= tkn_ans= ans_tts= ans= buff= var= glob= out= pid= s= n=; arr=() tkn=();
 		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= PSKIP= SKIP= EDIT= HARGS= TRIM=;
-		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK BLOCK_CMD REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTBB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES;
+		unset INSTRUCTION GINSTRUCTION REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK BLOCK_CMD REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi
@@ -8154,4 +8318,4 @@ fi
 ## set -x; shopt -s extdebug; PS4=$'\n''$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078,SC2128  ~/bin/chatgpt.sh
 
-# vim=syntax sync minlines=248
+# vim=syntax sync minlines=140
