@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.105.5  jul/2025  by mountaineerbr  GPL+3
+# v0.106  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2823,9 +2823,9 @@ function cmdf
 			((++OPTVV)) ;((OPTVV%=2));
 			cmdmsgf 'Debug Request' $(_onoff $OPTVV)
 			;;
-		source)   #resource own functions
+		source)   #resource own functions (devel)
 			OPTF=1 OPTIND=1 OPTARG=;
-			. "${BASH_SOURCE[0]:-$0}" --source;
+			. <(sed -n "/^function/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
 			;;
 		xtrace)
 			#Xtrace mode
@@ -6422,7 +6422,7 @@ function set_anthropicf
 #https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/_client.py
 
 
-#parse opts  #BDIJQX
+#parse opts  #anchor# #IPC#  #BDIJQX
 unset OPTMM OPTMARG OPENAI MAIN_LOOP HIST_LOOP RESPONSES_API; STOPS=();
 optstring="a:A:bcCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
 while getopts "$optstring" opt
