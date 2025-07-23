@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.106.1  jul/2025  by mountaineerbr  GPL+3
+# v0.106.2  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -172,7 +172,6 @@ HISTSIZE=256;
 [[ -f "${OPTF}${CHATGPTRC}" ]] && . "$CHATGPTRC";
 
 # Set file paths
-function set_pathsf {
 FILE="${CACHEDIR%/}/chatgpt.json"
 FILESTREAM="${CACHEDIR%/}/chatgpt_stream.json"
 FILECHAT="${FILECHAT:-${CACHEDIR%/}/chatgpt.tsv}"
@@ -190,9 +189,6 @@ USRLOG="${OUTDIR%/}/${FILETXT##*/}"
 HISTFILE="${CACHEDIR%/}/history_bash"
 HISTCONTROL=erasedups:ignoredups
 SAVEHIST=$HISTSIZE HISTTIMEFORMAT='%F %T '
-
-}
-set_pathsf;
 
 # API URL / endpoint
 OPENAI_BASE_URL_DEF="https://api.openai.com/v1";
@@ -643,7 +639,6 @@ Options
 	-P, -PP, --print  [/HIST_NAME]    (aliases to -HH and -HHH)
 		Print out last history session. Set twice to print
 		commented out entries, too. Heeds -ccdrR.
-	--tmp 	Temporary cache (usually at \`/tmp').
 
 	Input Modes
 	-u, --multiline
@@ -1298,7 +1293,8 @@ function read_mainf
 #audio-model player
 #play from an appending pcm16 audio file
 function splayerf
-(
+{
+  (
 	trap 'exit' INT TERM;
 	: > "${1}" || exit;
 
@@ -1318,7 +1314,8 @@ function splayerf
 	then 	cvlc --play-and-exit --no-loop --no-repeat -I dummy --demux rawaud --rawaud-channels 1 --rawaud-samplerate 24000 --rawaud-fourcc s16l "${1}";
 	else 	false;
 	fi >/dev/null 2>&1;
-)
+  )
+}
 
 #print response
 function prompt_printf
@@ -1434,7 +1431,7 @@ function is_responses_apif
 		;;
 	esac
 
-	#!#sync globs with is_visionf()!  #L#
+	#!#sync globs with is_visionf()!  #N#
 }
 #These tools are available across our GPT‑4o series, GPT‑4.1 series, and OpenAI o-series reasoning models.
 #https://platform.openai.com/docs/models
@@ -1835,7 +1832,8 @@ function get_tiktokenf
 function start_tiktokenf
 {
 	if ((OPTTIK)) && ! kill -0 $COPROC_PID 2>/dev/null
-	then 	coproc { trap '' INT; PYTHONUNBUFFERED=1 HOPTTIK=1 tiktokenf ;}
+	then
+		coproc { trap '' INT; PYTHONUNBUFFERED=1 HOPTTIK=1 tiktokenf ;}
 		PIDS+=($COPROC_PID)
 	fi
 }
@@ -2386,8 +2384,7 @@ function cmdf
 	typeset -a argv args arr;
 	((${#HARGS})) || typeset HARGS;
 	((CMD_ENV)) && typeset SKIP_SH_HIST=1; typeset CMD_ENV=1;
-	[[ "${1:0:256}${2:0:128}" = *([$IFS:])[/!-]* ]] || return;
-	((${#1}+${#2}<1024)) || return;
+	[[ "${1:0:128}${2:0:64}" = *([$IFS:])[/!-]* ]] || return;
 	printf "${NC}" >&2;
 
 	argv=("$@");
@@ -2395,7 +2392,7 @@ function cmdf
 	set -- "$TRIM" "${@:2}";
 	args=("$@"); set -- "$*";
 
-	case "$*" in
+	case "${1:0:128}" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3|0|[0-9]*[/-]0|0[/-]*|[0-9]*[/-]0[/-]*)
 			((++OPTMAX_NILL)) ;((OPTMAX_NILL%=2));
 			((OPTMAX_NILL)) || unset OPTMAX_NILL;
@@ -2826,6 +2823,7 @@ function cmdf
 		source)   #resource own functions (devel)
 			OPTF=1 OPTIND=1 OPTARG=;
 			. <(sed -n "/^ENDPOINTS=/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
+			((OPTV)) || echo '[source]' >&2;
 			;;
 		xtrace)
 			#Xtrace mode
@@ -3792,7 +3790,7 @@ function __set_fpick
 	done;
 	case "$cmd" in 	dialog) DIALOG_CLR=1;; esac;
 
-	eval "function __fpick { _${cmd}_pickf \"\$@\" ;}"  #_dialog_pickf
+	eval "function __fpick { _${cmd//-/_}_pickf \"\$@\" ;}"  #_dialog_pickf
 }
 
 function _dialog_pickf
@@ -3835,7 +3833,7 @@ function test_dialogf
 	fi >/dev/null 2>&1;
 }
 
-function _termux-dialog_pickf
+function _termux_dialog_pickf
 {
 	printf '%s/%s' "${1%%/}" "$(
 		termux-dialog sheet -v"$(IFS=$'\t\n'; printf '%q,' .. $(_ls_pickf "$1") ..)." | jq -r .text;
@@ -3911,7 +3909,7 @@ function media_pathf
 	#process only the last line of input
 	set -- "$(sed -e 's/\\n/\'$'\n''/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";  #L#
 
-	while [[ "$1" = *[[:alnum:]]* ]] && ((m<128))
+	while [[ "$1" = *[[:alnum:]]* ]] && ((m<256))
 	do
 		((++m)); var=;
 		if [[ -f $1 ]]
@@ -4067,23 +4065,20 @@ function is_docf { 	[[ -f $1 ]] && _is_docf "$1" ;}
 #test whether file is text, pdf file, or url and print out filepath
 function is_txturl
 {
-	((${#1}>1024)) && set -- "${1: ${#1}-1024}"
+	((${#1}>1024+256)) && set -- "${1: ${#1}-1024-256}"
 
 	#last line, last file only  #L#
-	INDEX=${#1} trim_lf "$1" $'*\n';
-	INDEX=256 trim_lrf "$TRIM" "$SPC";
+	INDEX=256 trim_lrf "${1##*$'\n'}" "$SPC";
 	set -- "$TRIM";
 	[[ "$1" = \~\/* ]] && set -- "$HOME/${1:2}";
 
 	if [[ -f ${2:-$1} ]]
 	then 	set -- "${2:-$1}";
 	else 	if [[ $1 = *[\|]* ]]
-		then 	INDEX=${#1} trim_lf "$1" $'*[|]';
-		else 	INDEX=${#1} trim_lf "$1" $'*[!\\\\][ \t\n]';
+		then 	trim_lrf "${1##*[|]}" "$SPC";
+		else 	trim_lrf "${1##*[!\\][$IFS]}" "$SPC";
 		fi;
-		trim_lrf "$TRIM" "$SPC";
-		set -- "$TRIM";
-		[[ ${1:0:1} = [$IFS] ]] && set -- "${1:1}";
+		set -- "${TRIM##[$IFS]}";
 	fi  #C#
 	[[ "$1" = \~\/* ]] && set -- "$HOME/${1:2}";
 
@@ -4108,7 +4103,7 @@ function is_visionf
 	*) 	((MULTIMODAL));;
 	esac;
 
-	#!#sync globs with is_responses_apif()!  #L#
+	#!#sync globs with is_responses_apif()!  #N#
 }
 
 #check for audio-model
@@ -5717,9 +5712,11 @@ function cksumf
 
 #list session files in cache dir
 function session_listf
-(
+{
+  (
 	SESSION_LIST=1 session_globf "$@"
-)
+  )
+}
 #pick session files by globbing cache dir
 function session_globf
 {
@@ -6187,9 +6184,7 @@ function session_sub_fifof
 function cleanupf
 {
 	typeset ret=$?
-
 	SCRIPT_NAME=${TERM%%-*} set_titlef "";
-	[[ -d $CACHEDIR_TMP ]] && rm -r -- "$CACHEDIR_TMP";
 
 	((${#PIDS[@]})) || return $ret;
 	for pid in ${PIDS[@]}
@@ -6444,7 +6439,7 @@ o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
 S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
 U:cat  v:verbose  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
-no-time  format  voice  awesome-zh  awesome  source  tmp
+no-time  format  voice  awesome-zh  awesome  source
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -6580,7 +6575,6 @@ no-time  format  voice  awesome-zh  awesome  source  tmp
 			else 	INSTRUCTION="${opt##S}$OPTARG"
 			fi; OPTSSARG="$OPTARG";
 			;;
-		tmp) 	CACHEDIR=/dev/null;;
 		time) 	INST_TIME=1;;
 		no-time) 	INST_TIME=-1;;
 		source) ((OPTV)) || echo '[source]' >&2;
@@ -6608,7 +6602,7 @@ no-time  format  voice  awesome-zh  awesome  source  tmp
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT EPN_OLD CACHEDIR_TMP  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT EPN_OLD  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
@@ -7034,12 +7028,8 @@ then 	typeset -a argn; argn=();
 fi
 
 ((${#TERMUX_VERSION})) && [[ ! -d $OUTDIR ]] && _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
-[[ -d "$CACHEDIR" ]] || mkdir -p -- "$CACHEDIR" || {
-	CACHEDIR=$(mktemp -d) || exit;
-	CACHEDIR_TMP=$CACHEDIR OUTDIR=$CACHEDIR FILECHAT=;
-	_warmsgf 'Warning:' "Temporary cache directory -- \`$CACHEDIR\`";
-	set_pathsf;  #reset file paths!
-}
+[[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR" ||
+  { _warmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
 
 if ! command -v jq >/dev/null 2>&1
 then 	function jq { 	false ;}
@@ -7097,7 +7087,7 @@ then 	OPTRESUME=1 BREAK_SET=
 	then
 		((OPTC || EPN==6 || EPN==12)) && OPTC=2;
 		((OPTC+OPTRESUME+OPTCMPL+OPTSUFFIX)) || OPTC=1;
-		MODMAX=$((MODMAX+1048576)) || MODMAX=1048576;
+		MODMAX=$((MODMAX+4194304)) || MODMAX=4194304;
 		Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" OLLAMA= set_histf '';
 
 		HIST=$(unescapef "${HIST:-"-*>[SESSION BREAK]<*-"}")

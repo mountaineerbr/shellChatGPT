@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.106 | General Commands Manual
+% CHATGPT.SH(1) v0.106.2 | General Commands Manual
 % mountaineerbr
 % July 2025
 
@@ -357,11 +357,6 @@ before the text prompt itself.
       Heeds `options -ccdrR`.
 
       These are aliases to **-HH** and **-HHH**, respectively.
-
-
-**\--tmp**
-
-: Temporary cache (usually at `/tmp`).
 
 
 ## Configuration File
