@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.106.2  jul/2025  by mountaineerbr  GPL+3
+# v0.106.3  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -904,6 +904,7 @@ function model_capf
 	codestral-2405|codestral-embed*|mistral-embed|mistral-large-2402|mistral-medium-2312|\
 	mistral-moderation*|mistral-ocr*|mistral-saba*|mistral-small-2[34]??|mistral-small-2501|mistral-small|\
 	mistral-tiny-2312|mistral-tiny|open-mistral-7b|open-mixtral-8x7b|*voxtral-mini*|*voxtral-small*) MODMAX=32768;;
+	magistral-small*|magistral-medium*|magistral*) MODMAX=40960;;
 	*) nomatch=1;;
 	esac; ((nomatch)) || return 0; nomatch= ;}
 
@@ -6323,7 +6324,8 @@ function set_googleaif
 		((STREAM)) && var='[-1]';
 		jq -r ".${var} | .usageMetadata |
 		( (.promptTokenCount//\"0\"), (.candidatesTokenCount//\"0\"), \"0\")" "$@";
-	}
+		#(.thoughtsTokenCount//\"0\")
+	}  #thinking tokens need not be deduced from candidatesTokenCount
 	function fmt_ccf
 	{
 		typeset var ext role
@@ -7552,6 +7554,10 @@ else
 						REPLY=$(cat <(printf '%s' "$REPLY") <(</dev/tty) );
 					else 	read_mainf ${REPLY:+-i "$REPLY"} REPLY </dev/tty;
 					fi
+					#if (($?==1)) && ((!${#REPLY}))  #exit on ctrl-d
+					#then 	printf "${NC}%s\\n" "[bye]" >&2;
+					#	break 2;
+					#fi
 					((CATPR)) && echo >&2;
 					((OPTCTRD+CATPR)) && {
 						trim_rf "$REPLY" $'*([\r\b])'
@@ -8109,6 +8115,9 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			if ((OLLAMA))
 			then 	tkn=($(jq -r -s '.[-1]|.prompt_eval_count//"0", .eval_count//"0", "0", .created_at//"0", (.eval_duration/1000000000)?, (.eval_count/(.eval_duration/1000000000)?)?' "$FILE") )
 				((STREAM)) && ((MAX_PREV+=tkn[1]));
+			elif [[ $MOD = *deepseek* ]]
+			then 	((tkn[2])) && tkn[2]=0;
+				#do not deduce thinking tokens from total when thinking text is available
 			fi
 
 			#audio-model: audio only response
