@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.107  jul/2025  by mountaineerbr  GPL+3
+# v0.107.1  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1777,6 +1777,22 @@ function date2f
 	printf "%(${TIME_RFC5322_FMT})T\\n" -1 || date +"${TIME_RFC5322_FMT}";
 }
 
+##record preview query input and response to hist file
+##usage: prev_tohistf [input]
+#function prev_tohistf
+#{
+#	typeset input answer
+#	input="$*"
+#	((BREAK_SET)) && { _break_sessionf; BREAK_SET= ;}
+#	if ((STREAM))
+#	then 	answer=$(escapef "$(prompt_pf -r -j "$FILE")")
+#	else 	answer=$(prompt_pf "$FILE")
+#		((${#answer}>1)) && answer=${answer:1:${#answer}-2}  #del lead and trail ""
+#	fi
+#	push_tohistf "$input" '' '#1970-01-01'  #(dummy dates)
+#	push_tohistf "$answer" '' '#1970-01-01'  #(as comments)
+#}
+
 #calculate token preview
 #usage: token_prevf [string]
 function token_prevf
@@ -3027,8 +3043,12 @@ function cmdf
 						cmdf /sh "cat ${fileinq:-$filein}";;
 					*)
 						_warmsgf '*' 'Press <Ctrl-D> to flush * '
-						STDERR=/dev/null  cmdf /sh cat </dev/tty;;
+						function tee { cat ;};  #disable tee stderr hack
+						cmdf /sh cat </dev/tty;
+						unset -f tee;
+						;;
 				esac;
+				echo $'\n[done]' >&2;
 			fi; return;
 			;;
 		pdf*)
