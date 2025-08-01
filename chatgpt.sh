@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.107.2  aug/2025  by mountaineerbr  GPL+3
+# v0.107.3  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -461,6 +461,7 @@ Command List
      !!j     !!jump             Jump to request, no response priming.
      !cat     -                 Cat prompter (one-shot, ctrl-d).
      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL.
+     !clot    -                 Flood TTY with patterns (visual separator).
      !dialog  -                 Toggle the \`dialog' interface.
      !img     !media [FILE|URL] Add image, media, or URL to prompt.
      !md      !markdown [SOFTW] Toggle markdown support in response.
@@ -1191,6 +1192,39 @@ function _spinf
 
 #print input and backspaces for all chars
 function _printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
+
+#hello message
+#usage: hellof [printf_char] [substring_offset]
+function hellof
+{
+  typeset fg bg;
+  
+  ((OPTK)) ||
+  while
+    fg=${SGR_FG_COLORS[RANDOM % ${#SGR_FG_COLORS[@]}]}
+    bg=${SGR_BG_COLORS[RANDOM % ${#SGR_BG_COLORS[@]}]}
+    [[ ${bg} = *${fg:1} ]]
+  do  :;
+  done;
+  
+  printf "\\e[%s;%s;%sm%s\\e[0m${1-\\n}" \
+    "${SGR_ATTRS[RANDOM % ${#SGR_ATTRS[@]}]}" \
+    "$fg" "$bg" "${MSG[${RANDOM} % ${#MSG[@]}]:${2:-0}}";
+}
+MSG=(
+  '**#--#**  ChatGPT.sh  **#--#**'  '**-##-**  ChatGPT.sh  **-##-**'
+  ' <>...<>  ChatGPT.sh  <>...<> '  ' |*-_-*|  ChatGPT.sh  |*-_-*| '
+  ' <<**>>   ChatGPT.sh   <<**>> '  '=-0oOo=-  ChatGPT.sh  -=oOo0-='
+  ' >>---->  ChatGPT.sh  <----<< '  ' (~-~-~)  ChatGPT.sh  (~-~-~) '
+  '<|> <|>>> ChatGPT.sh <<<|> <|>'  '[[ ------ ChatGPT.sh  ----- ]]'
+)
+#primary text attributes
+SGR_ATTRS=(0 1 2 3 4 5   7   9)  #poorly supported: 2 6 8 9
+#standard and high-intensity foreground colors
+SGR_FG_COLORS=(30 31 32 33 34 35 36 37  90 91 92 93 94 95 96 97)
+#standard and high-intensity background colors
+SGR_BG_COLORS=(40 41 42 43 44 45 46 47  100 101 102 103 104 105 106 107)
+#https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 
 #trim left (leading) glob
 #usage: trim_lf [string] [glob]
@@ -2382,7 +2416,7 @@ function cmdf
 	typeset append filein fileinq outdir ans out var wc xskip pid m n
 	typeset -a argv args arr;
 	((${#HARGS})) || typeset HARGS;
-	((CMD_ENV)) && typeset SKIP_SH_HIST=1; typeset CMD_ENV=1;
+	((CMD_ENV)) && typeset SKIP_SH_HIST=1; typeset CMD_ENV=${CMD_ENV:-1};
 	[[ "${1:0:128}${2:0:64}" = *([$IFS:])[/!-]* ]] || return;
 	printf "${NC}" >&2;
 
@@ -2447,6 +2481,31 @@ function cmdf
 			((OPTC>1)) && { 	cmdf -d; return ;}
 			OPTC=2 EPN=6 OPTCMPL= STURN= ;
 			cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
+			;;
+		clot)
+			((OPTK)) && {
+				typeset -a SGR_ATTRS SGR_FG_COLORS SGR_BG_COLORS;
+				SGR_ATTRS=(0); SGR_FG_COLORS=(0); SGR_BG_COLORS=(0);
+			}
+
+			for ((m=0;m<LINES;m++))
+			do 	var=;
+				for ((n=0;n<COLUMNS/${#MSG[0]};n++))
+				do 	hellof '' >&2;
+					((var+=${#MSG[0]}));
+				done;
+
+				n=3;
+				while ((COLUMNS>var))
+				do 	for ((n=n;n<=${#MSG[0]};n++))
+					do 	if ((COLUMNS-var >= ${#MSG[0]}/n))
+						then 	hellof '' $(( ${#MSG[0]} - (${#MSG[0]}/n) )) >&2;
+							((var+= ${#MSG[0]}/n ));
+						fi;
+					done;
+				done;
+				echo >&2;
+			done;
 			;;
 		-[dD]|-[dD][dD])
 			((!OPTC)) && { 	cmdf -c; return ;}
@@ -3142,7 +3201,7 @@ function cmdf
 		for ((m=1;m<2;++m))
 		do
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, [r]edo, [d]iscard, or [/]cmd ' ''
-				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break 2 ;}
+				((OPTV>2||CMD_ENV>200)) && { 	printf '%s\n' 'n' >&2; break 2 ;}
 
 				ans="$(NO_CLR=1 read_charf)";
 				case "$ans" in
@@ -3401,14 +3460,15 @@ function cmdf
 }
 
 #restricted cmdf()
-#avoid messing pre-request interface and flow
+#avoid disrupting pre-request interface and flow
 function rcmdf
 {
-	BLOCK_USR= BLOCK_CMD= EDIT= JUMP= REGEN= REPLY= REPLY_OLD= \
-	REPLY_CMD= REPLY_CMD_BLOCK= REPLY_CMD_DUMP= RESUBW= RET= \
-	SKIP= PSKIP= WSKIP= HARGS= OPTAWE= BAD_RES= \
-	SKIP_SH_HIST=1 BCYAN= CYAN= ON_CYAN= \
-	cmdf "$@";
+	typeset BLOCK_USR BLOCK_CMD EDIT JUMP REGEN REPLY REPLY_OLD REPLY_CMD REPLY_CMD_BLOCK REPLY_CMD_DUMP RESUBW RET SKIP PSKIP WSKIP HARGS OPTAWE BAD_RES BCYAN CYAN ON_CYAN;
+
+	SKIP_SH_HIST=1 CMD_ENV=201 cmdf "$@";
+
+	(($?==181)) && _warmsgf 'illegal command';
+	((${#REPLY}+${#BLOCK_USR}+${#BLOCK_CMD}+REGEN+RESUBW==0)) || _warmsgf 'Warning:' 'command block';
 }
 
 #print msg to stderr
@@ -6944,12 +7004,6 @@ then 	set_mdcmdf "$MD_CMD";
 fi
 ((${#OPTMD}+${#MD_CMD})) && NO_OPTMD_AUTO=1  #disable markdown auto detect
 #o1 models in the API will avoid generating responses with markdown formatting
-
-##stdin and stderr filepaths
-#if [[ -n $TERMUX_VERSION ]]
-#then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
-#else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
-#fi
 
 #dump and append text from supported file types, and stdin
 if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN)) && ((!(OPTC+OPTCMPL+OPTSUFFIX) ))
