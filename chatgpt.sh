@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.106.3  jul/2025  by mountaineerbr  GPL+3
+# v0.107  jul/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1261,12 +1261,10 @@ function new_prompt_confirmf
 		[WAPp]) return 195;;  #whisper append
 		[HhTt]) return 194;;  #whisper retry request
 		[NnOo]) REC_OUT=; return 1;;  #no
-		[-/!]) 	echo >&2; OPTCTRD= read_mainf -i "$REPLY" REPLY; echo >&2;
-			BLOCK_USR= BLOCK_CMD= BREAK_SET= OPTRESUME= EDIT= ENDPOINTS= \
-			JUMP= MAIN_LOOP= REGEN= REPLAY_FILES= REPLY= \
-			REPLY_CMD_BLOCK= REPLY_CMD_DUMP= REPLY_OLD= RESTART= START= \
-			RESUBW= RET= SKIP= SKIP_SH_HIST=  BCYAN= CYAN= ON_CYAN= \
-			cmdf "$REPLY";
+		[-/!]) 	echo >&2;
+			OPTCTRD= read_mainf -i "$REPLY" REPLY </dev/tty;
+			echo >&2;
+			rcmdf "$REPLY";
 			new_prompt_confirmf "$@";;
 	esac  #yes
 }
@@ -1777,22 +1775,6 @@ function datef
 function date2f
 {
 	printf "%(${TIME_RFC5322_FMT})T\\n" -1 || date +"${TIME_RFC5322_FMT}";
-}
-
-#record preview query input and response to hist file
-#usage: prev_tohistf [input]
-function prev_tohistf
-{
-	typeset input answer
-	input="$*"
-	((BREAK_SET)) && { _break_sessionf; BREAK_SET= ;}
-	if ((STREAM))
-	then 	answer=$(escapef "$(prompt_pf -r -j "$FILE")")
-	else 	answer=$(prompt_pf "$FILE")
-		((${#answer}>1)) && answer=${answer:1:${#answer}-2}  #del lead and trail ""
-	fi
-	push_tohistf "$input" '' '#1970-01-01'  #(dummy dates)
-	push_tohistf "$answer" '' '#1970-01-01'  #(as comments)
 }
 
 #calculate token preview
@@ -2381,7 +2363,7 @@ function _set_browsercmdf
 #check input and run a chat command
 function cmdf
 {
-	typeset append filein fileinq onutdir out var wc xskip pid n
+	typeset append filein fileinq outdir ans out var wc xskip pid m n
 	typeset -a argv args arr;
 	((${#HARGS})) || typeset HARGS;
 	((CMD_ENV)) && typeset SKIP_SH_HIST=1; typeset CMD_ENV=1;
@@ -2473,7 +2455,7 @@ function cmdf
 			trim_lf "$*" "@(block|blk)$SPC"
 			set -- "$TRIM"
 			_printbf '>';
-			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR;
+			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR </dev/tty;
 			((${#BLOCK_USR})) && {
 				trim_rf "$BLOCK_USR" $',*([\n\t ])';
 				BLOCK_USR="$TRIM";
@@ -3121,7 +3103,7 @@ function cmdf
 			[[ -n $* ]] || set --; xskip=1;
 			while :
 			do 	trap 'trap "-" INT' INT;  #disable trap for one <CRTL-C>#
-				var=$(trap "-" INT; bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee $STDERR);
+				var=$(trap "-" INT; bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee >(cat >&2) );
 				RET=$?; ((RET)) && _warmsgf "ret code:" "$RET";
 				trap "exit" INT;
 				
@@ -3138,20 +3120,32 @@ function cmdf
 				else 	REPLY=$var var=;
 				fi; printf '\n---\n\n' >&2;
 
-				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, [r]edo, or [d]iscard ' ''
-				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break ;}
-				case "$(NO_CLR=1 read_charf)" in
+		for ((m=1;m<2;++m))
+		do
+				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, [r]edo, [d]iscard, or [/]cmd ' ''
+				((OPTV>2)) && { 	printf '%s\n' 'n' >&2; break 2 ;}
+
+				ans="$(NO_CLR=1 read_charf)";
+				case "$ans" in
+					[-/!]) 	echo >&2;
+						OPTCTRD= read_mainf -i "$ans" ans </dev/tty;
+						echo >&2;
+						rcmdf "$ans";
+						m=0; continue 1;;
 					[Q]) 	RET=202; exit 202;;  #exit
 					[AaDdq]) REPLY= RET=201 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;
-						WSKIP= SKIP= EDIT= append=; break;;  #abort / discard
+						WSKIP= SKIP= EDIT= append=; break 2;;  #abort / discard
 					[Rr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
 						REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
-						break;;  #redo
-					[EeYy]|$'\e') 	SKIP=1 EDIT=1 RET=199; break;; #yes, bash `read`
-					[VvXx]|$'\t'|' ') 	SKIP=1 EDIT=1 RET=198; ((OPTX)) || OPTX=2; break;; #yes, text editor
-					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break;;  #no need to edit
-				esac; set --;
-			done; _clr_lineupf $((12+1+58));  #!#
+						break 2;;  #redo
+					[EeYy]|$'\e') 	SKIP=1 EDIT=1 RET=199; break 2;; #yes, bash `read`
+					[VvXx]|$'\t'|' ') 	SKIP=1 EDIT=1 RET=198; ((OPTX)) || OPTX=2; break 2;; #yes, text editor
+					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break 2;;  #no need to edit
+				esac;
+		done;
+				set --;
+			done;
+			_clr_lineupf $((12+1+66));  #!#
 
 			((append)) && [[ ${REPLY:0:32} != [/!]* ]] && REPLY=:$REPLY;
 			((SKIP_SH_HIST)) || shell_histf "!${HARGS[*]:-${args[*]}}"; SKIP_SH_HIST=1;
@@ -3387,6 +3381,17 @@ function cmdf
        	return 0;
 }
 
+#restricted cmdf()
+#avoid messing pre-request interface and flow
+function rcmdf
+{
+	BLOCK_USR= BLOCK_CMD= EDIT= JUMP= REGEN= REPLY= REPLY_OLD= \
+	REPLY_CMD= REPLY_CMD_BLOCK= REPLY_CMD_DUMP= RESUBW= RET= \
+	SKIP= PSKIP= WSKIP= HARGS= OPTAWE= BAD_RES= \
+	SKIP_SH_HIST=1 BCYAN= CYAN= ON_CYAN= \
+	cmdf "$@";
+}
+
 #print msg to stderr
 #usage: _sysmsgf [string_one] [string_two] ['']
 function _sysmsgf
@@ -3501,8 +3506,8 @@ function edf
 	do 	_warmsgf "Bad edit:" "[E]dit, [r]edo, [c]ontinue, [a]bort, or [/]cmd? " ''
 		reply=$(read_charf)
 		case "$reply" in
-			[-/!]) OPTCTRD= read_mainf -i "$reply" reply;
-				cmdf "$reply"; _edf "$FILETXT";;  #cmd
+			[-/!]) OPTCTRD= read_mainf -i "$reply" reply </dev/tty;
+				rcmdf "$reply"; _edf "$FILETXT";;  #cmd
 			[AQ]) echo '[bye]' >&2; return 202;;  #exit
 			[aq]) echo '[abort]' >&2; return 201;;  #abort
 			[CcNn]) break;;      #continue
@@ -6315,7 +6320,7 @@ function set_googleaif
 	{
 		if [[ -t 0 ]]
 		then 	((!${#1})) || __tiktokenf "$*";
-		else 	__tiktokenf "$(<$STDIN)";
+		else 	__tiktokenf "$(cat)";
 		fi
 	}
 	function response_tknf
@@ -6921,11 +6926,11 @@ fi
 ((${#OPTMD}+${#MD_CMD})) && NO_OPTMD_AUTO=1  #disable markdown auto detect
 #o1 models in the API will avoid generating responses with markdown formatting
 
-#stdin and stderr filepaths
-if [[ -n $TERMUX_VERSION ]]
-then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
-else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
-fi
+##stdin and stderr filepaths
+#if [[ -n $TERMUX_VERSION ]]
+#then 	STDIN='/proc/self/fd/0' STDERR='/proc/self/fd/2'
+#else 	STDIN='/dev/stdin'      STDERR='/dev/stderr'
+#fi
 
 #dump and append text from supported file types, and stdin
 if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN)) && ((!(OPTC+OPTCMPL+OPTSUFFIX) ))
@@ -6942,7 +6947,7 @@ then
 	fi  #D#
 
 	{ ((OPTI)) && ((${#})) && [[ -f ${@:${#}} ]] ;} ||
-	  [[ -t 0 ]] || set -- "$@" "$(<$STDIN)";
+	  [[ -t 0 ]] || set -- "$@" "$(cat)";
 
 	edf "$@" && set -- "$(<"$FILETXT")";
 elif ! ((OPTTIKTOKEN+OPTI))
@@ -6958,7 +6963,7 @@ then
 		((!RET && ${#REPLY})) && set -- "$REPLY" "${@:2}";
 	fi  #D#
 
-	[[ -t 0 ]] || ((OPTZZ+OPTL+OPTFF+OPTHH)) || set -- "$@" "$(<$STDIN)";
+	[[ -t 0 ]] || ((OPTZZ+OPTL+OPTFF+OPTHH)) || set -- "$@" "$(cat)";
 fi; REPLY= RET=;
 
 #tips and warnings
@@ -7114,7 +7119,7 @@ then
 	fi
 	if ((OPTYY))  #option -Y (debug, mostly)
 	then 	if [[ ! -t 0 ]]
-       		then 	__tiktokenf "$(<$STDIN)";
+       		then 	__tiktokenf "$(cat)";
        		else 	__tiktokenf "$*";
 		fi
 	else
@@ -7208,6 +7213,9 @@ else
 	((OPTW)) && unset OPTX; ((OPTW)) && OPTW=1; ((OPTWW)) && OPTWW=1;
 	((OPTC+MTURN+OPTCMPL+OPTSUFFIX)) && ((!OPTEXIT)) && test_dialogf;
 	set_titlef "";
+
+	#reassign stdin to the terminal for the remaining of the script
+	[[ -t 0 ]] || exec 0< /dev/tty;
 
 	#custom / awesome prompts
 	case "${1:0:32}${2:0:32}" in
@@ -7416,9 +7424,12 @@ else
 
 	while :
 	do 	trap "exit" INT;
-		((MTURN+OPTRESUME)) && ((!OPTEXIT)) && CKSUM_OLD=$(cksumf "$FILECHAT");
 		((TRAP_EDIT)) && set -- &&
 		  EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= OPTAWE= TRAP_EDIT=;
+
+		((MTURN+OPTRESUME)) && ((!OPTEXIT)) && ((!SKIP_CKSUM_OLD)) &&
+		  CKSUM_OLD=$(cksumf "$FILECHAT"); SKIP_CKSUM_OLD=;
+
 		if ((REGEN>0))  #regen + edit prompt
 		then 	if ((REGEN==1))
 			then 	((OPTX)) && PSKIP=1;
@@ -7553,11 +7564,8 @@ else
 					then 	printf '%s' "$REPLY" >&2;
 						REPLY=$(cat <(printf '%s' "$REPLY") <(</dev/tty) );
 					else 	read_mainf ${REPLY:+-i "$REPLY"} REPLY </dev/tty;
+						#(($?==1)) && ((!${#REPLY})) && break 2;  #exit on ctrl-d
 					fi
-					#if (($?==1)) && ((!${#REPLY}))  #exit on ctrl-d
-					#then 	printf "${NC}%s\\n" "[bye]" >&2;
-					#	break 2;
-					#fi
 					((CATPR)) && echo >&2;
 					((OPTCTRD+CATPR)) && {
 						trim_rf "$REPLY" $'*([\r\b])'
@@ -7679,7 +7687,7 @@ else
 			then 	echo "[jump]" >&2
 			else
 				((REGEN)) && echo "[regenerate mode]" >&2;
-				_warmsgf "(empty)"
+				_warmsgf "(empty)"; SKIP_CKSUM_OLD=1;
 				set -- ; continue
 			fi
 		fi
