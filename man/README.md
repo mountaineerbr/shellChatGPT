@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2025
-title: CHATGPT.SH(1) v0.107.3 \| General Commands Manual
+title: CHATGPT.SH(1) v0.107.4 \| General Commands Manual
 ---
 
 # NAME
@@ -760,7 +760,7 @@ or “`/`” are equivalent.
 | `!!j`     | `!!jump`                        | Jump to request, no response priming.                   |
 | `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.           |
 | `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text*, *PDF* file, or dump *URL*.                  |
-| `!clot`   | \-                              | Flood the TTY with patterns, as visual separator.       |
+| `!clot`   | `!!clot`                        | Flood the TTY with patterns, as visual separator.       |
 | `!dialog` | \-                              | Toggle the “dialog” interface.                          |
 | `!img`    | `!media` \[*FILE*\|*URL*\]      | Add image, media, or URL to prompt.                     |
 | `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                  |

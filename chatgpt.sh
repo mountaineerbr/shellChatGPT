@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.107.3  aug/2025  by mountaineerbr  GPL+3
+# v0.107.4  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -461,7 +461,7 @@ Command List
      !!j     !!jump             Jump to request, no response priming.
      !cat     -                 Cat prompter (one-shot, ctrl-d).
      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL.
-     !clot    -                 Flood TTY with patterns (visual separator).
+     !clot   !!clot             Flood TTY with patterns (visual separator).
      !dialog  -                 Toggle the \`dialog' interface.
      !img     !media [FILE|URL] Add image, media, or URL to prompt.
      !md      !markdown [SOFTW] Toggle markdown support in response.
@@ -2482,8 +2482,12 @@ function cmdf
 			OPTC=2 EPN=6 OPTCMPL= STURN= ;
 			cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
+		[/!]clot)
+			OPTK=1 cmdf /clot;
+			return;
+			;;
 		clot)
-			((OPTK)) && {
+			((OPTK)) && {  #no colours
 				typeset -a SGR_ATTRS SGR_FG_COLORS SGR_BG_COLORS;
 				SGR_ATTRS=(0); SGR_FG_COLORS=(0); SGR_BG_COLORS=(0);
 			}

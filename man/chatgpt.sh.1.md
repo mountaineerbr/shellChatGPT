@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.107.3 | General Commands Manual
+% CHATGPT.SH(1) v0.107.4 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -921,7 +921,7 @@ Command operators "`!`" or "`/`" are equivalent.
       `!!j`        `!!jump`                          Jump to request, no response priming.
      `!cat`         \-                               Cat prompter as one-shot, \<_CTRL-D_> flush.
      `!cat`        `!cat:` \[_TXT_|_URL_|_PDF_]      Cat _text_, _PDF_ file, or dump _URL_.
-    `!clot`         \-                               Flood the TTY with patterns, as visual separator.
+    `!clot`        `!!clot`                          Flood the TTY with patterns, as visual separator.
   `!dialog`         \-                               Toggle the "dialog" interface.
      `!img`        `!media` \[_FILE_|_URL_]          Add image, media, or URL to prompt.
       `!md`        `!markdown`  \[_SOFTW_]           Toggle markdown rendering in response.
