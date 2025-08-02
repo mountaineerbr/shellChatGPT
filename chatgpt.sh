@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108.3  aug/2025  by mountaineerbr  GPL+3
+# v0.108.4  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2911,6 +2911,11 @@ function cmdf
 			((++OPTTIK)) ;((OPTTIK%=2))
 			cmdmsgf 'Tiktoken' $(_onoff $OPTTIK)
 			;;
+		-[Ww][z]|[Ww][z]|-[z][Ww]|[z][Ww])
+			cmdf /whisper; echo >&2;
+			cmdf /tts;
+			return;
+			;;
 		-[Ww]*|[Ww]*|rec*|whisper*)
 			set -- "${*##@(-[wW][wW]|-[wW]|[wW][wW]|[wW]|rec|whisper)$SPC}";
 			((OPTW+OPTWW)) && [[ -n $* ]] && OPTW= OPTWW=; OPTX=;
@@ -2934,8 +2939,8 @@ function cmdf
 			  done
 
 			  [[ -z $* ]] || WARGS=("$@"); xskip=1;
-			  cmdmsgf "Transcription Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
-			fi; cmdmsgf 'Voice-in Chat' $(_onoff $((OPTW+OPTWW)) );
+			  cmdmsgf "STT Args #${#WARGS[@]}" "${WARGS[*]:-(auto)}"
+			fi; cmdmsgf 'Speech-To-Text Chat' $(_onoff $((OPTW+OPTWW)) );
 			((OPTW)) || unset OPTW WSKIP SKIP;
 			;;
 		-z*|tts*|speech*)
@@ -2944,8 +2949,8 @@ function cmdf
 			if ((++OPTZ)); ((OPTZ%=2))
 			then 	set_playcmdf;
 				[[ -z $* ]] || ZARGS=("$@"); xskip=1;
-				cmdmsgf 'TTS Args' "${ZARGS[*]:-unset}";
-			fi; cmdmsgf 'TTS Chat' $(_onoff $OPTZ);
+				cmdmsgf "TTS Args #${#ZARGS[@]}" "${ZARGS[*]:-unset}";
+			fi; cmdmsgf 'Text-To-Speech Chat' $(_onoff $OPTZ);
 			((OPTZ)) || unset OPTZ SKIP;
 			;;
 		-Z|last)
