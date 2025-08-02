@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108  aug/2025  by mountaineerbr  GPL+3
+# v0.108.1  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -940,7 +940,7 @@ function model_capf
 	((GITHUBAI)) && {
 	case "${model}" in
 	llama-4-scout-17b-16e-instruct) MODMAX=10000000;;
-	gpt-4.[1-9]*) MODMAX=1048576;;
+	gpt-[4-9].[1-9]*) MODMAX=1048576;;
 	llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
 	ai21-jamba-1.5-*) MODMAX=262144;;
 	codestral-2501|grok-[4-9]*) MODMAX=256000;;
@@ -4982,7 +4982,7 @@ $( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}
 }"
 		((OPTVV)) && _warmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}, Block: ${BLOCK}"
 		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play ' '';  #!#
-		
+
 		(trap '-' INT; prompt_ttsf) & pid=$! secs=$SECONDS;
 		trap "trap 'exit' INT; kill -- $pid 2>/dev/null; return;" INT;
 		while _spinf; ok=
@@ -7149,9 +7149,9 @@ then 	#(shell completion script)
 elif ((OPTFF))
 then 	if [[ -s "$CHATGPTRC" ]] && ((OPTFF<2))
 	then 	_edf "$CHATGPTRC";
-	else 	curl --fail -L "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
+	else 	curl --fail -sL "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
 		CHATGPTRC="stdout [$CHATGPTRC]";
-	fi; _sysmsgf 'Conf File:' "${CHATGPTRC/"$HOME"/"~"}";
+	fi; [[ ! -t 1 ]] || _sysmsgf 'Conf File:' "${CHATGPTRC/"$HOME"/"~"}";
 elif ((OPTHH && OPTW)) && ((!(OPTC+MTURN+OPTRESUME+OPTCMPL+OPTSUFFIX) )) && [[ -f $FILEWHISPERLOG ]]
 then  #whisper log
 	if ((OPTHH>1))
