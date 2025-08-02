@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108.1  aug/2025  by mountaineerbr  GPL+3
+# v0.108.2  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1216,8 +1216,8 @@ function hellof
     "$fg" "$bg" "${MSG[${RANDOM} % ${#MSG[@]}]:${2:-0}}";
 }
 MSG=(
-  '**#--#**  ChatGPT.sh  **#--#**'  '**-##-**  ChatGPT.sh  **-##-**'
-  ' <>...<>  ChatGPT.sh  <>...<> '  ' |*-_-*|  ChatGPT.sh  |*-_-*| '
+  '**#--#**  ChatGPT.sh  **#--#**'  '++=@=++   ChatGPT.sh  ++=@=++ '
+  ' <>...<>  ChatGPT.sh  <>...<> '  ' |*-_-*|  ChatGPT.sh  ||*-_-*|'
   ' <<**>>   ChatGPT.sh   <<**>> '  '=-0oOo=-  ChatGPT.sh  -=oOo0-='
   ' >>---->  ChatGPT.sh  <----<< '  ' (~-~-~)  ChatGPT.sh  (~-~-~) '
   '<|> <|>>> ChatGPT.sh <<<|> <|>'  '[[ ------ ChatGPT.sh  ----- ]]'
@@ -4807,8 +4807,8 @@ function whisperf
 		_warmsgf 'Warning:' "Transcripting input exceeds API limit of 25 MB";
 	fi
 	#MistralAI: The maximum length will depend on the endpoint used, currently the limits are as follows:
-	# ≈20 minutes for Chat with Audio for both models
-	# ≈15 minutes for Transcription, longer transcriptions will be available soon.
+	# ~20 minutes for Chat with Audio for both models
+	# ~15 minutes for Transcription, longer transcriptions will be available soon.
 	#Chat with Audio: requires audio file web url!
 	#Transcription: may set `--form file_url="https://docs.mistral.ai/audio/obama.mp3"`
 
