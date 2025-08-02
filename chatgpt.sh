@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108.4  aug/2025  by mountaineerbr  GPL+3
+# v0.108.5  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -468,7 +468,7 @@ Command List
     !!md     !!markdown [SOFTW] Render last response in markdown.
      !rep     !replay           Replay last TTS audio response.
      !res     !resubmit         Resubmit last STT recorded audio input.
-     !p       !pick  [PROMPT]   File picker, appends filepath to prompt. ‡
+      !p      !pick  [PROMPT]   File picker, appends filepath to prompt. ‡
      !pdf     !pdf:    [FILE]   Dump PDF text.
     !photo   !!photo   [INDEX]  Take a photo, camera index (Termux). ‡
      !sh      !shell    [CMD]   Run shell cmd, edit stdout (make request). ‡
@@ -3215,7 +3215,7 @@ function cmdf
 		for ((m=1;m<2;++m))
 		do
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, [r]edo, [d]iscard, or [/]cmd ' ''
-				((OPTV>2||CMD_ENV>200)) && { 	printf '%s\n' 'n' >&2; break 2 ;}
+				((OPTV>2||OPTEXIT>1||CMD_ENV>200)) && { 	printf '%s\n' 'n' >&2; break 2 ;}
 
 				ans="$(NO_CLR=1 read_charf)";
 				case "$ans" in
@@ -3451,13 +3451,28 @@ function cmdf
 			;;
 		*)
 			#run shell command?
-			if [[ ${argv[*]} = *([$IFS:-])\!\![!$IFS!:-]* ]]
-			then
+			if [[ ${argv[0]:0:32} = *([$IFS:-])\!\![!$IFS!:-]* ]]
+			then  #shell cmd dump
 				cmdf //sh "${1##*([$IFS!:-])}";
 				return;
-			elif [[ ${argv[*]} = *([$IFS:-])\![!$IFS!:-]* ]]
-			then
+			elif [[ ${argv[0]:0:32} = *([$IFS:-])\![!$IFS!:-]* ]]
+			then  #interactive shell cmd
 				cmdf  /sh "${1##*([$IFS!:-])}";
+				return;
+			#one-letter command combo?
+			elif ((${#argv[0]}<8)) &&
+				[[ ${argv[0]:0:32} = [/!-][A-Za-z][A-Za-z]*([A-Za-z]) ]]
+			then
+				for ((n=1;n<${#argv[0]};n++))
+				do
+					cmdmsgf "Command:" "${argv[0]:0:1}${argv[0]:n:1}";
+
+					if cmdf ${argv[0]:0:1}${argv[0]:n:1}
+					then 	echo >&2;
+					else 	_warmsgf "Command:" "Fail -- ${argv[0]:0:1}${argv[0]:n:1}";
+						return 181;
+					fi
+				done;
 				return;
 			else
 				return 181;  #illegal command
@@ -7551,7 +7566,7 @@ else
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(${PREPEND:+NOT_}EMPTY)}" | tail -n $((LINES-2))
 					do
 					((!BAD_RES)) && {
-					((OPTV)) || [[ $REPLY = :* ]] \
+					((OPTV||OPTEXIT>1)) || [[ $REPLY = :* ]] \
 					|| [[ $REPLY != *[!$IFS]* ]] \
 					|| { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY}" >/dev/null ;};
 					} || NO_CLR=1 new_prompt_confirmf abort
@@ -7712,7 +7727,7 @@ else
 					((${#PREPEND})) && [[ ${REPLY:0:1024} != *[!$IFS]* ]] \
 					  && echo '[prompt buffer]' >&2;
 					((!BAD_RES)) && {
-					  ((OPTV)) || [[ ${REPLY:0:32} = :* ]] \
+					  ((OPTV||OPTEXIT>1)) || [[ ${REPLY:0:32} = :* ]] \
 					  || [[ ${REPLY:0:1024}${PREPEND:0:512} != *[!$IFS]* ]] \
 					  || { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY: ind}" >/dev/null ;};
 					} || new_prompt_confirmf ed whisper
