@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108.5  aug/2025  by mountaineerbr  GPL+3
+# v0.108.6  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1300,9 +1300,8 @@ function new_prompt_confirmf
 		[HhTt]) return 194;;  #whisper retry request
 		[NnOo]) REC_OUT=; return 1;;  #no
 		[-/!]) 	echo >&2;
-			OPTCTRD= read_mainf -i "$REPLY" REPLY </dev/tty;
-			echo >&2;
-			rcmdf "$REPLY";
+			OPTCTRD= read_mainf -i "$REPLY" REPLY </dev/tty; echo >&2;
+			rcmdf "$REPLY"; echo >&2;
 			new_prompt_confirmf "$@";;
 	esac  #yes
 }
@@ -3220,8 +3219,7 @@ function cmdf
 				ans="$(NO_CLR=1 read_charf)";
 				case "$ans" in
 					[-/!]) 	echo >&2;
-						OPTCTRD= read_mainf -i "$ans" ans </dev/tty;
-						echo >&2;
+						OPTCTRD= read_mainf -i "$ans" ans </dev/tty; echo >&2;
 						rcmdf "$ans";
 						m=0; continue 1;;
 					[Q]) 	RET=202; exit 202;;  #exit
@@ -3464,14 +3462,13 @@ function cmdf
 				[[ ${argv[0]:0:32} = [/!-][A-Za-z][A-Za-z]*([A-Za-z]) ]]
 			then
 				for ((n=1;n<${#argv[0]};n++))
-				do
-					cmdmsgf "Command:" "${argv[0]:0:1}${argv[0]:n:1}";
+				do 	echo >&2;
+					cmdmsgf "Command Run:" "${argv[0]:0:1}${argv[0]:n:1}";
 
-					if cmdf ${argv[0]:0:1}${argv[0]:n:1}
-					then 	echo >&2;
-					else 	_warmsgf "Command:" "Fail -- ${argv[0]:0:1}${argv[0]:n:1}";
+					cmdf ${argv[0]:0:1}${argv[0]:n:1} || {
+						_warmsgf "Command:" "Fail -- ${argv[0]:0:1}${argv[0]:n:1}" $'\n\n';
 						return 181;
-					fi
+					};
 				done;
 				return;
 			else
