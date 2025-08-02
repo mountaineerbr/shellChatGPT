@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108.9  aug/2025  by mountaineerbr  GPL+3
+# v0.108.10  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3449,11 +3449,11 @@ function cmdf
 			;;
 		*)
 			#run shell command?
-			if [[ ${argv[0]:0:32} = *([$IFS:-])\!\![!$IFS!:-]* ]]
+			if [[ ${argv[0]:0:64} = *([$IFS:-])\!\![!$IFS!:-]* ]]
 			then  #shell cmd dump
 				cmdf //sh "${1##*([$IFS!:-])}";
 				return;
-			elif [[ ${argv[0]:0:32} = *([$IFS:-])\![!$IFS!:-]* ]]
+			elif [[ ${argv[0]:0:64} = *([$IFS:-])\![!$IFS!:-]* ]]
 			then  #interactive shell cmd
 				cmdf  /sh "${1##*([$IFS!:-])}";
 				return;
