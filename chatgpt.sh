@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.107.4  aug/2025  by mountaineerbr  GPL+3
+# v0.108  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -940,7 +940,7 @@ function model_capf
 	((GITHUBAI)) && {
 	case "${model}" in
 	llama-4-scout-17b-16e-instruct) MODMAX=10000000;;
-	gpt-4-1*) MODMAX=1048576;;
+	gpt-4.[1-9]*) MODMAX=1048576;;
 	llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
 	ai21-jamba-1.5-*) MODMAX=262144;;
 	codestral-2501|grok-[4-9]*) MODMAX=256000;;
@@ -996,8 +996,9 @@ function model_capf
 		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*|grok-2-vision*)
 			MODMAX=32768;;
-		o1-*preview*|o1-*mini*|gpt-4.[5-9]*|gpt-4o*|chatgpt-*|gpt-[5-9]*|gpt-4-1106*|\
-		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|\
+		gpt-[4-9].[1-9]*|gpt-[5-9][!.a-z]*) MODMAX=1047576;;
+		o1-*preview*|o1-*mini*|gpt-[4-9].[1-9]*|gpt-[4-9][a-z]*|chatgpt-*|gpt-[5-9]*|\
+		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|gpt-4-1106*|\
 		mistral-3b*|open-mistral-nemo*|*mistral-nemo*|*mistral-large*|\
 		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
 		*llama-[3-9].[1-9]*|*llama[4-9]-*|\
@@ -1096,11 +1097,14 @@ function promptf
 	fi
 
 	if ((STREAM))
-	then 	: >"$FILEFIFO"; RET_APRF=;
+	then
+		trap '-' INT;
+		: >"$FILEFIFO"; RET_APRF=;
 		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%s\\b${NC}" "C" >&2;
 		{ _promptf || exit ;} |  #!#
 		{ prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILEFIFO"; exit $ret ;}
 	else
+		trap '-' INT;
 		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "C" >&2;
 		COLUMNS=$((COLUMNS-1)) _promptf ||
 			if ((OPTI))
@@ -1650,6 +1654,7 @@ function set_histf
 	((OPTTIK)) && herr=1 || herr=4;  #context limit error pc
 	q_type=${Q_TYPE##$SPC1} a_type=${A_TYPE##$SPC1}
 	((OPTC>1 || EPN==6 || EPN==12)) && typeset A_TYPE="${A_TYPE} "  #pretty-print seq "\\nA: " ($rest)
+	((OPTMAX_NILL)) && ((OPTMAX<1)) && typeset OPTMAX=$OPTMAX_DEF;  #keep space for llm reply  #IPC#
 	((${#1}+${#2})) && token_prevf "${*}"
 
 	while _spinf
@@ -3329,7 +3334,7 @@ function cmdf
 				do 	[[ -f $var ]] || continue
 					du -h "$var" >&2 2>/dev/null;
 					[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
-					${PLAY_CMD} "$var" >&2 & pid=$! PIDS+=($!);
+					(trap '-' INT; ${PLAY_CMD} "$var" >&2) & pid=$! PIDS+=($!);
 					trap "trap 'exit' INT; kill -- $pid 2>/dev/null;" INT;
 					wait $pid;
 				done;
@@ -4836,6 +4841,7 @@ function whisperf
 	#response_format (timestamps)
 	if ((OPTW>1 || OPTWW>1)) && ((!CHAT_ENV))
 	then
+		trap '-' INT;
 		OPTW_FMT=verbose_json   #json, text, srt, verbose_json, or vtt.
 		set -- -F "response_format=${OPTW_FMT}" "$@";
 
@@ -4850,6 +4856,7 @@ function whisperf
 			\" \" + bpurple + (.text//.${granule}) + reset)" "$FILE" | foldf \
 		|| jq -r "if .${granule}s then (.${granule}s[] | (.start|tostring) + (.text//.${granule}//empty)) else (.text//.${granule}//empty) end" "$FILE" || ! _warmsgf 'Err' ;}
 	else
+		trap '-' INT;
 		set -- "$@" -F response_format="json";
 
 		prompt_audiof "$file" $LANGW "$@" && {
@@ -4975,8 +4982,8 @@ $( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}
 }"
 		((OPTVV)) && _warmsgf "TTS:" "Model: ${MOD_SPEECH:-unset}, Voice: ${VOICEZ:-unset}, Speed: ${SPEEDZ:-unset}, Block: ${BLOCK}"
 		_sysmsgf 'TTS:' '<ctr-c> [k]ill, <enter> play ' '';  #!#
-
-		prompt_ttsf & pid=$! secs=$SECONDS;
+		
+		(trap '-' INT; prompt_ttsf) & pid=$! secs=$SECONDS;
 		trap "trap 'exit' INT; kill -- $pid 2>/dev/null; return;" INT;
 		while _spinf; ok=
 			kill -0 -- $pid  >/dev/null 2>&1 || ! echo >&2
@@ -5025,7 +5032,7 @@ $( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}
 			case "$PLAY_CMD" in false) 	return $ret;; esac;
 		while
 			[[ -n $TERMUX_VERSION ]] && set_termuxpulsef;
-			${PLAY_CMD} "$FOUT" >&2 & pid=$! PIDS+=($!);
+			(trap '-' INT; ${PLAY_CMD} "$FOUT" >&2) & pid=$! PIDS+=($!);
 		do
 			trap "trap 'exit' INT; kill -- $pid 2>/dev/null; case \"\$PLAY_CMD\" in *termux-media-player*) termux-media-player stop;; esac;" INT;
 			wait $pid;
@@ -8211,16 +8218,28 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				#audio-id is not implemented, testing
 			fi
 
-			#print error msg and check for OpenAI response length-type error
+			#print error msg on bad response
 			if ((!${#ans})) && ((RET_PRF<120))
 			then
 				((STREAM)) && file=$FILESTREAM || file=$FILE;
 
 				jq -e '.' "$file" >&2 2>/dev/null || cat -- "$file" >&2 ||
 				((OPTCMPL)) || ! _warmsgf 'Err';
-				_warmsgf "(response empty)";
-				((${#REPLY}<1640)) || read_charf -t 3 >/dev/null 2>&1;
 
+				#check for GitHub Models capacity-type error
+				if ((GITHUBAI)) && ((JUMP+BAD_RES==0))
+				then 	var=$(jq -e '.error|.message//.details' "$file" 2>/dev/null | sed 's/^.*Max size: //');
+					var=${var//[!0-9]};
+					if ((var)) && ((var<MODMAX))
+					then 	MODMAX=$var JUMP=1 BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD= var=;
+						_sysmsgf 'Model Capacity:' "auto reset -- $MODMAX";
+						_sysmsgf '[auto retry]'; read_charf -t 1 >/dev/null 2>&1;
+						set --; continue;
+					fi
+				fi;
+
+				_warmsgf "(response empty)";
+				((${#REPLY}<COLUMNS*LINES)) || read_charf -t 3 >/dev/null 2>&1;
 				unset file;
 			fi;
 
