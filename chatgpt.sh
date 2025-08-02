@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108.2  aug/2025  by mountaineerbr  GPL+3
+# v0.108.3  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -6281,6 +6281,7 @@ function cleanupf
 {
 	typeset ret=$?
 	SCRIPT_NAME=${TERM%%-*} set_titlef "";
+	printf "${NC}" >&2;  #reset text colour
 
 	((${#PIDS[@]})) || return $ret;
 	for pid in ${PIDS[@]}
