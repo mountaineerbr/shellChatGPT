@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108.6  aug/2025  by mountaineerbr  GPL+3
+# v0.108.7  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3466,7 +3466,8 @@ function cmdf
 					cmdmsgf "Command Run:" "${argv[0]:0:1}${argv[0]:n:1}";
 
 					cmdf ${argv[0]:0:1}${argv[0]:n:1} || {
-						_warmsgf "Command:" "Fail -- ${argv[0]:0:1}${argv[0]:n:1}" $'\n\n';
+						_warmsgf "Command:" "Fail -- ${argv[0]:0:1}${argv[0]:n:1}";
+						((CMD_ENV>200)) || echo >&2;
 						return 181;
 					};
 				done;
