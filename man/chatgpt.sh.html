@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.110 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.110.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.110 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.110.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2025</p>
 </header>
@@ -1467,16 +1467,19 @@ have their output added to the current prompt.</div>
 <div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
 may be invoked at the very end of the input prompt (preceded by
 space).</div>
-<div class="line-block">Examples:</div>
+<hr />
+<p>Examples</p>
 <div class="line-block">  “<code>/temp</code> <em>0.7</em>”,
 “<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”</div>
 <div class="line-block">  “<code>/session</code> <em>HIST_NAME</em>”,
 “[<em>PROMPT</em>] <code>/pick</code>”</div>
 <div class="line-block">  “[<em>PROMPT</em>] <code>/sh</code>”</div>
+<hr />
 <p>Some options can be disabled and excluded from the request by setting
-a negative integer as argument:</p>
+a “<em>-1</em>” as argument (bypass with “<em>-1.0</em>”)</p>
 <div class="line-block">  “<code>!presence</code> <em>-1</em>”,
 “<code>-a</code> <em>-1</em>”, “<code>-t</code><em>-1</em>”</div>
+<hr />
 <p>To <strong>regenerate response</strong>, type in the command
 “<code>!regen</code>” or a single exclamation mark or forward slash in
 the new empty prompt. In order to edit the prompt before the request,
@@ -1489,12 +1492,12 @@ when typed at the end of the current prompt, such as “[<em>PROMPT</em>]
 <code>/sh</code>”, which opens a new shell instance to execute commands
 interactively. The shell command dump or file path is appended to the
 current prompt.</p>
-<p>Command “<code>!block</code> [<em>ARGS</em>]” may be run to set raw
-model options in JSON syntax according to each API. Alternatively, set
-envar <strong>$BLOCK_USR</strong>.</p>
 <p>Any “<code>!CMD</code>” not matching a chat command is executed by
 the shell as an alias for “<code>!sh CMD</code>”. Note that this
 shortcut only works with operator exclamation mark.</p>
+<p>Command “<code>!block</code> [<em>ARGS</em>]” may be run to set raw
+model options in JSON syntax according to each API. Alternatively, set
+envar <strong>$BLOCK_USR</strong>.</p>
 <h1 id="session-management">Session Management</h1>
 <p>A history file can hold a single session or multiple sessions. When
 it holds a single session, the name of the history file and the session

@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.110 | General Commands Manual
+% CHATGPT.SH(1) v0.110.1 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -1008,7 +1008,10 @@ Command operators "`!`" or "`/`" are equivalent.
 
 | _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt (preceded by space).
 
-| Examples:
+---
+
+
+Examples
 
 |   "`/temp` _0.7_",  "`!mod`_gpt-4_",  "`-p` _0.2_"
 
@@ -1016,11 +1019,15 @@ Command operators "`!`" or "`/`" are equivalent.
 
 |   "\[_PROMPT_] `/sh`"
 
+---
+
 
 Some options can be disabled and excluded from the request by setting
-a negative integer as argument:
+a "_-1_" as argument (bypass with "_-1.0_")
 
 |   "`!presence` _-1_",  "`-a` _-1_", "`-t`_-1_"
+
+---
 
 
 To **regenerate response**, type in the command "`!regen`" or a single
@@ -1036,13 +1043,12 @@ the current prompt, such as "\[_PROMPT_] `/sh`", which opens a new
 shell instance to execute commands interactively. The shell command dump
 or file path is appended to the current prompt.
 
-Command "`!block` \[_ARGS_]" may be run to set raw model options
-in JSON syntax according to each API. Alternatively, set envar **$BLOCK_USR**.
-
-
 Any "`!CMD`" not matching a chat command is executed by the shell
 as an alias for "`!sh CMD`".
 Note that this shortcut only works with operator exclamation mark.
+
+Command "`!block` \[_ARGS_]" may be run to set raw model options
+in JSON syntax according to each API. Alternatively, set envar **$BLOCK_USR**.
 
 
 # Session Management

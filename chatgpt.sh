@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.110  aug/2025  by mountaineerbr  GPL+3
+# v0.110.1  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -546,7 +546,7 @@ Command List
         \`[PROMPT] /pick',  \`[PROMPT] /sh'
 
       To unset an option altogether, provide an argument of \`-1'
-        \`!presence -1',  \`-a -1',  \`-t-1'
+        \`!presence -1',  \`-a -1',  \`-t-1'   #bypass with \`-1.0'
 
 
       To change to a specific history file, run \`/session [HIST_NAME]',
@@ -2459,21 +2459,21 @@ function cmdf
 			cmdmsgf 'Response / Capacity' "$( ((OPTMAX_NILL)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
-			[[ $1 = *-[0-9] ]] && OPTA= && set --;
+			[[ $1 = *-[0-1] ]] && OPTA= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTA="${*:-$OPTA}"
 			fix_dotf OPTA
 			cmdmsgf 'Presence Penalty' "$OPTA"
 			;;
 		-A*|frequency*|freq*)
-			[[ $1 = *-[0-9] ]] && OPTAA= && set --;
+			[[ $1 = *-[0-1] ]] && OPTAA= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTAA="${*:-$OPTAA}"
 			fix_dotf OPTAA
 			cmdmsgf 'Frequency Penalty' "$OPTAA"
 			;;
 		best[_-]of*|best*)
-			[[ $1 = *-[0-9] ]] && OPTB= && set --;
+			[[ $1 = *-[0-1] ]] && OPTB= && set --;
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
 			OPTB="${*:-$OPTB}"
 			cmdmsgf 'Best_Of' "$OPTB"
@@ -2635,7 +2635,7 @@ function cmdf
 			return 180
 			;;
 		-K*|top[Kk]*|top[_-][Kk]*)
-			[[ $1 = *-[0-9] ]] && OPTKK= && set --;
+			[[ $1 = *-[0-1] ]] && OPTKK= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTKK="${*:-$OPTKK}"
 			cmdmsgf 'Top_K' "$OPTKK"
@@ -2793,13 +2793,13 @@ function cmdf
 			;;
 		-n*|results*)
 			[[ $* = -n*[!0-9\ ]* ]] && { 	cmdf "-N${*##-n}"; return ;}  #compat with -Nill option
-			[[ $1 = *-[0-9] ]] && OPTN= && set --;
+			[[ $1 = *-[0-1] ]] && OPTN= && set --;
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
 			OPTN="${*:-$OPTN}"
 			cmdmsgf 'Number of Results' "${OPTN:-unset}"
 			;;
 		-p*|top[Pp]*|top[_-][Pp]*)
-			[[ $1 = *-[0-9] ]] && OPTP= && set --;
+			[[ $1 = *-[0-1] ]] && OPTP= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTP="${*:-$OPTP}"
 			fix_dotf OPTP
@@ -2823,13 +2823,13 @@ function cmdf
 			;;
 		-r*|restart*)
 			set -- "${*##@(-r|restart)?( )}"
-			[[ $1 = -[0-9] ]] && RESTART= && set --;
+			[[ $1 = -[0-1] ]] && RESTART= && set --;
 			restart_compf "$*"
 			cmdmsgf 'Restart Sequence' "\"${RESTART-unset}\""
 			;;
 		-R*|start*)
 			set -- "${*##@(-R|start)?( )}"
-			[[ $1 = -[0-9] ]] && START= && set --;
+			[[ $1 = -[0-1] ]] && START= && set --;
 			start_compf "$*"
 			cmdmsgf 'Start Sequence' "\"${START-unset}\""
 			;;
@@ -2864,7 +2864,7 @@ function cmdf
 			unset INSTRUCTION GINSTRUCTION
 			;;
 		-t*|temperature*|temp*)  #randomness
-			[[ $1 = *-[0-9] ]] && OPTT= && set --;
+			[[ $1 = *-[0-1] ]] && OPTT= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTT="${*:-$OPTT}"
 			fix_dotf OPTT

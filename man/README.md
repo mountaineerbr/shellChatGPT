@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2025
-title: CHATGPT.SH(1) v0.110 \| General Commands Manual
+title: CHATGPT.SH(1) v0.110.1 \| General Commands Manual
 ---
 
 # NAME
@@ -844,7 +844,9 @@ prompt.
 *‡* Commands with *double dagger* may be invoked at the very end of the
 input prompt (preceded by space).
 
-Examples:
+------------------------------------------------------------------------
+
+Examples
 
   “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”
 
@@ -852,10 +854,14 @@ Examples:
 
   “\[*PROMPT*\] `/sh`”
 
+------------------------------------------------------------------------
+
 Some options can be disabled and excluded from the request by setting a
-negative integer as argument:
+“*-1*” as argument (bypass with “*-1.0*”)
 
   “`!presence` *-1*”, “`-a` *-1*”, “`-t`*-1*”
+
+------------------------------------------------------------------------
 
 To **regenerate response**, type in the command “`!regen`” or a single
 exclamation mark or forward slash in the new empty prompt. In order to
@@ -870,13 +876,13 @@ the current prompt, such as “\[*PROMPT*\] `/sh`”, which opens a new
 shell instance to execute commands interactively. The shell command dump
 or file path is appended to the current prompt.
 
-Command “`!block` \[*ARGS*\]” may be run to set raw model options in
-JSON syntax according to each API. Alternatively, set envar
-**\$BLOCK_USR**.
-
 Any “`!CMD`” not matching a chat command is executed by the shell as an
 alias for “`!sh CMD`”. Note that this shortcut only works with operator
 exclamation mark.
+
+Command “`!block` \[*ARGS*\]” may be run to set raw model options in
+JSON syntax according to each API. Alternatively, set envar
+**\$BLOCK_USR**.
 
 # Session Management
 
