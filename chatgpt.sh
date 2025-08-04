@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.109  aug/2025  by mountaineerbr  GPL+3
+# v0.109.1  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3478,13 +3478,19 @@ function cmdf
 
 					#process duplicate-letters as single command: -xx, -vv
 					#process numbers as argument to command: -Ct1.2x, -C -t 1.2 -x
-					[[ ${argv[0]:n+1:1} = [0-9.\ \\${argv[0]:n:1}${var}] ]] &&
-						for ((m=1;m<${#argv[0]}-n;m++))
-						do
-							[[ ${argv[0]:n+m:1} = [0-9.\ \\${argv[0]:n:1}${var}] ]] || {
+					for ((m=1;m<${#argv[0]}-n;m++))
+					do
+						[[ ${argv[0]:n:1} = [!0-9MN] ]] &&
+						[[ ${argv[0]:n+1:1} = [A-Za-z] ]] && {
+							[[ ${argv[0]:n+m:1} = [\\${argv[0]:n:1}] ]] || {
 								((--m)); break;
 							};
-						done;
+							continue;
+						};
+						[[ ${argv[0]:n+m:1} = [0-9.\ \\${argv[0]:n:1}${var}] ]] || {
+							((--m)); break;
+						};
+					done;
 
 					((n<2)) || echo >&2;
 					buff="${argv[0]:0:1}${argv[0]:n:1+m}";
