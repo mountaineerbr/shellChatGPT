@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.109 | General Commands Manual
+% CHATGPT.SH(1) v0.110 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -1012,9 +1012,15 @@ Command operators "`!`" or "`/`" are equivalent.
 
 |   "`/temp` _0.7_",  "`!mod`_gpt-4_",  "`-p` _0.2_"
 
-|   "`/session` _HIST_NAME_",  "\[_PROMPT_] `/pick`",
+|   "`/session` _HIST_NAME_",  "\[_PROMPT_] `/pick`"
 
-|   "\[_PROMPT_] `/sh`".
+|   "\[_PROMPT_] `/sh`"
+
+
+Some options can be disabled and excluded from the request by setting
+a negative integer as argument:
+
+|   "`!presence` _-1_",  "`-a` _-1_", "`-t`_-1_"
 
 
 To **regenerate response**, type in the command "`!regen`" or a single

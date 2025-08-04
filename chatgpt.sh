@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.109.2  aug/2025  by mountaineerbr  GPL+3
+# v0.110  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -542,30 +542,33 @@ Command List
         the prompt.
 
       Examples
-        \`/temp 0.7',  \`!modgpt-4',  \`-p 0.2',
-	\`[PROMPT] /pick',  \`[PROMPT] /sh'.
+        \`/temp 0.7',  \`!modgpt-4',  \`-p 0.2'
+        \`[PROMPT] /pick',  \`[PROMPT] /sh'
 
-      Notes
-        To change to a specific history file, run \`/session [HIST_NAME]',
-	or simply \`/[HIST_NAME]' at script invocation.
+      To unset an option altogether, provide an argument of \`-1'
+        \`!presence -1',  \`-a -1',  \`-t-1'
 
-	In order to resume an old session, execute command \`sub' or the
-	alias \`/.'. On script invocation, resuming is aliased to \`.'
-	when a dot is set as the first positional parameter.
 
-        To regenerate a response, type in the command \`!regen' or a single
-        exclamation mark or forward slash in the new empty prompt. In order
-        to edit the prompt before the request, try \`!!' (or \`//').
+      To change to a specific history file, run \`/session [HIST_NAME]',
+      or simply \`/[HIST_NAME]' at script invocation.
 
-	Any \`!CMD' not matching a chat command is executed by the shell
-	as a shortcut for \`!sh CMD'.
+      In order to resume an old session, execute command \`sub' or the
+      alias \`/.'. On script invocation, resuming is aliased to \`.'
+      when a dot is set as the first positional parameter.
 
-        Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
-        Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
-        Press <CTRL-L> to redraw readline buffer (user input) on screen.
-        Press <CTRL-C> during cURL requests to interrupt the call.
-        Press <CTRL-\\> to terminate the script at any time (QUIT signal),
-        or \`Q' in user confirmation prompts.
+      To regenerate a response, type in the command \`!regen' or a single
+      exclamation mark or forward slash in the new empty prompt. In order
+      to edit the prompt before the request, try \`!!' (or \`//').
+
+      Any \`!CMD' not matching a chat command is executed by the shell
+      as a shortcut for \`!sh CMD'.
+
+      Press <CTRL-X CTRL-E> to edit command line in text editor (readline).
+      Press <CTRL-J> or <CTRL-V CTRL-J> for newline (readline).
+      Press <CTRL-L> to redraw readline buffer (user input) on screen.
+      Press <CTRL-C> during cURL requests to interrupt the call.
+      Press <CTRL-\\> to terminate the script at any time (QUIT signal),
+      or \`Q' in user confirmation prompts.
 
 
 Options
@@ -2456,18 +2459,21 @@ function cmdf
 			cmdmsgf 'Response / Capacity' "$( ((OPTMAX_NILL)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
+			[[ $1 = *-[0-9] ]] && OPTA= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTA="${*:-$OPTA}"
 			fix_dotf OPTA
 			cmdmsgf 'Presence Penalty' "$OPTA"
 			;;
 		-A*|frequency*|freq*)
+			[[ $1 = *-[0-9] ]] && OPTAA= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTAA="${*:-$OPTAA}"
 			fix_dotf OPTAA
 			cmdmsgf 'Frequency Penalty' "$OPTAA"
 			;;
 		best[_-]of*|best*)
+			[[ $1 = *-[0-9] ]] && OPTB= && set --;
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
 			OPTB="${*:-$OPTB}"
 			cmdmsgf 'Best_Of' "$OPTB"
@@ -2629,6 +2635,7 @@ function cmdf
 			return 180
 			;;
 		-K*|top[Kk]*|top[_-][Kk]*)
+			[[ $1 = *-[0-9] ]] && OPTKK= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTKK="${*:-$OPTKK}"
 			cmdmsgf 'Top_K' "$OPTKK"
@@ -2786,11 +2793,13 @@ function cmdf
 			;;
 		-n*|results*)
 			[[ $* = -n*[!0-9\ ]* ]] && { 	cmdf "-N${*##-n}"; return ;}  #compat with -Nill option
+			[[ $1 = *-[0-9] ]] && OPTN= && set --;
 			set -- "${*//[!0-9.]}" ;set -- "${*%%.*}"
 			OPTN="${*:-$OPTN}"
 			cmdmsgf 'Number of Results' "${OPTN:-unset}"
 			;;
 		-p*|top[Pp]*|top[_-][Pp]*)
+			[[ $1 = *-[0-9] ]] && OPTP= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTP="${*:-$OPTP}"
 			fix_dotf OPTP
@@ -2814,11 +2823,13 @@ function cmdf
 			;;
 		-r*|restart*)
 			set -- "${*##@(-r|restart)?( )}"
+			[[ $1 = -[0-9] ]] && RESTART= && set --;
 			restart_compf "$*"
 			cmdmsgf 'Restart Sequence' "\"${RESTART-unset}\""
 			;;
 		-R*|start*)
 			set -- "${*##@(-R|start)?( )}"
+			[[ $1 = -[0-9] ]] && START= && set --;
 			start_compf "$*"
 			cmdmsgf 'Start Sequence' "\"${START-unset}\""
 			;;
@@ -2853,6 +2864,7 @@ function cmdf
 			unset INSTRUCTION GINSTRUCTION
 			;;
 		-t*|temperature*|temp*)  #randomness
+			[[ $1 = *-[0-9] ]] && OPTT= && set --;
 			set -- "${*//[!0-9.]}"
 			OPTT="${*:-$OPTT}"
 			fix_dotf OPTT

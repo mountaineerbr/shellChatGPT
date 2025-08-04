@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2025
-title: CHATGPT.SH(1) v0.109 \| General Commands Manual
+title: CHATGPT.SH(1) v0.110 \| General Commands Manual
 ---
 
 # NAME
@@ -848,9 +848,14 @@ Examples:
 
   “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”
 
-  “`/session` *HIST_NAME*”, “\[*PROMPT*\] `/pick`”,
+  “`/session` *HIST_NAME*”, “\[*PROMPT*\] `/pick`”
 
-  “\[*PROMPT*\] `/sh`”.
+  “\[*PROMPT*\] `/sh`”
+
+Some options can be disabled and excluded from the request by setting a
+negative integer as argument:
+
+  “`!presence` *-1*”, “`-a` *-1*”, “`-t`*-1*”
 
 To **regenerate response**, type in the command “`!regen`” or a single
 exclamation mark or forward slash in the new empty prompt. In order to
