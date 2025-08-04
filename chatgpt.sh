@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.108.11  aug/2025  by mountaineerbr  GPL+3
+# v0.109  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2580,6 +2580,7 @@ function cmdf
 			;;
 		-h\ *|h\ *|[/!]h*|help?*|-\?*|\?*)
 			set -- "${*##@(-h|h|[/!]h|help|\?)$SPC}";
+			[[ $1 = [/!-]* ]] && set -- "[/!-][/!-]*${1:1}";  #more relevant matches
 			if ((${#1}<2)) ||
 				! grep --color=always -i -e "${1%%${NL}*}" <<<"$(cmdf -h)" >&2;
 			then 	cmdf -h; return;
@@ -3458,23 +3459,60 @@ function cmdf
 				cmdf  /sh "${1##*([$IFS!:-])}";
 				return;
 			#one-letter command combo?
-			elif ((${#argv[0]}<8)) &&
-				[[ ${argv[0]:0:32} = [/!-][A-Za-z][A-Za-z]*([A-Za-z]) ]]
+			#preempted: -cc -DD -dd -HH* -vv* -VV -xx -wz -zw -ZZ*  #2025-08-03
+			#available: MNaACcDdGghHPJjKLlmnpbRrs:Sto-qvVxYyWwZzukiFUuprgq
+			elif ((CMD_ENV<211)) && ((${#argv[0]}<32)) &&
+				[[ ${argv[0]:0:32} = [/!-]*([/!-])[A-Za-z0-9][A-Za-z0-9.\ /!-]*([A-Za-z0-9.\ /!-]) ]]
 			then
+				var= m= n=;
 				for ((n=1;n<${#argv[0]};n++))
-				do 	((n<2)) || echo >&2;
-					cmdmsgf "Command Run:" "\`${argv[0]:0:1}${argv[0]:n:1}\`";  #!#
+				do
+					var= m=;
+					case "${argv[0]:n:1}" in
+						[%:S\ ]) 	continue;;  #danger
+						[/!-]) 	argv[0]="${argv[0]:n:1}${argv[0]:1}";
+							continue;;  #operator
+						[0-9MN])
+							var='/!-';;  #resp, model tokens
+					esac;
 
-					cmdf ${argv[0]:0:1}${argv[0]:n:1} ||
+					#process duplicate-letters as single command: -xx, -vv
+					#process numbers as argument to command: -Ct1.2x, -C -t 1.2 -x
+					[[ ${argv[0]:n+1:1} = [0-9.\ \\${argv[0]:n:1}${var}] ]] &&
+						for ((m=1;m<${#argv[0]}-n;m++))
+						do
+							[[ ${argv[0]:n+m:1} = [0-9.\ \\${argv[0]:n:1}${var}] ]] || {
+								((--m)); break;
+							};
+						done;
+
+					((n<2)) || echo >&2;
+					buff="${argv[0]:0:1}${argv[0]:n:1+m}";
+					buff="${buff%%*([ ])}";
+					cmdmsgf "Command Run:" "\`${buff}\`";  #!#
+
+					CMD_ENV=211 cmdf "${buff}" ||
+						if ((m))  #duplicate-letter command fail
+						then
+							#try single-letter command
+							((OPTV>1)) || _clr_lineupf $((12+1+2+${#buff}));  #!#
+							buff="${argv[0]:0:1}${argv[0]:n:1}";
+							cmdmsgf "Command Run:" "\`${buff}\`";  #!#
+							CMD_ENV=211 cmdf "${buff}" && m=;
+						else
+							! :;
+						fi ||
 						if ((n<2))
-						then 	((OPTV>1)) || _clr_lineupf $((12+1+4));  #!#
+						then
+							((OPTV>1)) || _clr_lineupf $((12+1+2+${#buff}));  #!#
 							return 181;
-						else 	_warmsgf "Command:" "Fail  -- \`${argv[0]:0:1}${argv[0]:n:1}\`";
-							((CMD_ENV>200)) || echo >&2;
-							return 181;
+						else
+							_warmsgf "Command:" "Fail  -- \`${buff}\`";
+							return 0; #some cmd has executed succesfully
 						fi;
+					((n+=m));
 				done;
-				return;
+				return 0;
 			else
 				return 181;  #illegal command
 			fi
@@ -7825,6 +7863,7 @@ else
 				case "${1:0:32}${2:0:16}" in ::*)
 					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=append || v=set;
 					((ANTHROPICAI)) && ((${#INSTRUCTION_OLD})) && v=append;
+					((${#var})) || v=unset;
 					_sysmsgf "System Prompt $v";
 					if ((GOOGLEAI))
 					then
