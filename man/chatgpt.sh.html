@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.110.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.110.3 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.110.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.110.3 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2025</p>
 </header>
@@ -423,7 +423,8 @@ Def=<em>1</em>.</p>
 </dd>
 </dl>
 <p><strong>--effort</strong>
-[<em>high</em>|<em>medium</em>|<em>low</em>] (OpenAI)</p>
+[<em>high</em>|<em>medium</em>|<em>low</em>|<em>minimal</em>]
+(OpenAI)</p>
 <dl>
 <dt><strong>--think</strong> [<em>token_num</em>] (Anthropic /
 Google)</dt>
@@ -435,10 +436,13 @@ Google)</dt>
 <dd>
 <p>TTS out-file format. Def= <em>mp3</em>.</p>
 </dd>
-<dt><strong>--interactive</strong>,
-<strong>--no-interactive</strong></dt>
+</dl>
+<p><strong>--verbosity</strong>, <strong>--verb</strong>
+[<em>high</em>|<em>medium</em>|<em>low</em>]</p>
+<dl>
+<dt><strong>--no-verbosity</strong></dt>
 <dd>
-<p>Reasoning model output style (OpenAI).</p>
+<p>Model response verbosity level (OpenAI).</p>
 </dd>
 <dt><strong>-j</strong>, <strong>--seed</strong> [<em>NUM</em>]</dt>
 <dd>
@@ -1341,7 +1345,7 @@ flush.</td>
 <tr class="even">
 <td style="text-align: left;"><code>!effort</code></td>
 <td style="text-align: left;">- [<em>MODE</em>]</td>
-<td>Reasoning effort: high, medium, or low (OpenAI).</td>
+<td>Reasoning effort: minimal, high, medium, or low (OpenAI).</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!think</code></td>
@@ -1349,15 +1353,16 @@ flush.</td>
 <td>Thinking budget: max tokens (Anthropic).</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">!interactive`</td>
-<td style="text-align: left;">-</td>
-<td>Toggle reasoning interactive mode.</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;"><code>!ka</code></td>
 <td style="text-align: left;"><code>!keep-alive</code>
 [<em>NUM</em>]</td>
 <td>Set duration of model load in memory (Ollama).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>!verb</code></td>
+<td style="text-align: left;"><code>!verbosity</code>
+[<em>MODE</em>]</td>
+<td>Model verbosity level (high, medium, or low).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!vision</code></td>

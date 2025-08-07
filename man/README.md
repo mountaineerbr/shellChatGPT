@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2025
-title: CHATGPT.SH(1) v0.110.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.110.3 \| General Commands Manual
 ---
 
 # NAME
@@ -203,7 +203,7 @@ Frequency penalty (cmpls/chat, -2.0 - 2.0).
 **--best-of** \[*NUM*\]  
 Best of results, must be greater than `option -n` (cmpls). Def=*1*.
 
-**--effort** \[*high*\|*medium*\|*low*\] (OpenAI)
+**--effort** \[*high*\|*medium*\|*low*\|*minimal*\] (OpenAI)
 
 **--think** \[*token_num*\] (Anthropic / Google)  
 Amount of effort in reasoning models.
@@ -211,8 +211,10 @@ Amount of effort in reasoning models.
 **--format** \[*mp3*\|*wav*\|*flac*\|*opus*\|*aac*\|*pcm16*\|*mulaw*\|*ogg*\]  
 TTS out-file format. Def= *mp3*.
 
-**--interactive**, **--no-interactive**  
-Reasoning model output style (OpenAI).
+**--verbosity**, **--verb** \[*high*\|*medium*\|*low*\]
+
+**--no-verbosity**  
+Model response verbosity level (OpenAI).
 
 **-j**, **--seed** \[*NUM*\]  
 Seed for deterministic sampling (integer).
@@ -793,32 +795,32 @@ or “`/`” are equivalent.
 | `-y`    | `!tik`               | Toggle python tiktoken use.                              |
 | `!q`    | `!quit`              | Exit. Bye.                                               |
 
-| Model          | Settings                |                                                  |
-|:---------------|:------------------------|--------------------------------------------------|
-| `!Nill`        | `-Nill`                 | Unset max response tkns (chat cmpls).            |
-| `!NUM`         | `-M` \[*NUM*\]          | Maximum response tokens.                         |
-| `!!NUM`        | `-N` \[*NUM*\]          | Model token capacity.                            |
-| `-a`           | `!pre` \[*VAL*\]        | Presence penalty.                                |
-| `-A`           | `!freq` \[*VAL*\]       | Frequency penalty.                               |
-| `-b`           | `!responses` \[*MOD*\]  | Responses API request (experimental).            |
-| `best`         | `!best-of` \[*NUM*\]    | Best-of n results.                               |
-| `-j`           | `!seed` \[*NUM*\]       | Seed number (integer).                           |
-| `-K`           | `!topk` \[*NUM*\]       | Top_k.                                           |
-| `-m`           | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.          |
-| `-n`           | `!results` \[*NUM*\]    | Number of results.                               |
-| `-p`           | `!topp` \[*VAL*\]       | Top_p.                                           |
-| `-r`           | `!restart` \[*SEQ*\]    | Restart sequence.                                |
-| `-R`           | `!start` \[*SEQ*\]      | Start sequence.                                  |
-| `-s`           | `!stop` \[*SEQ*\]       | One stop sequence.                               |
-| `-t`           | `!temp` \[*VAL*\]       | Temperature.                                     |
-| `-w`           | `!rec` \[*ARGS*\]       | Toggle voice-in STT. Optionally, set arguments.  |
-| `-z`           | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).               |
-| `!blk`         | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.      |
-| `!effort`      | \- \[*MODE*\]           | Reasoning effort: high, medium, or low (OpenAI). |
-| `!think`       | \- \[*NUM*\]            | Thinking budget: max tokens (Anthropic).         |
-| !interactive\` | \-                      | Toggle reasoning interactive mode.               |
-| `!ka`          | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama).   |
-| `!vision`      | `!audio`, `!multimodal` | Toggle multimodality type.                       |
+| Model     | Settings                |                                                           |
+|:----------|:------------------------|-----------------------------------------------------------|
+| `!Nill`   | `-Nill`                 | Unset max response tkns (chat cmpls).                     |
+| `!NUM`    | `-M` \[*NUM*\]          | Maximum response tokens.                                  |
+| `!!NUM`   | `-N` \[*NUM*\]          | Model token capacity.                                     |
+| `-a`      | `!pre` \[*VAL*\]        | Presence penalty.                                         |
+| `-A`      | `!freq` \[*VAL*\]       | Frequency penalty.                                        |
+| `-b`      | `!responses` \[*MOD*\]  | Responses API request (experimental).                     |
+| `best`    | `!best-of` \[*NUM*\]    | Best-of n results.                                        |
+| `-j`      | `!seed` \[*NUM*\]       | Seed number (integer).                                    |
+| `-K`      | `!topk` \[*NUM*\]       | Top_k.                                                    |
+| `-m`      | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.                   |
+| `-n`      | `!results` \[*NUM*\]    | Number of results.                                        |
+| `-p`      | `!topp` \[*VAL*\]       | Top_p.                                                    |
+| `-r`      | `!restart` \[*SEQ*\]    | Restart sequence.                                         |
+| `-R`      | `!start` \[*SEQ*\]      | Start sequence.                                           |
+| `-s`      | `!stop` \[*SEQ*\]       | One stop sequence.                                        |
+| `-t`      | `!temp` \[*VAL*\]       | Temperature.                                              |
+| `-w`      | `!rec` \[*ARGS*\]       | Toggle voice-in STT. Optionally, set arguments.           |
+| `-z`      | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).                        |
+| `!blk`    | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.               |
+| `!effort` | \- \[*MODE*\]           | Reasoning effort: minimal, high, medium, or low (OpenAI). |
+| `!think`  | \- \[*NUM*\]            | Thinking budget: max tokens (Anthropic).                  |
+| `!ka`     | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama).            |
+| `!verb`   | `!verbosity` \[*MODE*\] | Model verbosity level (high, medium, or low).             |
+| `!vision` | `!audio`, `!multimodal` | Toggle multimodality type.                                |
 
 | Session | Management                             |                                                                                              |
 |:--------|:---------------------------------------|----------------------------------------------------------------------------------------------|

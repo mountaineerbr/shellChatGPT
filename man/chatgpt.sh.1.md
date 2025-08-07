@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.110.1 | General Commands Manual
+% CHATGPT.SH(1) v0.110.3 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -251,7 +251,7 @@ before the text prompt itself.
 : Best of results, must be greater than `option -n` (cmpls). Def=_1_.
 
 
-**\--effort**  \[_high_|_medium_|_low_]  (OpenAI)
+**\--effort**  \[_high_|_medium_|_low_|_minimal_]  (OpenAI)
 
 **\--think**   \[_token_num_]            (Anthropic / Google)
 
@@ -263,9 +263,11 @@ before the text prompt itself.
 : TTS out-file format. Def= _mp3_.
 
 
-**\--interactive**, **\--no-interactive**
+**\--verbosity**, **\--verb**  \[_high_|_medium_|_low_]
 
-: Reasoning model output style (OpenAI).
+**\--no-verbosity**
+
+: Model response verbosity level (OpenAI).
 
 
 **-j**, **\--seed**  \[_NUM_]
@@ -957,7 +959,7 @@ Command operators "`!`" or "`/`" are equivalent.
  --------------    -----------------------    ----------------------------------------------------------
 
  Model             Settings
- --------------    ------------------------    ------------------------------------------------
+ --------------    ------------------------    ------------------------------------------------------------
    `!Nill`         `-Nill`                     Unset max response tkns (chat cmpls).
     `!NUM`         `-M`          \[_NUM_]      Maximum response tokens.
    `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
@@ -977,12 +979,12 @@ Command operators "`!`" or "`/`" are equivalent.
       `-w`         `!rec`       \[_ARGS_]      Toggle voice-in STT. Optionally, set arguments.
       `-z`         `!tts`       \[_ARGS_]      Toggle TTS chat mode (speech out).
     `!blk`         `!block`     \[_ARGS_]      Set and add custom options to JSON request.
- `!effort`          \-          \[_MODE_]      Reasoning effort: high, medium, or low (OpenAI).
+ `!effort`          \-          \[_MODE_]      Reasoning effort: minimal, high, medium, or low (OpenAI).
   `!think`          \-           \[_NUM_]      Thinking budget: max tokens (Anthropic).
-`!interactive`      \-                         Toggle reasoning interactive mode.
      `!ka`         `!keep-alive` \[_NUM_]      Set duration of model load in memory (Ollama).
+   `!verb`         `!verbosity` \[_MODE_]      Model verbosity level (high, medium, or low).
   `!vision`        `!audio`, `!multimodal`     Toggle multimodality type.
- --------------    ------------------------    ------------------------------------------------
+ --------------    ------------------------    ------------------------------------------------------------
 
  Session           Management
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------

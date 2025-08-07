@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.110.2  aug/2025  by mountaineerbr  GPL+3
+# v0.110.3  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -123,10 +123,11 @@ OPTFOLD=1
 #  Chat mode of text cmpls sets "\nQ: " and "\nA:"
 # Reasoning effort
 #REASON_EFFORT=
-#OpenAI: low, medium, or high
+#OpenAI: minimal, low, medium, or high
 #Anthropic: budget tokens (integer)
-# Reasoning interactive
-#REASON_INTERACTIVE=  #true or false
+#Gemini: thinking budget tokens (integer)
+# Model verbosity  (OpenAI)
+#VERBOSITY=""  #low, medium, or high
 
 # INSTRUCTION
 # Chat completions, chat mode only
@@ -511,10 +512,10 @@ Command List
       -w      !rec     [ARGS]   Toggle voice-in chat mode (STT, Whisper).
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
-    !effort   -        [MODE]   Reasoning: high, medium, or low (OpenAI).
+    !effort   -        [MODE]   Reasoning: minimal, high, medium, or low (OpenAI).
     !think    -         [NUM]   Thinking budget: max tokens (Anthropic/Google).
-!interactive  -                 Toggle reasoning interactive mode.
      !ka      !keep-alive [NUM] Set duration of model load in memory
+    !verb     !verbosity [MODE] Model verbosity (high, medium, or low).
    !vision    !audio            Toggle model multimodality type.
    --- Session Management -------------------------------------------
       -C      -                 Continue current session, see !break.
@@ -671,13 +672,14 @@ Options
 		Frequency penalty (cmpls/chat, -2.0 - 2.0).
 	--best-of   [NUM]
 		Best of results, must be greater than opt -n (cmpls). Def=1.
-	--effort  [ high | medium | low ]    (OpenAI)
-	--think   [ token_num ]             (Anthropic/Google)
+	--effort  [ high | medium | low | minimal ]    (OpenAI)
+	--think   [ token_num ]              (Anthropic/Google)
 		Amount of effort in reasoning models.
 	--format  [ mp3 | wav | flac | opus | aac | pcm16 | mulaw | ogg ]
 		TTS output format. Def=mp3.
-	--interactive, --no-interactive
-		Reasoning model output style (OpenAI).
+	--verbosity, --verb  [ high | medium | low ]
+	--no-verbosity
+		Model response verbosity level (OpenAI).
 	-j, --seed  [NUM]
 		Seed for deterministic sampling (integer).
 	-K, --top-k     [NUM]
@@ -942,8 +944,9 @@ function model_capf
 
 	((GITHUBAI)) && {
 	case "${model}" in
-	gpt-[5-9]*|llama-4-scout-17b-16e-instruct|\
+	llama-4-scout-17b-16e-instruct|\
 	llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
+	gpt-[5-9]*) MODMAX=400000;;
 	gpt-[4-9].[1-9]*) MODMAX=1048576;;
 	ai21-jamba-1.5-*) MODMAX=262144;;
 	codestral-2501|grok-[4-9]*) MODMAX=256000;;
@@ -987,7 +990,7 @@ function model_capf
 		embedding-gecko-001) MODMAX=1024;;
 		aqa) MODMAX=7168;;
 		gemini-2.0-flash*) MODMAX=1048576;;
-		gemini-1.5-flash*|gpt-[5-9]*) MODMAX=1000000;;
+		gemini-1.5-flash*) MODMAX=1000000;;
 		gemini-1.5-pro*) MODMAX=2000000;;
 		gemini-exp*|gemini-*) MODMAX=2097152;;
 		learnlm-1.5-pro*|*qwen-2.5-72b-instruct|-32k*) MODMAX=32000;;
@@ -999,6 +1002,7 @@ function model_capf
 		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*|grok-2-vision*)
 			MODMAX=32768;;
+		gpt-[5-9]*) MODMAX=400000;;
 		gpt-[4-9].[1-9]*|gpt-[5-9][!.a-z]*) MODMAX=1047576;;
 		o1-*preview*|o1-*mini*|gpt-[4-9].[1-9]*|gpt-[4-9][a-z]*|chatgpt-*|gpt-[5-9]*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|gpt-4-1106*|\
@@ -2569,17 +2573,6 @@ function cmdf
 			((STREAM)) || unset STREAM;
 			cmdmsgf 'Streaming' $(_onoff ${STREAM:-0})
 			;;
-		interactive|no-interactive)
-			case "$REASON_INTERACTIVE" in
-				false|'') if [[ $REASON_INTERACTIVE != *[!$IFS]* ]]
-					then 	REASON_INTERACTIVE=true;
-					else 	REASON_INTERACTIVE=;
-					fi;;
-				true|*) REASON_INTERACTIVE=false;;
-
-			esac;
-			cmdmsgf 'Reasoning Interactive' "$REASON_INTERACTIVE";
-			;;
 		-h|h|help|-\?|\?)
 			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*Notes/p' <<<"$HELP");
 			less -S <<<"${var}"; xskip=1;
@@ -3361,6 +3354,16 @@ function cmdf
 		res|resub|resubmit)
 			RESUBW=1 SKIP=1 WSKIP=1;
 			;;
+		verbosity*|verb*|no-verbosity*)
+			set -- "${*##@(no-verbosity|verbosity|verb)*([$IFS])}"
+			case "$*" in
+				'') ((${VERBOSITY:+1}0)) && VERBOSITY= || VERBOSITY=medium;;
+				false|0) VERBOSITY=;;
+				true|1) VERBOSITY=medium;;
+				*) VERBOSITY=${*:-medium};;
+			esac;
+			cmdmsgf 'Model Verbosity' "$VERBOSITY";
+			;;
 		dialog|no-dialog)
 			((++NO_DIALOG)) ;((NO_DIALOG%=2))
 			cmdmsgf 'Dialog' $(_onoff $( ((NO_DIALOG)) && echo 0 || echo 1) )
@@ -3781,39 +3784,20 @@ function fmt_ccf
 {
 	typeset var type
 	typeset -l ext
-	typeset -a settings
-	settings=();
 	[[ ${1} = *[!$IFS]* ]] || ((${#MEDIA[@]}+${#MEDIA_CMD[@]})) || return
 
 	if ! ((${#MEDIA[@]}+${#MEDIA_CMD[@]}))
 	then
 		((ANTHROPICAI)) && [[ $2 = system ]] && return 1;
 
-		case "$MOD" in o[1-9]*)
-			_fmt_cc_reasonf;;  #settings[]
-		esac;
-		if ((${#settings[@]}))
-		then
-			printf '{"role": "%s", "content": "%s", "settings": { %s } }\n' "${2:-user}" "$1" "${settings[*]}";
-		else
-			printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
-		fi;
+		printf '{"role": "%s", "content": "%s"}\n' "${2:-user}" "$1";
 	elif ((OLLAMA))
 	then
 		printf '{"role": "%s", "content": "%s",\n' "${2:-user}" "$1";
 		ollama_mediaf && printf '%s' ' }'
 	elif is_visionf "$MOD" || is_amodelf "$MOD"
 	then
-		case "$MOD" in o[1-9]*)
-			_fmt_cc_reasonf;;  #settings[]
-		esac;
-		if ((${#settings[@]}))
-		then
-			printf '{ "role": "%s", "settings": { %s }, "content": [ ' "${2:-user}" "${settings[*]}";
-		else
-			printf '{ "role": "%s", "content": [ ' "${2:-user}";
-		fi;
-
+		printf '{ "role": "%s", "content": [ ' "${2:-user}";
 		((${#1})) &&
 		if ((EPN==12))
 		then 	printf '{ "type": "input_text", "text": "%s" }' "$1";
@@ -3881,24 +3865,6 @@ function fmt_ccf
 			fi
 		done;
 		printf '%s\n' ' ] }';
-	fi
-}
-#prepare the settings array (reasoning models, possibly gpt-5).
-function _fmt_cc_reasonf
-{
-	typeset var;
-	settings=();
-
-	((${REASON_INTERACTIVE:+1})) && settings=("${settings[@]}" '"interactive": '"${REASON_INTERACTIVE:-true}");
-
-	if ((${#settings[@]}>1))
-	then
-		for var in "${settings[@]}"
-		do
-			set -- "$@" "${var},";
-		done;
-
-		settings=("${@:1:${#} -1}" "${var}");
 	fi
 }
 
@@ -4523,7 +4489,7 @@ function set_optsf
 				OPTMAX=8000;
 			}
 		;;
-		o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12|*deep-research*|*gpt*-search*)
+		gpt-[5-9]*|gpt-oss*|o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12|*deep-research*|*gpt*-search*)
 		((MOD_REASON)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
@@ -4535,20 +4501,17 @@ function set_optsf
 			  ;;
 			esac;
 			[[ -n $OPTA || -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency and presence penalties';
-			OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTT_REASON=$OPTT;
-			OPTA= OPTAA= OPTT= MOD_REASON=1 CURLTIMEOUT="--max-time 900";
+			OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTA= OPTAA=;
+			OPTT_REASON=$OPTT OPTT=;
+			MOD_REASON=1 CURLTIMEOUT="--max-time 900";
 			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 		}
-		case "$REASON_INTERACTIVE" in
-			true|[1-9]*) 	REASON_INTERACTIVE=true;;
-			false|[00]*) 	REASON_INTERACTIVE=false;;
-		esac;
 		case "$MOD" in
 			*-high|*-medium|*-low) 	REASON_EFFORT=${MOD##*-} MOD=${MOD%-*};;
 		esac;
 		case "$REASON_EFFORT" in
 			high|medium|low|'') 	:;;
-			?*) 	_warmsgf 'Warning:' "reason_effort must be high, medium or low -- $REASON_EFFORT";;
+			?*) 	_warmsgf 'Warning:' "reason_effort must be high, medium, low, or minimal -- $REASON_EFFORT";;
 		esac;
 		;;
 		grok-[34]*mini*|grok-[4-9]*|grok-4-0709)
@@ -4576,6 +4539,27 @@ function set_optsf
 		}
 		;;
 	esac
+
+	((${REASON_EFFORT:+1}0)) &&
+	if ((ANTHROPICAI+GOOGLEAI))
+	then 	if [[ $REASON_EFFORT != *[0-9]* ]]
+		then 	_warmsgf "Err:" "${ANTHROPICAI:+AnthropicAI}${GOOGLEAI:+GoogleAI}: ${ANTHROPICAI:+budget}${GOOGLEAI:+thinking} tokens -- $REASON_EFFORT";
+			_warmsgf 'Note:' "${ANTHROPICAI:+budget}${GOOGLEAI:+thinking} tokens must be an integer!";
+			REASON_EFFORT=;
+		fi;
+	else 	if [[ $REASON_EFFORT != *[a-z]* ]]
+		then 	_warmsgf "Err:" "reasoning effort -- $REASON_EFFORT";
+			_warmsgf 'Note:' "reasoning effort must be [ minimal | low | medium | high ]!";
+			REASON_EFFORT=;
+		fi;
+	fi;
+
+	((${VERBOSITY:+1}0)) &&
+	if [[ $VERBOSITY != *[a-z]* ]]
+	then 	_warmsgf "Err:" "verbosity -- $VERBOSITY";
+		_warmsgf 'Note:' "verbosity must be [ low | medium | high ]!";
+		VERBOSITY=;
+	fi;
 
 	#resolve collinding settings
 	((!OPTMAX_NILL && OPTMAX<1)) && OPTMAX=${OPTMAX_DEF:-4096}  #M#
@@ -6601,7 +6585,7 @@ do
 google  google:goo  mistral  openai  groq  grok  grok:xai  anthropic \
 anthropic:ant  github  github:git  novita  novita:nov  deepseek deepseek:deep \
 w:transcribe  w:stt  W:translate  z:tts  z:speech  Z:last  api-key  multimodal \
-interactive  no-interactive  effort  effort:budget  effort:think  b:responses \
+effort  effort:budget  effort:think  verbosity  verbosity:verb  no-verbosity  b:responses \
 vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
@@ -6622,7 +6606,7 @@ no-time  format  voice  awesome-zh  awesome  source
 
 		case "$OPTARG" in
 			$name|$name=)
-				if [[ ${optstring}effort:budget:think:format:voice:best-of: = *"$opt":* ]]
+				if [[ ${optstring}effort:budget:think:format:voice:best-of:verbosity: = *"$opt":* ]]
 				then 	OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
 				fi;;
@@ -6671,7 +6655,7 @@ no-time  format  voice  awesome-zh  awesome  source
 			REASON_EFFORT=${OPTARG:?--effort/--think -- level/integer};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT REASON_INTERACTIVE;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -6685,8 +6669,8 @@ no-time  format  voice  awesome-zh  awesome  source
 			exit;;
 		H) 	((++OPTHH));;
 		P) 	((OPTHH)) && ((++OPTHH)) || OPTHH=2;;
-		interactive) REASON_INTERACTIVE=true;;
-		no-interactive)  REASON_INTERACTIVE=false;;
+		verbosity) 	VERBOSITY=${OPTARG:-medium};;
+		no-verbosity) 	VERBOSITY=;;
 		i) 	OPTI=1 EPN=3;;
 		info) 	OPTINFO=1 OPTL=1;;
 		keep-alive)
@@ -8083,10 +8067,18 @@ else
 			BLOCK="{
 $(
   ((OPTMAX_NILL)) || echo "\"max_output_tokens\": $OPTMAX,"
+  ((OPENAI)) && echo "\"truncation\": \"auto\",";  #def: disabled
 
-  case "$MOD" in o[1-9]*|gpt-[4-9]o*|chatgpt*-[4-9]o*|chatgpt*-[4-9].[0-9]o*)
-        ((${REASON_EFFORT:+1}0)) && echo "\"reasoning\": { \"effort\": \"${REASON_EFFORT:-medium}\" },";;
+  case "$MOD" in gpt-[5-9]*|gpt-oss*|o[1-9]*|gpt-[4-9]o*|chatgpt*-[4-9]o*|chatgpt*-[4-9].[0-9]o*)
+        ((${REASON_EFFORT:+1}0)) && echo "\"reasoning\": { \"effort\": \"${REASON_EFFORT:-medium}\", \"summary\": \"auto\" },";;
+	#summary: auto, concise, or detailed
   esac
+
+  #if ((${VERBOSITY:+1}0))
+  #then echo "\"verbosity\": \"${VERBOSITY:-medium}\",";
+  #fi
+  #even though verbosity param is in the docs, returns error on the responses api
+  #https://platform.openai.com/docs/api-reference/responses/create#responses_create-verbosity
 
   #echo "\"instructions\": \"$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")\","
   #https://platform.openai.com/docs/guides/text#message-roles-and-instruction-following
@@ -8095,6 +8087,7 @@ $BLOCK
 $STREAM_OPT $OPTT_OPT $OPTP_OPT
 \"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
 }"
+	#note: responses api stream_options and resoning_effort are different from completions api!
 
 		elif ((GOOGLEAI))
 		then
@@ -8155,7 +8148,7 @@ $BLOCK
 $(
   ((ANTHROPICAI)) && ((EPN!=6 && EPN!=12)) && max="max_tokens_to_sample" || max="max_tokens"
   ((DEEPSEEK||xRESPONSES_APIx)) && max="max_completion_tokens"
-  case "${MOD##*/}" in o[1-9]*)
+  case "${MOD##*/}" in gpt-[5-9]*|gpt-oss*|o[1-9]*)
           max="max_completion_tokens";;
   esac
   ((OPTMAX_NILL && (EPN==6||EPN==12) && !ANTHROPICAI)) || echo "\"${max:-max_tokens}\": $OPTMAX,"
@@ -8176,6 +8169,10 @@ $(
   	esac
   elif ((${REASON_EFFORT:+1}0))  #OpenAI
   then 	echo "\"reasoning_effort\": \"${REASON_EFFORT:-medium}\","
+  fi
+
+  if ((${VERBOSITY:+1}0))
+  then 	echo "\"verbosity\": \"${VERBOSITY:-medium}\",";
   fi
 
   is_amodelf "$MOD" &&
