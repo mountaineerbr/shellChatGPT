@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.110.1  aug/2025  by mountaineerbr  GPL+3
+# v0.110.2  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -942,13 +942,13 @@ function model_capf
 
 	((GITHUBAI)) && {
 	case "${model}" in
-	llama-4-scout-17b-16e-instruct) MODMAX=10000000;;
-	gpt-[4-9].[1-9]*) MODMAX=1048576;;
+	gpt-[5-9]*|llama-4-scout-17b-16e-instruct|\
 	llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
+	gpt-[4-9].[1-9]*) MODMAX=1048576;;
 	ai21-jamba-1.5-*) MODMAX=262144;;
 	codestral-2501|grok-[4-9]*) MODMAX=256000;;
 	o1|o1-mini|o3|o3-mini|o4-mini) MODMAX=200000;;
-	phi-4-mini*|phi-4-multimodal*|\
+	phi-4-mini*|phi-4-multimodal*|gpt-oss*|\
 	mistral-small-2503|mistral-medium-2505|mistral-large-2411|\
 	llama-3.[23]-*|deepseek-*|\
 	o1-preview|mai-ds-r1) MODMAX=128000;;
@@ -987,7 +987,7 @@ function model_capf
 		embedding-gecko-001) MODMAX=1024;;
 		aqa) MODMAX=7168;;
 		gemini-2.0-flash*) MODMAX=1048576;;
-		gemini-1.5-flash*) MODMAX=1000000;;
+		gemini-1.5-flash*|gpt-[5-9]*) MODMAX=1000000;;
 		gemini-1.5-pro*) MODMAX=2000000;;
 		gemini-exp*|gemini-*) MODMAX=2097152;;
 		learnlm-1.5-pro*|*qwen-2.5-72b-instruct|-32k*) MODMAX=32000;;
@@ -1004,8 +1004,8 @@ function model_capf
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|gpt-4-1106*|\
 		mistral-3b*|open-mistral-nemo*|*mistral-nemo*|*mistral-large*|\
 		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
-		*llama-[3-9].[1-9]*|*llama[4-9]-*|\
-		*llama[4-9]*|*ministral*|*pixtral*|*-128k*)
+		*llama-[3-9].[1-9]*|*llama[4-9]-*|*llama[4-9]*|*ministral*|*pixtral*|\
+		gpt-oss*|*-128k*)
 			MODMAX=128000;;
 		*turbo*|*davinci*|openhermes-2.5-mistral-7b|openchat-7b|\
 		chat-bison-001|*-4k*) MODMAX=4096;;
@@ -2899,7 +2899,7 @@ function cmdf
 			((++OPTVV)) ;((OPTVV%=2));
 			cmdmsgf 'Debug Request' $(_onoff $OPTVV)
 			;;
-		source)   #resource own functions (devel)
+		source)   #source from script (devel)
 			OPTF=1 OPTIND=1 OPTARG=;
 			. <(sed -n "/^ENDPOINTS=/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
 			((OPTV)) || echo '[source]' >&2;
