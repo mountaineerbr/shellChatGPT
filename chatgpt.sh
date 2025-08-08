@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.111.3  aug/2025  by mountaineerbr  GPL+3
+# v0.111.4  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1096,7 +1096,7 @@ function _promptf
 
 function promptf
 {
-	typeset pid ret
+	typeset pid ret xNCx
 
 	if ((OPTVV)) && ((!OPTII))
 	then 	block_printf || {
@@ -1109,12 +1109,12 @@ function promptf
 	then
 		trap '-' INT;
 		: >"$FILEFIFO"; RET_APRF=;
-		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%s\\b${NC}" "C" >&2;
+		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%s\\b${xNCx}" "C" >&2;
 		{ _promptf || exit ;} |  #!#
 		{ prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILEFIFO"; exit $ret ;}
 	else
 		trap '-' INT;
-		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}${NC}" "$COLUMNS" "C" >&2;
+		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}${xNCx}" "$COLUMNS" "C" >&2;
 		COLUMNS=$((COLUMNS-1)) _promptf ||
 			if ((OPTI))
 			then 	jq . "$FILE" >&2 2>/dev/null;
@@ -1128,8 +1128,8 @@ function promptf
 		fi
 	fi & pid=$! PIDS+=($!)  #catch <CTRL-C>
 
-	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2;" INT;
-	wait $pid; echo >&2;
+	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; printf "${NC}\\n" >&2;" INT;
+	wait $pid; printf "${NC}\\n" >&2;
 	trap 'exit' INT; RET_APRF=;
 	((STREAM)) && [[ -s $FILEFIFO ]] && {
 	  RET_APRF=$(<$FILEFIFO); : >"$FILEFIFO";
@@ -6764,7 +6764,7 @@ no-time  format  voice  awesome-zh  awesome  source  no-truncation
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT EPN_OLD  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT EPN_OLD NC  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
