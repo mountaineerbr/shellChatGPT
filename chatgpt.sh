@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.111.4  aug/2025  by mountaineerbr  GPL+3
+# v0.112  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1096,7 +1096,7 @@ function _promptf
 
 function promptf
 {
-	typeset pid ret xNCx
+	typeset pid ret
 
 	if ((OPTVV)) && ((!OPTII))
 	then 	block_printf || {
@@ -1109,26 +1109,36 @@ function promptf
 	then
 		trap '-' INT;
 		: >"$FILEFIFO"; RET_APRF=;
-		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%s\\b${xNCx}" "C" >&2;
+		#colorise response
+		if test_cmplsf || ((OPTV>1))
+		then 	printf "${BYELLOW}" >&2;
+		else 	printf "${BYELLOW}%s\\b" "C" >&2;
+		fi
+
 		{ _promptf || exit ;} |  #!#
 		{ prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILEFIFO"; exit $ret ;}
 	else
 		trap '-' INT;
-		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}${xNCx}" "$COLUMNS" "C" >&2;
+		if test_cmplsf || ((OPTV>1))
+		then 	printf "${BYELLOW}" >&2;
+		else 	printf "${BYELLOW}%*s\\r" "$COLUMNS" "C" >&2;
+		fi
+
 		COLUMNS=$((COLUMNS-1)) _promptf ||
 			if ((OPTI))
-			then 	jq . "$FILE" >&2 2>/dev/null;
+			then 	printf "${NC}" >&2;
+				jq . "$FILE" >&2 2>/dev/null;
 				exit;
 			else  	exit;  #!#
 			fi
-		printf "${NC}" >&2;
+
 		if ((OPTI))
 		then 	prompt_imgprintf
 		else 	prompt_printf
 		fi
 	fi & pid=$! PIDS+=($!)  #catch <CTRL-C>
 
-	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; printf "${NC}\\n" >&2;" INT;
+	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2;" INT;
 	wait $pid; printf "${NC}\\n" >&2;
 	trap 'exit' INT; RET_APRF=;
 	((STREAM)) && [[ -s $FILEFIFO ]] && {
