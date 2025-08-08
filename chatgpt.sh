@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.112.3  aug/2025  by mountaineerbr  GPL+3
+# v0.112.4  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3023,7 +3023,7 @@ function cmdf
 			fi
 			;;
 		[/!]i|[/!]info) 	get_infof;;
-		i*|info*)
+		i|info*)
 			set -- "${*##@(info|i)$SPC}";
 			if ((${#1})) && ((${#1}<64))
 			then 	cmdf /info 2>&1 | grep -ie "${1%%$SPC}" >&2 || cmdf /info;
