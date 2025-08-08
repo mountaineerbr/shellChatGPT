@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.112.1  aug/2025  by mountaineerbr  GPL+3
+# v0.112.3  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -123,9 +123,9 @@ OPTFOLD=1
 #  Chat mode of text cmpls sets "\nQ: " and "\nA:"
 # Reasoning effort
 #REASON_EFFORT=
-#OpenAI: minimal, low, medium, or high
-#Anthropic: budget tokens (integer)
-#Gemini: thinking budget tokens (integer)
+#OpenAI: effort -- minimal, low, medium, high
+#Anthropic: reasoning budget -- tokens
+#Gemini: thinking budget -- tokens
 # Model verbosity  (OpenAI)
 #VERBOSITY=""  #low, medium, or high
 
@@ -456,7 +456,7 @@ Command List
        !      !r, !regen        Regenerate last response.
       !!      !rr               Regenerate response, edit prompt first.
       !g:    !!g:     [PROMPT]  Ground web search, insert results. ‡
-      !i      !info             Info on model and session settings.
+      !i      !info   [REGEX]   Info on model and session settings.
      !!i     !!info             Monthly usage stats (OpenAI).
       !j      !jump             Jump to request, append response primer.
      !!j     !!jump             Jump to request, no response priming.
@@ -513,7 +513,7 @@ Command List
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
     !effort   -        [MODE]   Reasoning: minimal, high, medium, or low (OpenAI).
-    !think    -         [NUM]   Thinking budget: max tokens (Anthropic/Google).
+    !think    -         [NUM]   Thinking budget: tokens (Anthropic/Google).
      !ka      !keep-alive [NUM] Set duration of model load in memory
     !verb     !verbosity [MODE] Model verbosity (high, medium, or low).
    !vision    !audio            Toggle model multimodality type.
@@ -3023,7 +3023,12 @@ function cmdf
 			fi
 			;;
 		[/!]i|[/!]info) 	get_infof;;
-		i|info)
+		i*|info*)
+			set -- "${*##@(info|i)$SPC}";
+			if ((${#1})) && ((${#1}<64))
+			then 	cmdf /info 2>&1 | grep -ie "${1%%$SPC}" >&2 || cmdf /info;
+				return;
+			fi;
 			(  unset blku hurl hurlv modmodal rseq sseq stop
 			((OLLAMA)) && hurl='ollama-url' hurlv=${OLLAMA_BASE_URL}${ENDPOINTS[EPN]};
 			((GOOGLEAI)) && hurl='google-url' hurlv=${GOOGLE_BASE_URL}${ENDPOINTS[EPN]};
@@ -4557,8 +4562,8 @@ function set_optsf
 	((${REASON_EFFORT:+1}0)) &&
 	if ((ANTHROPICAI+GOOGLEAI))
 	then 	if [[ $REASON_EFFORT != *[0-9]* ]]
-		then 	_warmsgf "Err:" "${ANTHROPICAI:+AnthropicAI}${GOOGLEAI:+GoogleAI}: ${ANTHROPICAI:+budget}${GOOGLEAI:+thinking} tokens -- $REASON_EFFORT";
-			_warmsgf 'Note:' "${ANTHROPICAI:+budget}${GOOGLEAI:+thinking} tokens must be an integer!";
+		then 	_warmsgf "Err:" "${ANTHROPICAI:+AnthropicAI}${GOOGLEAI:+GoogleAI}: ${ANTHROPICAI:+reasoning}${GOOGLEAI:+thinking} budget -- $REASON_EFFORT";
+			_warmsgf 'Note:' "${ANTHROPICAI:+reasoning}${GOOGLEAI:+thinking} budget must be an integer!";
 			REASON_EFFORT=;
 		fi;
 	else 	if [[ $REASON_EFFORT != *[a-z]* ]]
@@ -6666,7 +6671,7 @@ no-time  format  voice  awesome-zh  awesome  source  no-truncation
 		C) 	((++OPTRESUME));;
 		d) 	((OPTCMPL)) && OPTCMPL=1 || OPTCMPL=-1;;  #-1: single-turn, 1: multi-turn
 		effort) case "$OPTARG" in -[!0-9]*) 	OPTARG= ;; esac;
-			REASON_EFFORT=${OPTARG:?--effort/--think -- level/integer};;
+			REASON_EFFORT=${OPTARG:?--effort/--think requires mode/tokens};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
 		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE;

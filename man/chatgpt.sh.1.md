@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.112 | General Commands Manual
+% CHATGPT.SH(1) v0.112.3 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -914,7 +914,7 @@ Command operators "`!`" or "`/`" are equivalent.
  Misc              Commands
  --------------    ------------------------------    -------------------------------------------------------------
        `-S`        `:`, `::`    \[_PROMPT_]          Add user or system prompt to request buffer.
-      `-S.`        `-.`         \[_NAME_]            Load and edit custom prompt.
+      `-S.`        `-.`          \[_NAME_]           Load and edit custom prompt.
       `-S/`        `!awesome`    \[_NAME_]           Load and edit awesome prompt (english).
       `-S%`        `!awesome-zh` \[_NAME_]           Load and edit awesome prompt (chinese).
        `-Z`        `!last`                           Print last response JSON.
@@ -922,7 +922,7 @@ Command operators "`!`" or "`/`" are equivalent.
         `!`        `!r`, `!regen`                    Regenerate last response.
        `!!`        `!rr`                             Regenerate response, edit prompt first.
       `!g:`        `!!g:`       \[_PROMPT_]          Ground user prompt with web search results. _‡_
-       `!i`        `!info`                           Information on model and session settings.
+       `!i`        `!info`      \[_REGEX_]           Information on model and session settings.
       `!!i`        `!!info`                          Monthly usage stats (OpenAI).
        `!j`        `!jump`                           Jump to request, append start seq primer (text cmpls).
       `!!j`        `!!jump`                          Jump to request, no response priming.
@@ -985,7 +985,7 @@ Command operators "`!`" or "`/`" are equivalent.
       `-z`         `!tts`       \[_ARGS_]      Toggle TTS chat mode (speech out).
     `!blk`         `!block`     \[_ARGS_]      Set and add custom options to JSON request.
  `!effort`          \-          \[_MODE_]      Reasoning effort: minimal, high, medium, or low (OpenAI).
-  `!think`          \-           \[_NUM_]      Thinking budget: max tokens (Anthropic).
+  `!think`          \-           \[_NUM_]      Thinking budget: tokens (Anthropic).
      `!ka`         `!keep-alive` \[_NUM_]      Set duration of model load in memory (Ollama).
    `!verb`         `!verbosity` \[_MODE_]      Model verbosity level (high, medium, or low).
   `!vision`        `!audio`, `!multimodal`     Toggle multimodality type.
