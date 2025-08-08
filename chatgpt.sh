@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.111.1  aug/2025  by mountaineerbr  GPL+3
+# v0.111.3  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1114,7 +1114,7 @@ function promptf
 		{ prompt_printf; ret=$?; printf '%s' "${RET_APRF##0}" >"$FILEFIFO"; exit $ret ;}
 	else
 		trap '-' INT;
-		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}" "$COLUMNS" "C" >&2;
+		test_cmplsf || ((OPTV>1)) || printf "${BYELLOW}%*s\\r${YELLOW}${NC}" "$COLUMNS" "C" >&2;
 		COLUMNS=$((COLUMNS-1)) _promptf ||
 			if ((OPTI))
 			then 	jq . "$FILE" >&2 2>/dev/null;
@@ -1411,13 +1411,12 @@ function prompt_prettyf
 	((STREAM)) || unset STREAM;
 
 	if ((EPN==12))
-	then  	prompt_pf -r ${STREAM:+-j --unbuffered} "$@";
+	then 	prompt_pf -r ${STREAM:+-j --unbuffered} "$@";
 		return;
 	fi
 
-	jq -r ${STREAM:+-j --unbuffered} "${JQCOLNULL} ${JQCOL}
-	  byellow
-	  + ( ((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
+	jq -r ${STREAM:+-j --unbuffered} \
+	"((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
 	  ( ((.delta.content)//(.delta.reasoning_content)//(.delta.text)//(.delta.thinking)//(.delta.audio.transcript)
 	    //.text//.response//.completion//.reasoning//( (.content // []) | .[]? | (.text // .thinking) )
 	    //(.message.content${ANTHROPICAI:+skip})
@@ -1427,8 +1426,8 @@ function prompt_prettyf
 	    //\"\" ) |
 	  if ( (${OPTC:-0}>0) and (${STREAM:-0}==0) ) then (gsub(\"^[\\\\n\\\\t ]\"; \"\") |  gsub(\"[\\\\n\\\\t ]+$\"; \"\")) else . end)
 	  + if any( (.finish_reason//.stop_reason//\"\")?; . != \"stop\" and . != \"stop_sequence\" and . != \"end_turn\" and . != \"\") then
-	      red+\"(\"+(.finish_reason//.stop_reason)+\")\"+byellow else null end,
-	  if \$sep then \"---\" else empty end) + reset" "$@" && _p_suffixf;
+	      \"(\"+(.finish_reason//.stop_reason)+\")\" else null end,
+	  if \$sep then \"---\" else empty end" "$@" && _p_suffixf;
 }  #finish_reason: length, max_tokens
 function prompt_pf
 {
@@ -1444,10 +1443,10 @@ function prompt_pf
 		then 	set -- 'select(.type == "response.output_text.delta") | .delta' "$@";
 		else 	set -- '.output[] | (.content//[]) | .[] | .text' "$@";
 		fi
-		#missing: thinking and audio transcriptions
+		#missing: thinking and audio transcriptions (responses api)
 	else
 		set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
-		(.delta.content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//( (.content // []) | .[]? | .text)//(.message.content${ANTHROPICAI:+skip})//(.delta.reasoning_content)//(.delta.thinking)//(.message.reasoning_content)//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@"
+		(.delta.content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//.reasoning//( (.content // []) | .[]? | (.text//.thinking))//(.message.content${ANTHROPICAI:+skip})//(.delta.reasoning_content)//(.delta.thinking)//(.message.reasoning_content)//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@";
 	fi
 
 	jq "${opt[@]}" "$@" && _p_suffixf || ! _warmsgf 'Err';
@@ -4511,10 +4510,10 @@ function set_optsf
 			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 		}
 		case "$MOD" in
-			*-high|*-medium|*-low) 	REASON_EFFORT=${MOD##*-} MOD=${MOD%-*};;
+			*-high|*-medium|*-low|*-minimal) 	REASON_EFFORT=${MOD##*-} MOD=${MOD%-*};;
 		esac;
 		case "$REASON_EFFORT" in
-			high|medium|low|'') 	:;;
+			high|medium|low|minimal|'') 	:;;
 			?*) 	_warmsgf 'Warning:' "reason_effort must be high, medium, low, or minimal -- $REASON_EFFORT";;
 		esac;
 		;;
