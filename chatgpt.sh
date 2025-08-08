@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.111  aug/2025  by mountaineerbr  GPL+3
+# v0.111.1  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -829,7 +829,7 @@ function set_model_epnf
 				*moderation*) 	EPN=1 OPTEMBED=1;;
 				*) 		EPN=0;;
 			esac;;
-		o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*|*audio*|*voxtral*)
+		gpt-[5-9]*|o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*|*audio*|*voxtral*)
 			is_amodelf "$1" || is_visionf "$1";
 			EPN=6 OPTB= OPTCMPL=;
 			((OPTC)) && OPTC=2
@@ -1464,7 +1464,7 @@ function is_responses_apif
 	typeset -l model; model=${1##*/} model=${model##ft:};
 
 	case "${model:-$MOD}" in
-	o[1-9]*|gpt-[4-9]o*|gpt-[4-9][.-][0-9]*|chatgpt*-[4-9]o*|chatgpt*-[4-9][.-][0-9]o*|\
+	gpt-[5-9]*|o[1-9]*|gpt-[4-9]o*|gpt-[4-9][.-][0-9]*|chatgpt*-[4-9]o*|chatgpt*-[4-9][.-][0-9]o*|\
 	*gpt*-search*|*-deep-research*|computer-use*|codex-mini*)
 		case "${model:-$MOD}" in
 		o1-mini|gpt-4o*-search-preview|gpt-4o*-audio-preview)
@@ -6589,7 +6589,7 @@ do
 google  google:goo  mistral  openai  groq  grok  grok:xai  anthropic \
 anthropic:ant  github  github:git  novita  novita:nov  deepseek deepseek:deep \
 w:transcribe  w:stt  W:translate  z:tts  z:speech  Z:last  api-key  multimodal \
-effort  effort:budget  effort:think verbosity  verbosity:verb  no-verbosity  b:responses \
+effort  effort:budget  effort:think  verbosity  verbosity:verb  no-verbosity  b:responses \
 vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
