@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.112  aug/2025  by mountaineerbr  GPL+3
+# v0.112.1  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -1575,7 +1575,7 @@ function list_modelsf
 	then  	jq . "$FILE" || ! _warmsgf 'Err';
 	else 	{   jq -r '.data[].id' "$FILE" | sort && {
 		    {    ((!OPENAI)) || [[ $BASE_URL != "$OPENAI_BASE_URL_DEF" ]] ||
-		        printf '%s\n' text-moderation-latest text-moderation-stable ;}  #deprecated models
+		        printf '%s\n' text-moderation-latest text-moderation-stable ;}  #deprecated: 2025-10-27 shutdown
 		    ((!MISTRALAI)) || printf '%s\n' mistral-moderation-latest;
 		  }
 		} | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
@@ -4502,6 +4502,7 @@ function set_optsf
 				OPTMAX=8000;
 			}
 		;;
+		gpt-[5-9]*-chat*) 	:;;  #non-reasoning ChatGPT models
 		gpt-[5-9]*|gpt-oss*|o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12|*deep-research*|*gpt*-search*)
 		((MOD_REASON)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
