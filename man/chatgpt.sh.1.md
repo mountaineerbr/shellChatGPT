@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.110.3 | General Commands Manual
+% CHATGPT.SH(1) v0.111 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -263,13 +263,6 @@ before the text prompt itself.
 : TTS out-file format. Def= _mp3_.
 
 
-**\--verbosity**, **\--verb**  \[_high_|_medium_|_low_]
-
-**\--no-verbosity**
-
-: Model response verbosity level (OpenAI).
-
-
 **-j**, **\--seed**  \[_NUM_]
 
 : Seed for deterministic sampling (integer).
@@ -335,6 +328,18 @@ before the text prompt itself.
 **-t**, **\--temperature**   \[_VAL_]
 
 : Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0). Def=_0_.
+
+
+**\--no-truncation**
+
+: Unset context truncation parameter (Responses API).
+
+
+**\--verbosity**, **\--verb**  \[_high_|_medium_|_low_]
+
+**\--no-verbosity**
+
+: Model response verbosity level (OpenAI).
 
 
 **\--voice**  [_alloy_|_fable_|_onyx_|_nova_|_shimmer_|_ash_|_ballad_|_coral_|_sage_|_verse_|_Adelaide-PlayAI_|_Angelo-PlayAI_|_Arista-PlayAI.._]
@@ -490,9 +495,9 @@ before the text prompt itself.
 : Copy response to clipboard.
 
 
-**-v**, **\--verbose**
+**-v**, **-vv**  <!-- verbose -->
 
-:     Less verbose.
+:     Less interface verbosity.
 
       Sleep after response in voice chat (`-vvccw`).
 
@@ -951,7 +956,7 @@ Command operators "`!`" or "`/`" are equivalent.
      `-uu`         `!!multi`                  Multiline, one-shot. \<_CTRL-D_> flush.
       `-U`         `-UU`                      Toggle cat prompter or set one-shot. \<_CTRL-D_> flush.
       `-V`         `!debug`                   Dump raw request block and confirm.
-      `-v`         `!ver`                     Toggle verbose modes.
+      `-v`          \-                        Toggle interface verbose modes.
       `-x`         `!ed`                      Toggle text editor interface.
      `-xx`         `!!ed`                     Single-shot text editor.
       `-y`         `!tik`                     Toggle python tiktoken use.

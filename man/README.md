@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2025
-title: CHATGPT.SH(1) v0.110.3 \| General Commands Manual
+title: CHATGPT.SH(1) v0.111 \| General Commands Manual
 ---
 
 # NAME
@@ -211,11 +211,6 @@ Amount of effort in reasoning models.
 **--format** \[*mp3*\|*wav*\|*flac*\|*opus*\|*aac*\|*pcm16*\|*mulaw*\|*ogg*\]  
 TTS out-file format. Def= *mp3*.
 
-**--verbosity**, **--verb** \[*high*\|*medium*\|*low*\]
-
-**--no-verbosity**  
-Model response verbosity level (OpenAI).
-
 **-j**, **--seed** \[*NUM*\]  
 Seed for deterministic sampling (integer).
 
@@ -256,6 +251,14 @@ Prepend the current date and time (timestamp) to the instruction prompt.
 
 **-t**, **--temperature** \[*VAL*\]  
 Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0). Def=*0*.
+
+**--no-truncation**  
+Unset context truncation parameter (Responses API).
+
+**--verbosity**, **--verb** \[*high*\|*medium*\|*low*\]
+
+**--no-verbosity**  
+Model response verbosity level (OpenAI).
 
 **--voice** \[*alloy*\|*fable*\|*onyx*\|*nova*\|*shimmer*\|*ash*\|*ballad*\|*coral*\|*sage*\|*verse*\|*Adelaide-PlayAI*\|*Angelo-PlayAI*\|*Arista-PlayAI..*\]  
 TTS voice name. OpenAI or PlayAI (Groq) voice names. Def=*echo*,
@@ -357,8 +360,8 @@ Disable markdown rendering.
 **-o**, **--clipboard**  
 Copy response to clipboard.
 
-**-v**, **--verbose**  
-Less verbose.
+**-v**, **-vv** <!-- verbose -->  
+Less interface verbosity.
 
 Sleep after response in voice chat (`-vvccw`).
 
@@ -789,7 +792,7 @@ or “`/`” are equivalent.
 | `-uu`   | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                 |
 | `-U`    | `-UU`                | Toggle cat prompter or set one-shot. \<*CTRL-D*\> flush. |
 | `-V`    | `!debug`             | Dump raw request block and confirm.                      |
-| `-v`    | `!ver`               | Toggle verbose modes.                                    |
+| `-v`    | \-                   | Toggle interface verbose modes.                          |
 | `-x`    | `!ed`                | Toggle text editor interface.                            |
 | `-xx`   | `!!ed`               | Single-shot text editor.                                 |
 | `-y`    | `!tik`               | Toggle python tiktoken use.                              |

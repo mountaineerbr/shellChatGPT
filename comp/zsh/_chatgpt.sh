@@ -1,6 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
+# v111
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -124,13 +125,12 @@ _chatgpt.sh()
     {-c,-cc,--chat}'[Text or native chat completions]' \
     {-C,--continue}'[Continue from last session]' \
     {-d,--text}'[Text completions]' \
-    --effort'[Reasoning effort]:effort:(low medium high)' \
+    --effort'[Reasoning effort]:effort:(minimal low medium high)' \
     --think'[Thinking budget]:effort:(TOKEN_NUM 16000)' \
     {-e,--edit}'[Edit first prompt]' \
     {-E,-EE,--exit}'[Exit on first run]' \
     {-g,--stream}'[Stream response on]' \
     {-G,--no-stream}'[Stream response off]' \
-    --{,no-}interactive'[Reasoning interactive mode]:bolean:(true false)' \
     {-i,--image}'[Image generation, variation or edit]' \
     {-q,-qq,--insert}'[Insert text mode (two for multiturn)]' \
     {-S,--instruction}'[Instruction prompt]:instruction:__pr_list3f' \
@@ -175,7 +175,10 @@ _chatgpt.sh()
     {-o,--clipboard}'[Copy to clipboard]' \
     {-u,--multi}'[Multiline prompter (ctrl-d)]' \
     {-U,--cat}'[Cat prompter (ctrl-d)]' \
-    {-v,-vv,--verbose}'[Less verbose mode]' \
+    --no-truncation'[Disable context truncation (Responses API)]' \
+    --verb{,osity}'[Model response verbosity]:mode:(low medium high)' \
+    --no-verbosity'[Model response verbosity off]' \
+    {-v,-vv}'[Less interface verbose]' \
     '-V[Pretty-print context]' \
     '-VV[Dump raw request (debug)]' \
     {-x,--editor}'[Edit prompt in text editor]' \

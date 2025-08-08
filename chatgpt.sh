@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.110.3  aug/2025  by mountaineerbr  GPL+3
+# v0.111  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -487,7 +487,7 @@ Command List
       -uu    !!multi            Multiline, one-shot, ctrl-d flush.
       -U      -UU               Toggle cat prompter or set one-shot.
       -V      !debug            Dump raw request block and confirm.
-      -v      !ver              Toggle verbose modes.
+      -v      -                 Toggle interface verbose modes.
       -x      !ed               Toggle text editor interface.
       -xx    !!ed               Single-shot text editor.
       -y      !tik              Toggle python tiktoken use.
@@ -594,10 +594,10 @@ Options
 		Disable markdown rendering.
 	-o, --clipboard
 		Copy response to clipboard.
-	-v, --verbose
-		Less verbose. With -ccwv, sleep after response. With
-		-ccwzvv, stop recording voice input on silence and play
-		TTS response right away. May be set multiple times.
+	-v, -vv
+		Less interface verbosity. With -ccwv, sleep after response.
+		With -ccwzvv, stop recording voice input on silence and
+		play TTS response right away. May be set multiple times.
 	-V  	Dump raw request block to stderr (debug).
 	--version
 		Print script version.
@@ -677,9 +677,6 @@ Options
 		Amount of effort in reasoning models.
 	--format  [ mp3 | wav | flac | opus | aac | pcm16 | mulaw | ogg ]
 		TTS output format. Def=mp3.
-	--verbosity, --verb  [ high | medium | low ]
-	--no-verbosity
-		Model response verbosity level (OpenAI).
 	-j, --seed  [NUM]
 		Seed for deterministic sampling (integer).
 	-K, --top-k     [NUM]
@@ -708,6 +705,11 @@ Options
 	-t, --temperature  [VAL]
 		Temperature value (cmpls/chat/stt),
 		Def=${OPTT:-0} (0.0 - 2.0), STT=${OPTTW:-0} (0.0 - 1.0).
+	--no-truncation
+		Unset context truncation parameter (Responses API).
+	--no-verbosity
+	--verbosity, --verb  [ high | medium | low ]
+		Model response verbosity level (OpenAI).
 	--voice   [ alloy | fable | onyx | nova | shimmer ]
 		  [ ash | ballad | coral | sage | verse ]
 		  [ Adelaide-PlayAI | Angelo-PlayAI | Arista-PlayAI.. ]
@@ -2878,7 +2880,7 @@ function cmdf
 			((++OPTSUFFIX)) ;((OPTSUFFIX%=2))
 			cmdmsgf 'Insert Mode' $(_onoff $OPTSUFFIX)
 			;;
-		-v|-vv|-vv*|verbose)
+		-v|-vv|-vv*)  #verbose
 			set --  ${*//[!v]}; set -- ${*//v/ v};
 			for var
 			do 	((++OPTV)); ((OPTV%=3));
@@ -2886,7 +2888,7 @@ function cmdf
 			case "${OPTV:-0}" in
 				1) var='Less';;  2) var='Much less';;
 				0) var='ON'; unset OPTV;;
-			esac ;_cmdmsgf 'Verbose' "$var"
+			esac ;_cmdmsgf 'Interface Verbosity' "$var"
 			;;
 		-V|-VV|debug)  #debug
 			((++OPTVV)) ;((OPTVV%=2));
@@ -3794,10 +3796,12 @@ function fmt_ccf
 	elif ((OLLAMA))
 	then
 		printf '{"role": "%s", "content": "%s",\n' "${2:-user}" "$1";
+
 		ollama_mediaf && printf '%s' ' }'
 	elif is_visionf "$MOD" || is_amodelf "$MOD"
 	then
 		printf '{ "role": "%s", "content": [ ' "${2:-user}";
+
 		((${#1})) &&
 		if ((EPN==12))
 		then 	printf '{ "type": "input_text", "text": "%s" }' "$1";
@@ -6585,7 +6589,7 @@ do
 google  google:goo  mistral  openai  groq  grok  grok:xai  anthropic \
 anthropic:ant  github  github:git  novita  novita:nov  deepseek deepseek:deep \
 w:transcribe  w:stt  W:translate  z:tts  z:speech  Z:last  api-key  multimodal \
-effort  effort:budget  effort:think  verbosity  verbosity:verb  no-verbosity  b:responses \
+effort  effort:budget  effort:think verbosity  verbosity:verb  no-verbosity  b:responses \
 vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 @:alpha  M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
@@ -6596,8 +6600,8 @@ K:top-k  K:topk  l:list-models  L:log  m:model  m:mod  n:results  o:clipboard \
 o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
 S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
-U:cat  v:verbose  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
-no-time  format  voice  awesome-zh  awesome  source
+U:cat  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
+no-time  format  voice  awesome-zh  awesome  source  no-truncation
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -6655,7 +6659,7 @@ no-time  format  voice  awesome-zh  awesome  source
 			REASON_EFFORT=${OPTARG:?--effort/--think -- level/integer};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
@@ -6754,6 +6758,7 @@ no-time  format  voice  awesome-zh  awesome  source
 		Y) 	OPTTIK= OPTYY=1;;
 		format) OPTZ_FMT=$OPTARG;;
 		voice)  OPTZ_VOICE=$OPTARG OPTZ_VOICE_GROQ=$OPTARG;;
+		no-truncation) TRUNCATION_DISABLE=1;;
 		z) 	OPTZ=1;;
 		Z) 	((++OPTZZ));;
 		\?) 	exit 1;;
@@ -8067,18 +8072,14 @@ else
 			BLOCK="{
 $(
   ((OPTMAX_NILL)) || echo "\"max_output_tokens\": $OPTMAX,"
-  ((OPENAI)) && echo "\"truncation\": \"auto\",";  #def: disabled
+  ((TRUNCATION_DISABLE)) || echo "\"truncation\": \"auto\",";  #def: disabled
+
+  ((${VERBOSITY:+1}0)) && echo "\"text\": { \"format\": { \"type\": \"text\" }, \"verbosity\": \"${VERBOSITY:-medium}\" },"
 
   case "$MOD" in gpt-[5-9]*|gpt-oss*|o[1-9]*|gpt-[4-9]o*|chatgpt*-[4-9]o*|chatgpt*-[4-9].[0-9]o*)
         ((${REASON_EFFORT:+1}0)) && echo "\"reasoning\": { \"effort\": \"${REASON_EFFORT:-medium}\", \"summary\": \"auto\" },";;
 	#summary: auto, concise, or detailed
   esac
-
-  #if ((${VERBOSITY:+1}0))
-  #then echo "\"verbosity\": \"${VERBOSITY:-medium}\",";
-  #fi
-  #even though verbosity param is in the docs, returns error on the responses api
-  #https://platform.openai.com/docs/api-reference/responses/create#responses_create-verbosity
 
   #echo "\"instructions\": \"$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")\","
   #https://platform.openai.com/docs/guides/text#message-roles-and-instruction-following

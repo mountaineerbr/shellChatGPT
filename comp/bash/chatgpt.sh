@@ -1,4 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
+# v111
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -89,7 +90,6 @@ _chatgptsh()
         -g --stream
         -G --no-stream
 	--effort  --think
-	--interactive --no-interactive
         -i --image
         -q -qq --insert
         -T --tiktoken -TT -TTT
@@ -114,13 +114,15 @@ _chatgptsh()
         -O --ollama
         -u --multi
         -U --cat
-        -v --verbose -vv
+        -v -vv
         -V -VV
         -x --editor
         -y --tik
         -Y --no-tik
         -z --tts
 	--format
+	--no-truncation
+	--verb --verbosity --no-verbosity
 	--voice
         -Z --last
 	--version
@@ -153,7 +155,7 @@ _chatgptsh()
       ((${#cur})) || COMPREPLY=( '[stop-sequence]' '"\\nQ: "' '"\\nA:"' )
       ;;
     --effort*)
-      ((${#cur})) || COMPREPLY=( 'low' 'medium' 'high' )
+      ((${#cur})) || COMPREPLY=( 'minimal' 'low' 'medium' 'high' )
       ;;
     --think*)
       ((${#cur})) || COMPREPLY=( 'TOKEN_NUM' '16000' )
@@ -167,6 +169,9 @@ _chatgptsh()
       ;;
     --format)
       COMPREPLY=( mp3 opus aac flac wav pcm16  mulaw ogg )
+      ;;
+    --verb*|--verbosity*)
+      ((${#cur})) || COMPREPLY=( 'low' 'medium' 'high' )
       ;;
     --voice)
       COMPREPLY=( alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Basil-PlayAI Calum-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Mamaw-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI )

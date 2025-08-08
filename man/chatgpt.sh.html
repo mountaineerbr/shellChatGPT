@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.110.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.111 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.110.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.111 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2025</p>
 </header>
@@ -436,14 +436,6 @@ Google)</dt>
 <dd>
 <p>TTS out-file format. Def= <em>mp3</em>.</p>
 </dd>
-</dl>
-<p><strong>--verbosity</strong>, <strong>--verb</strong>
-[<em>high</em>|<em>medium</em>|<em>low</em>]</p>
-<dl>
-<dt><strong>--no-verbosity</strong></dt>
-<dd>
-<p>Model response verbosity level (OpenAI).</p>
-</dd>
 <dt><strong>-j</strong>, <strong>--seed</strong> [<em>NUM</em>]</dt>
 <dd>
 <p>Seed for deterministic sampling (integer).</p>
@@ -503,6 +495,18 @@ prompt.</p>
 <dd>
 <p>Temperature value (cmpls/chat/stt), (0.0 - 2.0, stt 0.0 - 1.0).
 Def=<em>0</em>.</p>
+</dd>
+<dt><strong>--no-truncation</strong></dt>
+<dd>
+<p>Unset context truncation parameter (Responses API).</p>
+</dd>
+</dl>
+<p><strong>--verbosity</strong>, <strong>--verb</strong>
+[<em>high</em>|<em>medium</em>|<em>low</em>]</p>
+<dl>
+<dt><strong>--no-verbosity</strong></dt>
+<dd>
+<p>Model response verbosity level (OpenAI).</p>
 </dd>
 <dt><strong>--voice</strong>
 [<em>alloy</em>|<em>fable</em>|<em>onyx</em>|<em>nova</em>|<em>shimmer</em>|<em>ash</em>|<em>ballad</em>|<em>coral</em>|<em>sage</em>|<em>verse</em>|<em>Adelaide-PlayAI</em>|<em>Angelo-PlayAI</em>|<em>Arista-PlayAI..</em>]</dt>
@@ -641,9 +645,9 @@ respectively.</p>
 <dd>
 <p>Copy response to clipboard.</p>
 </dd>
-<dt><strong>-v</strong>, <strong>--verbose</strong></dt>
+<dt><strong>-v</strong>, <strong>-vv</strong> <!-- verbose --></dt>
 <dd>
-<p>Less verbose.</p>
+<p>Less interface verbosity.</p>
 <p>Sleep after response in voice chat (<code>-vvccw</code>).</p>
 <p>With <code>options -ccwv</code>, sleep after response. With
 <code>options -ccwzvv</code>, stop recording voice input on silence
@@ -1212,8 +1216,8 @@ flush.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-v</code></td>
-<td style="text-align: left;"><code>!ver</code></td>
-<td>Toggle verbose modes.</td>
+<td style="text-align: left;">-</td>
+<td>Toggle interface verbose modes.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-x</code></td>
