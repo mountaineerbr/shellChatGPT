@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.112.4  aug/2025  by mountaineerbr  GPL+3
+# v0.112.5  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -3500,14 +3500,14 @@ function cmdf
 				do
 					var= m=;
 					case "${argv[0]:n:1}" in
-						[%:S\ ]) 	continue;;  #danger
+						[%:\ ]) 	continue;;  #danger / skip
 						[/!-]) 	argv[0]="${argv[0]:n:1}${argv[0]:1}";
 							continue;;  #operator
 						[0-9MN])
 							var='/!-';;  #resp, model tokens
 					esac;
 
-					#process duplicate-letters as single command: -xx, -vv
+					#process duplicate letters as single command: -xx, -vv
 					#process numbers as argument to command: -Ct1.2x, -C -t 1.2 -x
 					#test: -CCvvv23666/4000za.3A4.4/5555, --t1.2a0A0-333/5555
 					for ((m=1;m<${#argv[0]}-n;m++))
@@ -3522,9 +3522,21 @@ function cmdf
 						};
 					done;
 
-					((n<2)) || echo >&2;
 					buff="${argv[0]:0:1}${argv[0]:n:1+m}";
 					buff="${buff%%*([ ])}";
+
+					#block command / not useful
+					case "${buff}" in
+					[/!][/.]|[-][/.]|\
+					[/!][%:Sscfg]*|[-][%:S]*)
+						if ((n<2))
+						then 	return 181;
+						else 	_warmsgf "Command:" "Block -- \`${buff:0:2}\`";
+							return 0;
+						fi;;
+					esac;
+					
+					((n<2)) || echo >&2;
 					cmdmsgf "Command Run:" "\`${buff}\`";  #!#
 
 					CMD_ENV=211 cmdf "${buff}" ||
