@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.112.5  aug/2025  by mountaineerbr  GPL+3
+# v0.112.6  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
 
@@ -2904,9 +2904,9 @@ function cmdf
 			cmdmsgf 'Debug Request' $(_onoff $OPTVV)
 			;;
 		source)   #source from script (devel)
-			OPTF=1 OPTIND=1 OPTARG=;
-			. <(sed -n "/^ENDPOINTS=/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
+			OPT_SOURCE=1 OPTF=1 OPTIND=1 OPTARG= REPLY= EDIT= SKIP= WSKIP= PSKIP=;
 			((OPTV)) || echo '[source]' >&2;
+			return 181;
 			;;
 		xtrace)
 			#Xtrace mode
@@ -6792,7 +6792,7 @@ no-time  format  voice  awesome-zh  awesome  source  no-truncation
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT EPN_OLD NC  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM MD_AUTO TRAP_EDIT EPN_OLD OPT_SOURCE NC  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
@@ -7603,9 +7603,12 @@ else
 	do 	trap "exit" INT;
 		((TRAP_EDIT)) && set -- &&
 		  EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= OPTAWE= TRAP_EDIT=;
+		
+		((OPT_SOURCE)) && unset OPT_SOURCE &&  #resource functions from own (devel)
+		  . <(sed -ne "/^ENDPOINTS=/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
 
-		((MTURN+OPTRESUME)) && ((!OPTEXIT)) && ((!SKIP_CKSUM_OLD)) &&
-		  CKSUM_OLD=$(cksumf "$FILECHAT"); SKIP_CKSUM_OLD=;
+		((MTURN+OPTRESUME)) && ((!OPTEXIT)) &&
+		  CKSUM_OLD=$(cksumf "$FILECHAT");
 
 		if ((REGEN>0))  #regen + edit prompt
 		then 	if ((REGEN==1))
@@ -7856,7 +7859,7 @@ else
 				break
 			done
 		fi; RET=;
-		((TRAP_EDIT)) && continue;
+		((TRAP_EDIT+OPT_SOURCE)) && continue;
 
 		if ((!(JUMP+OPTCMPL) )) && [[ "${*}" != *[!$IFS]* ]]
 		then
@@ -7864,7 +7867,7 @@ else
 			then 	echo "[jump]" >&2
 			else
 				((REGEN)) && echo "[regenerate mode]" >&2;
-				_warmsgf "(empty)"; SKIP_CKSUM_OLD=1;
+				_warmsgf "(empty)";
 				set -- ; continue
 			fi
 		fi
