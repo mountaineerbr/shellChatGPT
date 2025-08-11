@@ -1730,7 +1730,7 @@ unaffected. Use the text editor interface for big prompt editing.
 
 <!--
 - User input must double escape `\n` and `\t` to have them as literal sequences.
-  **NO LONGER the case as of v.018**  -->
+  **NO LONGER the case as of v0.18**  -->
 
 
 ## Bug report

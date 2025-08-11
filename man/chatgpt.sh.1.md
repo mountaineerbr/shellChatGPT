@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.112.3 | General Commands Manual
+% CHATGPT.SH(1) v0.113 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -837,10 +837,14 @@ The defaults chat format is "**Q & A**". The **restart sequence**
 "_\\nQ:\ _" and the **start text** "_\\nA:_" are injected
 for the chat bot to work well with text cmpls.
 
-In multi-turn interactions, prompts prefixed with double colons "_:_"
-are prepended to the current request buffer as a **USER MESSAGE** without
-incurring an API call. Conversely, prompts starting with two double colons
-"_::_" are added as a **INSTRUCTION / SYSTEM MESSAGE**.
+In multi-turn interactions, prompts prefixed with colons "_:_"
+are buffered to be prepended to the user prompt (**USER MESSAGE**)
+without incurring an API call. Conversely, prompts starting with double colons
+"_::_" are prepended to the instruction prompt (**INSTRUCTION / SYSTEM MESSAGE**).
+
+Entering exactly triple colons "_:::_" reinjects a system instruction
+prompt into the current request. This is useful to reinforce the instruction
+when the model's context has been truncated.
 
 
 ### 2.4 Voice input (STT), and voice output (TTS)
@@ -911,9 +915,14 @@ new prompt to change parameters and manage sessions.
 Command operators "`!`" or "`/`" are equivalent.
 
 
+## Command Tables
+
  Misc              Commands
  --------------    ------------------------------    -------------------------------------------------------------
-       `-S`        `:`, `::`    \[_PROMPT_]          Add user or system prompt to request buffer.
+       `-S`                     \[_PROMPT_]          Overwrite the system prompt.
+     ` -S:`        `:`          \[_PROMPT_]          Prepend to current user prompt.
+     `-S::`        `::`         \[_PROMPT_]          Prepend to system prompt.
+    `-S:::`        `:::`                             Reset (inject) system prompt into request.
       `-S.`        `-.`          \[_NAME_]           Load and edit custom prompt.
       `-S/`        `!awesome`    \[_NAME_]           Load and edit awesome prompt (english).
       `-S%`        `!awesome-zh` \[_NAME_]           Load and edit awesome prompt (chinese).
@@ -994,7 +1003,7 @@ Command operators "`!`" or "`/`" are equivalent.
  Session           Management
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
       `-C`          \-                                       Continue current history session (see `!break`).
-      `-H`         `!hist`                                   Edit history in editor.
+      `-H`         `!hist`       \[_NUM_]                    Edit history in editor or print the last _n_ history entries.
       `-P`         `-HH`, `!print`                           Print session history.
       `-L`         `!log`       \[_FILEPATH_]                Save to log file.
       `!c`         `!copy`  \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
@@ -1011,7 +1020,7 @@ Command operators "`!`" or "`/`" are equivalent.
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
 
 
-| _:_ Commands with *double colons* have their output added to the current prompt.
+| _:_ Commands with *colons* have their output added to the current prompt buffer.
 
 | _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt (preceded by space).
 
@@ -1037,9 +1046,14 @@ a "_-1_" as argument (bypass with "_-1.0_")
 ---
 
 
+## Response Regeneration
+
 To **regenerate response**, type in the command "`!regen`" or a single
 exclamation mark or forward slash in the new empty prompt. In order
 to edit the prompt before the request, try "`!!`" (or "`//`").
+
+
+## Shell and File Integration
 
 The "`/pick`" command opens a file picker (usually a command-line
 file manager). The selected file's path will be appended to the
@@ -1054,8 +1068,12 @@ Any "`!CMD`" not matching a chat command is executed by the shell
 as an alias for "`!sh CMD`".
 Note that this shortcut only works with operator exclamation mark.
 
-Command "`!block` \[_ARGS_]" may be run to set raw model options
-in JSON syntax according to each API. Alternatively, set envar **$BLOCK_USR**.
+
+## API Parameter Injection
+
+Envar **$BLOCK_USR** can be set to raw model options in JSON syntax,
+according to each API, to be injected in the request block.
+Alternatively, run command "`!block` \[_ARGS_]" during chat mode.
 
 
 # Session Management
@@ -1572,15 +1590,7 @@ configuration file (chatgpt.sh)
 to preserve session history, custom promptsnd settings.
 
 
-# NOTES
-
-Stdin text is appended to any existing command line PROMPT.
-
-Input sequences "_\\n_" and "_\\t_" are only treated specially
-(as escaped new lines and tabs) in restart, start and stop sequences!
-
-The moderation endpoint can be accessed by setting the model name
-to _omni-moderation-latest_ (or _text-moderation-latest_).
+# KEYBINDINGS
 
 Press \<_CTRL-X_ _CTRL-E_> to edit command line in text editor from readline.
 
@@ -1592,6 +1602,17 @@ During _cURL_ requests, press \<_CTRL-C_> once to interrupt the call.
 
 Press \<_CTRL-\\_> to exit from the script (send _QUIT_ signal),
 or "_Q_" in user confirmation prompts.
+
+
+# NOTES
+
+Stdin text is appended to any existing command line PROMPT.
+
+Input sequences "_\\n_" and "_\\t_" are only treated specially
+(as escaped new lines and tabs) in restart, start and stop sequences!
+
+The moderation endpoint can be accessed by setting the model name
+to _omni-moderation-latest_ (or _text-moderation-latest_).
 
 For complete model and settings information, refer to OpenAI
 API docs at <https://platform.openai.com/docs/>.
@@ -1667,25 +1688,12 @@ Garbage in, garbage out. An idiot savant.
 
 The script logic resembles a bowl of spaghetti code after a cat fight.
 
-<!-- NOT ANYMORE
-Input sequences _\\n_, and _\\t_ must be double escaped to be treated
-literally, otherwise these will be interpreted as escaped newlines,
-and horizontal tabs in JSON encoding. This is specially important when
-input contains *software code*. -->
-
 <!-- Changing models in the same session may generate token count errors
 because the recorded token count may differ from model encoding to encoding.
 Set `option -y` for accurate token counting. -->
 
 <!-- With the exception of Davinci and newer base models, older models were designed
 to be run as one-shot. -->
-
-<!-- The script is expected to work with language models and inputs
-up to 32k tokens. -->
-
-<!-- OBVIOUSLY, ALREADY MENTIONED
-Instruction prompts are required for the model to even know that
-it should answer questions. -->
 
 <!--
 `Zsh` does not read history file in non-interactive mode.

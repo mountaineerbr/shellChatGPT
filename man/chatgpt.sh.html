@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.112.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.113 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.112.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.113 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2025</p>
 </header>
@@ -938,11 +938,14 @@ cases.</p>
 <strong>restart sequence</strong> “<em>\nQ: </em>” and the <strong>start
 text</strong> “<em>\nA:</em>” are injected for the chat bot to work well
 with text cmpls.</p>
-<p>In multi-turn interactions, prompts prefixed with double colons
-“<em>:</em>” are prepended to the current request buffer as a
-<strong>USER MESSAGE</strong> without incurring an API call. Conversely,
-prompts starting with two double colons “<em>::</em>” are added as a
-<strong>INSTRUCTION / SYSTEM MESSAGE</strong>.</p>
+<p>In multi-turn interactions, prompts prefixed with colons “<em>:</em>”
+are buffered to be prepended to the user prompt (<strong>USER
+MESSAGE</strong>) without incurring an API call. Conversely, prompts
+starting with double colons “<em>::</em>” are prepended to the
+instruction prompt (<strong>INSTRUCTION / SYSTEM MESSAGE</strong>).</p>
+<p>Entering exactly triple colons “<em>:::</em>” reinjects a system
+instruction prompt into the current request. This is useful to reinforce
+the instruction when the model’s context has been truncated.</p>
 <h3 id="voice-input-stt-and-voice-output-tts">2.4 Voice input (STT), and
 voice output (TTS)</h3>
 <p>The <code>options -ccwz</code> may be combined to have voice
@@ -991,6 +994,7 @@ way!</p>
 <p>While in chat mode, the following commands can be invoked in the new
 prompt to change parameters and manage sessions. Command operators
 “<code>!</code>” or “<code>/</code>” are equivalent.</p>
+<h2 id="command-tables">Command Tables</h2>
 <table>
 <thead>
 <tr class="header">
@@ -1002,152 +1006,166 @@ prompt to change parameters and manage sessions. Command operators
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><code>-S</code></td>
-<td style="text-align: left;"><code>:</code>, <code>::</code>
-[<em>PROMPT</em>]</td>
-<td>Add user or system prompt to request buffer.</td>
+<td style="text-align: left;">[<em>PROMPT</em>]</td>
+<td>Overwrite the system prompt.</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>-S:</code></td>
+<td style="text-align: left;"><code>:</code> [<em>PROMPT</em>]</td>
+<td>Prepend to current user prompt.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-S::</code></td>
+<td style="text-align: left;"><code>::</code> [<em>PROMPT</em>]</td>
+<td>Prepend to system prompt.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-S:::</code></td>
+<td style="text-align: left;"><code>:::</code></td>
+<td>Reset (inject) system prompt into request.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>-S.</code></td>
 <td style="text-align: left;"><code>-.</code> [<em>NAME</em>]</td>
 <td>Load and edit custom prompt.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-S/</code></td>
 <td style="text-align: left;"><code>!awesome</code> [<em>NAME</em>]</td>
 <td>Load and edit awesome prompt (english).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>-S%</code></td>
 <td style="text-align: left;"><code>!awesome-zh</code>
 [<em>NAME</em>]</td>
 <td>Load and edit awesome prompt (chinese).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-Z</code></td>
 <td style="text-align: left;"><code>!last</code></td>
 <td>Print last response JSON.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!#</code></td>
 <td style="text-align: left;"><code>!save</code> [<em>PROMPT</em>]</td>
 <td>Save current prompt to shell history. <em>‡</em></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!</code></td>
 <td style="text-align: left;"><code>!r</code>, <code>!regen</code></td>
 <td>Regenerate last response.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!</code></td>
 <td style="text-align: left;"><code>!rr</code></td>
 <td>Regenerate response, edit prompt first.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!g:</code></td>
 <td style="text-align: left;"><code>!!g:</code> [<em>PROMPT</em>]</td>
 <td>Ground user prompt with web search results. <em>‡</em></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!i</code></td>
 <td style="text-align: left;"><code>!info</code> [<em>REGEX</em>]</td>
 <td>Information on model and session settings.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!i</code></td>
 <td style="text-align: left;"><code>!!info</code></td>
 <td>Monthly usage stats (OpenAI).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!j</code></td>
 <td style="text-align: left;"><code>!jump</code></td>
 <td>Jump to request, append start seq primer (text cmpls).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!!j</code></td>
 <td style="text-align: left;"><code>!!jump</code></td>
 <td>Jump to request, no response priming.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;">-</td>
 <td>Cat prompter as one-shot, &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;"><code>!cat:</code>
 [<em>TXT</em>|<em>URL</em>|<em>PDF</em>]</td>
 <td>Cat <em>text</em>, <em>PDF</em> file, or dump <em>URL</em>.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!clot</code></td>
 <td style="text-align: left;"><code>!!clot</code></td>
 <td>Flood the TTY with patterns, as visual separator.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!dialog</code></td>
 <td style="text-align: left;">-</td>
 <td>Toggle the “dialog” interface.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!img</code></td>
 <td style="text-align: left;"><code>!media</code>
 [<em>FILE</em>|<em>URL</em>]</td>
 <td>Add image, media, or URL to prompt.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!md</code></td>
 <td style="text-align: left;"><code>!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Toggle markdown rendering in response.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!md</code></td>
 <td style="text-align: left;"><code>!!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Render last response in markdown.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!rep</code></td>
 <td style="text-align: left;"><code>!replay</code></td>
 <td>Replay last TTS audio response.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!res</code></td>
 <td style="text-align: left;"><code>!resubmit</code></td>
 <td>Resubmit last STT recorded audio in cache.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!p</code></td>
 <td style="text-align: left;"><code>!pick</code> [<em>PROPMT</em>]</td>
 <td>File picker, appends filepath to user prompt. <em>‡</em></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!pdf</code></td>
 <td style="text-align: left;"><code>!pdf:</code> [<em>FILE</em>]</td>
 <td>Convert PDF and dump text.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!photo</code></td>
 <td style="text-align: left;"><code>!!photo</code> [<em>INDEX</em>]</td>
 <td>Take a photo, optionally set camera index (Termux). <em>‡</em></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
 <td>Run shell <em>command</em> and edit stdout (make request).
 <em>‡</em></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!sh:</code></td>
 <td style="text-align: left;"><code>!shell:</code> [<em>CMD</em>]</td>
 <td>Same as <code>!sh</code> and insert stdout into current prompt.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>!!sh</code></td>
 <td style="text-align: left;"><code>!!shell</code> [<em>CMD</em>]</td>
 <td>Run interactive shell <em>command</em> and return.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>!url</code></td>
 <td style="text-align: left;"><code>!url:</code> [<em>URL</em>]</td>
 <td>Dump URL text or YouTube transcript text.</td>
@@ -1392,8 +1410,9 @@ flush.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-H</code></td>
-<td style="text-align: left;"><code>!hist</code></td>
-<td>Edit history in editor.</td>
+<td style="text-align: left;"><code>!hist</code> [<em>NUM</em>]</td>
+<td>Edit history in editor or print the last <em>n</em> history
+entries.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>-P</code></td>
@@ -1471,8 +1490,8 @@ flush.</td>
 </tr>
 </tbody>
 </table>
-<div class="line-block"><em>:</em> Commands with <em>double colons</em>
-have their output added to the current prompt.</div>
+<div class="line-block"><em>:</em> Commands with <em>colons</em> have
+their output added to the current prompt buffer.</div>
 <div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
 may be invoked at the very end of the input prompt (preceded by
 space).</div>
@@ -1489,10 +1508,12 @@ a “<em>-1</em>” as argument (bypass with “<em>-1.0</em>”)</p>
 <div class="line-block">  “<code>!presence</code> <em>-1</em>”,
 “<code>-a</code> <em>-1</em>”, “<code>-t</code><em>-1</em>”</div>
 <hr />
+<h2 id="response-regeneration">Response Regeneration</h2>
 <p>To <strong>regenerate response</strong>, type in the command
 “<code>!regen</code>” or a single exclamation mark or forward slash in
 the new empty prompt. In order to edit the prompt before the request,
 try “<code>!!</code>” (or “<code>//</code>”).</p>
+<h2 id="shell-and-file-integration">Shell and File Integration</h2>
 <p>The “<code>/pick</code>” command opens a file picker (usually a
 command-line file manager). The selected file’s path will be appended to
 the current prompt in editing mode.</p>
@@ -1504,9 +1525,11 @@ current prompt.</p>
 <p>Any “<code>!CMD</code>” not matching a chat command is executed by
 the shell as an alias for “<code>!sh CMD</code>”. Note that this
 shortcut only works with operator exclamation mark.</p>
-<p>Command “<code>!block</code> [<em>ARGS</em>]” may be run to set raw
-model options in JSON syntax according to each API. Alternatively, set
-envar <strong>$BLOCK_USR</strong>.</p>
+<h2 id="api-parameter-injection">API Parameter Injection</h2>
+<p>Envar <strong>$BLOCK_USR</strong> can be set to raw model options in
+JSON syntax, according to each API, to be injected in the request block.
+Alternatively, run command “<code>!block</code> [<em>ARGS</em>]” during
+chat mode.</p>
 <h1 id="session-management">Session Management</h1>
 <p>A history file can hold a single session or multiple sessions. When
 it holds a single session, the name of the history file and the session
@@ -1939,14 +1962,7 @@ backup.</li>
 back up session record files (tsv) and prompt files (pr), as well as the
 configuration file (chatgpt.sh) to preserve session history, custom
 promptsnd settings.</p>
-<h1 id="notes">NOTES</h1>
-<p>Stdin text is appended to any existing command line PROMPT.</p>
-<p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
-specially (as escaped new lines and tabs) in restart, start and stop
-sequences!</p>
-<p>The moderation endpoint can be accessed by setting the model name to
-<em>omni-moderation-latest</em> (or
-<em>text-moderation-latest</em>).</p>
+<h1 id="keybindings">KEYBINDINGS</h1>
 <p>Press &lt;<em>CTRL-X</em> <em>CTRL-E</em>&gt; to edit command line in
 text editor from readline.</p>
 <p>Press &lt;<em>CTRL-J</em>&gt; or &lt;<em>CTRL-V</em>
@@ -1957,6 +1973,14 @@ on screen.</p>
 interrupt the call.</p>
 <p>Press &lt;<em>CTRL-\</em>&gt; to exit from the script (send
 <em>QUIT</em> signal), or “<em>Q</em>” in user confirmation prompts.</p>
+<h1 id="notes">NOTES</h1>
+<p>Stdin text is appended to any existing command line PROMPT.</p>
+<p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
+specially (as escaped new lines and tabs) in restart, start and stop
+sequences!</p>
+<p>The moderation endpoint can be accessed by setting the model name to
+<em>omni-moderation-latest</em> (or
+<em>text-moderation-latest</em>).</p>
 <p>For complete model and settings information, refer to OpenAI API docs
 at <a href="https://platform.openai.com/docs/"
 class="uri">https://platform.openai.com/docs/</a>.</p>
@@ -2026,21 +2050,11 @@ the script configuration file.</p>
 <p>Garbage in, garbage out. An idiot savant.</p>
 <p>The script logic resembles a bowl of spaghetti code after a cat
 fight.</p>
-<!-- NOT ANYMORE
-Input sequences _\\n_, and _\\t_ must be double escaped to be treated
-literally, otherwise these will be interpreted as escaped newlines,
-and horizontal tabs in JSON encoding. This is specially important when
-input contains *software code*. -->
 <!-- Changing models in the same session may generate token count errors
 because the recorded token count may differ from model encoding to encoding.
 Set `option -y` for accurate token counting. -->
 <!-- With the exception of Davinci and newer base models, older models were designed
 to be run as one-shot. -->
-<!-- The script is expected to work with language models and inputs
-up to 32k tokens. -->
-<!-- OBVIOUSLY, ALREADY MENTIONED
-Instruction prompts are required for the model to even know that
-it should answer questions. -->
 <!--
 `Zsh` does not read history file in non-interactive mode.
 
