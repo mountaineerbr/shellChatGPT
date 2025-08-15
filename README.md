@@ -112,7 +112,7 @@ If no suffix is provided, it works as plain text completions.
 - 25. [Contributors](#-contributors)
 - 26. [Acknowledgements](#acknowledgements)
 
-<!-- - 9. [Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
+<!-- - 9. [Local Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
 
 </details>
 
@@ -134,17 +134,13 @@ If no suffix is provided, it works as plain text completions.
 - Should™ work on Linux, FreeBSD, MacOS, and [Termux](#termux-users)
 - **Fast** shell code for a responsive experience! ⚡️ 
 
-<!-- - Integration with [LocalAI](#localai), [Ollama](#ollama), [Google AI](#google-ai), [Mistral AI](#mistral-ai), [Groq](#groq), [Anthropic](#anthropic), [GitHub Models](#github-models), and [Novita AI](#novita-ai) -->
 <!-- _Tiktoken_ for accurate tokenization (optional) -->
 <!-- _Follow up_ conversations, --> <!-- _continue_ from last session, --> 
 <!-- - Write _multiline_ prompts, flush with \<ctrl-d> (optional), bracketed paste in bash -->
 <!-- - Insert mode of text completions -->
-<!-- - Choose amongst all available models from a pick list (`option -m.`) -->
-<!-- - *Lots of* command line options -->
-<!-- - Converts response base64 JSON data to PNG image locally -->
 <!--
 - [Command line completion](#shell-completion) and [file picker](#file-picker-and-shell-dump) dialogs for a smoother experience 💻
-- Colour scheme personalisation 🎨 and a configuration file
+- Colour scheme personalisation 🎨 and user configuration file
 -->
 
 <!--
@@ -231,8 +227,9 @@ and make it executable:
    with the environment variable `$OPENAI_API_KEY`, or set `option --api-key [KEY]`, or set the configuration file.
 - Just write your prompt as positional arguments after setting options!
 - Chat mode may be configured with Instruction or not.
-- Set temperature value with `-t [VAL]` (0.0 to 2.0), defaults=0.
-- To set your model, run `chatgpt.sh -l` and then set `option -m [MODEL_NAME]`.
+- Set temperature value with `-t [VAL]` (0.0 to 2.0).
+- To set your model, set `option -m [MODEL_NAME]` or `option -mm` for a model picker dialogue.
+- Run `chatgpt.sh -l` to list API provider models.
 - Some models require a single `prompt` while others `instruction` and `input` prompts.
 - To generate images, set `option -i` and write your prompt.
 - Make a variation of an image, set -i and an image path for upload.
@@ -329,9 +326,7 @@ The command line syntaxes below are all aliases:
     
     chatgpt.sh -cc -S .unix
 
-<!--
-In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "unix.tsv" file at the cache directory.
--->
+**NOTE:**  In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "_unix.tsv_" file at the cache directory.
 
 To **change the history file** in which the session will be recorded,
 set the first positional argument in the command line with the operator forward slash "`/`"
@@ -554,34 +549,6 @@ some properties are configured automatically to instruct the bot.
 <!-- **TIP**: Set _-vv_ to have auto sleep for reading time of last response,
 and less verbose in voice input chat! *Only without option -z!* -->
 
-<!--
-Generate some unexpected use cases if chatgpt.sh.
-
-Certainly! Here are some unexpected use cases of the `chatgpt.sh` script:
-
-1. Creative Writing Assistant: Use the script to generate story prompts or brainstorm ideas for your creative writing projects.
-
-2. Virtual Therapist: Have a chat session with the script as a virtual therapist, sharing your thoughts and feelings.
-
-3. Language Learning Partner: Practice your language skills by having conversations with the script in your target language.
-
-4. Coding Assistance: Use the script to help you with coding tasks by providing code snippets or answering programming-related questions.
-
-5. Artistic Collaboration: Collaborate with the script to co-create art pieces, coming up with unique concepts and ideas.
-
-6. Songwriting Inspiration: Get inspired by having a chat session with the script and use its responses as prompts for songwriting.
-
-7. Historical Simulation: Have a conversation with the script as a historical figure or simulate historical events by interacting with the script.
-
-8. Technical Support: Use the script to troubleshoot technical issues or provide instructions for using specific software or tools.
-
-9. Game Master Assistant: Use the script to assist you in running tabletop role-playing game sessions by generating NPCs, locations, and plot ideas.
-
-10. Virtual Travel Guide: Have a chat session with the script to get travel recommendations, learn about different destinations, and plan your next trip.
-
-These unexpected use cases demonstrate the versatility of the `chatgpt.sh` script and how it can be utilized beyond its traditional applications. Have fun exploring and discovering new ways to interact with it!
--->
-
 
 ## 📜 Text Completions
 
@@ -664,17 +631,6 @@ Use _gpt-4+ models_ and the right instructions.
 
 The last working shell script version that works with this endpoint
 is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978e6f7630a3a6ebffc1efbe5a49b60bead4c).
--->
-
-<!-- REMOVED
-## Script Help Assistant
-
-If you have got a question about the script itself and how to set it up,
-there is a built-in assistant (much like **M$ Office Clipper**).
-
-While in chat mode, type the command `/help [question]`, in which the question
-is related to script features and your current chat settings, and how
-you can change them or invoke the script with the right syntax!
 -->
 
 
@@ -839,14 +795,6 @@ compinit
 
 Make sure `compinit` is run **after setting `$fpath`**!
 
-<!--
-**Troubleshoot:**
-You may have to force rebuild `zcompdump`:
-
-   ```
-   rm ~/.zcompdump; compinit
-   ```
--->
 Visit the [zsh-completion repository](https://github.com/zsh-users/zsh-completions).
 
 
@@ -867,7 +815,7 @@ the completion files correctly.
 
 - Edit live history entries with command `!hist` (comment out entries or context injection).
 
-<!-- (deprecated)
+<!-- (_discontinued_)
 - Add operator forward slash `/` to the end of prompt to trigger **preview mode**. -->
 
 - One can **regenerate a response** by typing in a new prompt a single slash `/`,
@@ -904,22 +852,6 @@ generate very interesting responses (good for
 
 - Write your customised instruction as plain text file and set that file
 name as the instruction prompt.
-
-- When instruction and/or first prompt are the name of file, the file
-will be read and its contents set as input, accordingly.
-
-- Set clipboard with the latest response with `option -o`.
-
-- Create a new session (in the history file) named **computing**,
-optionally set instruction for the new session:
-
-    ```
-    chatgpt.sh -cc  /computing
-
-    chatgpt.sh -cc -S'You are a professional software developer.' /computing
-    ```
-
-  This will create a history file named `computing.tsv` in the cache directory.
 -->
 
 
@@ -1359,13 +1291,7 @@ See also the [GitHub Model Catalog - Getting Started](https://techcommunity.micr
 
 ### Novita AI
 
-Novita AI offers a range of LLM models at exceptional value, including the
-highly recommended **Llama 3.3** model, which provides the best balance
-of price and performance!
-
-For an uncensored model, consider **sao10k/l3-70b-euryale-v2.1**
-(creative assistant and role-playing) or
-**cognitivecomputations/dolphin-mixtral-8x22b**.
+Novita AI offers a range of LLM models at exceptional value.
 
 Create an API key as per the
 [Quick Start Guide](https://novita.ai/docs/get-started/quickstart.html)
@@ -1381,9 +1307,11 @@ To list all available models, run `chatgpt.sh --novita -l`. Optionally set a mod
 Some models work with the `/completions` endpoint, while others
 work with the `/chat/completions` endpoint, so the script _does not set the endpoint automatically_! Check model details and web pages to understand their capabilities, and then either run the script with `option -c` (**text completions**) or `options -cc` (**chat completions**).
 
+This service provider _feature is curently_ **legacy**.
+
 ---
 
-As an exercise, instead of setting command-line `option --novita`,
+As an exercise,
 set Novita AI integration manually instead:
 
 

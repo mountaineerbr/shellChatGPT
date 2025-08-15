@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.113 | General Commands Manual
+% CHATGPT.SH(1) v0.113.1 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -422,7 +422,7 @@ before the text prompt itself.
 : Mistral AI integration (chat).
 
 
-**\--novita**
+**\--novita**  (**legacy**)
 
 : Novita AI integration (cmpls/chat).
 
@@ -552,7 +552,7 @@ Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
 
 
-# TEXT COMPLETION MODE
+# TEXT COMPLETION MODE  <!-- legacy -->
 
 `Option -d` starts a single-turn session in **plain text completions**,
 no history support. This does not set further options automatically,
@@ -659,11 +659,6 @@ For more on prompt design, see:
 
  - <https://platform.openai.com/docs/guides/completion/prompt-design>
  - <https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md>
-
-
-See detailed info on settings for each endpoint at:
-
- - <https://platform.openai.com/docs/>
  -->
 
 
@@ -692,17 +687,6 @@ accurate and fast (we fork tiktoken as a coprocess for fast token queries).
 Useful for rebuilding history context independently from the original
 model used to generate responses.
 
-<!--
-Install models with `option -l` or command `/models`
-and the `install` keyword.
-
-Also supply a _model configuration file URL_ or,
-if LocalAI server is configured with Galleries,
-set "_\<GALLERY>_@_\<MODEL_NAME>_".
-Gallery defaults to HuggingFace.
-
-* NOTE: *  I recommend using LocalAI own binary to install the models!
--->
 <!-- LocalAI only tested with text and chat completion models (vision) -->
 
 
@@ -926,7 +910,7 @@ Command operators "`!`" or "`/`" are equivalent.
       `-S.`        `-.`          \[_NAME_]           Load and edit custom prompt.
       `-S/`        `!awesome`    \[_NAME_]           Load and edit awesome prompt (english).
       `-S%`        `!awesome-zh` \[_NAME_]           Load and edit awesome prompt (chinese).
-       `-Z`        `!last`                           Print last response JSON.
+       `-Z`        `!last`                           Print last raw JSON or the processed text response.
        `!#`        `!save`      \[_PROMPT_]          Save current prompt to shell history. _‡_
         `!`        `!r`, `!regen`                    Regenerate last response.
        `!!`        `!rr`                             Regenerate response, edit prompt first.
@@ -1180,10 +1164,9 @@ of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
 to the completions endpoint. 
 
-Alternatively,
 --
 
-Use _gpt-4+ models_ and the right instructions.
+Alternatively, use _gpt-4+ models_ and the right instructions.
 -->
 
 
@@ -1326,9 +1309,7 @@ For GitHub Models, `$GITHUB_TOKEN` and invoke the script
 with `option --github`.
 
 For Novita AI integration, set the environment variable `$NOVITA_API_KEY` and
-use the `--novita` option. Novita AI offers a range of LLM models, including
-the highly recommended **Llama 3.1** model. For an uncensored model, consider
-**sao10k/l3-70b-euryale-v2.1** or **cognitivecomputations/dolphin-mixtral-8x22b**.
+use the `--novita` option (**legacy**).
 
 Likewise, for xAI's Grok, set environment `$XAI_API_KEY` with its API key.
 

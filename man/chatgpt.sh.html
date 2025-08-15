@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.113 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.113.1 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.113 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.113.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2025</p>
 </header>
@@ -580,7 +580,7 @@ respectively.</p>
 <dd>
 <p>Mistral AI integration (chat).</p>
 </dd>
-<dt><strong>--novita</strong></dt>
+<dt><strong>--novita</strong> (<strong>legacy</strong>)</dt>
 <dd>
 <p>Novita AI integration (cmpls/chat).</p>
 </dd>
@@ -694,7 +694,7 @@ according to the model capabilities!</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session, and set <code>option -E</code> to exit on the
 first response (even in multi turn mode).</p>
-<h1 id="text-completion-mode">TEXT COMPLETION MODE</h1>
+<h1 id="text-completion-mode">TEXT COMPLETION MODE <!-- legacy --></h1>
 <p><code>Option -d</code> starts a single-turn session in <strong>plain
 text completions</strong>, no history support. This does not set further
 options automatically, such as instruction or temperature.</p>
@@ -781,11 +781,6 @@ For more on prompt design, see:
 
  - <https://platform.openai.com/docs/guides/completion/prompt-design>
  - <https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md>
-
-
-See detailed info on settings for each endpoint at:
-
- - <https://platform.openai.com/docs/>
  -->
 <h1 id="model-and-capacity">MODEL AND CAPACITY</h1>
 <p>Set model with “<code>-m</code> [<em>MODEL</em>]”, with
@@ -811,17 +806,6 @@ script hack to preview token count. This option makes token count
 preview accurate and fast (we fork tiktoken as a coprocess for fast
 token queries). Useful for rebuilding history context independently from
 the original model used to generate responses.</p>
-<!--
-Install models with `option -l` or command `/models`
-and the `install` keyword.
-
-Also supply a _model configuration file URL_ or,
-if LocalAI server is configured with Galleries,
-set "_\<GALLERY>_@_\<MODEL_NAME>_".
-Gallery defaults to HuggingFace.
-
-* NOTE: *  I recommend using LocalAI own binary to install the models!
--->
 <!-- LocalAI only tested with text and chat completion models (vision) -->
 <h1 id="speech-to-text-whisper">SPEECH-TO-TEXT (Whisper)</h1>
 <p><code>Option -w</code> <strong>transcribes audio speech</strong> from
@@ -1043,7 +1027,7 @@ prompt to change parameters and manage sessions. Command operators
 <tr class="even">
 <td style="text-align: left;"><code>-Z</code></td>
 <td style="text-align: left;"><code>!last</code></td>
-<td>Print last response JSON.</td>
+<td>Print last raw JSON or the processed text response.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><code>!#</code></td>
@@ -1615,10 +1599,9 @@ of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
 to the completions endpoint. 
 
-Alternatively,
 --
 
-Use _gpt-4+ models_ and the right instructions.
+Alternatively, use _gpt-4+ models_ and the right instructions.
 -->
 <h1 id="custom-awesome-prompts">CUSTOM / AWESOME PROMPTS</h1>
 <p>When the argument to <code>option -S</code> starts with a full stop,
@@ -1731,11 +1714,8 @@ script with command line <code>option --anthropic</code>.</p>
 <p>For GitHub Models, <code>$GITHUB_TOKEN</code> and invoke the script
 with <code>option --github</code>.</p>
 <p>For Novita AI integration, set the environment variable
-<code>$NOVITA_API_KEY</code> and use the <code>--novita</code> option.
-Novita AI offers a range of LLM models, including the highly recommended
-<strong>Llama 3.1</strong> model. For an uncensored model, consider
-<strong>sao10k/l3-70b-euryale-v2.1</strong> or
-<strong>cognitivecomputations/dolphin-mixtral-8x22b</strong>.</p>
+<code>$NOVITA_API_KEY</code> and use the <code>--novita</code> option
+(<strong>legacy</strong>).</p>
 <p>Likewise, for xAI’s Grok, set environment <code>$XAI_API_KEY</code>
 with its API key.</p>
 <p>And for DeepSeek API, set environment <code>$DEEPSEEK_API_KEY</code>

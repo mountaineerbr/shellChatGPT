@@ -1,7 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.112
+# v0.113.1
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -32,7 +32,13 @@ __session_listf()
 __session_or_pr_listf()
 {
   case "${words[CURRENT]}" in
-    [.,]|[.,][.,])
+    [,]*|[.][,]*|\
+    [.,]|[.,][.,]|\
+    [.][.][!/]*)
+      __pr_list2f
+      ;;
+    [.,]*|[.,][.,]*)
+      _files
       __pr_list2f
       ;;
     *)
@@ -57,12 +63,19 @@ __pr_listf()
   ((${#options[@]})) || _files
 }
 #list prompt names plus operators
-__pr_list2f() { 	operator="." __pr_listf ;}
+__pr_list2f()
+{
+  typeset operator
+  operator=${words[CURRENT]:0:2}
+  operator=${operator//[!.,]}
+  operator=${operator:-.}
+  __pr_listf
+}
 __pr_list3f()
 {
   local options
   __pr_list2f
-  case "${words[CURRENT]}" in /*/*|./*) _files; return;; /*) __awesome_list1f "$@";; %*) __awesome_list3f "$@";; esac
+  case "${words[CURRENT]}" in /*/*|../*|[.~]/*) _files; return;; /*) __awesome_list1f "$@";; %*) __awesome_list3f "$@";; esac
   options=( "." "," ",," "/" "%" "/awesome_prompt_act" "%awesome_prompt_act_ch" "text_file" "text_prompt" "pdf_file" )
   compadd -a options "$@"
   ((compstate[nmatches])) || _files
@@ -163,7 +176,6 @@ _chatgpt.sh()
     '--groq[Groq integration]' \
     '--anthropic[Anthropic integration]' \
     '--github[GitHub Models integration]' \
-    '--novita[Novita AI integration]' \
     '--xai[xAI integration]' \
     '--deepseek[DeepSeek integration]' \
     '--openai[Reset defaults to OpenAI]' \

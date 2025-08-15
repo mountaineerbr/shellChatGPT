@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.112
+# v0.113.1
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -100,7 +100,7 @@ _chatgptsh()
         -F -FF
         --fold --no-fold
         --google  --groq  --anthropic  --github  --openai
-	--novita  --xai  --deepseek
+	--xai  --deepseek
         -h --help
         -H --hist -HH -P -PP --print
         -k --no-colour
@@ -176,7 +176,8 @@ _chatgptsh()
     --voice)
       COMPREPLY=( alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Basil-PlayAI Calum-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Mamaw-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI )
       ;;
-    -[.,]|-[!S.,-][.,]|\
+    -[.,]|-[.,][.,]|\
+    -[!S.,-][.,]|-[!S.,-][.,][.,]|\
     -[!-]*[!S.,][.,]|\
     -S|-[!-]*S|--instruction)
       if [[ ${cur} = [/%]* ]]
