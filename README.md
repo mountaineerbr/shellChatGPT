@@ -30,7 +30,7 @@ In pure text completions, start by typing some text that is going to be complete
 ![Insert Text Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/text_insert.gif)
 
 Add the insert tag `[insert]` where it is going to be completed.
-Mistral `code models` work well with the insert / fill-in-the-middel (FIM) mode!
+Mistral `code models` work well with the insert / fill-in-the-middle (FIM) mode!
 If no suffix is provided, it works as plain text completions.
 </details>
 
@@ -154,7 +154,7 @@ If no suffix is provided, it works as plain text completions.
 - [_Transcribe audio_](#-audio-transcriptions-translations)
    from various languages (`option -w`)
 - _Translate audio_ into English text (`option -W`)
-- _Text-to-speeech_ functionality (`option -z`)
+- _Text-to-speech_ functionality (`option -z`)
 
 -->
 
@@ -243,7 +243,7 @@ and make it executable:
 ## Script Operating Modes
 
 The `chatgpt.sh` script can be run in various modes by setting
-**command-line options** at invocation. These are summarised bellow.
+**command-line options** at invocation. These are summarised below.
 <!-- Table Overview -->
 
 
@@ -471,7 +471,7 @@ For _doc_ and _odt_ files, `LibreOffice` is required.
 See the [Optional Packages](#optional-packages) section.
 
 Also note that file paths containing white spaces must be
-**blackslash-escaped**, or the filepath must be preceded by a pipe `|` character.
+**backslash-escaped**, or the filepath must be preceded by a pipe `|` character.
 
     My text prompt. | path/to the file.jpg
 
@@ -695,7 +695,7 @@ have precedence over this feature.
 
 Set a one-shot instruction prompt with `option -S`:
 
-    chatgpt.sh -cc -S 'You are a PhD psycologist student.' 
+    chatgpt.sh -cc -S 'You are a PhD psychologist student.' 
 
     chatgpt.sh -ccS'You are a professional software programmer.'
 
@@ -704,7 +704,7 @@ To create or load a prompt template file, set the first positional argument
 as `.prompt_name` or `,prompt_name`.
 In the second case, load the prompt and single-shot edit it.
 
-    chatgpt.sh -cc .psycologist 
+    chatgpt.sh -cc .psychologist 
 
     chatgpt.sh -cc ,software_programmer
 
@@ -712,7 +712,7 @@ In the second case, load the prompt and single-shot edit it.
 Alternatively, set `option -S` with the operator and the name of
 the prompt as an argument:
 
-    chatgpt.sh -cc -S .psycologist 
+    chatgpt.sh -cc -S .psychologist 
 
     chatgpt.sh -cc -S,software_programmer
 
@@ -835,7 +835,7 @@ more censored.
 - On chat completions, the _launch version_ of the models seem to
 be more creative and better at tasks at general, than
 newer iterations of the same models. So, that is why we default to
-`gpt-3.5-turbo-0301`, and, reccomend the model `gpt-4-0314`.
+`gpt-3.5-turbo-0301`, and, recommend the model `gpt-4-0314`.
 
 
 https://www.refuel.ai/blog-posts/gpt-3-5-turbo-model-comparison
@@ -1006,7 +1006,7 @@ a model and set it up.
 
 *1.* Download a binary of `localai` for your system from [Mudler's release GitHub repo](https://github.com/mudler/LocalAI/releases).
 
-*2.* Run `localai run --help` to check comamnd line options and environment variables.
+*2.* Run `localai run --help` to check command line options and environment variables.
 
 *3.* Set up `$GALLERIES` before starting up the server:
 
@@ -1076,7 +1076,7 @@ Gallery defaults to [HuggingFace](https://huggingface.co/).
     # Install
     chatgpt.sh -l install huggingface@TheBloke/WizardLM-13B-V1-0-Uncensored-SuperHOT-8K-GGML/wizardlm-13b-v1.0-superhot-8k.ggmlv3.q4_K_M.bin
 
-* NOTE: *  I reccomend using LocalAI own binary to install the models!
+* NOTE: *  I recommend using LocalAI own binary to install the models!
 -->
 
 
@@ -1307,7 +1307,7 @@ To list all available models, run `chatgpt.sh --novita -l`. Optionally set a mod
 Some models work with the `/completions` endpoint, while others
 work with the `/chat/completions` endpoint, so the script _does not set the endpoint automatically_! Check model details and web pages to understand their capabilities, and then either run the script with `option -c` (**text completions**) or `options -cc` (**chat completions**).
 
-This service provider _feature is curently_ **legacy**.
+This service provider _feature is currently_ **legacy**.
 
 ---
 
@@ -1450,7 +1450,7 @@ Install the `Termux` and `Termux:API` apps from the *F-Droid store*.
 
 Give all permissions to `Termux:API` in your phone app settings.
 
-We reccommend to also install `sox`, `ffmpeg`, `pulseaudio`, `imagemagick`, and `vim` (or `nano`).
+We recommend to also install `sox`, `ffmpeg`, `pulseaudio`, `imagemagick`, and `vim` (or `nano`).
 
 Remember to execute `termux-setup-storage` to set up access to the phone storage.
 
@@ -1692,7 +1692,7 @@ Everyone is [welcome to submit issues, PRs, and new ideas](https://github.com/mo
 ## Acknowledgements
 
 The following projects are worth remarking.
-They were studied during development of this script and used as referencial code sources.
+They were studied during development of this script and used as referential code sources.
 
 1. [Claude Code](https://github.com/anthropics/claude-code)
 2. [Gemini CLI](https://github.com/google-gemini/gemini-cli)

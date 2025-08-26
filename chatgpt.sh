@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.113.1  aug/2025  by mountaineerbr  GPL+3
+# v0.114  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
-export COLUMNS LINES; ((COLUMNS>2)) || COLUMNS=80; ((LINES>2)) || LINES=24;
+((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES; 
 
 # API keys
 #OPENAI_API_KEY=
@@ -27,18 +27,18 @@ MOD_AUDIO="${MOD_AUDIO:-whisper-1}"  #gpt-4o-mini-transcribe
 MOD_SPEECH="${MOD_SPEECH:-gpt-4o-mini-tts}"  #tts-1
 #INSTRUCTION_SPEECH=
 # LocalAI model
-MOD_LOCALAI="${MOD_LOCALAI:-phi-4}"
+MOD_LOCALAI="${MOD_LOCALAI:-${LOCALAI_MODEL:-phi-4}}"
 # Ollama model
-MOD_OLLAMA="${MOD_OLLAMA:-llama4}"
+MOD_OLLAMA="${MOD_OLLAMA:-${OLLAMA_MODEL:-llama4}}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-gemini-2.5-pro}"
+MOD_GOOGLE="${MOD_GOOGLE:-${GEMINI_MODEL:-gemini-2.5-pro}}"
 # Mistral AI model
-MOD_MISTRAL="${MOD_MISTRAL:-mistral-large-latest}"
+MOD_MISTRAL="${MOD_MISTRAL:-${MISTRAL_MODEL:-mistral-large-latest}}"
 MOD_AUDIO_MISTRAL="${MOD_AUDIO_MISTRAL:-voxtral-mini-latest}"
 # Prefer Mistral Whisper (chat mode)
 #WHISPER_MISTRAL=0
 # Groq models
-MOD_GROQ="${MOD_GROQ:-llama-3.3-70b-versatile}"
+MOD_GROQ="${MOD_GROQ:-${GROQ_MODEL:-llama-3.3-70b-versatile}}"
 MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
 MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-playai-tts}"
 # Prefer Groq Whisper (chat mode)
@@ -48,15 +48,15 @@ MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-playai-tts}"
 # Groq TTS voice
 OPTZ_VOICE_GROQ=Aaliyah-PlayAI  #Adelaide-PlayAI, Angelo-PlayAI, Arista-PlayAI, etc
 # Anthropic model
-MOD_ANTHROPIC="${MOD_ANTHROPIC:-claude-3-7-sonnet-latest}"
-# Github Azure model
-MOD_GITHUB="${MOD_GITHUB:-gpt-4.1}"
+MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-3-7-sonnet-latest}}"
+# GitHub Azure model
+MOD_GITHUB="${MOD_GITHUB:-${GITHUB_MODEL:-gpt-4.1}}"  #GH_MODEL
 # Novita AI model
-MOD_NOVITA="${MOD_NOVITA:-deepseek/deepseek-r1-0528}"
+MOD_NOVITA="${MOD_NOVITA:-${NOVITA_MODEL:-deepseek/deepseek-v3.1}}"
 # xAI model
-MOD_XAI="${MOD_XAI:-grok-4-latest}"
+MOD_XAI="${MOD_XAI:-${XAI_MODEL:-grok-4-latest}}"
 # DeepSeek model
-MOD_DEEPSEEK="${MOD_DEEPSEEK:-deepseek-reasoner}"
+MOD_DEEPSEEK="${MOD_DEEPSEEK:-${DEEPSEEK_MODEL:-deepseek-reasoner}}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -231,7 +231,7 @@ HELP="Name
 
 
 Synopsis
-	${0##*/} [-cc|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
+	${0##*/} [-bb|-cc|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
 	${0##*/} -i [opt..] [S|M|L][hd] [PROMPT]  #dall-e-3
 	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PROMPT]  #gpt-image
 	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE]
@@ -239,7 +239,7 @@ Synopsis
 	${0##*/} -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
 	${0##*/} -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
-	${0##*/} -ccWwz [opt..] -- [PROMPT] -- [stt_arg..] -- [tts_arg..]
+	${0##*/} -bccWwz [opt..] -- [PROMPT] -- [stt_arg..] -- [tts_arg..]
 	${0##*/} -l [MODEL]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
 	${0##*/} -HPP [/HIST_NAME|.]
@@ -262,7 +262,8 @@ Description
 Chat Completion Mode
 	Set option -c to start multi-turn chat mode via text completions
 	(instruct models) or -cc for native chat completions (gpt-3.5+
-	models) with interactive history support.
+	models) with interactive history support. Option -b sets the
+	Responses API endpoint.
 
 	In chat mode, some options are automatically set to un-lobotomise
 	the bot.
@@ -287,7 +288,7 @@ Insert Mode (FIM)
 
 Responses API
 	Responses API is a superset of Chat Completions API. Set command
-	line option -b, or set -bb for multiturn chat. Toggle this mode
+	line option -b, or set -bb for multi-turn chat. Toggle this mode
 	with chat command \`/responses' or \`-b'. Limited support.
 
 
@@ -325,7 +326,7 @@ Image Generations and Edits (Dall-E)
 	Size of output image may be set as the first positional parameter,
 	which defaults to \`1024x1024auto':
 
-	gpt-imge: \`1024x1024' (L, Large, Square), \`1536x1024' (X, Landscape),
+	gpt-image: \`1024x1024' (L, Large, Square), \`1536x1024' (X, Landscape),
 	           or \`1024x1536' (P, Portrait).
 	dall-e-3: \`1024x1024', \`1792x1024', or \`1024x1792'.
 	dall-e-2: \`256x256' (Small), \`512x512' (M, Medium), or \`1024x1024'.
@@ -335,7 +336,7 @@ Image Generations and Edits (Dall-E)
 	\`1536x1024high', and \`hd' or \`standard' for dall-e-3.
 
 	For dall-e-3, optionally set the generation style as either \"natural\"
-	or \"vivid\" as one the first positional parameters.
+	or \"vivid\" as one of the first positional parameters.
 
 
 Speech-To-Text (STT, Whisper)
@@ -494,7 +495,7 @@ Command List
       -y      !tik              Toggle python tiktoken use.
       !q      !quit             Exit. Bye.
    --- Model Settings -----------------------------------------------
-     !Nill    -Nill             Unset max response tkns (chat cmpls).
+     !Nill    -Nill             Unset max response tokens (chat cmpls).
       !NUM    -M        [NUM]   Max response tokens.
      !!NUM    -N        [NUM]   Model token capacity.
       -a      !pre      [VAL]   Presence penalty.
@@ -539,14 +540,13 @@ Command List
      !grep    !sub    [REGEX]   Search sessions and copy to tail.
    -------   ----------------   -----------------------------------------
 
-      : Commands with colons have their output added to current prompt.
+      : Commands with colons add their output to the current prompt buffer.
 
-      ‡ Commands with double dagger may be invoked at the very end of
-        the prompt.
+      ‡ Double daggers indicate end-of-prompt commands when preceded by space.
 
       Examples
-        \`/temp 0.7',  \`!modgpt-4',  \`-p 0.2'
-        \`[PROMPT] /pick',  \`[PROMPT] /sh'
+        \`/temp 0.7',  \`!modgpt-4',  \`-p 0.2',  \`[PROMPT] /pick',
+	\`[PROMPT] /sh',  \`Translate this to French /sh'
 
       To unset an option altogether, provide an argument of \`-1'
         \`!presence -1',  \`-a -1',  \`-t-1'   #bypass with \`-1.0'
@@ -555,7 +555,7 @@ Command List
       Session Commands
       On script invocation, when the first positional argument starts with
       the command operator \`/', the command \`/session [HIST_NAME]' is
-      assumed. This changes to or creates a history file (with -ccCdPP).
+      assumed. This changes to or creates a history file (with -bccCdPP).
 
       To change to a specific history file, run \`/session [HIST_NAME]',
       or simply \`/[HIST_NAME]' at script invocation.
@@ -576,7 +576,7 @@ Command List
 
 
 Options
-	Miscellanous Settings
+	Miscellaneous Settings
 	--api-key  [KEY]
 		The API key to use.
 	--fold (defaults), --no-fold
@@ -598,8 +598,8 @@ Options
 	-o, --clipboard
 		Copy response to clipboard.
 	-v, -vv
-		Less interface verbosity. With -ccwv, sleep after response.
-		With -ccwzvv, stop recording voice input on silence and
+		Less interface verbosity. With -bccwv, sleep after response.
+		With -bccwzvv, stop recording voice input on silence and
 		play TTS response right away. May be set multiple times.
 	-V  	Dump raw request block to stderr (debug).
 	--version
@@ -646,7 +646,7 @@ Options
 		A hist file name can be optionally set as argument.
 	-P, -PP, --print  [/HIST_NAME]    (aliases to -HH and -HHH)
 		Print out last history session. Set twice to print
-		commented out entries, too. Heeds -ccdrR.
+		commented out entries, too. Heeds -bccdrR.
 
 	Input Modes
 	-u, --multiline
@@ -734,7 +734,7 @@ Options
 		Edit the first input before request. (cmpls/chat).
 		With options -eex, edit the last text editor buffer.
 	-E, -EE, --exit
-		Exit on first run (even with -cc).
+		Exit on first run (even with -bcc).
 	-g, --stream  (defaults)
 		Response streaming.
 	-G, --no-stream
@@ -762,7 +762,7 @@ Options
 	-T, -TT, -TTT, --tiktoken
 		Count input tokens with Tiktoken. Set twice to print
 		tokens, thrice to available encodings. Set the model
-		or encoding with option -m. It heeds options -ccm.
+		or encoding with option -m. It heeds options -bccm.
 	-w, --transcribe  [AUD] [LANG] [PROMPT]
 		Transcribe audio file into text (transcription models, STT).
 		LANG is optional. A prompt that matches the audio language
@@ -802,7 +802,7 @@ function set_model_epnf
 
 	#responses-api exclusive models
 	if ((OPENAI)) && case "$1" in
-		o[1-9]*-pro*|*-deep-research*|computer-use*|codex-mini*)
+		o[1-9]*-pro*|*-deep-research*|computer-use*|codex-mini*|codex-mini*|codex*)
 			:;;
 		*) 	((RESPONSES_API));
 			;;
@@ -980,14 +980,13 @@ function model_capf
 	case "${model##ft:}" in
 		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*|grok-[4-9]*)
 			MODMAX=256000;;
-		deepseek-reasoner|deepseek-chat|open-mixtral-8x22b|text-davinci-002-render-sha|\
-		*-64k*|deepseek-r1*|deepseek-v3*)
+		open-mixtral-8x22b|text-davinci-002-render-sha|*-64k*)
 			MODMAX=64000;;
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
 		code-davinci-00[2-9]*|mistral-embed*|-8k*)
 			MODMAX=8001;;
 		*llama-3-8b-instruct|*llama-3-70b-instruct|*gemma-2-9b-it|\
-		*hermes-2-pro-llama-3-8b|llama3*|gemma-*|text-embedding-ada-002|\
+		*hermes-2-pro-llama-3-8b|llama3*|text-embedding-ada-002|\
 		*embedding*-002|grok-vision-beta)
 			MODMAX=8191;;  #8192
 		davinci|curie|babbage|ada)
@@ -1005,7 +1004,8 @@ function model_capf
 		*turbo*16k*|gpt-3.5-turbo-1106|*-16k*)
 			MODMAX=16384;;
 		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
-		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*|grok-2-vision*)
+		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*|\
+		grok-2-vision*|gemma-3-[14]*)
 			MODMAX=32768;;
 		gpt-[5-9]*) MODMAX=400000;;
 		gpt-[4-9].[1-9]*|gpt-[5-9][!.a-z]*) MODMAX=1047576;;
@@ -1014,13 +1014,14 @@ function model_capf
 		mistral-3b*|open-mistral-nemo*|*mistral-nemo*|*mistral-large*|\
 		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
 		*llama-[3-9].[1-9]*|*llama[4-9]-*|*llama[4-9]*|*ministral*|*pixtral*|\
-		gpt-oss*|*-128k*)
+		gpt-oss*|deepseek*|*-128k*)
 			MODMAX=128000;;
 		*turbo*|*davinci*|openhermes-2.5-mistral-7b|openchat-7b|\
 		chat-bison-001|*-4k*) MODMAX=4096;;
-		*llama-3.1-405b-instruct|cohere-command-r*|grok*|grok-beta|grok-2-1212|grok-2*)
+		*llama-3.1-405b-instruct|cohere-command-r*|grok*|grok-beta|\
+		grok-2-1212|grok-2*|gemma-3-27b*|gemma-*)
 			MODMAX=131072;;
-		claude*-[3-9]*|claude*-2.1*|o[1-9]*)
+		claude*-[3-9]*|claude*-2.1*|o[1-9]*|codex-mini*|codex*)
 			MODMAX=200000;;  #204800
 		claude*-2.0*|claude-instant*)
 			MODMAX=100000;;
@@ -1106,7 +1107,7 @@ function promptf
 	if ((OPTVV)) && ((!OPTII))
 	then 	block_printf || {
 		  REPLY=${REPLY_CMD:-$REPLY} REGEN= JUMP= PSKIP=;
-		  REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
+		  REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 		  return 200 ;}
 	fi
 
@@ -1305,7 +1306,7 @@ function block_printf
 function new_prompt_confirmf
 {
 	typeset REPLY extra
-	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor, [c]at";; esac;
+	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor";; esac;
 	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hsp_append, [w]hsp_off, w[h]sp_retry";; esac;
 	case \ $*\  in 	*\ abort\ *) extra="${extra}, [a]bort";; esac;
 
@@ -1493,7 +1494,7 @@ function is_responses_apif
 
 	case "${model:-$MOD}" in
 	gpt-[5-9]*|o[1-9]*|gpt-[4-9]o*|gpt-[4-9][.-][0-9]*|chatgpt*-[4-9]o*|chatgpt*-[4-9][.-][0-9]o*|\
-	*gpt*-search*|*-deep-research*|computer-use*|codex-mini*)
+	*gpt*-search*|*-deep-research*|computer-use*|codex-mini*|codex*)
 		case "${model:-$MOD}" in
 		o1-mini|gpt-4o*-search-preview|gpt-4o*-audio-preview)
 			! :;;
@@ -2074,48 +2075,51 @@ function set_conff
         --title "Runtime Options" \
         --form "Model & Interface" \
         0 78 0 \
-        "Model Name:"          1 2 "$MOD"          1 22 30 0 \
-        "Model Capacity:"      2 2 "$MODMAX"       2 22 10 0 \
-        "Response Max:"        3 2 "$OPTMAX"       3 22 10 0 \
+        "Model Name:"          1 2 "$MOD"           1 22 30 0 \
+        "Model Capacity:"      2 2 "$MODMAX"        2 22 10 0 \
+        "Response Max:"        3 2 "$OPTMAX"        3 22 10 0 \
         "Resp Max Disable:"    4 2 "$OPTMAX_NILL"   4 22  2 0 \
-        "$reason_label"        5 2 "$REASON_EFFORT" 5 22 10 0 \
-        "Multimodal:"          6 2 "$MULTIMODAL"   6 22  2 0 \
-        "Stream Response:"     7 2 "$STREAM"       7 22  2 0 \
+        "Multimodal:"          5 2 "$MULTIMODAL"    5 22  2 0 \
+        "Stream Response:"     6 2 "$STREAM"        6 22  2 0 \
+        "$reason_label"        7 2 "$REASON_EFFORT" 7 22 10 0 \
+        "Model Verbosity:"     8 2 "$VERBOSITY"     8 22 10 0 \
         \
-        "Temperature:"         9 2 "$OPTT"         9 22  6 0 \
-        "Top_p:"              10 2 "$OPTP"        10 22  6 0 \
-        "Top_k:"              11 2 "$OPTK"        11 22  6 0 \
-        "Presence Penalty:"   12 2 "$OPTA"        12 22  6 0 \
-        "Frequency Penalty:"  13 2 "$OPTAA"       13 22  6 0 \
-        "Seed:"               14 2 "$OPTSEED"     14 22 25 0 \
+        "Temperature:"        10 2 "$OPTT"        10 22  6 0 \
+        "Top_p:"              11 2 "$OPTP"        11 22  6 0 \
+        "Top_k:"              12 2 "$OPTK"        12 22  6 0 \
+        "Presence Penalty:"   13 2 "$OPTA"        13 22  6 0 \
+        "Frequency Penalty:"  14 2 "$OPTAA"       14 22  6 0 \
+        "Seed:"               15 2 "$OPTSEED"     15 22 25 0 \
         \
-        "Text Folding:"       16 2 "$OPTFOLD"     16 22  2 0 \
-        "Clipboard Mode:"     17 2 "$OPTCLIP"     17 22  2 0 \
+        "Text Folding:"       17 2 "$OPTFOLD"     17 22  2 0 \
+        "Clipboard Mode:"     18 2 "$OPTCLIP"     18 22  2 0 \
         \
-        "Text Editor:"        19 2 "${VISUAL:-$EDITOR}" 19 22 $((${#VISUAL}+22)) 0 \
-        "CLI Web Browser:"    20 2 "$BROWSER"     20 22 25 0 \
+        "Text Editor:"        20 2 "${VISUAL:-$EDITOR}" 20 22 $((${#VISUAL}+22)) 0 \
+        "CLI Web Browser:"    21 2 "$BROWSER"     21 22 25 0 \
         \
-        "Markdown Enable:"    22 2 "$OPTMD"       22 22  2 0 \
-        "Markdown Command:"   23 2 "$MD_CMD"      23 22 $((${#MD_CMD}+22)) 0 \
+        "Markdown Enable:"    23 2 "$OPTMD"       23 22  2 0 \
+        "Markdown Command:"   24 2 "$MD_CMD"      24 22 $((${#MD_CMD}+22)) 0 \
         \
-        "Speech-To-Text:"     25 2 "$OPTW"        25 22  2 0 \
-        "STT Model:"          26 2 "$(
-        if is_whisper_groqf; then echo "$MOD_AUDIO_GROQ"; elif is_whisper_mistralf; then echo "$MOD_AUDIO_MISTRAL"; else echo "$MOD_AUDIO"; fi
-	  )"                                      26 22 30 0 \
-        "STT Args:"           27 2 "${WARGS[*]}"  27 22 $((${#WARGS[${#WARGS[@]}?${#WARGS[@]}-1:0]}+30)) 0 \
-        "STT Model Temp:"     28 2 "$OPTTW"       28 22  6 0 \
-        "*Groq STT:"          29 2 "$WHISPER_GROQ"    29 22  3 0 \
-        "*Mistral STT:"       30 2 "$WHISPER_MISTRAL" 30 22  3 0 \
+        "Speech-To-Text:"     26 2 "$OPTW"        26 22  2 0 \
+        "STT Model:"          27 2 "$(
+            if is_whisper_groqf; then echo "$MOD_AUDIO_GROQ"; elif is_whisper_mistralf; then echo "$MOD_AUDIO_MISTRAL"; else echo "$MOD_AUDIO"; fi
+	  )"                                      27 22 30 0 \
+        "STT Args:"           28 2 "${WARGS[*]}"  28 22 $((${#WARGS[${#WARGS[@]}?${#WARGS[@]}-1:0]}+30)) 0 \
+        "STT Model Temp:"     29 2 "$OPTTW"       29 22  6 0 \
+        "*Groq STT:"          30 2 "$WHISPER_GROQ"    30 22  3 0 \
+        "*Mistral STT:"       31 2 "$WHISPER_MISTRAL" 31 22  3 0 \
         \
-        "Text-To-Speech:"     32 2 "$OPTZ"        32 22  2 0 \
-        "TTS Model:"          33 2 "$(is_tts_groqf &&
-            echo "$MOD_SPEECH_GROQ" || echo "$MOD_SPEECH")" 33 22 30 0 \
-        "TTS Args:"           34 2 "${ZARGS[*]}"  34 22 $((${#ZARGS[${#ZARGS[@]}?${#ZARGS[@]}-1:0]}+30)) 0 \
-        "TTS Voice:"          35 2 "$(is_tts_groqf &&
-            echo "$OPTZ_VOICE_GROQ" || echo "$OPTZ_VOICE")" 35 22 30 0 \
-        "*Groq TTS:"          36 2 "$SPEECH_GROQ" 36 22  3 0 \
+        "Text-To-Speech:"     33 2 "$OPTZ"        33 22  2 0 \
+        "TTS Model:"          34 2 "$(is_tts_groqf &&
+            echo "$MOD_SPEECH_GROQ" || echo "$MOD_SPEECH"
+	  )"                                      34 22 30 0 \
+        "TTS Args:"           35 2 "${ZARGS[*]}"  35 22 $((${#ZARGS[${#ZARGS[@]}?${#ZARGS[@]}-1:0]}+30)) 0 \
+        "TTS Voice:"          36 2 "$(is_tts_groqf &&
+	    echo "$OPTZ_VOICE_GROQ" || echo "$OPTZ_VOICE"
+	  )"                                      36 22 30 0 \
+        "*Groq TTS:"          37 2 "$SPEECH_GROQ" 37 22  3 0 \
         \
-        "Log Enable:"         38 2 "$OPTLOG"      38 22  2 60 \
+        "Text Log Enable:"    39 2 "$OPTLOG"      39 22  2 60 \
         "${logfile[@]}" \
         2>&1 >/dev/tty </dev/tty;
     )
@@ -2124,8 +2128,8 @@ function set_conff
     if ((!ret)) && ((${#foo}))
     then
         _clr_dialogf;
-        for varname in MOD MODMAX OPTMAX OPTMAX_NILL REASON_EFFORT \
-            MULTIMODAL STREAM OPTT OPTP OPTK OPTA OPTAA OPTSEED OPTFOLD \
+        for varname in MOD MODMAX OPTMAX OPTMAX_NILL MULTIMODAL STREAM \
+	    REASON_EFFORT VERBOSITY OPTT OPTP OPTK OPTA OPTAA OPTSEED OPTFOLD \
             OPTCLIP VISUAL BROWSER OPTMD MD_CMD OPTW \
             $(if is_whisper_groqf; then echo "MOD_AUDIO_GROQ"; elif is_whisper_mistralf; then echo "MOD_AUDIO_MISTRAL"; else echo "MOD_AUDIO"; fi) \
             WARGS OPTTW WHISPER_GROQ WHISPER_MISTRAL OPTZ \
@@ -2468,7 +2472,7 @@ function cmdf
 	set -- "$TRIM" "${@:2}";
 	args=("$@"); set -- "$*";
 
-	case "${1:0:128}" in
+	case "${1:0:128}${2:0:64}" in
 		$GLOB_NILL|$GLOB_NILL2|$GLOB_NILL3|0|[0-9]*[/-]0|0[/-]*|[0-9]*[/-]0[/-]*)
 			((++OPTMAX_NILL)) ;((OPTMAX_NILL%=2));
 			((OPTMAX_NILL)) || unset OPTMAX_NILL;
@@ -2512,7 +2516,7 @@ function cmdf
 			[[ $1 = *-[0-1] ]] && OPTB= && set --;
 			set -- "${*//[!0-9]}" ;set -- "${*%%.*}"
 			OPTB="${*:-$OPTB}"
-			cmdmsgf 'Best_Of' "$OPTB"
+			cmdmsgf 'Best_of' "$OPTB"
 			;;
 		-C)
 			BREAK_SET= OPTRESUME=1 INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION= GINSTRUCTION=;
@@ -2573,8 +2577,8 @@ function cmdf
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; xskip=1;
 			unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP HIST_LOOP TOTAL_OLD \
-			  REPLY_CMD_BLOCK REPLY_CMD_DUMP RESUBW REPLY_CMD BAD_RES EDIT PREPEND \
-			  PSKIP WSKIP SKIP JUMP REGEN REPLY_CMD INT_RES MEDIA MEDIA_IND MEDIA_CMD_IND BLOCK_CMD;
+			  REPLY_CMD_DUMP RESUBW REPLY_CMD BAD_RES EDIT PREPEND SKIP_SH_HIST \
+			  PSKIP XSKIP WSKIP SKIP JUMP REGEN INT_RES MEDIA MEDIA_IND MEDIA_CMD_IND BLOCK_CMD;
 			;;
 		block*|blk*)
 			trim_lf "$*" "@(block|blk)$SPC"
@@ -2715,8 +2719,9 @@ function cmdf
 			then 	pick_modelf "$1"
 			else 	MOD=${1:-$MOD};
 			fi; MULTIMODAL=;
-			case "${MOD}" in o[1-9]*) 	:;; *) 	((MOD_REASON));; esac && set_optsf
-			set_model_epnf "$MOD"; model_capf "$MOD";
+			set_optsf;
+			set_model_epnf "$MOD";
+			model_capf "$MOD";
 			if is_amodelf "$MOD"
 			then 	MULTIMODAL=2;
 			elif is_visionf "$MOD"
@@ -2776,10 +2781,15 @@ function cmdf
 
 					rm -- "${name}"*.vtt;
 				)
+					((!${#out})) && {
+						_warmsgf 'Err:' "\`yt-dlp' transcription dump fail";
+						REPLY_CMD=${REPLY}${var:+${NL}${NL}}${var} REPLY= EDIT=1;
+						return 0;
+					}
 				fi
 
 				printf '%s' "${var}${var:+$NL$NL}${out}" >"$FILEFIFO";
-				[[ -s "$FILEFIFO" ]] && cmdf /cat${append:+:} "$FILEFIFO";
+				[[ -s "$FILEFIFO" ]] && cmdf /cat${append:+:} "$FILEFIFO" || REPLY_CMD=${REPLY}${var:+${NL}${NL}}${var} REPLY= EDIT=1;
 				return 0;
 				;;
 			*vimeo.com/[0-9][0-9]*|*vimeo.com/video*|*vimeo.com/channel*|*vimeo.com/group*|*vimeo.com/album*)
@@ -2887,7 +2897,7 @@ function cmdf
 		-?(S)*([$' \t'])[.,]*)
 			trim_lf "$*" "-?(S)*([$' \t.,'])"
 			set -- "$TRIM"
-			PSKIP= SKIP=1 EDIT=1
+			PSKIP= XSKIP= SKIP=1 EDIT=1
 			var=$INSTRUCTION INSTRUCTION=$*
 			OPTRESUME=1 CMD_CHAT=1 custom_prf "$@"
 			case $? in
@@ -2900,7 +2910,7 @@ function cmdf
 		-?(S)*([$' \t'])[/%]*)
 			trim_lf "$*" "-?(S)*([$' \t'])"
 			set -- "$TRIM"
-			PSKIP= SKIP=1 EDIT=1
+			PSKIP= XSKIP= SKIP=1 EDIT=1
 			var=$(INSTRUCTION=$* CMD_CHAT=1; awesomef && echo "$INSTRUCTION") && REPLY="-S $var"
 			;;
 		-S:::|-:::|-S::::|-::::)  #reset system prompt
@@ -2950,7 +2960,7 @@ function cmdf
 			cmdmsgf 'Debug Request' $(_onoff $OPTVV)
 			;;
 		source)   #source from script (devel)
-			OPT_SOURCE=1 OPTF=1 OPTIND=1 OPTARG= EDIT=1 SKIP=1 WSKIP= PSKIP=1;
+			OPT_SOURCE=1 OPTF=1 OPTIND=1 OPTARG= REPLY= EDIT=1 SKIP=1 WSKIP= XSKIP= PSKIP=1;
 			((OPTV)) || echo '[source]' >&2;
 			return 181;
 			;;
@@ -3338,13 +3348,20 @@ function cmdf
 						rcmdf "$ans";
 						m=0; continue 1;;
 					[Q]) 	RET=202; exit 202;;  #exit
-					[AaDdq]) REPLY= RET=201 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST=;
-						WSKIP= SKIP= EDIT= append=; break 2;;  #abort / discard
-					[Rr]) 	SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
-						REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
+					[AaDdq]) SKIP_SH_HIST=; typeset SKIP_SH_HIST=1;
+						REPLY= RET=201 REPLY_CMD_DUMP=;
+						WSKIP= SKIP= XSKIP= EDIT= append=; break 2;;  #abort / discard
+					[Rr]) 	SKIP_SH_HIST=; typeset SKIP_SH_HIST=1;
+						SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
+						REPLY_CMD_DUMP= WSKIP= XSKIP= SKIP=;  #E#
 						break 2;;  #redo
-					[EeYy]|$'\e') 	SKIP=1 EDIT=1 RET=199; break 2;; #yes, bash `read`
-					[VvXx]|$'\t'|' ') 	SKIP=1 EDIT=1 RET=198; ((OPTX)) || OPTX=2; break 2;; #yes, text editor
+					[EeYy]|$'\e')
+						SKIP_SH_HIST=; typeset SKIP_SH_HIST=1;
+						SKIP=1 EDIT=1 RET=199; break 2;; #yes, bash `read`
+					[VvXx]|$'\t'|' ')
+						SKIP_SH_HIST=; typeset SKIP_SH_HIST=1;
+						SKIP=1 EDIT=1 RET=198 REPLY_CMD_DUMP=;
+						((OPTX)) || OPTX=2; break 2;; #yes, text editor
 					[NnOo]|[!Ss]|'') 	SKIP=1 PSKIP=1; break 2;;  #no need to edit
 				esac;
 		done;
@@ -3352,9 +3369,10 @@ function cmdf
 			done;
 			_clr_lineupf $((12+1+66));  #!#
 
+			HARGS=;
 			((append)) && [[ ${REPLY:0:32} != [/!]* ]] && REPLY=:$REPLY;
 			((SKIP_SH_HIST)) || shell_histf "!${HARGS[*]:-${args[*]}}"; SKIP_SH_HIST=1;
-			((RET==200||RET==201)) || REPLY_CMD_BLOCK=1; HARGS=;
+			#((RET==200||RET==201)) || REPLY_CMD_BLOCK=1;
 			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|\
 		[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
@@ -3441,7 +3459,7 @@ function cmdf
 					CKSUM_OLD=;
 				fi;
 			fi
-			SKIP=1 EDIT=1 SKIP_SH_HIST=1;
+			XSKIP= SKIP=1 EDIT=1 SKIP_SH_HIST=1;
 			((REGEN)) || ((!MAIN_LOOP)) || ((--MAIN_LOOP));
 			case "$*" in
 				rr|[/!]*)  #edit prompt
@@ -3672,7 +3690,7 @@ function cmdf
 							return 181;
 						else
 							_warmsgf "Command:" "Fail  -- \`${buff}\`";
-							return 0; #some cmd has executed succesfully
+							return 0;  #some cmd has executed successfully
 						fi;
 					buff=; ((n+=m));
 				done;
@@ -3695,7 +3713,7 @@ function cmdf
 #avoid disrupting pre-request interface and flow
 function rcmdf
 {
-	typeset BLOCK_USR BLOCK_CMD EDIT JUMP REGEN REPLY REPLY_OLD REPLY_CMD REPLY_CMD_BLOCK REPLY_CMD_DUMP RESUBW RET SKIP PSKIP WSKIP HARGS OPTAWE BAD_RES OPT_SOURCE BCYAN CYAN ON_CYAN;
+	typeset BLOCK_USR BLOCK_CMD EDIT JUMP REGEN REPLY REPLY_OLD REPLY_CMD REPLY_CMD_DUMP RESUBW RET SKIP PSKIP WSKIP HARGS OPTAWE BAD_RES OPT_SOURCE BCYAN CYAN ON_CYAN;
 
 	SKIP_SH_HIST=1 REGEN=-1 CMD_ENV=201 cmdf "$@";
 
@@ -3786,7 +3804,9 @@ function edf
 	fi
 
 	((OPTCMPL)) || [[ ${pre:0:512} != *[!$IFS]* ]] || pre="${pre}"$'\n\n'"${ed_msg}"
-	if ((OPTE>1))  #options -eex edit last buffer
+	if [[ $* = [Ll]ast ]]
+	then 	set --; OPTE= pre= ;
+	elif ((OPTE>1))  #options -eex edit last buffer
 	then 	printf "%s\\n" "${1:+${NL}${NL}}${*}" >> "$FILETXT"; OPTE= pre= ;  #dont clear buffer
 	else 	printf "%s\\n" "${pre}${pre:+${NL}${NL}}${rest}${*}" > "$FILETXT";
 	fi
@@ -3823,7 +3843,8 @@ function edf
 			[aq]) echo '[abort]' >&2; return 201;;  #abort
 			[CcNn]) break;;      #continue
 			[Rr])  return 200;;  #redo
-			[Ee]|$'\e'|*) _edf "$FILETXT";;  #edit
+			[Ee]|$'\e'|*) REPLY_CMD_DUMP= REPLY_CMD=;
+				_edf "$FILETXT";;  #edit
 		esac
 	done; printf '\n---\n\n' >&2;
 
@@ -4382,7 +4403,7 @@ function is_visionf
 	case "${model##ft:}" in
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	o[1-9]*|gpt-[4-9]o*|gpt-[4-9][.-][0-9]*|chatgpt*-[4-9]o*|chatgpt*-[4-9][.-][0-9]o*|chatgpt*-[4-9]*|\
-	gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|\
+	gpt-4o*|gpt-4.[5-9]*|gpt-[5-9]*|gpt-4-turbo|gpt-4-turbo-202[4-9]-[0-1][0-9]-[0-3][0-9]|codex-mini*|codex*|\
 	gemini*-1.[5-9]*|gemini*-[2-9].[0-9]*|grok-[3-9]*|*multimodal*|*gpt*-search*|computer-use*|codex-mini*|\
 	claude*-[3-9]*|llama[3-9][.-]*|llama-[3-9][.-]*|*mistral-7b*) :;;
 	*) 	((MULTIMODAL));;
@@ -4639,7 +4660,7 @@ function set_optsf
 			}
 		;;
 		gpt-[5-9]*-chat*|chatgpt-[1-9]*) 	:;;  #non-reasoning ChatGPT models
-		gpt-[5-9]*|gpt-oss*|o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12|*deep-research*|*gpt*-search*)
+		gpt-[5-9]*|gpt-oss*|o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12|*deep-research*|*gpt*-search*|codex-mini*|codex*)
 		((MOD_REASON)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
@@ -4711,7 +4732,7 @@ function set_optsf
 		VERBOSITY=;
 	fi;
 
-	#resolve collinding settings
+	#resolve colliding settings
 	((!OPTMAX_NILL && OPTMAX<1)) && OPTMAX=${OPTMAX_DEF:-4096}  #M#
 	((WHISPER_GROQ>0 && WHISPER_MISTRAL>0)) && WHISPER_GROQ=1 WHISPER_MISTRAL=;
 
@@ -6001,11 +6022,14 @@ function set_termuxpulsef
 #append to shell hist list
 function shell_histf
 {
+	((${#1} < 8192)) || return
 	[[ ${1:0:320} = *[!$IFS]* ]] || return
 	history -s -- "${1:0:8192}"
 }
+#we must avoid cluttering the shell history file with very long entries
+#which will eventually corrupt the history file or make it sluggish to load.
 #history file must start with a timestamp (# plus Unix timestamp) or else
-#the history command will still split on each line of a multi-line command
+#the history command will still split on each line of a multi-line command.
 #https://askubuntu.com/questions/1133015/
 #https://lists.gnu.org/archive/html/bug-bash/2011-02/msg00025.html
 
@@ -6809,6 +6833,7 @@ no-time  format  voice  awesome-zh  awesome  source  no-truncation
 		E) 	((++OPTEXIT));;
 		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
+			unset OPENAI_MODEL LOCALAI_MODEL OLLAMA_MODEL GEMINI_MODEL MISTRAL_MODEL GROQ_MODEL ANTHROPIC_MODEL GITHUB_MODEL NOVITA_MODEL XAI_MODEL DEEPSEEK_MODEL;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
 			unset Color1 Color2 Color3 Color4 Color5 Color6 Color7 Color8 Color9 Color10 Color11 Color200 Inv Alert Bold Nc;
 			OPTF=1 OPTIND=1 OPTARG= ;. "${BASH_SOURCE[0]:-$0}" "$@" ;exit;;
@@ -6913,7 +6938,7 @@ no-time  format  voice  awesome-zh  awesome  source  no-truncation
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_EDIT EPN_OLD OPT_SOURCE NC  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_EDIT EPN_OLD OPT_SOURCE NC  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
@@ -7131,7 +7156,7 @@ elif unset MISTRAL_API_KEY MISTRAL_BASE_URL MISTRALAI;
 	((GITHUBAI)) ||
 	[[ "${GITHUB_BASE_URL:-$OPENAI_BASE_URL}" = *ai.azure.com* ]]
 then
-	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}
+	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}  #GITHUB_PAT
 	BASE_URL=${GITHUB_BASE_URL:-${OPENAI_BASE_URL:-$GITHUB_BASE_URL_DEF}};
 
 	function list_modelsf
@@ -7163,6 +7188,7 @@ then
 	};
 	GITHUBAI=1 OPTC=2;  #chat completions only
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI DEEPSEEK;
+	#-H "X-GitHub-Api-Version: 2022-11-28"
 elif unset GITHUB_TOKEN GITHUB_BASE_URL GITHUBAI;
 #deepseek
 	((DEEPSEEK)) ||
@@ -7718,9 +7744,9 @@ else
 	((OPTE && ${#})) && { 	REPLY=$* EDIT=1 SKIP= WSKIP=; set -- ;}
 
 	while :
-	do 	trap "exit" INT;
+	do 	trap "exit" INT; XSKIP=;
 		((TRAP_EDIT)) && set -- &&
-		  EDIT=1 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP= JUMP= OPTAWE= TRAP_EDIT=;
+		  EDIT=1 REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= SKIP= JUMP= OPTAWE= TRAP_EDIT=;
 		
 		((OPT_SOURCE)) && unset OPT_SOURCE &&  #resource functions from own (devel)
 		  . <(sed -ne "/^ENDPOINTS=/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
@@ -7747,11 +7773,12 @@ else
 		then 	((EDIT)) || REPLY=""  #!#
 			edf "${REPLY:-$@}"
 			case $? in
-				179|180) :;;        #jumps
+				179|180) XSKIP=; :;;        #jumps
 				200) 	set --; ((PSKIP)) || REPLY=;
-					REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
+					REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 					continue;;  #redo
-				201) 	set --; OPTX= SKIP_SH_HIST=; false;;   #abort
+				201) 	OPTX= XSKIP= SKIP_SH_HIST= REPLY_CMD_DUMP=; 
+					set --; false;;   #abort
 				202) 	exit 202;;  #exit
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
@@ -7760,41 +7787,47 @@ else
 					((!BAD_RES)) && {
 					((OPTV||OPTEXIT>1)) || [[ $REPLY = :* ]] \
 					|| [[ ${REPLY:0:512} != *[!$IFS]* ]] \
-					|| { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY}" >/dev/null ;};
+					|| { ((!${#REPLY_CMD_DUMP})) && is_txturl "${REPLY}" >/dev/null ;};
 					} || NO_CLR=1 new_prompt_confirmf abort
 						case $? in
 							202) 	exit 202;;  #exit
-							201) 	set --; OPTX= SKIP_SH_HIST=; break 1;;  #abort
-							200) 	set --; ((PSKIP)) || REPLY=;
-								REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
-								continue 2;;  #redo
+							201) 	OPTX= XSKIP= REPLY_CMD_DUMP= SKIP_SH_HIST=;
+								set --; break 1;;  #abort
+							200) 	((PSKIP)) || REPLY=;
+								REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
+								set --; continue 2;;  #redo
 							19[26789]) edf "${REPLY:-$*}" || break 1;;  #edit
-							195) 	WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=;
+							195) 	WSKIP=1 XSKIP= EDIT= WAPPEND=1 REPLY_OLD=$REPLY REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
 								((OPTW)) || cmdf -ww;
 								set --; break;;  #whisper append (hidden option)
-							0) 	set -- "$REPLY" ; break;
+							0) 	XSKIP=1;
+								set -- "$REPLY"; break;  #IPC#
 								trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
-							*) 	((${#PREPEND})) && echo '[buffer clear]' >&2;
-								set -- ; SKIP_SH_HIST= PREPEND=; break;;  #no
+							*) 	((OPTX>1)) && OPTX=;
+								SKIP_SH_HIST= XSKIP= PREPEND= REPLY_CMD_DUMP= REPLY_CMD=;
+								((${#PREPEND})) && echo '[buffer clear]' >&2;
+								set --; break;;  #no
 						esac
 					done;
-					((OPTX>1)) && OPTX=;
-			esac
+					#((OPTX>1)) && OPTX=;
+			esac;
 		fi; PSKIP= RET=;
 
 		((JUMP)) ||
 		#defaults prompter
-		if [[ "$* " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]] || [[ -z "$*" ]]
+		if ((XSKIP)) || ((${#1}+${#2}==0)) ||
+			[[ "${1:0:512}${2:0:512} " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]]
 		then
 			while ((OPTC)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
 				((${#PREPEND})) && Q=">>"
 				B=${Q:0:128} B=${B##*$'\n'} B=${B##*\\n} B=${B//?/\\b}  #backspaces
 
-				((SKIP)) ||
+				((SKIP+XSKIP)) ||
 				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE: }${NC}" >&2
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
 			do
-				((SKIP+OPTW+${#RESTART})) && echo >&2
+				((SKIP+XSKIP+OPTW+${#RESTART})) && echo >&2
+				((XSKIP)) ||
 				if ((OPTW && !EDIT)) || ((RESUBW))
 				then 	#auto sleep 3-6 words/sec
 					if ((OPTV)) && ((!WSKIP)) && ((!BAD_RES)) && ! is_amodelf "$MOD"
@@ -7841,17 +7874,28 @@ else
 							fi
 							((WAPPEND)) && REPLY=$REPLY_OLD${REPLY_OLD:+${REPLY:+ }}$REPLY WAPPEND= ;
 						else 	case $? in
-								196) 	WSKIP= OPTW= REPLY=; continue 1;;
-								199) 	EDIT=1; continue 1;;
+								196)  #whisper off
+									WSKIP= XSKIP= OPTW= REPLY= SKIP_SH_HIST=;
+									continue 1;;
+								199)  #edit
+									EDIT=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+									continue 1;;
 								202) 	exit 202;;  #exit
 							esac;
 							echo '[record abort]' >&2;
-						fi; ((OPTW>1)) && OPTW=;;
+						fi; ((OPTW>1)) && OPTW=; XSKIP=;;
 					202) 	exit 202;;  #exit
-					201|196) 	WSKIP= OPTW= REPLY=; continue 1;;  #whisper off
-					193) 	WSKIP= OPTW= OPTX= EDIT=1; continue 1;;  #command run + whisper off
-					199) 	EDIT=1; continue 1;;  #text edit
-					*) 	REPLY=; continue 1;;
+					201|196)  #whisper off
+						WSKIP= XSKIP= OPTW= REPLY= SKIP_SH_HIST=;
+						continue 1;;
+					193)  #command run + whisper off
+						WSKIP= XSKIP= OPTW= OPTX= EDIT=1 SKIP_SH_HIST=;
+						continue 1;;
+					199)  #text edit
+						EDIT=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+						continue 1;;
+					*) 	REPLY= XSKIP= REPLY_CMD_DUMP= REPLY_CMD=;
+						continue 1;;
 					esac; unset RESUBW;
 					printf "\\n${NC}${BPURPLE}%s${NC}\\n" "${REPLY:-"(${PREPEND:+NOT_}EMPTY)"}" | foldf >&2;
 				else
@@ -7870,15 +7914,19 @@ else
 					}
 				fi; printf "${NC}" >&2;
 
+				#in-line commands
+				#text editor mode must block some cmds
 				if [[ ${REPLY:0:128} = /cat*([$IFS]) ]]
-				then 	((CATPR)) || CATPR=2 ;REPLY= PSKIP= SKIP=1
-					((CATPR==2)) && _cmdmsgf 'Cat Prompter' "one-shot"
-					set -- ;continue  #A#
+				then 	((CATPR)) || CATPR=2;
+					REPLY= OPTX= XSKIP= PSKIP= SKIP=1;
+					_cmdmsgf 'Cat Prompter' "$( ((CATPR>1)) && echo 'one-shot' || echo 'ON' )";
+					set -- ;continue;  #A#
 				elif var="$REPLY" RET=
-					cmdf "$REPLY"
+					((!XSKIP)) && cmdf "$REPLY"
 				then 	((SKIP_SH_HIST)) || shell_histf "$REPLY";
 					((JUMP+REGEN+SKIP+EDIT)) || REPLY=;  #O#
-					RET= var=; set --; continue 2
+					RET= XSKIP= var=;
+					set --; continue 2;
 				elif ((${#REPLY}>320)) && ind=$((${#REPLY}-320)) || ind=0  #!#
 					case "${REPLY: ind}" in  #cmd: //shell, //sh
 					*[$IFS][/!][/!]shell|*[$IFS][/!][/!]sh) var=/shell;;
@@ -7897,7 +7945,7 @@ else
 					if ((${#REPLY_CMD_DUMP}))
 					then 	REPLY="${*} ${REPLY_CMD_DUMP}";
 					fi
-					SKIP=1 EDIT=1 REPLY_CMD=;
+					SKIP=1 XSKIP= EDIT=1 REPLY_CMD=;
 					set -- ; continue 2;
 				elif case "${REPLY: ind}" in  #cmd: /photo, /pick, /save, /g
 					*[$IFS][/!]photo|*[$IFS][/!]photo[0-9]) var=photo;;
@@ -7909,50 +7957,52 @@ else
 				then
 					trim_rf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#|[/!]g|g)";
 					SKIP_SH_HIST=1 cmdf /${var:-pick} "$TRIM";
+					SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD=;
 					set --; continue 2;
-				elif ((${#REPLY})) || ((${#PREPEND}))
-				then 	PSKIP=;
+				elif ((!XSKIP)) && ((${#REPLY}+${#PREPEND}))
+				then 	PSKIP= XSKIP=;
 					((${#PREPEND})) && [[ ${REPLY:0:512} != *[!$IFS]* ]] \
 					  && echo '[prompt buffer]' >&2;
 					((!BAD_RES)) && {
 					  ((OPTV||OPTEXIT>1)) || [[ ${REPLY:0:32} = :* ]] \
 					  || [[ ${REPLY:0:512}${PREPEND:0:512} != *[!$IFS]* ]] \
-					  || { ((!REPLY_CMD_BLOCK)) && is_txturl "${REPLY: ind}" >/dev/null ;};
+					  || { ((!${#REPLY_CMD_DUMP})) && is_txturl "${REPLY: ind}" >/dev/null ;};
 					} || new_prompt_confirmf ed whisper
 					case $? in
 						202) 	exit 202;;  #exit
 						201)  #abort
 							echo '[bye]' >&2; break 2;;
 						200)  #redo
-							REPLY=$REPLY_CMD;
-							REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
-							echo '[redo]' >&2; set --; continue;;
+							REPLY=${REPLY_CMD:-${REPLY_OLD:-$REPLY}} REPLY_CMD=;
+							REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
+							echo '[redo]' >&2;
+							set --; continue;;
 						199)  #edit
-							WSKIP=1 EDIT=1;
-							echo '[edit]' >&2; continue;;
+							WSKIP=1 EDIT=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							echo '[edit]' >&2;
+							continue;;
 						198)  #editor one-shot
-							((OPTX)) || OPTX=2; EDIT=1 SKIP=1;
-							((OPTX==2)) &&
-							echo '[text editor one-shot]' >&2
+							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							((OPTX)) || OPTX=2;
+							echo "[text editor$( ((OPTX>1)) && echo ' one-shot' )]" >&2
 							set -- ;continue 2;;
 						197)  #multiline one-shot
-							EDIT=1 SKIP=1;
+							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
 							((OPTCTRD))||OPTCTRD=2
-							((OPTCTRD)) && echo '[literal newline <ctr-j>]' >&2
-							((OPTCTRD==2)) && echo '[readline <ctr-d> one-shot]' >&2
-							((OPTCTRD==1)) && echo '[readline <ctr-d>]' >&2
+							echo '[literal newline <ctr-j>]' >&2
+							echo "[readline <ctr-d>$( ((OPTCTRD>1)) && echo ' one-shot' )]" >&2
 							set -- ;continue;;  #A#
 						192)  #cat one-shot
-							EDIT=1 SKIP=1;
+							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
 							((CATPR))||CATPR=2
-							((CATPR)) && echo '[literal newline <ctr-j>]' >&2
-							((CATPR==2)) && echo '[cat <ctr-d> one-shot]' >&2
-							((CATPR==1)) && echo '[cat <ctr-d>]' >&2
+							echo '[literal newline <ctr-j>]' >&2
+							echo "[cat <ctr-d>$( ((CATPR>1)) && echo ' one-shot' )]" >&2
 							set -- ;continue;;  #A#
 						196)  #whisper off
-							WSKIP=1 EDIT=1 OPTW= ; continue 2;;
+							 OPTW= XSKIP= WSKIP=1 EDIT=1 SKIP_SH_HIST=;
+							continue 2;;
 						195)  #whisper append
-							WSKIP=1 WAPPEND=1 REPLY_OLD=$REPLY EDIT=;
+							WSKIP=1 WAPPEND=1 XSKIP= EDIT= REPLY_OLD=$REPLY REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
 							((OPTW)) || cmdf -ww;
 							echo '[transcription append]' >&2; continue;;
 						194)  #whisper retry request
@@ -7961,22 +8011,24 @@ else
 						0) 	:;
 							trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
 						*) 	((${#PREPEND})) && echo '[buffer clear]' >&2;
-							REPLY= PREPEND=; set -- ;break;;  #no
-					esac; unset REPLY_CMD;
+							REPLY= PREPEND= XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							set -- ;break;;  #no
+					esac;
 				else
-					set --; unset REPLY_CMD;
-				fi ;set -- "$REPLY"
+					set --;
+				fi; ((${#REPLY})) && set -- "$REPLY" || set --;
 				((OPTCTRD==1)) || unset OPTCTRD
 				((CATPR==1)) || unset CATPR
-				WSKIP= PSKIP= SKIP= EDIT= B= Q= ind= var=
+				WSKIP= PSKIP= XSKIP= SKIP= EDIT= B= Q= ind= var=
 				break
 			done
-		fi; RET=;
+		fi; XSKIP= RET=;
+		((OPTX>1)) && OPTX=;  #kill text editor one-shot mode
 		((TRAP_EDIT+OPT_SOURCE)) && continue;
 
 		if ((!(JUMP+OPTCMPL) )) && [[ "${1:0:512}${2:0:512}" != *[!$IFS]* ]]
 		then
-			if ((${#PREPEND}))  #prompt-content pass
+			if ((${#PREPEND}))  #prompt-content bypass
 			then 	echo "[jump]" >&2
 			else
 				((REGEN)) && echo "[regenerate mode]" >&2;
@@ -7990,7 +8042,7 @@ else
 			set -- "$TRIM"  #!#
 			REPLY="$*"
 		fi
-		((${#REPLY_OLD})) || REPLY_OLD="${REPLY:-$*}";  #I# Avoid $REPLY_CMD!
+		((${#REPLY_OLD}+${#REPLY_CMD})) || REPLY_OLD="${REPLY_CMD:-${REPLY:-$*}}";
 
 		}  #awesome 1st pass skip end
 
@@ -8080,7 +8132,7 @@ else
 					fi;
 					;;
 				esac;
-				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD_BLOCK= REPLY_CMD_DUMP= var= v=;
+				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD_DUMP= REPLY_CMD= var= v=;
 				set --; continue;
 				;;
 			esac;
@@ -8101,14 +8153,12 @@ else
 			fi;
 			REC_OUT="${REC_OUT:0:${#REC_OUT}-${#SUFFIX}-${#I_TYPE_STR}}"
 		#basic text and pdf file, and text url dumps
-		elif ((!REPLY_CMD_BLOCK)) && var=$(is_txturl "$1")  #C#
-		then 	RET=;
-			if ((!${#REPLY_CMD_DUMP}))
-			then
-			  REPLY_CMD=$REPLY;
-			  SKIP_SH_HIST=1 cmdf /cat "$var";
-			  REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST= REPLY_CMD_BLOCK=1;
-			fi; PSKIP= var=;
+		elif ((!${#REPLY_CMD_DUMP})) && var=$(is_txturl "$1")  #C#
+		then
+			RET= REPLY_CMD=$REPLY;
+			SKIP_SH_HIST=1 cmdf /cat "$var";
+			REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST= PSKIP= XSKIP= var=;
+			
 			((RET==201)) ||
 			if ((${#REPLY_CMD_DUMP})) &&
 				((!RET || (RET>180 && RET<220) ))  #!# our exit codes: >180 and <220
@@ -8118,17 +8168,20 @@ else
 			    REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
 			  case "$RET" in
 			    202) echo '[bye]' >&2; exit 202;;
-			    201) REPLY= SKIP_SH_HIST=;;  #abort
+			    201) REPLY= XSKIP= REPLY_CMD_DUMP=;;  #abort
 			    200) EDIT=1 REPLY=$REPLY_CMD;
-				 REPLY_CMD_DUMP= REPLY_CMD_BLOCK= SKIP_SH_HIST= WSKIP= SKIP=;  #E#
+				 REPLY_CMD_DUMP= WSKIP= XSKIP= SKIP=;  #E#
 			         set --; continue 1;;  #redo / abort
-			    199) SKIP=1 EDIT=1; set --; continue 1;;  #edit in bash readline
-			    198) ((OPTX)) || OPTX=2; SKIP=1 EDIT=1; set --; continue 1;;  #edit in text editor
+			    199) SKIP=1 XSKIP= EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;
+			    	set --; continue 1;;  #edit in bash readline
+			    198) ((OPTX)) || OPTX=2;
+			    	SKIP=1 XSKIP= EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;
+			    	set --; continue 1;;  #edit in text editor
 			  esac
-			  set -- "${*}${NL}${NL}${REPLY_CMD_DUMP}";
+			  set -- "${*}${*:+${REPLY_CMD_DUMP:+${NL}${NL}}}${REPLY_CMD_DUMP}";
 			  REC_OUT="${*}";
 			else
-			  SKIP=1 EDIT=1 REPLY_CMD= REPLY_CMD_DUMP= REPLY_CMD_BLOCK=;
+			  SKIP=1 EDIT=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD=;
 			  set --; continue 1;  #edit orig input
 			fi; RET=;
 		#vision / audio-model
@@ -8144,7 +8197,7 @@ else
 				set -- "$* $var";
 			done; var=;
 		else 	unset SUFFIX PREFIX;
-		fi
+		fi;
 		((TRAP_EDIT)) && continue;
 
 		set_optsf
@@ -8204,7 +8257,7 @@ else
 			else 	role=user;
 			fi
 
-			((GOOGLEAI)) &&  [[ $MOD = *gemini-1.0*-pro-vision* ]] &&  #gemini-1.0-pro-vision cannot take it multiturn
+			((GOOGLEAI)) &&  [[ $MOD = *gemini-1.0*-pro-vision* ]] &&  #gemini-1.0-pro-vision cannot take it multi-turn
 			if ((REGEN<0 && MAIN_LOOP<1 && ${#INSTRUCTION_OLD})) ||
 				((${#MEDIA[@]}+${#MEDIA_CMD[@]}+${#MEDIA_IND[@]}+${#MEDIA_CMD_IND[@]})) ||
 				is_visionf "$MOD" || is_amodelf "$MOD"
@@ -8262,7 +8315,7 @@ $(
 
   ((${VERBOSITY:+1}0)) && echo "\"text\": { \"format\": { \"type\": \"text\" }, \"verbosity\": \"${VERBOSITY:-medium}\" },"
 
-  case "$MOD" in gpt-[5-9]*|gpt-oss*|o[1-9]*|gpt-[4-9]o*|chatgpt*-[4-9]o*|chatgpt*-[4-9].[0-9]o*)
+  case "$MOD" in gpt-[5-9]*|gpt-oss*|o[1-9]*|gpt-[4-9]o*|chatgpt*-[4-9]o*|chatgpt*-[4-9].[0-9]o*|codex-mini*|codex*)
         ((${REASON_EFFORT:+1}0)) && echo "\"reasoning\": { \"effort\": \"${REASON_EFFORT:-medium}\", \"summary\": \"auto\" },";;
 	#summary: auto, concise, or detailed
   esac
@@ -8274,7 +8327,7 @@ $BLOCK
 $STREAM_OPT $OPTT_OPT $OPTP_OPT
 \"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
 }"
-	#note: responses api stream_options and resoning_effort are different from completions api!
+	#note: responses api stream_options and reasoning_effort are different from completions api!
 	#note: add 'include_obfuscation: false' if this option becomes available!
 
 		elif ((GOOGLEAI))
@@ -8336,7 +8389,7 @@ $BLOCK
 $(
   ((ANTHROPICAI)) && ((EPN!=6 && EPN!=12)) && max="max_tokens_to_sample" || max="max_tokens"
   ((DEEPSEEK||xRESPONSES_APIx)) && max="max_completion_tokens"
-  case "${MOD##*/}" in gpt-[5-9]*|gpt-oss*|o[1-9]*)
+  case "${MOD##*/}" in gpt-[5-9]*|gpt-oss*|o[1-9]*|codex-mini*|codex*)
           max="max_completion_tokens";;
   esac
   ((OPTMAX_NILL && (EPN==6||EPN==12) && !ANTHROPICAI)) || echo "\"${max:-max_tokens}\": $OPTMAX,"
@@ -8417,7 +8470,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		fi
 		((TRAP_EDIT)) && continue;
 		trap "exit" INT; TRAP_EDIT=;
-		REPLY_CMD_BLOCK= REPLY_CMD_DUMP=;
+		REPLY_CMD_DUMP=;
 
 		if ((${#BLOCK}>96000))  #96KB
 		then 	buff="${FILE%.*}.block.json"
@@ -8673,7 +8726,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		((++MAIN_LOOP)); 		((WSKIP>1)) && WSKIP=1 || WSKIP=; set --;
 		role= rest= tkn_ans= ans_tts= ans= buff= var= glob= out= pid= s= n=; arr=() tkn=();
 		HIST_G= TKN_PREV= REC_OUT= HIST= HIST_C= REPLY= ESC= Q= STREAM_OPT= RET= RET_PRF= RET_APRF= PSKIP= SKIP= EDIT= HARGS= TRIM=;
-		unset INSTRUCTION GINSTRUCTION INSTRUCTION_RESET REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP REPLY_CMD_BLOCK BLOCK_CMD REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES;
+		unset INSTRUCTION GINSTRUCTION INSTRUCTION_RESET REGEN OPTRESUME JUMP REPLY_CMD REPLY_CMD_DUMP BLOCK_CMD REPLY_TRANS OPTA_OPT OPTAA_OPT OPTT_OPT OPTN_OPT OPTB_OPT OPTP_OPT OPTKK_OPT OPTSUFFIX_OPT SUFFIX PREFIX OPTAWE BAD_RES INT_RES;
 		((MTURN && !OPTEXIT)) || break
 	done
 fi

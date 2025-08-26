@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.113.1 | General Commands Manual
+% CHATGPT.SH(1) v0.114 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -10,7 +10,7 @@
 
 # SYNOPSIS
 
-|    **chatgpt.sh** \[`-cc`|`-dd`|`-qq`] \[`opt`..] \[_PROMPT_|_TEXT_FILE_|_PDF_FILE_]
+|    **chatgpt.sh** \[`-bb`|`-cc`|`-dd`|`-qq`] \[`opt`..] \[_PROMPT_|_TEXT_FILE_|_PDF_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_]\[_hd_] \[_PROMPT_]  #dall-e-3
 |    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PROMPT_]  #gpt-image
 |    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PNG_FILE_]
@@ -18,7 +18,7 @@
 |    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_|_._] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_|_._] \[_PROMPT-EN_]
 |    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
-|    **chatgpt.sh** `-ccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[`stt_arg`..] \-- \[`tts_arg`..] 
+|    **chatgpt.sh** `-bccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[`stt_arg`..] \-- \[`tts_arg`..] 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_|_PDF_FILE_]
 |    **chatgpt.sh** `-HPP` \[`/`_HIST_NAME_|_._]
@@ -32,8 +32,8 @@ endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
 xAI, and DeepSeek APIs are supported.
 
-With no options set, complete INPUT in single-turn mode of
-the native chat completion.
+By default, the script runs in single-turn of chat completion mode,
+processing INPUT directly when no options are set.
 
 Handles single-turn and multi-turn modes, pure text and native chat completions,
 image generation and editing, speech-to-text, and text-to-speech models.
@@ -143,7 +143,7 @@ before the text prompt itself.
 
 **-S**, **--awesome-zh**  **%**\[_AWESOME_PROMPT_NAME_ZH_]
 
-:     Set or search for an *awesome-chatgpt-prompt(-zh)*.
+:     Set or search for an **awesome-chatgpt-prompt(-zh)**.
       
       Set **//** or **%%** instead to refresh cache.
 
@@ -361,7 +361,7 @@ before the text prompt itself.
 :     Print out last history session.
       
       Set twice to print commented out history entries, inclusive.
-      Heeds `options -ccdrR`.
+      Heeds `options -bccdrR`.
 
       These are aliases to **-HH** and **-HHH**, respectively.
 
@@ -439,7 +439,7 @@ before the text prompt itself.
 
 **\--xai**
 
-: xAI's Grok integration (cmpls/chat).
+: xAI Grok integration (cmpls/chat).
 
 
 ## Miscellaneous Settings
@@ -499,9 +499,9 @@ before the text prompt itself.
 
 :     Less interface verbosity.
 
-      Sleep after response in voice chat (`-vvccw`).
+      Sleep after response in voice chat (`-vvbccw`).
 
-      With `options -ccwv`, sleep after response. With `options -ccwzvv`,
+      With `options -bccwv`, sleep after response. With `options -bccwzvv`,
       stop recording voice input on silence detection and play TTS response
 	  right away.
 
@@ -541,12 +541,15 @@ defaults to _gpt-3.5-turbo-instruct_ if none set.
 
 Set `options -cc` to start the chat mode via **native chat completions**.
 This mode defaults to the _gpt-4o_ model, which is optimised to follow
-instructions. Try _chatgpt-4o-latest_ for a model optimised for chatting.
+instructions. <!-- Try _chatgpt-4o-latest_ for a model optimised for chatting. -->
+
+On `options -bb`, the Responses API endpoint is set preferentially.
 
 In chat mode, some options are automatically set to un-lobotomise the bot.
 
-While using other providers, mind that `options -c` and `-cc` set different
-endpoints! This setting must be set according to the model capabilities!
+While using other providers, mind that `options -c`, `-cc`, and `-bb`
+set different endpoints!
+These options must be set according to the model capabilities!
 
 Set `option -C` to **resume** (continue from) last history session, and
 set `option -E` to exit on the first response (even in multi turn mode).
@@ -566,7 +569,7 @@ Set text completion models such as _gpt-3.5-turbo-instruct_.
 
 # INSERT MODE (Fill-In-the-Middle)
 
-Set `option -q` for **insert mode** in single-turn and `option -qq` for multiturn.
+Set `option -q` for **insert mode** in single-turn and `option -qq` for multi-turn.
 The flag "_[insert]_" must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the flag,
 and ends completion with the succeeding text after the flag.
@@ -577,9 +580,9 @@ Insert mode works with \`instruct' and Mistral \`code' models.
 # RESPONSES API
 
 Responses API is a superset of Chat Completions API. Set command
-line `option -b` (with `-cc`), or set `options -bb` for multiturn.
+line `option -b` (with `-cc`), or set `options -bb` for multi-turn.
 
-To activate it during multiturn chat, set `/responses [model]`,
+To activate it during multi-turn chat, set `/responses [model]`,
 where _model_ is the name of a model which works with the Responses API.
 Aliased to `/resp [model]` and `-b [model]`. This can be toggled.
 
@@ -593,7 +596,7 @@ envars `$INSTRUCTION` and `$INSTRUCTION_CHAT`.
 
 `Option -S` sets an INSTRUCTION prompt (the initial prompt) for text cmpls,
 and chat cmpls. A text file path may be supplied as the single argument.
-Also see *CUSTOM / AWESOME PROMPTS* section below.
+Also see **CUSTOM / AWESOME PROMPTS** section below.
 
 To create and reuse a custom prompt, set the prompt name as a command
 line option, such as "`-S .[_prompt_name_]`" or "`-S ,[_prompt_name_]`".
@@ -708,7 +711,7 @@ argument.
 Set these options twice to have phrasal-level timestamps, options -ww and -WW.
 Set thrice for word-level timestamps.
 
-Combine `options -wW` **with** `options -cc` to start **chat with voice input**
+Combine `options -wW` **with** `options -bcc` to start **chat with voice input**
 (Whisper) support.
 Additionally, set `option -z` to enable **text-to-speech** (TTS) models and voice out.
 
@@ -754,7 +757,7 @@ If _MASK_ is not provided, _IMAGE_ must have transparency.
 The **size of output images** may be set as the first positional parameter
 in the command line:
 
-    gpt-imge: "_1024x1024_" (_L_, _Large_, _Square_), "_1536x1024_" (_X_, _Landscape_), or "_1024x1536_" (_P_, _Portrait_).
+    gpt-image: "_1024x1024_" (_L_, _Large_, _Square_), "_1536x1024_" (_X_, _Landscape_), or "_1024x1536_" (_P_, _Portrait_).
 
     dall-e-3: "_1024x1024_" (_L_, _Large_, _Square_), "_1792x1024_" (_X_, _Landscape_), or "_1024x1792_" (_P_, _Portrait_).
 
@@ -821,10 +824,18 @@ The defaults chat format is "**Q & A**". The **restart sequence**
 "_\\nQ:\ _" and the **start text** "_\\nA:_" are injected
 for the chat bot to work well with text cmpls.
 
-In multi-turn interactions, prompts prefixed with colons "_:_"
+In multi-turn interactions, special prefixes allow prompt manipulation:
+*   **`:`**_PROMPT_   - Prepends text to the current **user prompt** before sending.
+*   **`::`**_PROMPT_  - Prepends text to the **system instruction** for the current turn.
+*   **`:::`**         - Re-injects the original system instruction into the request,
+                      useful for reinforcing instructions after long conversations.
+
+<!--
+In multi-turn interactions, prompts prefixed with colon "_:_"
 are buffered to be prepended to the user prompt (**USER MESSAGE**)
 without incurring an API call. Conversely, prompts starting with double colons
 "_::_" are prepended to the instruction prompt (**INSTRUCTION / SYSTEM MESSAGE**).
+-->
 
 Entering exactly triple colons "_:::_" reinjects a system instruction
 prompt into the current request. This is useful to reinforce the instruction
@@ -833,7 +844,7 @@ when the model's context has been truncated.
 
 ### 2.4 Voice input (STT), and voice output (TTS)
 
-The `options -ccwz` may be combined to have voice recording input and
+The `options -bccwz` may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes.
 When setting `flag -w` or `flag -z`, the first positional parameters are read as
 STT or TTS  arguments. When setting both `flags -wz`,
@@ -842,7 +853,7 @@ add a double hyphen to set first STT, and then TTS arguments.
 Set chat mode, plus voice-in transcription language code and text prompt,
 and the TTS voice-out option argument:
 
-    chatgpt.sh -ccwz  en 'transcription prompt'  --  nova
+    chatgpt.sh -bccwz  en 'transcription prompt'  --  nova
 
 
 ### 2.5 Vision and Multimodal Models
@@ -886,7 +897,7 @@ For _doc_ and _odt_ files, `LibreOffice` is required.
 See the **Optional Packages** section.
 
 Also note that _file paths_ containing white spaces must be
-**blackslash-escaped**, or the _file path_ must be preceded
+**backslash-escaped**, or the _file path_ must be preceded
 by a pipe \`|' character.
 
 Multiple images and audio files may be added to the request in this way!
@@ -894,9 +905,12 @@ Multiple images and audio files may be added to the request in this way!
 
 # COMMAND LIST
 
-While in chat mode, the following commands can be invoked in the
-new prompt to change parameters and manage sessions.
-Command operators "`!`" or "`/`" are equivalent.
+While in chat mode, the following commands can be invoked
+to change parameters and manage sessions.
+
+*   Commands can start with either "`!`" or "`/`" and are _usually equivalent_.
+*   Commands with **colon** (`:`) add their output to the current prompt buffer.
+*   Commands with **double dagger** `‡` execute as as suffix command, see examples below.
 
 
 ## Command Tables
@@ -958,7 +972,7 @@ Command operators "`!`" or "`/`" are equivalent.
 
  Model             Settings
  --------------    ------------------------    ------------------------------------------------------------
-   `!Nill`         `-Nill`                     Unset max response tkns (chat cmpls).
+   `!Nill`         `-Nill`                     Unset max response tokens (chat cmpls).
     `!NUM`         `-M`          \[_NUM_]      Maximum response tokens.
    `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
       `-a`         `!pre`        \[_VAL_]      Presence penalty.
@@ -1004,9 +1018,9 @@ Command operators "`!`" or "`/`" are equivalent.
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
 
 
-| _:_ Commands with *colons* have their output added to the current prompt buffer.
+| _:_ Commands with **colons** add their output to the current prompt buffer.
 
-| _‡_ Commands with *double dagger* may be invoked at the very end of the input prompt (preceded by space).
+| _‡_ **Double daggers** indicates suffix-commands, invoked at the end of the user prompt and preceded by space.
 
 ---
 
@@ -1017,7 +1031,7 @@ Examples
 
 |   "`/session` _HIST_NAME_",  "\[_PROMPT_] `/pick`"
 
-|   "\[_PROMPT_] `/sh`"
+|   "\[_PROMPT_] `/sh`", "_Translate this to French_ `/sh`"
 
 ---
 
@@ -1040,13 +1054,13 @@ to edit the prompt before the request, try "`!!`" (or "`//`").
 ## Shell and File Integration
 
 The "`/pick`" command opens a file picker (usually a command-line
-file manager). The selected file's path will be appended to the
+file manager). The selected file path will be appended to the
 current prompt in editing mode.
 
 The "`/sh`" and "`/pick`" commands may be run when typed at the end of
 the current prompt, such as "\[_PROMPT_] `/sh`", which opens a new
-shell instance to execute commands interactively. The shell command dump
-or file path is appended to the current prompt.
+shell instance to execute commands interactively. Shell command or file
+dumps are appended to the current prompt.
 
 Any "`!CMD`" not matching a chat command is executed by the shell
 as an alias for "`!sh CMD`".
@@ -1086,7 +1100,7 @@ is the file name or path of a history file.
 
 On invocation, when the first positional argument to the script follows
 the syntax "`/`[_HIST_NAME_]", the command "`/session`" is assumed
-(with `options -ccCdPP`).
+(with `options -bccCdPP`).
 
 
 ## Resuming and Copying Sessions
@@ -1179,7 +1193,7 @@ If a comma is used instead, such as "`-S` `,`_my_prompt_", edit
 the prompt file, and then load it.
 
 When the argument to `option -S` starts with a backslash or a percent sign,
-such as "`-S` `/`_linux_terminal_", search for an *awesome-chatgpt-prompt(-zh)*
+such as "`-S` `/`_linux_terminal_", search for an **awesome-chatgpt-prompt(-zh)**
 (by Fatih KA and PlexPt). Set "`//`" or "`%%`" to refresh local cache.
 Use with _davinci_ and _gpt-3.5+_ models.
 
@@ -1311,7 +1325,7 @@ with `option --github`.
 For Novita AI integration, set the environment variable `$NOVITA_API_KEY` and
 use the `--novita` option (**legacy**).
 
-Likewise, for xAI's Grok, set environment `$XAI_API_KEY` with its API key.
+Likewise, for xAI Grok, set environment `$XAI_API_KEY` with its API key.
 
 And for DeepSeek API, set environment `$DEEPSEEK_API_KEY` with its API key.
 
@@ -1557,7 +1571,7 @@ raw escape sequences (these must not change cursor position).
 User configuration is stored in **~/.chatgpt.conf**. Its path location
 can be set with envar **$CHATGPTRC**.
 
-The script's cache directory is **~/.cache/chatgptsh/** and
+The script cache directory is **~/.cache/chatgptsh/** and
 may contain the following file types:
 
 *   **Session Records (tsv):** Tab-separated value files storing session history.  The default session record is **chatgpt.tsv**.
@@ -1633,7 +1647,7 @@ API version 1. As text is the only universal interface, voice and image
 features will only be partially supported, and not all endpoints or
 options will be covered.
 
-This project _doesn't support_ "Function Calling", "Structured Outputs",
+This project _does not support_ "Function Calling", "Structured Outputs",
 "Real-Time Conversations", "Agents/Operators", "MCP Servers", nor "video generation / editing"
 capabilities.
 
@@ -1649,7 +1663,7 @@ Bash "read command" may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
 
-If readline screws up your currrent input buffer, try pressing \<_CTRL-L_>
+If readline screws up your current input buffer, try pressing \<_CTRL-L_>
 to force it to redisplay and refresh the prompt properly on screen.
 
 File paths containing spaces may not work correctly in the chat interface.

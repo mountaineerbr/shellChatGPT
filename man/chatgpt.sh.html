@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.113.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.114 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.113.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.114 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">August 2025</p>
 </header>
@@ -180,7 +180,7 @@
 STT / TTS</div>
 <h1 id="synopsis">SYNOPSIS</h1>
 <div class="line-block">   <strong>chatgpt.sh</strong>
-[<code>-cc</code>|<code>-dd</code>|<code>-qq</code>]
+[<code>-bb</code>|<code>-cc</code>|<code>-dd</code>|<code>-qq</code>]
 [<code>opt</code>..]
 [<em>PROMPT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
@@ -202,7 +202,7 @@ STT / TTS</div>
    <strong>chatgpt.sh</strong> <code>-z</code> [<code>opt</code>..]
 [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
 [<em>SPEED</em>] [<em>PROMPT</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-ccWwz</code> [<code>opt</code>..]
+   <strong>chatgpt.sh</strong> <code>-bccWwz</code> [<code>opt</code>..]
 -- [<em>PROMPT</em>] -- [<code>stt_arg</code>..] --
 [<code>tts_arg</code>..]<br />
    <strong>chatgpt.sh</strong> <code>-l</code> [<em>MODEL</em>]<br />
@@ -217,8 +217,8 @@ STT / TTS</div>
 TTS endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
 xAI, and DeepSeek APIs are supported.</p>
-<p>With no options set, complete INPUT in single-turn mode of the native
-chat completion.</p>
+<p>By default, the script runs in single-turn of chat completion mode,
+processing INPUT directly when no options are set.</p>
 <p>Handles single-turn and multi-turn modes, pure text and native chat
 completions, image generation and editing, speech-to-text, and
 text-to-speech models.</p>
@@ -322,7 +322,8 @@ all prompt files.</p>
 <dt><strong>-S</strong>, <strong>–awesome-zh</strong>
 <strong>%</strong>[<em>AWESOME_PROMPT_NAME_ZH</em>]</dt>
 <dd>
-<p>Set or search for an <em>awesome-chatgpt-prompt(-zh)</em>.</p>
+<p>Set or search for an
+<strong>awesome-chatgpt-prompt(-zh)</strong>.</p>
 <p>Set <strong>//</strong> or <strong>%%</strong> instead to refresh
 cache.</p>
 </dd>
@@ -528,7 +529,7 @@ Def=<em>echo</em>, <em>Aaliyah-PlayAI</em>.</p>
 <dd>
 <p>Print out last history session.</p>
 <p>Set twice to print commented out history entries, inclusive. Heeds
-<code>options -ccdrR</code>.</p>
+<code>options -bccdrR</code>.</p>
 <p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
 respectively.</p>
 </dd>
@@ -594,7 +595,7 @@ respectively.</p>
 </dd>
 <dt><strong>--xai</strong></dt>
 <dd>
-<p>xAI’s Grok integration (cmpls/chat).</p>
+<p>xAI Grok integration (cmpls/chat).</p>
 </dd>
 </dl>
 <h2 id="miscellaneous-settings">Miscellaneous Settings</h2>
@@ -648,9 +649,9 @@ respectively.</p>
 <dt><strong>-v</strong>, <strong>-vv</strong> <!-- verbose --></dt>
 <dd>
 <p>Less interface verbosity.</p>
-<p>Sleep after response in voice chat (<code>-vvccw</code>).</p>
-<p>With <code>options -ccwv</code>, sleep after response. With
-<code>options -ccwzvv</code>, stop recording voice input on silence
+<p>Sleep after response in voice chat (<code>-vvbccw</code>).</p>
+<p>With <code>options -bccwv</code>, sleep after response. With
+<code>options -bccwzvv</code>, stop recording voice input on silence
 detection and play TTS response right away.</p>
 <p>May be set multiple times.</p>
 </dd>
@@ -684,13 +685,15 @@ works with instruct models, defaults to <em>gpt-3.5-turbo-instruct</em>
 if none set.</p>
 <p>Set <code>options -cc</code> to start the chat mode via
 <strong>native chat completions</strong>. This mode defaults to the
-<em>gpt-4o</em> model, which is optimised to follow instructions. Try
-<em>chatgpt-4o-latest</em> for a model optimised for chatting.</p>
+<em>gpt-4o</em> model, which is optimised to follow instructions.
+<!-- Try _chatgpt-4o-latest_ for a model optimised for chatting. --></p>
+<p>On <code>options -bb</code>, the Responses API endpoint is set
+preferentially.</p>
 <p>In chat mode, some options are automatically set to un-lobotomise the
 bot.</p>
-<p>While using other providers, mind that <code>options -c</code> and
-<code>-cc</code> set different endpoints! This setting must be set
-according to the model capabilities!</p>
+<p>While using other providers, mind that <code>options -c</code>,
+<code>-cc</code>, and <code>-bb</code> set different endpoints! These
+options must be set according to the model capabilities!</p>
 <p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
 last history session, and set <code>option -E</code> to exit on the
 first response (even in multi turn mode).</p>
@@ -705,7 +708,7 @@ support, set command line <code>options -dd</code>.</p>
 <h1 id="insert-mode-fill-in-the-middle">INSERT MODE
 (Fill-In-the-Middle)</h1>
 <p>Set <code>option -q</code> for <strong>insert mode</strong> in
-single-turn and <code>option -qq</code> for multiturn. The flag
+single-turn and <code>option -qq</code> for multi-turn. The flag
 “<em>[insert]</em>” must be present in the middle of the input prompt.
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.</p>
@@ -713,8 +716,8 @@ flag, and ends completion with the succeeding text after the flag.</p>
 <h1 id="responses-api">RESPONSES API</h1>
 <p>Responses API is a superset of Chat Completions API. Set command line
 <code>option -b</code> (with <code>-cc</code>), or set
-<code>options -bb</code> for multiturn.</p>
-<p>To activate it during multiturn chat, set
+<code>options -bb</code> for multi-turn.</p>
+<p>To activate it during multi-turn chat, set
 <code>/responses [model]</code>, where <em>model</em> is the name of a
 model which works with the Responses API. Aliased to
 <code>/resp [model]</code> and <code>-b [model]</code>. This can be
@@ -726,8 +729,8 @@ or via envars <code>$INSTRUCTION</code> and
 <code>$INSTRUCTION_CHAT</code>.</p>
 <p><code>Option -S</code> sets an INSTRUCTION prompt (the initial
 prompt) for text cmpls, and chat cmpls. A text file path may be supplied
-as the single argument. Also see <em>CUSTOM / AWESOME PROMPTS</em>
-section below.</p>
+as the single argument. Also see <strong>CUSTOM / AWESOME
+PROMPTS</strong> section below.</p>
 <p>To create and reuse a custom prompt, set the prompt name as a command
 line option, such as “<code>-S .[_prompt_name_]</code>” or
 “<code>-S ,[_prompt_name_]</code>”.</p>
@@ -824,9 +827,10 @@ the model as the second positional argument.</p>
 <p>Set these options twice to have phrasal-level timestamps, options -ww
 and -WW. Set thrice for word-level timestamps.</p>
 <p>Combine <code>options -wW</code> <strong>with</strong>
-<code>options -cc</code> to start <strong>chat with voice input</strong>
-(Whisper) support. Additionally, set <code>option -z</code> to enable
-<strong>text-to-speech</strong> (TTS) models and voice out.</p>
+<code>options -bcc</code> to start <strong>chat with voice
+input</strong> (Whisper) support. Additionally, set
+<code>option -z</code> to enable <strong>text-to-speech</strong> (TTS)
+models and voice out.</p>
 <h1 id="text-to-voice-tts">TEXT-TO-VOICE (TTS)</h1>
 <p><code>Option -z</code> synthesises voice from text (TTS models). Set
 a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
@@ -867,7 +871,7 @@ and PROMPT. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
 transparency.</p>
 <p>The <strong>size of output images</strong> may be set as the first
 positional parameter in the command line:</p>
-<pre><code>gpt-imge: &quot;_1024x1024_&quot; (_L_, _Large_, _Square_), &quot;_1536x1024_&quot; (_X_, _Landscape_), or &quot;_1024x1536_&quot; (_P_, _Portrait_).
+<pre><code>gpt-image: &quot;_1024x1024_&quot; (_L_, _Large_, _Square_), &quot;_1536x1024_&quot; (_X_, _Landscape_), or &quot;_1024x1536_&quot; (_P_, _Portrait_).
 
 dall-e-3: &quot;_1024x1024_&quot; (_L_, _Large_, _Square_), &quot;_1792x1024_&quot; (_X_, _Landscape_), or &quot;_1024x1792_&quot; (_P_, _Portrait_).
 
@@ -922,17 +926,26 @@ cases.</p>
 <strong>restart sequence</strong> “<em>\nQ: </em>” and the <strong>start
 text</strong> “<em>\nA:</em>” are injected for the chat bot to work well
 with text cmpls.</p>
-<p>In multi-turn interactions, prompts prefixed with colons “<em>:</em>”
-are buffered to be prepended to the user prompt (<strong>USER
-MESSAGE</strong>) without incurring an API call. Conversely, prompts
-starting with double colons “<em>::</em>” are prepended to the
-instruction prompt (<strong>INSTRUCTION / SYSTEM MESSAGE</strong>).</p>
+<p>In multi-turn interactions, special prefixes allow prompt
+manipulation: * <strong><code>:</code></strong>_PROMPT_ - Prepends text
+to the current <strong>user prompt</strong> before sending. *
+<strong><code>::</code></strong>_PROMPT_ - Prepends text to the
+<strong>system instruction</strong> for the current turn. *
+<strong><code>:::</code></strong> - Re-injects the original system
+instruction into the request, useful for reinforcing instructions after
+long conversations.</p>
+<!--
+In multi-turn interactions, prompts prefixed with colon "_:_"
+are buffered to be prepended to the user prompt (**USER MESSAGE**)
+without incurring an API call. Conversely, prompts starting with double colons
+"_::_" are prepended to the instruction prompt (**INSTRUCTION / SYSTEM MESSAGE**).
+-->
 <p>Entering exactly triple colons “<em>:::</em>” reinjects a system
 instruction prompt into the current request. This is useful to reinforce
 the instruction when the model’s context has been truncated.</p>
 <h3 id="voice-input-stt-and-voice-output-tts">2.4 Voice input (STT), and
 voice output (TTS)</h3>
-<p>The <code>options -ccwz</code> may be combined to have voice
+<p>The <code>options -bccwz</code> may be combined to have voice
 recording input and synthesised voice output, specially nice with chat
 modes. When setting <code>flag -w</code> or <code>flag -z</code>, the
 first positional parameters are read as STT or TTS arguments. When
@@ -940,7 +953,7 @@ setting both <code>flags -wz</code>, add a double hyphen to set first
 STT, and then TTS arguments.</p>
 <p>Set chat mode, plus voice-in transcription language code and text
 prompt, and the TTS voice-out option argument:</p>
-<pre><code>chatgpt.sh -ccwz  en &#39;transcription prompt&#39;  --  nova</code></pre>
+<pre><code>chatgpt.sh -bccwz  en &#39;transcription prompt&#39;  --  nova</code></pre>
 <h3 id="vision-and-multimodal-models">2.5 Vision and Multimodal
 Models</h3>
 <p>To send an <em>image</em> or <em>url</em> to <strong>vision
@@ -970,14 +983,21 @@ Q: Help me study this paper. ~/Downloads/Prigogine\ Perspective\ on\ Nature.pdf<
 For <em>doc</em> and <em>odt</em> files, <code>LibreOffice</code> is
 required. See the <strong>Optional Packages</strong> section.</p>
 <p>Also note that <em>file paths</em> containing white spaces must be
-<strong>blackslash-escaped</strong>, or the <em>file path</em> must be
+<strong>backslash-escaped</strong>, or the <em>file path</em> must be
 preceded by a pipe `|’ character.</p>
 <p>Multiple images and audio files may be added to the request in this
 way!</p>
 <h1 id="command-list">COMMAND LIST</h1>
-<p>While in chat mode, the following commands can be invoked in the new
-prompt to change parameters and manage sessions. Command operators
-“<code>!</code>” or “<code>/</code>” are equivalent.</p>
+<p>While in chat mode, the following commands can be invoked to change
+parameters and manage sessions.</p>
+<ul>
+<li>Commands can start with either “<code>!</code>” or “<code>/</code>”
+and are <em>usually equivalent</em>.</li>
+<li>Commands with <strong>colon</strong> (<code>:</code>) add their
+output to the current prompt buffer.</li>
+<li>Commands with <strong>double dagger</strong> <code>‡</code> execute
+as as suffix command, see examples below.</li>
+</ul>
 <h2 id="command-tables">Command Tables</h2>
 <table>
 <thead>
@@ -1255,7 +1275,7 @@ flush.</td>
 <tr class="odd">
 <td style="text-align: left;"><code>!Nill</code></td>
 <td style="text-align: left;"><code>-Nill</code></td>
-<td>Unset max response tkns (chat cmpls).</td>
+<td>Unset max response tokens (chat cmpls).</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>!NUM</code></td>
@@ -1474,18 +1494,19 @@ entries.</td>
 </tr>
 </tbody>
 </table>
-<div class="line-block"><em>:</em> Commands with <em>colons</em> have
-their output added to the current prompt buffer.</div>
-<div class="line-block"><em>‡</em> Commands with <em>double dagger</em>
-may be invoked at the very end of the input prompt (preceded by
-space).</div>
+<div class="line-block"><em>:</em> Commands with <strong>colons</strong>
+add their output to the current prompt buffer.</div>
+<div class="line-block"><em>‡</em> <strong>Double daggers</strong>
+indicates suffix-commands, invoked at the end of the user prompt and
+preceded by space.</div>
 <hr />
 <p>Examples</p>
 <div class="line-block">  “<code>/temp</code> <em>0.7</em>”,
 “<code>!mod</code><em>gpt-4</em>”, “<code>-p</code> <em>0.2</em>”</div>
 <div class="line-block">  “<code>/session</code> <em>HIST_NAME</em>”,
 “[<em>PROMPT</em>] <code>/pick</code>”</div>
-<div class="line-block">  “[<em>PROMPT</em>] <code>/sh</code>”</div>
+<div class="line-block">  “[<em>PROMPT</em>] <code>/sh</code>”,
+“<em>Translate this to French</em> <code>/sh</code>”</div>
 <hr />
 <p>Some options can be disabled and excluded from the request by setting
 a “<em>-1</em>” as argument (bypass with “<em>-1.0</em>”)</p>
@@ -1499,13 +1520,13 @@ the new empty prompt. In order to edit the prompt before the request,
 try “<code>!!</code>” (or “<code>//</code>”).</p>
 <h2 id="shell-and-file-integration">Shell and File Integration</h2>
 <p>The “<code>/pick</code>” command opens a file picker (usually a
-command-line file manager). The selected file’s path will be appended to
+command-line file manager). The selected file path will be appended to
 the current prompt in editing mode.</p>
 <p>The “<code>/sh</code>” and “<code>/pick</code>” commands may be run
 when typed at the end of the current prompt, such as “[<em>PROMPT</em>]
 <code>/sh</code>”, which opens a new shell instance to execute commands
-interactively. The shell command dump or file path is appended to the
-current prompt.</p>
+interactively. Shell command or file dumps are appended to the current
+prompt.</p>
 <p>Any “<code>!CMD</code>” not matching a chat command is executed by
 the shell as an alias for “<code>!sh CMD</code>”. Note that this
 shortcut only works with operator exclamation mark.</p>
@@ -1536,7 +1557,7 @@ awesome prompts.</p>
 <p>On invocation, when the first positional argument to the script
 follows the syntax “<code>/</code>[<em>HIST_NAME</em>]”, the command
 “<code>/session</code>” is assumed (with
-<code>options -ccCdPP</code>).</p>
+<code>options -bccCdPP</code>).</p>
 <h2 id="resuming-and-copying-sessions">Resuming and Copying
 Sessions</h2>
 <p>To continue from an old session type in a dot “<code>.</code>” or
@@ -1613,9 +1634,9 @@ edit the prompt file, and then load it.</p>
 <p>When the argument to <code>option -S</code> starts with a backslash
 or a percent sign, such as “<code>-S</code>
 <code>/</code><em>linux_terminal</em>”, search for an
-<em>awesome-chatgpt-prompt(-zh)</em> (by Fatih KA and PlexPt). Set
-“<code>//</code>” or “<code>%%</code>” to refresh local cache. Use with
-<em>davinci</em> and <em>gpt-3.5+</em> models.</p>
+<strong>awesome-chatgpt-prompt(-zh)</strong> (by Fatih KA and PlexPt).
+Set “<code>//</code>” or “<code>%%</code>” to refresh local cache. Use
+with <em>davinci</em> and <em>gpt-3.5+</em> models.</p>
 <p>These options also set corresponding history files automatically.</p>
 <p>Please note and make sure to backup your important custom prompts!
 They are located at “<code>~/.cache/chatgptsh/</code>” with the
@@ -1716,7 +1737,7 @@ with <code>option --github</code>.</p>
 <p>For Novita AI integration, set the environment variable
 <code>$NOVITA_API_KEY</code> and use the <code>--novita</code> option
 (<strong>legacy</strong>).</p>
-<p>Likewise, for xAI’s Grok, set environment <code>$XAI_API_KEY</code>
+<p>Likewise, for xAI Grok, set environment <code>$XAI_API_KEY</code>
 with its API key.</p>
 <p>And for DeepSeek API, set environment <code>$DEEPSEEK_API_KEY</code>
 with its API key.</p>
@@ -1921,7 +1942,7 @@ escape sequences (these must not change cursor position).</p>
 FILES</h1>
 <p>User configuration is stored in <strong>~/.chatgpt.conf</strong>. Its
 path location can be set with envar <strong>$CHATGPTRC</strong>.</p>
-<p>The script’s cache directory is <strong>~/.cache/chatgptsh/</strong>
+<p>The script cache directory is <strong>~/.cache/chatgptsh/</strong>
 and may contain the following file types:</p>
 <ul>
 <li><strong>Session Records (tsv):</strong> Tab-separated value files
@@ -2002,9 +2023,9 @@ input (STT, Whisper)</li>
 API version 1. As text is the only universal interface, voice and image
 features will only be partially supported, and not all endpoints or
 options will be covered.</p>
-<p>This project <em>doesn’t support</em> “Function Calling”, “Structured
-Outputs”, “Real-Time Conversations”, “Agents/Operators”, “MCP Servers”,
-nor “video generation / editing” capabilities.</p>
+<p>This project <em>does not support</em> “Function Calling”,
+“Structured Outputs”, “Real-Time Conversations”, “Agents/Operators”,
+“MCP Servers”, nor “video generation / editing” capabilities.</p>
 <p>Support for “Responses API” is limited and experimental at this
 point.</p>
 <h1 id="bugs">BUGS</h1>
@@ -2014,7 +2035,7 @@ constraints.</p>
 <p>Bash “read command” may not correctly display input buffers larger
 than the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.</p>
-<p>If readline screws up your currrent input buffer, try pressing
+<p>If readline screws up your current input buffer, try pressing
 &lt;<em>CTRL-L</em>&gt; to force it to redisplay and refresh the prompt
 properly on screen.</p>
 <p>File paths containing spaces may not work correctly in the chat

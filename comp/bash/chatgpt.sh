@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.113.1
+# v0.114
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually

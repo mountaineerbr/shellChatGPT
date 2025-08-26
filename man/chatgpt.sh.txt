@@ -1,4 +1,4 @@
-CHATGPT.SH(1) v0.113.1 | General Commands Manual
+CHATGPT.SH(1) v0.114 | General Commands Manual
 mountaineerbr
 August 2025
 
@@ -8,7 +8,7 @@ NAME
 
 SYNOPSIS
 
-   chatgpt.sh [-cc|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
+   chatgpt.sh [-bb|-cc|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
    chatgpt.sh -i [opt..] [S|M|L][hd] [PROMPT] #dall-e-3
    chatgpt.sh -i [opt..] [X|L|P][high|medium|low] [PROMPT] #gpt-image
    chatgpt.sh -i [opt..] [X|L|P][high|medium|low] [PNG_FILE]
@@ -17,7 +17,7 @@ SYNOPSIS
    chatgpt.sh -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
    chatgpt.sh -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
    chatgpt.sh -z [opt..] [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
-   chatgpt.sh -ccWwz [opt..] -- [PROMPT] -- [stt_arg..] -- [tts_arg..]
+   chatgpt.sh -bccWwz [opt..] -- [PROMPT] -- [stt_arg..] -- [tts_arg..]
    chatgpt.sh -l [MODEL]
    chatgpt.sh -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
    chatgpt.sh -HPP [/HIST_NAME|.]
@@ -30,8 +30,8 @@ TTS endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
 xAI, and DeepSeek APIs are supported.
 
-With no options set, complete INPUT in single-turn mode of the native
-chat completion.
+By default, the script runs in single-turn of chat completion mode,
+processing INPUT directly when no options are set.
 
 Handles single-turn and multi-turn modes, pure text and native chat
 completions, image generation and editing, speech-to-text, and
@@ -314,7 +314,7 @@ Session and History Files
     Print out last history session.
 
     Set twice to print commented out history entries, inclusive. Heeds
-    options -ccdrR.
+    options -bccdrR.
 
     These are aliases to -HH and -HHH, respectively.
 
@@ -378,7 +378,7 @@ Service Providers
 
 --xai
 
-    xAI’s Grok integration (cmpls/chat).
+    xAI Grok integration (cmpls/chat).
 
 Miscellaneous Settings
 
@@ -427,11 +427,11 @@ Miscellaneous Settings
 
     Less interface verbosity.
 
-    Sleep after response in voice chat (-vvccw).
+    Sleep after response in voice chat (-vvbccw).
 
-    With options -ccwv, sleep after response. With options -ccwzvv, stop
-    recording voice input on silence detection and play TTS response
-    right away.
+    With options -bccwv, sleep after response. With options -bccwzvv,
+    stop recording voice input on silence detection and play TTS
+    response right away.
 
     May be set multiple times.
 
@@ -463,13 +463,16 @@ gpt-3.5-turbo-instruct if none set.
 
 Set options -cc to start the chat mode via native chat completions. This
 mode defaults to the gpt-4o model, which is optimised to follow
-instructions. Try chatgpt-4o-latest for a model optimised for chatting.
+instructions.
+
+On options -bb, the Responses API endpoint is set preferentially.
 
 In chat mode, some options are automatically set to un-lobotomise the
 bot.
 
-While using other providers, mind that options -c and -cc set different
-endpoints! This setting must be set according to the model capabilities!
+While using other providers, mind that options -c, -cc, and -bb set
+different endpoints! These options must be set according to the model
+capabilities!
 
 Set option -C to resume (continue from) last history session, and set
 option -E to exit on the first response (even in multi turn mode).
@@ -488,7 +491,7 @@ Set text completion models such as gpt-3.5-turbo-instruct.
 INSERT MODE (Fill-In-the-Middle)
 
 Set option -q for insert mode in single-turn and option -qq for
-multiturn. The flag “[insert]” must be present in the middle of the
+multi-turn. The flag “[insert]” must be present in the middle of the
 input prompt. Insert mode works completing between the end of the text
 preceding the flag, and ends completion with the succeeding text after
 the flag.
@@ -498,9 +501,9 @@ Insert mode works with `instruct’ and Mistral `code’ models.
 RESPONSES API
 
 Responses API is a superset of Chat Completions API. Set command line
-option -b (with -cc), or set options -bb for multiturn.
+option -b (with -cc), or set options -bb for multi-turn.
 
-To activate it during multiturn chat, set /responses [model], where
+To activate it during multi-turn chat, set /responses [model], where
 model is the name of a model which works with the Responses API. Aliased
 to /resp [model] and -b [model]. This can be toggled.
 
@@ -610,7 +613,7 @@ may be set to guide the model as the second positional argument.
 Set these options twice to have phrasal-level timestamps, options -ww
 and -WW. Set thrice for word-level timestamps.
 
-Combine options -wW with options -cc to start chat with voice input
+Combine options -wW with options -bcc to start chat with voice input
 (Whisper) support. Additionally, set option -z to enable text-to-speech
 (TTS) models and voice out.
 
@@ -657,7 +660,7 @@ not provided, IMAGE must have transparency.
 The size of output images may be set as the first positional parameter
 in the command line:
 
-    gpt-imge: "_1024x1024_" (_L_, _Large_, _Square_), "_1536x1024_" (_X_, _Landscape_), or "_1024x1536_" (_P_, _Portrait_).
+    gpt-image: "_1024x1024_" (_L_, _Large_, _Square_), "_1536x1024_" (_X_, _Landscape_), or "_1024x1536_" (_P_, _Portrait_).
 
     dall-e-3: "_1024x1024_" (_L_, _Large_, _Square_), "_1792x1024_" (_X_, _Landscape_), or "_1024x1792_" (_P_, _Portrait_).
 
@@ -721,11 +724,12 @@ The defaults chat format is “Q & A”. The restart sequence “\nQ: ” and
 the start text “\nA:” are injected for the chat bot to work well with
 text cmpls.
 
-In multi-turn interactions, prompts prefixed with colons “:” are
-buffered to be prepended to the user prompt (USER MESSAGE) without
-incurring an API call. Conversely, prompts starting with double colons
-“::” are prepended to the instruction prompt (INSTRUCTION / SYSTEM
-MESSAGE).
+In multi-turn interactions, special prefixes allow prompt
+manipulation: * :_PROMPT_ - Prepends text to the current user prompt
+before sending. * ::_PROMPT_ - Prepends text to the system instruction
+for the current turn. * ::: - Re-injects the original system instruction
+into the request, useful for reinforcing instructions after long
+conversations.
 
 Entering exactly triple colons “:::” reinjects a system instruction
 prompt into the current request. This is useful to reinforce the
@@ -733,7 +737,7 @@ instruction when the model’s context has been truncated.
 
 2.4 Voice input (STT), and voice output (TTS)
 
-The options -ccwz may be combined to have voice recording input and
+The options -bccwz may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes. When setting
 flag -w or flag -z, the first positional parameters are read as STT or
 TTS arguments. When setting both flags -wz, add a double hyphen to set
@@ -742,7 +746,7 @@ first STT, and then TTS arguments.
 Set chat mode, plus voice-in transcription language code and text
 prompt, and the TTS voice-out option argument:
 
-    chatgpt.sh -ccwz  en 'transcription prompt'  --  nova
+    chatgpt.sh -bccwz  en 'transcription prompt'  --  nova
 
 2.5 Vision and Multimodal Models
 
@@ -780,16 +784,22 @@ For PDF text dump support, poppler/abiword is required. For doc and odt
 files, LibreOffice is required. See the Optional Packages section.
 
 Also note that file paths containing white spaces must be
-blackslash-escaped, or the file path must be preceded by a pipe `|’
+backslash-escaped, or the file path must be preceded by a pipe `|’
 character.
 
 Multiple images and audio files may be added to the request in this way!
 
 COMMAND LIST
 
-While in chat mode, the following commands can be invoked in the new
-prompt to change parameters and manage sessions. Command operators “!”
-or “/” are equivalent.
+While in chat mode, the following commands can be invoked to change
+parameters and manage sessions.
+
+-   Commands can start with either “!” or “/” and are usually
+    equivalent.
+-   Commands with colon (:) add their output to the current prompt
+    buffer.
+-   Commands with double dagger ‡ execute as as suffix command, see
+    examples below.
 
 Command Tables
 
@@ -848,7 +858,7 @@ Command Tables
 
   Model     Settings              
   --------- --------------------- -----------------------------------------------------------
-  !Nill     -Nill                 Unset max response tkns (chat cmpls).
+  !Nill     -Nill                 Unset max response tokens (chat cmpls).
   !NUM      -M [NUM]              Maximum response tokens.
   !!NUM     -N [NUM]              Model token capacity.
   -a        !pre [VAL]            Presence penalty.
@@ -891,11 +901,10 @@ Command Tables
   !ls       !list [GLOB|.|pr|awe]          List history files with “glob” in name; Files: “.”; Prompts: “pr”; Awesome: “awe”.
   !grep     !sub [REGEX]                   Grep sessions and copy session to hist tail.
 
-: Commands with colons have their output added to the current prompt
-buffer.
+: Commands with colons add their output to the current prompt buffer.
 
-‡ Commands with double dagger may be invoked at the very end of the
-input prompt (preceded by space).
+‡ Double daggers indicates suffix-commands, invoked at the end of the
+user prompt and preceded by space.
 
 ------------------------------------------------------------------------
 
@@ -905,7 +914,7 @@ Examples
 
   “/session HIST_NAME”, “[PROMPT] /pick”
 
-  “[PROMPT] /sh”
+  “[PROMPT] /sh”, “Translate this to French /sh”
 
 ------------------------------------------------------------------------
 
@@ -925,13 +934,13 @@ edit the prompt before the request, try “!!” (or “//”).
 Shell and File Integration
 
 The “/pick” command opens a file picker (usually a command-line file
-manager). The selected file’s path will be appended to the current
-prompt in editing mode.
+manager). The selected file path will be appended to the current prompt
+in editing mode.
 
 The “/sh” and “/pick” commands may be run when typed at the end of the
 current prompt, such as “[PROMPT] /sh”, which opens a new shell instance
-to execute commands interactively. The shell command dump or file path
-is appended to the current prompt.
+to execute commands interactively. Shell command or file dumps are
+appended to the current prompt.
 
 Any “!CMD” not matching a chat command is executed by the shell as an
 alias for “!sh CMD”. Note that this shortcut only works with operator
@@ -968,7 +977,7 @@ file.
 
 On invocation, when the first positional argument to the script follows
 the syntax “/[HIST_NAME]”, the command “/session” is assumed (with
-options -ccCdPP).
+options -bccCdPP).
 
 Resuming and Copying Sessions
 
@@ -1127,7 +1136,7 @@ option --github.
 For Novita AI integration, set the environment variable $NOVITA_API_KEY
 and use the --novita option (legacy).
 
-Likewise, for xAI’s Grok, set environment $XAI_API_KEY with its API key.
+Likewise, for xAI Grok, set environment $XAI_API_KEY with its API key.
 
 And for DeepSeek API, set environment $DEEPSEEK_API_KEY with its API
 key.
@@ -1327,7 +1336,7 @@ CONFIGURATION AND CACHE FILES
 User configuration is stored in ~/.chatgpt.conf. Its path location can
 be set with envar $CHATGPTRC.
 
-The script’s cache directory is ~/.cache/chatgptsh/ and may contain the
+The script cache directory is ~/.cache/chatgptsh/ and may contain the
 following file types:
 
 -   Session Records (tsv): Tab-separated value files storing session
@@ -1406,7 +1415,7 @@ version 1. As text is the only universal interface, voice and image
 features will only be partially supported, and not all endpoints or
 options will be covered.
 
-This project doesn’t support “Function Calling”, “Structured Outputs”,
+This project does not support “Function Calling”, “Structured Outputs”,
 “Real-Time Conversations”, “Agents/Operators”, “MCP Servers”, nor “video
 generation / editing” capabilities.
 
@@ -1421,7 +1430,7 @@ Bash “read command” may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain
 unaffected. Use the text editor interface for big prompt editing.
 
-If readline screws up your currrent input buffer, try pressing <CTRL-L>
+If readline screws up your current input buffer, try pressing <CTRL-L>
 to force it to redisplay and refresh the prompt properly on screen.
 
 File paths containing spaces may not work correctly in the chat

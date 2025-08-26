@@ -1,7 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.113.1
+# v0.114
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
