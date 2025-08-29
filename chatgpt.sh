@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.114  aug/2025  by mountaineerbr  GPL+3
+# v0.114.1  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES; 
 
@@ -18,7 +18,7 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-gpt-4.1}"
+MOD_CHAT="${MOD_CHAT:-gpt-5}"
 # Image model
 MOD_IMAGE="${MOD_IMAGE:-gpt-image-1}"
 # Transcription model (STT)
@@ -954,7 +954,7 @@ function model_capf
 	gpt-[5-9]*) MODMAX=400000;;
 	gpt-[4-9].[1-9]*) MODMAX=1048576;;
 	ai21-jamba-1.5-*) MODMAX=262144;;
-	codestral-2501|grok-[4-9]*) MODMAX=256000;;
+	codestral-2501|grok-[4-9]*|grok-code*) MODMAX=256000;;
 	o1|o1-mini|o3|o3-mini|o4-mini) MODMAX=200000;;
 	phi-4-mini*|phi-4-multimodal*|gpt-oss*|\
 	mistral-small-2503|mistral-medium-2505|mistral-large-2411|\
@@ -978,7 +978,7 @@ function model_capf
 	#ollama and localai models vary too widely
 	model=${1##*/};
 	case "${model##ft:}" in
-		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*|grok-[4-9]*)
+		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*|grok-[4-9]*|grok-code*)
 			MODMAX=256000;;
 		open-mixtral-8x22b|text-davinci-002-render-sha|*-64k*)
 			MODMAX=64000;;
@@ -2593,9 +2593,9 @@ function cmdf
 			;;
 		effort*|budget*|think*)
 			set -- "${*##@(effort|budget|think)$SPC}"
-			if [[ $REASON_EFFORT != *[!$IFS]* ]]
+			if [[ ${*} != *[!$IFS]* ]]
 			then 	REASON_EFFORT="medium";
-				((ANTHROPICAI)) && REASON_EFFORT=16000;
+				((ANTHROPICAI+GOOGLEAI)) && REASON_EFFORT=16000;
 			else 	REASON_EFFORT="${*}";
 			fi;
 			cmdmsgf 'Reasoning Effort:' "${REASON_EFFORT:-unset}";
@@ -7703,7 +7703,7 @@ else
 					REPLY_OLD="$TRIM";;
 			esac;
 		fi
-		((${#1}+${#2}+${#3}+${#4}+${#5}+${#6}+${#7}+${#8}>512)) ||
+		((${#1}+${#2}+${#3}+${#4}+${#5}+${#6}+${#7}+${#8}>8192)) ||
 		    shell_histf "$*";
 	fi
 
@@ -7783,6 +7783,7 @@ else
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(${PREPEND:+NOT_}EMPTY)}" | tail -n $((LINES-2))
+						((${#REPLY}+${#PREPEND})) || read_charf -t 3 >/dev/null 2>&1;
 					do
 					((!BAD_RES)) && {
 					((OPTV||OPTEXIT>1)) || [[ $REPLY = :* ]] \

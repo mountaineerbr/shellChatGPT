@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: August 2025
-title: CHATGPT.SH(1) v0.114 \| General Commands Manual
+title: CHATGPT.SH(1) v0.114.1 \| General Commands Manual
 ---
 
 # NAME
@@ -221,7 +221,7 @@ Top_k value (local-ai, ollama, google).
 How long the model will stay loaded into memory (Ollama).
 
 **-m**, **--model** \[*MODEL*\]  
-Language *MODEL* name. Def=*gpt-3.5-turbo-instruct*/*gpt-4o*.
+Language *MODEL* name. Def=*gpt-5*/*gpt-3.5-turbo-instruct*.
 
 Set *MODEL* name as “*.*” to pick from the list.
 
@@ -393,7 +393,7 @@ with history support. This option works with instruct models, defaults
 to *gpt-3.5-turbo-instruct* if none set.
 
 Set `options -cc` to start the chat mode via **native chat
-completions**. This mode defaults to the *gpt-4o* model, which is
+completions**. This mode defaults to the *gpt-5* model, which is
 optimised to follow instructions.
 <!-- Try _chatgpt-4o-latest_ for a model optimised for chatting. -->
 
@@ -867,7 +867,7 @@ the user prompt and preceded by space.
 
 Examples
 
-  “`/temp` *0.7*”, “`!mod`*gpt-4*”, “`-p` *0.2*”
+  “`/temp` *0.7*”, “`!mod`*gpt-5*”, “`-p` *0.2*”
 
   “`/session` *HIST_NAME*”, “\[*PROMPT*\] `/pick`”
 

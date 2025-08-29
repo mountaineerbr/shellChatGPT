@@ -1806,6 +1806,3 @@ Values  : 118+8 functions (one-liner functions not computed)
 [![Star History Chart](https://api.star-history.com/svg?repos=mountaineerbr/shellChatGPT&type=Date)](https://star-history.com/#mountaineerbr/shellChatGPT&Date)
 -->
 
-<!-- Estimated value of the project if commissioned: ~$1500 over one year (2023-2024).
--->
-

@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.114 | General Commands Manual
+% CHATGPT.SH(1) v0.114.1 | General Commands Manual
 % mountaineerbr
 % August 2025
 
@@ -280,7 +280,7 @@ before the text prompt itself.
 
 **-m**, **\--model**   \[_MODEL_]
 
-:     Language _MODEL_ name. Def=_gpt-3.5-turbo-instruct_/_gpt-4o_.
+:     Language _MODEL_ name. Def=_gpt-5_/_gpt-3.5-turbo-instruct_.
 
       Set _MODEL_ name as "_._" to pick from the list.
 
@@ -540,7 +540,7 @@ with history support. This option works with instruct models,
 defaults to _gpt-3.5-turbo-instruct_ if none set.
 
 Set `options -cc` to start the chat mode via **native chat completions**.
-This mode defaults to the _gpt-4o_ model, which is optimised to follow
+This mode defaults to the _gpt-5_ model, which is optimised to follow
 instructions. <!-- Try _chatgpt-4o-latest_ for a model optimised for chatting. -->
 
 On `options -bb`, the Responses API endpoint is set preferentially.
@@ -1027,7 +1027,7 @@ to change parameters and manage sessions.
 
 Examples
 
-|   "`/temp` _0.7_",  "`!mod`_gpt-4_",  "`-p` _0.2_"
+|   "`/temp` _0.7_",  "`!mod`_gpt-5_",  "`-p` _0.2_"
 
 |   "`/session` _HIST_NAME_",  "\[_PROMPT_] `/pick`"
 
