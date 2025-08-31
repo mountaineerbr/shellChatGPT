@@ -14,7 +14,7 @@ Markdown processing on response is triggered automatically for some time now!
 ![Chat with Markdown rendering](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_md.gif)
 
 Markdown rendering of chat response (_optional_).
-</details>
+</details> 
 
 <details>
   <summary>Expand Text Completions</summary>
@@ -212,7 +212,7 @@ and make it executable:
 
     #save configuration template:
     chatgpt.sh -FF  >> ~/.chatgpt.conf
-    
+
     #edit:
     chatgpt.sh -F
 
@@ -291,7 +291,7 @@ Start a new session in chat mode, and set a different temperature:
 Change the **maximum response length** to 4k tokens:
 
     chatgpt.sh -cc -4000
-    
+
     chatgpt.sh -cc -M 4000
 
 
@@ -319,11 +319,11 @@ The command line syntaxes below are all aliases:
 
 
     chatgpt.sh -cc .unix
-    
+
     chatgpt.sh -cc.unix
-    
+
     chatgpt.sh -cc -.unix
-    
+
     chatgpt.sh -cc -S .unix
 
 **NOTE:**  In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "_unix.tsv_" file at the cache directory.
@@ -332,7 +332,7 @@ To **change the history file** in which the session will be recorded,
 set the first positional argument in the command line with the operator forward slash "`/`"
 and the name of the history file (this executes the `/session` command).
 
-    
+
     chatgpt.sh -cc /test
 
     chatgpt.sh -cc /stest
@@ -440,7 +440,7 @@ Alternatively, set the image paths / URLs at the end of the prompt:
 
     [...]
     Q: !img  https://i.imgur.com/wpXKyRo.jpeg
-    
+
     Q: What can you see?  https://i.imgur.com/wpXKyRo.jpeg
 
 
@@ -559,9 +559,9 @@ To complete text from the command line input prompt, either
 set `option -d` or set a text completion model name.
 
     chatgpt.sh -128 -m gpt-3.5-turbo-instruct "Hello there! Your name is"
-    
+
     chatgpt.sh -128 -d "The journalist loo"
- 
+
 The above examples also set maximum response value to 128 tokens.
 
 Enter single-turn interactive mode:
@@ -575,7 +575,7 @@ Enter single-turn interactive mode:
 A strong Instruction prompt may be needed for the language model to do what is required.
 
 Set an instruction prompt for better results:
-    
+
     chatgpt.sh -d -S 'The following is a newspaper article.' "It all starts when FBI agents arrived at the governor house and"
 
     chatgpt.sh -d -S'You are an AI assistant.'  "The list below contain the 10 biggest cities in the w"
@@ -683,7 +683,7 @@ Translations are available for the languages: `en`, `pt`, `es`, `it`,
 To run the script with the Hindi prompt, for example, the user may execute:
 
     chatgpt.sh -cc .hi
-    
+
     LANG=hi_IN.UTF-8 chatgpt.sh -cc
 
 
@@ -732,7 +732,7 @@ or [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompt
 (use with davinci and gpt-3.5+ models):
 
     chatgpt.sh -cc -S /linux_terminal
-    
+
     chatgpt.sh -cc -S /Relationship_Coach 
 
     chatgpt.sh -cc -S '%担任雅思写作考官'
@@ -1108,7 +1108,7 @@ Or edit the configuration with a command line option.
 And set the following variable:
 
     # ~/.chatgpt.conf
-    
+
     OPENAI_BASE_URL="http://127.0.0.1:8080/v1"
 
 
@@ -1157,7 +1157,7 @@ If Ollama server URL is not the default `http://localhost:11434`,
 edit `chatgpt.sh` configuration file, and set the following variable:
 
     # ~/.chatgpt.conf
-    
+
     OLLAMA_BASE_URL="http://192.168.0.3:11434"
 
 
@@ -1432,11 +1432,11 @@ This PKGBUILD generates the package `chatgpt.sh-git`.
 Below is an installation example with just the PKGBUILD.
 
     cd $(mktemp -d)
-    
+
     wget https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/pkg/PKGBUILD
-     
+
     makepkg
-        
+
     pacman -U chatgpt.sh-git*.pkg.tar.zst
 
 -->
@@ -1484,11 +1484,11 @@ Under Termux, make sure to have your system updated and installed with
 `python`, `rust`, and `rustc-dev` packages for building `tiktoken`.
 
     pkg update
-    
+
     pkg upgrade
-    
+
     pkg install python rust rustc-dev
-    
+
     pip install tiktoken
 
 
@@ -1519,7 +1519,7 @@ In order to set Termux access to recording the microphone and playing audio
 **C.** To create a new user `~/.config/pulse/default.pa`, you may start with the following template:
 
     #!/usr/bin/pulseaudio -nF
-     
+
     .include /data/data/com.termux/files/usr/etc/pulse/default.pa
     load-module module-sles-source
 

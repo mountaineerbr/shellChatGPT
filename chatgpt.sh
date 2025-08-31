@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.114.2  aug/2025  by mountaineerbr  GPL+3
+# v0.114.3  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES; 
 
@@ -2974,6 +2974,13 @@ function cmdf
 			then 	set +x;
 			else 	set -x;
 			fi
+			;;
+		-eex|-ex|-eexx|-exx|\
+		editor*last|ed*last|vim*last|vi*last|\
+		[/!]editor*last|[/!]ed*last|[/!]vim*last|[/!]vi*last)
+			#edit last text editor buffer
+			((!OPTX)) && cmdmsgf 'Text Editor' 'one-shot'
+			((OPTX)) || OPTX=2; OPTE=2 xskip=1
 			;;
 		-xx|[/!]editor|[/!]ed|[/!]vim|[/!]vi)
 			((!OPTX)) && cmdmsgf 'Text Editor' 'one-shot'
