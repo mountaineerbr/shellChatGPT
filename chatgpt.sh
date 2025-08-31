@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.114.1  aug/2025  by mountaineerbr  GPL+3
+# v0.114.2  aug/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES; 
 
@@ -2594,8 +2594,12 @@ function cmdf
 		effort*|budget*|think*)
 			set -- "${*##@(effort|budget|think)$SPC}"
 			if [[ ${*} != *[!$IFS]* ]]
-			then 	REASON_EFFORT="medium";
-				((ANTHROPICAI+GOOGLEAI)) && REASON_EFFORT=16000;
+			then 	if ((${#REASON_EFFORT}))
+				then 	REASON_EFFORT=;
+				elif ((ANTHROPICAI+GOOGLEAI))
+				then 	REASON_EFFORT=16000;
+				else 	REASON_EFFORT="medium";
+				fi
 			else 	REASON_EFFORT="${*}";
 			fi;
 			cmdmsgf 'Reasoning Effort:' "${REASON_EFFORT:-unset}";
@@ -3158,7 +3162,7 @@ function cmdf
 			printf "${NC}${BWHITE}%-13s:${NC} %-5s\\n" \
 			$hurl          $hurlv \
 			api-path      "${BASE_URL}${ENDPOINTS[EPN]}" \
-			model-name    "${MOD:-?}${modmodal}${REASON_EFFORT:+ / $REASON_EFFORT}" \
+			model-name    "${MOD:-?}${modmodal}${REASON_EFFORT:+ / $REASON_EFFORT}${VERBOSITY:+ / $VERBOSITY}" \
 			model-cap     "${MODMAX:-?}" \
 			response-max  "$( ((OPTMAX_NILL)) && echo "inf" || echo "${OPTMAX:-?}")" \
 			${REASON_EFFORT:+reason-effort    "$REASON_EFFORT"} \
@@ -7783,7 +7787,6 @@ else
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(${PREPEND:+NOT_}EMPTY)}" | tail -n $((LINES-2))
-						((${#REPLY}+${#PREPEND})) || read_charf -t 3 >/dev/null 2>&1;
 					do
 					((!BAD_RES)) && {
 					((OPTV||OPTEXIT>1)) || [[ $REPLY = :* ]] \
@@ -7802,6 +7805,7 @@ else
 								((OPTW)) || cmdf -ww;
 								set --; break;;  #whisper append (hidden option)
 							0) 	XSKIP=1;
+								((${#REPLY}+${#PREPEND})) || OPTX=;
 								set -- "$REPLY"; break;  #IPC#
 								trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
 							*) 	((OPTX>1)) && OPTX=;
