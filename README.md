@@ -14,7 +14,7 @@ Markdown processing on response is triggered automatically for some time now!
 ![Chat with Markdown rendering](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_md.gif)
 
 Markdown rendering of chat response (_optional_).
-</details> 
+</details>
 
 <details>
   <summary>Expand Text Completions</summary>

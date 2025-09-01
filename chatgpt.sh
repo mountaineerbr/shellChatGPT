@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.114.3  aug/2025  by mountaineerbr  GPL+3
+# v0.115  sep/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES; 
 
@@ -166,7 +166,7 @@ Cyan='\u001b[0;36m'    BCyan='\u001b[1;36m'    On_Cyan='\u001b[46m'   \
 White='\u001b[0;37m'   BWhite='\u001b[1;37m'   On_White='\u001b[47m'  \
 Inv='\u001b[0;7m'      Nc='\u001b[m'           Alert=$BWhite$On_Red   \
 Bold='\u001b[0;1m';
-HISTSIZE=512;
+HISTSIZE=256;
 
 # Load user defaults
 ((${#CHATGPTRC})) || CHATGPTRC="$HOME/.chatgpt.conf"
@@ -6033,10 +6033,12 @@ function set_termuxpulsef
 #append to shell hist list
 function shell_histf
 {
-	((${#1} < 8192)) || return
+	((${#1} < 16384)) || return
 	[[ ${1:0:320} = *[!$IFS]* ]] || return
-	history -s -- "${1:0:8192}"
+	history -s -- "${1:0:16384}"
 }
+#input: 16384 chars  ~4726 tokens
+#max file size: (256*(2^14))/(1024^2) = 4 Mb  ~1,210,000 tokens
 #we must avoid cluttering the shell history file with very long entries
 #which will eventually corrupt the history file or make it sluggish to load.
 #history file must start with a timestamp (# plus Unix timestamp) or else
@@ -7714,7 +7716,7 @@ else
 					REPLY_OLD="$TRIM";;
 			esac;
 		fi
-		((${#1}+${#2}+${#3}+${#4}+${#5}+${#6}+${#7}+${#8}>8192)) ||
+		((${#1}+${#2}+${#3}+${#4}+${#5}+${#6}+${#7}+${#8}>16384)) ||
 		    shell_histf "$*";
 	fi
 
