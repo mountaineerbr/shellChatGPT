@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.115 | General Commands Manual
+% CHATGPT.SH(1) v0.116 | General Commands Manual
 % mountaineerbr
 % September 2025
 
@@ -364,6 +364,10 @@ before the text prompt itself.
       Heeds `options -bccdrR`.
 
       These are aliases to **-HH** and **-HHH**, respectively.
+
+**\--tmp**
+ 
+: Temporary cache location. Defaults to subdirectory in `$CACHEDIR`, `$TMPDIR`, or `/tmp`.
 
 
 ## Configuration File
@@ -1015,6 +1019,7 @@ to change parameters and manage sessions.
      `!br`         `!break`, `!new`                          Start new session (session break).
      `!ls`         `!list`      \[_GLOB_|_._|_pr_|_awe_]     List history files with "_glob_" in _name_; Files: "_._"; Prompts: "_pr_"; Awesome: "_awe_".
    `!grep`         `!sub`       \[_REGEX_]                   Grep sessions and copy session to hist tail.
+    `!tmp`         `!!tmp`                                   Fork session to a temporary cache.
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
 
 

@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: September 2025
-title: CHATGPT.SH(1) v0.115 \| General Commands Manual
+title: CHATGPT.SH(1) v0.116 \| General Commands Manual
 ---
 
 # NAME
@@ -278,6 +278,10 @@ Set twice to print commented out history entries, inclusive. Heeds
 `options -bccdrR`.
 
 These are aliases to **-HH** and **-HHH**, respectively.
+
+**--tmp**  
+Temporary cache location. Defaults to subdirectory in `$CACHEDIR`,
+`$TMPDIR`, or `/tmp`.
 
 ## Configuration File
 
@@ -856,6 +860,7 @@ parameters and manage sessions.
 | `!br`   | `!break`, `!new`                       | Start new session (session break).                                                           |
 | `!ls`   | `!list` \[*GLOB*\|*.*\|*pr*\|*awe*\]   | List history files with “*glob*” in *name*; Files: “*.*”; Prompts: “*pr*”; Awesome: “*awe*”. |
 | `!grep` | `!sub` \[*REGEX*\]                     | Grep sessions and copy session to hist tail.                                                 |
+| `!tmp`  | `!!tmp`                                | Fork session to a temporary cache.                                                           |
 
 *:* Commands with **colons** add their output to the current prompt
 buffer.

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.115 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.116 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.115 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.116 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">September 2025</p>
 </header>
@@ -532,6 +532,11 @@ Def=<em>echo</em>, <em>Aaliyah-PlayAI</em>.</p>
 <code>options -bccdrR</code>.</p>
 <p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
 respectively.</p>
+</dd>
+<dt><strong>--tmp</strong></dt>
+<dd>
+<p>Temporary cache location. Defaults to subdirectory in
+<code>$CACHEDIR</code>, <code>$TMPDIR</code>, or <code>/tmp</code>.</p>
 </dd>
 </dl>
 <h2 id="configuration-file">Configuration File</h2>
@@ -1491,6 +1496,11 @@ entries.</td>
 <td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
 <td>Grep sessions and copy session to hist tail.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>!tmp</code></td>
+<td style="text-align: left;"><code>!!tmp</code></td>
+<td>Fork session to a temporary cache.</td>
 </tr>
 </tbody>
 </table>

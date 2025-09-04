@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.115  sep/2025  by mountaineerbr  GPL+3
+# v0.116  sep/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
-((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES; 
+((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
 # API keys
 #OPENAI_API_KEY=
@@ -173,6 +173,7 @@ HISTSIZE=256;
 [[ -f "${OPTF}${CHATGPTRC}" ]] && . "$CHATGPTRC";
 
 # Set file paths
+function set_pathsf {
 FILE="${CACHEDIR%/}/chatgpt.json"
 FILESTREAM="${CACHEDIR%/}/chatgpt_stream.json"
 FILECHAT="${FILECHAT:-${CACHEDIR%/}/chatgpt.tsv}"
@@ -190,6 +191,9 @@ USRLOG="${OUTDIR%/}/${FILETXT##*/}"
 HISTFILE="${CACHEDIR%/}/history_bash"
 HISTCONTROL=erasedups:ignoredups
 SAVEHIST=$HISTSIZE HISTTIMEFORMAT='%F %T '
+
+}
+set_pathsf;
 
 # API URL / endpoint
 OPENAI_BASE_URL_DEF="https://api.openai.com/v1";
@@ -537,7 +541,8 @@ Command List
      !br      !break, !new      Start new session (session break).
      !ls      !list    [GLOB]   List session/history files with glob in name;
                                 Files: \`.'; Prompts: \`pr'; Awesome: \`awe'.
-     !grep    !sub    [REGEX]   Search sessions and copy to tail.
+    !grep     !sub    [REGEX]   Search sessions and copy to tail.
+     !tmp    !!tmp              Fork session to a temporary cache.
    -------   ----------------   -----------------------------------------
 
       : Commands with colons add their output to the current prompt buffer.
@@ -647,6 +652,7 @@ Options
 	-P, -PP, --print  [/HIST_NAME]    (aliases to -HH and -HHH)
 		Print out last history session. Set twice to print
 		commented out entries, too. Heeds -bccdrR.
+	--tmp 	Temporary cache (defaults to \`\$CACHEDIR' or \`\$TMPDIR').
 
 	Input Modes
 	-u, --multiline
@@ -802,7 +808,7 @@ function set_model_epnf
 
 	#responses-api exclusive models
 	if ((OPENAI)) && case "$1" in
-		o[1-9]*-pro*|*-deep-research*|computer-use*|codex-mini*|codex-mini*|codex*)
+		o[1-9]*-pro*|*-deep-research*|computer-use*|codex-mini*|codex*)
 			:;;
 		*) 	((RESPONSES_API));
 			;;
@@ -1032,7 +1038,7 @@ function model_capf
 		cohere-embed-v3-*) 	MODMAX=1000;;
 		*embedding-gecko*) 	MODMAX=3072;;
 		*) 	MODMAX=8192;
-			((OPTV>200)) || OPTV=201 NOVITAAI=1 MISTRALAI=1 GROQAI=1 GOOGLEAI=1 GITHUBAI=1 model_capf "${model##ft:}";  #IPC#
+			((OPTV==99)) || OPTV=99 NOVITAAI=1 MISTRALAI=1 GROQAI=1 GOOGLEAI=1 GITHUBAI=1 model_capf "${model##ft:}";  #IPC#
 			;;
 	esac
 }
@@ -1227,7 +1233,7 @@ function _printbf { 	printf "%s${1//?/\\b}" "${1}" >&2; };
 function hellof
 {
   typeset fg bg;
-  
+
   ((OPTK)) ||
   while
     fg=${SGR_FG_COLORS[RANDOM % ${#SGR_FG_COLORS[@]}]}
@@ -1235,7 +1241,7 @@ function hellof
     [[ ${bg} = *${fg:1} ]]
   do  :;
   done;
-  
+
   printf "\\e[%s;%s;%sm%s\\e[0m${1-\\n}" \
     "${SGR_ATTRS[RANDOM % ${#SGR_ATTRS[@]}]}" \
     "$fg" "$bg" "${MSG[${RANDOM} % ${#MSG[@]}]:${2:-0}}";
@@ -1324,8 +1330,8 @@ function new_prompt_confirmf
 		[WAPp]) return 195;;  #whisper append
 		[HhTt]) return 194;;  #whisper retry request
 		[NnOo]) REC_OUT=; return 1;;  #no
-		[-/!]) 	echo >&2;
-			OPTCTRD= read_mainf -i "$REPLY" REPLY </dev/tty; echo >&2;
+		[-/!]) 	echo $'\ncommand:' >&2;
+			OPTCTRD= readf -i "$REPLY" REPLY </dev/tty; echo >&2;
 			rcmdf "$REPLY"; echo >&2;
 			new_prompt_confirmf "$@";;
 	esac  #yes
@@ -1342,9 +1348,9 @@ function read_charf
 	return $ret
 }
 
-#main user input read
-#usage: read_mainf [read_opt].. VARIABLE_NAME
-function read_mainf
+#main user input read command
+#usage: readf [read_opt].. VARIABLE_NAME
+function readf
 {
 	IFS= read -r -e -d $'\r' ${OPTCTRD:+-d $'\04'} "$@"
 }
@@ -1464,7 +1470,7 @@ function prompt_pf
 			(select(.type == "response.reasoning_summary_part.added" and .summary_index > 0) | "\n\n"),
 			(select(.type == "response.reasoning_summary_text.delta") | .delta),
 			(select(.type == "response.reasoning_summary_text.done") | "\n</summary>\n\n"),
-			
+
 			(select(.type == "response.output_text.delta") | .delta)' "$@";
 		else
 			set -- '.output[] | if .type == "reasoning" then
@@ -2457,10 +2463,21 @@ function _set_browsercmdf
 	esac;
 }
 
+#set temporary cache directory
+function set_tmpf
+{
+	CACHEDIR=$(TMPDIR=${CACHEDIR:-${TMPDIR:-/tmp}} mktemp -d) ||
+	CACHEDIR=$(mktemp -d) || return;
+	[[ -s "$FILETXT" ]] && cp -- "$FILETXT" "$CACHEDIR";
+	OUTDIR="$CACHEDIR" FILECHAT=;
+	set_pathsf;  #reset file paths!
+}
+#umask 077
+
 #check input and run a chat command
 function cmdf
 {
-	typeset append filein fileinq outdir ans out var wc xskip pid m n
+	typeset append filein fileinq outdir ans buff out var wc xskip pid m n
 	typeset -a argv args arr;
 	((${#HARGS})) || typeset HARGS;
 	((CMD_ENV)) && typeset SKIP_SH_HIST=1; typeset CMD_ENV=${CMD_ENV:-1};
@@ -2567,12 +2584,12 @@ function cmdf
 			cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		break|br|new)
-			if ((OPTV>99))
+			if ((OPTV==100))
 			then 	BREAK_SET=1;
 			else 	break_sessionf;
 			fi;
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
-			  ((OPTV>99)) || _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
+			  ((OPTV==100)) || _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-${INSTRUCTION:-$GINSTRUCTION}} GINSTRUCTION_PERM=${GINSTRUCTION:-$GINSTRUCTION_PERM} INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; xskip=1;
@@ -2584,7 +2601,7 @@ function cmdf
 			trim_lf "$*" "@(block|blk)$SPC"
 			set -- "$TRIM"
 			_printbf '>';
-			read_mainf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR </dev/tty;
+			readf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR </dev/tty;
 			((${#BLOCK_USR})) && {
 				trim_rf "$BLOCK_USR" $',*([\n\t ])';
 				BLOCK_USR="$TRIM";
@@ -2632,7 +2649,7 @@ function cmdf
 		-H[0-9\ ]*|H[0-9\ ]*|history[0-9\ ]*|hist[0-9\ ]*)
 			set -- "${*##@(-H|H|history|hist)*(\ )}";
 			tail -n ${1:-8} "$FILECHAT" | sed $'s/\t/ /g' | cut -c1-$COLUMNS | grep --color=auto -e $'^[#0-9:T\t\ -]*' -e '^' ||
-			{ 	((CMD_ENV>200)) || CMD_ENV=201 cmdf -H 10; return ;}  #fallback
+			{ 	((CMD_ENV==200)) || CMD_ENV=200 cmdf -H 10; return ;}  #fallback
 			;;
 		-HH|-HHH*|HH|HHH*)
 			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
@@ -3089,7 +3106,7 @@ function cmdf
 
 			#set 'kill' flag for kill actions, otherwise assume unkill
 			case "$*" in [/!]k*|k*) kill=1;; esac;
-			
+
 			[[ $n = *[!0-9${IFS}]* ]] && {
 				_warmsgf 'Kill:' "Bad argument -- $n"; echo >&2;
 				return 0;
@@ -3333,7 +3350,7 @@ function cmdf
 				var=$(trap "-" INT; bash --norc --noprofile ${@:+-c} "${@}" </dev/tty | tee >(cat >&2) );
 				RET=$?; ((RET)) && _warmsgf "ret code:" "$RET";
 				trap "exit" INT;
-				
+
 				((BROWSER_FIX)) &&
 				if ((!${#var})) ||  #w3m bug
 					[[ ${var:0:64} = 'gzip: stdin: not in gzip format' ]]
@@ -3350,12 +3367,12 @@ function cmdf
 		for ((m=1;m<2;++m))
 		do
 				_sysmsgf 'Edit buffer?' '[N]o, [y]es, te[x]t editor, [s]hell, [r]edo, [d]iscard, or [/]cmd ' ''
-				((OPTV>2||OPTEXIT>1||CMD_ENV>200)) && { 	printf '%s\n' 'n' >&2; break 2 ;}
+				((OPTV>2||OPTEXIT>1||CMD_ENV==201)) && { 	printf '%s\n' 'n' >&2; break 2 ;}
 
 				ans="$(NO_CLR=1 read_charf)";
 				case "$ans" in
-					[-/!]) 	echo >&2;
-						OPTCTRD= read_mainf -i "$ans" ans </dev/tty; echo >&2;
+					[-/!]) 	echo $'\ncommand:' >&2;
+						OPTCTRD= readf -i "$ans" ans </dev/tty; echo >&2;
 						rcmdf "$ans";
 						m=0; continue 1;;
 					[Q]) 	RET=202; exit 202;;  #exit
@@ -3385,11 +3402,23 @@ function cmdf
 			((SKIP_SH_HIST)) || shell_histf "!${HARGS[*]:-${args[*]}}"; SKIP_SH_HIST=1;
 			#((RET==200||RET==201)) || REPLY_CMD_BLOCK=1;
 			;;
+		tmp|[/!]tmp)  #temporary cache
+			var=$FILECHAT buff=$CACHEDIR;
+			CACHEDIR=${CACHEDIR%%/tmp.*};
+			[[ $* = [/!]* ]] && CACHEDIR=;
+			if set_tmpf
+			then 	OPTV=98 FILECHAT=$var sessionf /fork "$FILECHAT"
+				_cmdmsgf 'Temp Dir:' "${CACHEDIR/"$HOME"/\~}";
+			else
+				FILECHAT=$var CACHEDIR=$buff;
+				_warmsgf 'Err:' "Cannot create temporary cache directory";
+			fi
+			;;
 		[/!]session*|session*|list*|copy*|cp\ *|fork*|sub*|grep*|\
 		[/!][Ss]*|[Ss]*|[/!][cf]\ *|[cf]\ *|ls*|.)
 			echo Session and History >&2;
 			[[ $* = . ]] && args=('fork current');
-			session_mainf /"${args[@]}"
+			sessionf /"${args[@]}"
 			;;
 		photo*)
 			trim_lf "$*" "photo$SPC";
@@ -3625,7 +3654,7 @@ function cmdf
 			#one-letter command combo?
 			#preempted: -cc -DD -dd -HH* -vv* -VV -xx -wz -zw -ZZ*  #2025-08-03
 			#available: MNaACcDdGghHPJjKLlmnpbRrs:Sto-qvVxYyWwZzukiFUuprgq
-			elif ((CMD_ENV<211)) && ((${#argv[0]}<32)) &&
+			elif ((CMD_ENV!=211)) && ((${#argv[0]}<32)) &&
 				[[ ${argv[0]:0:32} = [/!-]*([/!-])[A-Za-z0-9][A-Za-z0-9.\|\ /!-]*([A-Za-z0-9.\|\ /!-]) ]]
 			then
 				buff= var= m= n=;
@@ -3645,7 +3674,7 @@ function cmdf
 								continue;
 							#last command: /, !, //, and !! (^^space block^^)
 							elif [[ ${argv[0]:n:1} = [/!] ]] &&
-								((n+1==${#argv[0]})) 
+								((n+1==${#argv[0]}))
 							then 	:;
 							else 	continue;
 							fi;;
@@ -3681,7 +3710,7 @@ function cmdf
 							return 0;
 						fi;;
 					esac;
-					
+
 					((n<2)) || echo >&2;
 					cmdmsgf "Command Run:" "\`${buff}\`";  #!#
 
@@ -3848,7 +3877,8 @@ function edf
 	do 	_warmsgf "Bad edit:" "[E]dit, [r]edo, [c]ontinue, [a]bort, or [/]cmd? " ''
 		reply=$(read_charf)
 		case "$reply" in
-			[-/!]) OPTCTRD= read_mainf -i "$reply" reply </dev/tty;
+			[-/!])  echo $'\ncommand:' >&2;
+				OPTCTRD= readf -i "$reply" reply </dev/tty;
 				rcmdf "$reply"; _edf "$FILETXT";;  #cmd
 			[AQ]) echo '[bye]' >&2; return 202;;  #exit
 			[aq]) echo '[abort]' >&2; return 201;;  #abort
@@ -4055,6 +4085,7 @@ function rmimpf
 		-e 's|[^/]+/\.\./|| ;s|^\./|| ;s|/\./|/|' \
 		-e 's|[^/]+/\.\./|| ;s|^\./|| ;s|/\./|/|' #3x
 }
+#see: realpath
 
 # file picker
 function _file_pickf
@@ -4252,7 +4283,7 @@ function media_pathf
 			set -- "$TRIM";
 		else
 			((${#var})) || var='#';  #safety first!
-			((OPTV>99)) || [[ $var = *[[\]\<\>{}\(\)\|*@^\$\ ]* ]] ||
+			((OPTV==100)) || [[ $var = *[[\]\<\>{}\(\)\|*@^\$\ ]* ]] ||
 			  [[ ${var:0:1}${var:${#var}-1} = *["'"\"?!%\&\#\;:,=-]* ]] ||
 			  [[ $var != *[[:alnum:]][/.][[:alnum:]]* ]] || [[ ${1:0:128} = "${var:0:128}"* ]] || {
 			  var="${var:0: COLUMNS-25}$([[ -n ${var: COLUMNS-25} ]] && printf '\b\b\b%s' ...)";
@@ -4671,7 +4702,7 @@ function set_optsf
 			}
 		;;
 		gpt-[5-9]*-chat*|chatgpt-[1-9]*) 	:;;  #non-reasoning ChatGPT models
-		gpt-[5-9]*|gpt-oss*|o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|o1-preview-2024-09-12|*deep-research*|*gpt*-search*|codex-mini*|codex*)
+		gpt-[5-9]*|gpt-oss*|o[1-9]*|o[1-9]-mini*|o1-mini-2024-09-12|o1-preview*|*deep-research*|*gpt*-search*|codex-mini*|codex*)
 		((MOD_REASON)) || {
 			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
 				_warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
@@ -5733,7 +5764,7 @@ function awesomef
 	    	printf '%s\n\n' "$INSTRUCTION" >&2 ;
 	    elif ((CATPR)) && ((!${#INSTRUCTION}))
 	    then 	INSTRUCTION=$(cat </dev/tty)
-	    else 	read_mainf -i "$INSTRUCTION" INSTRUCTION </dev/tty
+	    else 	readf -i "$INSTRUCTION" INSTRUCTION </dev/tty
 	    fi
 	    ((OPTCTRD+CATPR)) && ((!OPTX)) && {
 	    	trim_rf "$INSTRUCTION" $'*([\r\b])'
@@ -5794,7 +5825,8 @@ function custom_prf
 		  SESSION_LIST=$list SGLOB='[Pp][Rr]' EXT='pr' \
 		  session_globf "$name")
 	then
-		case "$file" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit|[$'\e\t ']*) 	return 201;; esac
+		case "$file" in [Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit|[$'\e\t ']*)
+			FILECHAT="${filechat}"; return 201;; esac  #P#
 		case "$name" in  #default translations
 			en)  INSTRUCTION=$INSTRUCTION_CHAT_EN;;
 			pt)  INSTRUCTION=$INSTRUCTION_CHAT_PT;;
@@ -5808,7 +5840,7 @@ function custom_prf
 			zh[_-]TW|zh[_-][Hh][Aa][Nn][Tt])  INSTRUCTION=$INSTRUCTION_CHAT_ZH_TW;;
 			zh[_-]CN|zh)  INSTRUCTION=$INSTRUCTION_CHAT_ZH;;
 			*)   false;;
-		esac && return;
+		esac && { 	FILECHAT="${filechat}"; return; };  #P#
 
 		template=1;
 		file=$(
@@ -5827,7 +5859,8 @@ function custom_prf
 			fi;
 			name="chatgpt";;
 		[Cc]urrent|.) 	file="${FILECHAT}";;
-		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit|[$'\e\t ']*) 	return 201;;
+		[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit|[$'\e\t ']*)
+			FILECHAT="${filechat}"; return 201;;  #P#
 	esac
 	if [[ -f "$file" ]]
 	then 	msg=${msg:-LOAD}    INSTRUCTION=$(<"$file")
@@ -5835,14 +5868,15 @@ function custom_prf
 	fi
 
 	FILECHAT="${filechat%/*}/${file##*/}"
-	FILECHAT="${FILECHAT%%.[Pp][Rr]}.tsv"
+	FILECHAT="${FILECHAT%%.[Pp][Rr]}";
+	FILECHAT="${FILECHAT%%.[Tt][Ss][Vv]}.tsv";  #P#
 	if ((OPTHH>1 && OPTHH<=4))
 	then 	session_sub_fifof "$FILECHAT"
 		return
 	fi
 	((CMD_CHAT)) ||
 	  _sysmsgf 'Hist   File:' "${FILECHAT/"$HOME"/"~"}"
-	((OPTV>99)) || {
+	((OPTV==100)) || {
 	  _sysmsgf 'Prompt File:' "${file/"$HOME"/"~"}"
 	  _cmdmsgf "${new:+New }Prompt Cmd" " ${msg}"
 	}
@@ -5858,7 +5892,7 @@ function custom_prf
 		then 	_printbf '>';
 			INSTRUCTION=$(cat </dev/tty);
 		else 	_printbf '>';
-			read_mainf -i "$INSTRUCTION" INSTRUCTION </dev/tty;
+			readf -i "$INSTRUCTION" INSTRUCTION </dev/tty;
 		fi
 		((OPTCTRD+CATPR)) && ((!OPTX)) && {
 			trim_rf "$INSTRUCTION" $'*([\r\b])'
@@ -6226,6 +6260,7 @@ function session_name_choosef
 				return 201;
 				;;
 			esac
+			((OPTV==98)) ||
 			if test_dialogf
 			then 	dialog --colors --backtitle "${item} manager" \
 				--title "confirm${new} ${item} file?" \
@@ -6238,7 +6273,7 @@ function session_name_choosef
 				_sysmsgf "Confirm${new}? [Y]es/[n]o/[a]bort:" "${print_name} " '' ''
 				var=$(read_charf)
 			fi
-			case "$var" in [AaQq]|[$'\t\e ']*|*[Aa]bort|*[Aa]bort.${sglob}) 	echo abort; echo '[abort]' >&2; return 201;; [NnOo]) 	:;; *) 	false;; esac
+			case "${var:-y}" in [AaQq]|[$'\t\e ']*|*[Aa]bort|*[Aa]bort.${sglob}) 	echo abort; echo '[abort]' >&2; return 201;; [NnOo]) 	:;; *) 	false;; esac
 		else 	false
 		fi
 	do 	unset fname new print_name
@@ -6369,7 +6404,7 @@ function session_copyf
 	}
 }
 #create or copy a session, search for and change to a session file.
-function session_mainf
+function sessionf
 {
 	typeset name file optsession arg break regex msg title
 	typeset -a args
@@ -6456,7 +6491,7 @@ function session_mainf
 			*) if ((optsession>3))
 			   then  #command /fork
 			    cmdf -C;
-			    session_mainf /session "${dest:-${2:-$FILECHAT}}";
+			    sessionf /session "${dest:-${2:-$FILECHAT}}";
 			  fi
 			  ;;
 			esac;
@@ -6785,8 +6820,8 @@ K:top-k  K:topk  l:list-models  L:log  m:model  m:mod  n:results  o:clipboard \
 o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
 S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
-U:cat  x:editor  X:media  y:tik  Y:no-tik  version  info  time \
-no-time  format  voice  awesome-zh  awesome  source  no-truncation
+U:cat  x:editor  X:media  y:tik  Y:no-tik  version  info  time  no-time \
+format  voice  awesome-zh  awesome  source  no-truncation  tmp
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -6844,7 +6879,7 @@ no-time  format  voice  awesome-zh  awesome  source  no-truncation
 			REASON_EFFORT=${OPTARG:?--effort/--think requires mode/tokens};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE CACHEDIR OPTTMP;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset OPENAI_MODEL LOCALAI_MODEL OLLAMA_MODEL GEMINI_MODEL MISTRAL_MODEL GROQ_MODEL ANTHROPIC_MODEL GITHUB_MODEL NOVITA_MODEL XAI_MODEL DEEPSEEK_MODEL;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
@@ -6923,6 +6958,7 @@ no-time  format  voice  awesome-zh  awesome  source  no-truncation
 			else 	INSTRUCTION="${opt##S}$OPTARG"
 			fi; OPTSSARG="$OPTARG";
 			;;
+		tmp) 	((OPTTMP++));;
 		time) 	INST_TIME=1;;
 		no-time) 	INST_TIME=-1;;
 		source) ((OPTV)) || echo '[source]' >&2;
@@ -7371,9 +7407,16 @@ then 	typeset -a argn; argn=();
 	unset n p ii var arg argn custom;
 fi
 
-((${#TERMUX_VERSION})) && [[ ! -d $OUTDIR ]] && _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
-[[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR" ||
-  { _warmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
+if ((OPTTMP))
+then  #temporary cache, --tmp
+	((OPTTMP>1)) && CACHEDIR=;
+	set_tmpf || exit;
+	_cmdmsgf 'Temp Dir:' "${CACHEDIR/"$HOME"/\~}";
+else
+	((${#TERMUX_VERSION})) && [[ ! -d $OUTDIR ]] && _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
+	[[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR" ||
+	{ _warmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
+fi
 
 if ! command -v jq >/dev/null 2>&1
 then 	function jq { 	false ;}
@@ -7389,7 +7432,7 @@ command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
   esac;
 
 trap 'cleanupf; exit;' EXIT
-trap 'exit' HUP QUIT TERM KILL
+trap 'exit' HUP QUIT TERM  #KILL
 
 if ((OPTZZ))  #last response json
 then 	lastjsonf;
@@ -7424,7 +7467,7 @@ then 	OPTRESUME=1 BREAK_SET=
 	elif [[ -n $* ]] && [[ $* != *($SPC)/* ]]
 	then 	set -- /session"$@"
 	fi
-	session_mainf "${@}"
+	sessionf "${@}"
 	fix_breakf "$FILECHAT";
 
 	if ((OPTHH>1))
@@ -7465,7 +7508,7 @@ then
 elif ((OPTW)) && ((!MTURN))  #audio transcribe/translation
 then
 	[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
-	
+
 	#when no file is provided, retry last submission?
 	var= ok=;
 	for var; do 	[[ -f $var ]] && ok=1 && break; done;
@@ -7533,7 +7576,7 @@ then 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM;
 		REPLY=$(cat </dev/tty);
 	elif ((!${#}))
 	then 	_clr_ttystf; echo 'Input:' >&2;
-		read_mainf REPLY </dev/tty
+		readf REPLY </dev/tty
 	fi
 	((OPTCTRD+CATPR)) && ((!${#})) && {
 		trim_rf "$REPLY" $'*([\r\b])'
@@ -7560,7 +7603,8 @@ else
 		((${#INSTRUCTION})) || INSTRUCTION="$1" && shift;;
 	esac;
 	case "${INSTRUCTION:0:32}" in
-		[/%]*) 	OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
+		[/%]*)
+			OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
 			awesomef || case $? in 	210|202|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
 			_sysmsgf $'\nHist   File:' "${FILECHAT}"
 			if ((OPTRESUME==1))
@@ -7572,7 +7616,8 @@ else
 				case "$var" in 	?) SKIP=1 EDIT=1 OPTAWE= REPLY=$var;; 	*) JUMP=1;; esac; unset var;
 			fi; [[ ${INSTRUCTION:0:512} = *[!$IFS]* ]] || unset INSTRUCTION;
 			;;
-		[.,]*) 	if ((OPTV))
+		[.,]*)
+			if ((OPTV))
 			then 	OPTV=100 custom_prf "$@";
 			else 	OPTV= custom_prf "$@";
 			fi;
@@ -7728,8 +7773,8 @@ else
 	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
 	then 	case "$1" in
 			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )
-				OPTV=100 session_mainf "$1" "${@:2:1}" && set -- "${@:3}";;
-			*) 	OPTV=100 session_mainf "$1" && set -- "${@:2}";;
+				OPTV=100 sessionf "$1" "${@:2:1}" && set -- "${@:3}";;
+			*) 	OPTV=100 sessionf "$1" && set -- "${@:2}";;
 		esac
 	elif cmdf "$@"
 	then 	set -- ; SKIP_SH_HIST=;
@@ -7760,7 +7805,7 @@ else
 	do 	trap "exit" INT; XSKIP=;
 		((TRAP_EDIT)) && set -- &&
 		  EDIT=1 REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= SKIP= JUMP= OPTAWE= TRAP_EDIT=;
-		
+
 		((OPT_SOURCE)) && unset OPT_SOURCE &&  #resource functions from own (devel)
 		  . <(sed -ne "/^ENDPOINTS=/,/^#parse opts/p" -- "${BASH_SOURCE[0]:-$0}");
 
@@ -7790,7 +7835,7 @@ else
 				200) 	set --; ((PSKIP)) || REPLY=;
 					REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 					continue;;  #redo
-				201) 	OPTX= XSKIP= SKIP_SH_HIST= REPLY_CMD_DUMP=; 
+				201) 	OPTX= XSKIP= SKIP_SH_HIST= REPLY_CMD_DUMP=;
 					set --; false;;   #abort
 				202) 	exit 202;;  #exit
 				*) 	while [[ -f $FILETXT ]] && REPLY=$(<"$FILETXT"); echo >&2;
@@ -7918,7 +7963,7 @@ else
 					if ((CATPR))
 					then 	printf '%s' "$REPLY" >&2;
 						REPLY=$(cat <(printf '%s' "$REPLY") <(</dev/tty) );
-					else 	read_mainf ${REPLY:+-i "$REPLY"} REPLY </dev/tty;
+					else 	readf ${REPLY:+-i "$REPLY"} REPLY </dev/tty;
 						#(($?==1)) && ((!${#REPLY})) && break 2;  #exit on ctrl-d
 					fi
 					((CATPR)) && echo >&2;
@@ -8078,7 +8123,7 @@ else
 				case "${1:0:32}${2:0:16}" in
 				:::|::::)  #reset system instruction
 					((${#INSTRUCTION}+${#INSTRUCTION_OLD}+${#GINSTRUCTION})) && v=reset || v=unset;
-					
+
 					if ((GOOGLEAI))
 					then
 						((INSTRUCTION_RESET)) && GINSTRUCTION=${GINSTRUCTION:INSTRUCTION_RESET}
@@ -8095,7 +8140,7 @@ else
 
 						((ANTHROPICAI)) && INSTRUCTION=
 					fi; INSTRUCTION_RESET=;
-					
+
 					var="${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}";
 					((${#var})) && _sysmsgf 'INSTRUCTION:' "${var:0:8192}" 2>&1 | foldf >&2;
 					((${#var}>8192)) && echo '[..]' >&2;
@@ -8109,7 +8154,7 @@ else
 					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=prepend || v=set;
 					((ANTHROPICAI)) && ((${#INSTRUCTION_OLD})) && v=prepend;
 					((${#var})) || v=unset;
-					
+
 					if ((GOOGLEAI))
 					then
 						INSTRUCTION_OLD=${GINSTRUCTION:-${INSTRUCTION:-$INSTRUCTION_OLD}}
@@ -8172,7 +8217,7 @@ else
 			RET= REPLY_CMD=$REPLY;
 			SKIP_SH_HIST=1 cmdf /cat "$var";
 			REPLY_CMD_DUMP=$REPLY REPLY=$REPLY_CMD SKIP_SH_HIST= PSKIP= XSKIP= var=;
-			
+
 			((RET==201)) ||
 			if ((${#REPLY_CMD_DUMP})) &&
 				((!RET || (RET>180 && RET<220) ))  #!# our exit codes: >180 and <220
@@ -8586,7 +8631,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				case "$(read_charf)" in
 					[IiGg]) 	CKSUM= CKSUM_OLD=; function cksumf { 	: ;};;
 					[AaNnOoQq]|$'\e') :;;
-					*) 		session_mainf /copy "$FILECHAT" || break;;
+					*) 		sessionf /copy "$FILECHAT" || break;;
 				esac
 			fi
 			if ((OPTB>1))  #best_of disables streaming response
