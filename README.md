@@ -179,7 +179,15 @@ For example, some models may not accept **Instructions** or **frequency** / **pr
 which can be unset or set to null at the script command line incantation, as well as configuring the script
 through environment variables, or the configuration file.
 
-For more actively developed alternatives, see the projects listed in the [Acknowledgements section](#acknowledgements).
+Other parameters may need setting to specific values when working with newer models,
+such as the parameter **temperature**, which some models only accept the value of _1.0_,
+as well as **model capacity** and **response maximum tokens** integer values.
+
+See the [Roadmap section](#roadmap) and [Limitations section](#-limitations)
+for the original objectives of our project.
+
+For more actively developed alternatives, see the projects listed in the
+[Acknowledgements section](#acknowledgements).
 
 
 ## ✨ Getting Started
