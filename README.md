@@ -183,7 +183,7 @@ Other parameters may need setting to specific values when working with newer mod
 such as the parameter **temperature**, which some models only accept the value of _1.0_,
 as well as **model capacity** and **response maximum tokens** integer values.
 
-See the [Roadmap section](#roadmap) and [Limitations section](#-limitations)
+See the [Roadmap section](#roadmap) and [Limitations section](#%EF%B8%8F-limitations)
 for the original objectives of our project.
 
 For more actively developed alternatives, see the projects listed in the
