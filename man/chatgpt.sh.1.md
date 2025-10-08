@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.116 | General Commands Manual
+% CHATGPT.SH(1) v0.116.2 | General Commands Manual
 % mountaineerbr
-% September 2025
+% October 2025
 
 
 # NAME
@@ -320,7 +320,7 @@ before the text prompt itself.
 : Set an instruction text prompt. It may be a text file.
 
 
-**\--time**, **\--no-time**
+**\--time**, **\--no-time**, **\--date**, **\--no-date**
 
 : Prepend the current date and time (timestamp) to the instruction prompt.
 
@@ -952,6 +952,7 @@ to change parameters and manage sessions.
       `!sh`        `!shell`      \[_CMD_]            Run shell _command_ and edit stdout (make request). _‡_
      `!sh:`        `!shell:`     \[_CMD_]            Same as `!sh` and insert stdout into current prompt.
      `!!sh`        `!!shell`     \[_CMD_]            Run interactive shell _command_ and return.
+    `!time`        `!date`                           Add timestamp to the start of user prompt. ‡
      `!url`        `!url:`       \[_URL_]            Dump URL text or YouTube transcript text.
  --------------    ------------------------------    -------------------------------------------------------------
 

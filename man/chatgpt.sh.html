@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.116 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.116.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.116 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.116.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">September 2025</p>
+<p class="date">October 2025</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
@@ -486,7 +486,8 @@ Def=<em>gpt-5</em>/<em>gpt-3.5-turbo-instruct</em>.</p>
 <dd>
 <p>Set an instruction text prompt. It may be a text file.</p>
 </dd>
-<dt><strong>--time</strong>, <strong>--no-time</strong></dt>
+<dt><strong>--time</strong>, <strong>--no-time</strong>,
+<strong>--date</strong>, <strong>--no-date</strong></dt>
 <dd>
 <p>Prepend the current date and time (timestamp) to the instruction
 prompt.</p>
@@ -1175,6 +1176,11 @@ as as suffix command, see examples below.</li>
 <td>Run interactive shell <em>command</em> and return.</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>!time</code></td>
+<td style="text-align: left;"><code>!date</code></td>
+<td>Add timestamp to the start of user prompt. ‡</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>!url</code></td>
 <td style="text-align: left;"><code>!url:</code> [<em>URL</em>]</td>
 <td>Dump URL text or YouTube transcript text.</td>

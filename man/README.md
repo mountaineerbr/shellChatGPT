@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: September 2025
-title: CHATGPT.SH(1) v0.116 \| General Commands Manual
+date: October 2025
+title: CHATGPT.SH(1) v0.116.2 \| General Commands Manual
 ---
 
 # NAME
@@ -246,7 +246,7 @@ Stop sequences, up to 4. Def="*\<\|endoftext\|\>*".
 **-S**, **--instruction** \[*INSTRUCTION*\|*FILE*\]  
 Set an instruction text prompt. It may be a text file.
 
-**--time**, **--no-time**  
+**--time**, **--no-time**, **--date**, **--no-date**  
 Prepend the current date and time (timestamp) to the instruction prompt.
 
 **-t**, **--temperature** \[*VAL*\]  
@@ -796,6 +796,7 @@ parameters and manage sessions.
 | `!sh`     | `!shell` \[*CMD*\]              | Run shell *command* and edit stdout (make request). *‡* |
 | `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` and insert stdout into current prompt.    |
 | `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell *command* and return.             |
+| `!time`   | `!date`                         | Add timestamp to the start of user prompt. ‡            |
 | `!url`    | `!url:` \[*URL*\]               | Dump URL text or YouTube transcript text.               |
 
 | Script  | Settings and UX      |                                                          |

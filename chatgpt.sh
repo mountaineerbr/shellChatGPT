@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.116.1  sep/2025  by mountaineerbr  GPL+3
+# v0.116.2  oct/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -481,6 +481,7 @@ Command List
      !sh      !shell    [CMD]   Run shell cmd, edit stdout (make request). ‡
      !sh:     !shell:   [CMD]   Same as !sh, insert into current prompt.
     !!sh     !!shell    [CMD]   Run interactive shell cmd and return.
+     !time    !date             Add timestamp to the start of user prompt. ‡
      !url     !url:     [URL]   Dump URL text or YouTube transcript.
    --- Script Settings and UX ---------------------------------------
     !fold     !wrap             Toggle response wrapping.
@@ -709,7 +710,7 @@ Options
 		Stop sequences, up to 4. Def=\"<|endoftext|>\".
 	-S, --instruction  [INSTRUCTION|FILE]
 		Set an instruction prompt. It may be a text file.
-	--time, --no-time
+	--time, --no-time, --date, --no-date
 		Prepend current date and time to the instruction prompt.
 	-t, --temperature  [VAL]
 		Temperature value (cmpls/chat/stt),
@@ -2944,6 +2945,13 @@ function cmdf
 			SKIP=1 PSKIP=1 REPLY="::${*}"
 			unset INSTRUCTION GINSTRUCTION
 			;;
+		time|date|time\ *|date\ *)
+			trim_lf "$*" "@(time|date)*([$' \t'])"
+			set -- "$TRIM";
+			CMD_ENV=201 OPTX= cmdf /sh date;
+			REPLY=${REPLY}$'\n\n'${*} EDIT=1 SKIP=1;
+			return;
+			;;
 		-t*|temperature*|temp*)  #randomness
 			[[ $1 = *-[0-1] ]] && OPTT= && set --;
 			set -- "${*//[!0-9.]}"
@@ -4255,7 +4263,7 @@ function media_pathf
 	#process only the last line of input
 	set -- "$(sed -e 's/\\n/\'$'\n''/g; s/\\\\ /\\ /g; s/^[[:space:]|]*//; s/[[:space:]|]*$//; /^[[:space:]]*$/d' <<<"$*" | sed -n -e '$ p')";  #L#
 
-	while [[ "$1" = *[[:alnum:]]* ]] && ((m<256))
+	while [[ "${1:0:256}" = *[[:alnum:]]* ]] && ((m<256))
 	do
 		((++m)); var=;
 		if [[ -f $1 ]]
@@ -6823,7 +6831,7 @@ o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
 S:instruction  t:temperature  t:temp  T:tiktoken  u:multiline  u:multi \
 U:cat  x:editor  X:media  y:tik  Y:no-tik  version  info  time  no-time \
-format  voice  awesome-zh  awesome  source  no-truncation  tmp
+date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 		do
 			name="${opt##*:}"  name="${name/[_-]/[_-]}"
 			opt="${opt%%:*}"
@@ -6961,8 +6969,8 @@ format  voice  awesome-zh  awesome  source  no-truncation  tmp
 			fi; OPTSSARG="$OPTARG";
 			;;
 		tmp) 	((OPTTMP++));;
-		time) 	INST_TIME=1;;
-		no-time) 	INST_TIME=-1;;
+		time|date) 	INST_TIME=1;;
+		no-time|no-date) 	INST_TIME=-1;;
 		source) ((OPTV)) || echo '[source]' >&2;
 			OPTF=1 OPTIND=1 OPTARG= OPTV=;
 			#HISTFILE="/dev/null";
@@ -7844,7 +7852,8 @@ else
 						(($(wc -l <<<"$REPLY") < LINES-1)) || echo '[..]' >&2;
 						printf "${BRED}${REPLY:+${NC}${BCYAN}}%s${NC}\\n" "${REPLY:-(${PREPEND:+NOT_}EMPTY)}" | tail -n $((LINES-2))
 					do
-					((!BAD_RES)) && {
+					#((!BAD_RES)) && 
+					{
 					((OPTV||OPTEXIT>1)) || [[ $REPLY = :* ]] \
 					|| [[ ${REPLY:0:512} != *[!$IFS]* ]] \
 					|| { ((!${#REPLY_CMD_DUMP})) && is_txturl "${REPLY}" >/dev/null ;};
@@ -7903,7 +7912,7 @@ else
 
 					((RESUBW)) || record_confirmf
 					case $? in
-					0) 	((BAD_RES)) ||
+					0) 	#((BAD_RES)) ||
 						if ((RESUBW)) || recordf "$FILEINW"
 						then
 							is_amodelf "$MOD" && _sysmsgf $'\nTranscription:' 'generating..';
@@ -8012,11 +8021,12 @@ else
 					*[$IFS][/!]photo|*[$IFS][/!]photo[0-9]) var=photo;;
 					*[$IFS][/!]pick|*[$IFS][/!]p) var=pick;;
 					*[$IFS][/!]save|*[$IFS][/!]\#) var=save;;
+					*[$IFS][/!]time|*[$IFS][/!]date) var=date;;
 					*[$IFS][/!]g) var=g;;
 					*[$IFS][/!][/!]g) var=/g;;
 					*) 	false;; esac;
 				then
-					trim_rf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|\#|[/!]g|g)";
+					trim_rf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|time|date|\#|[/!]g|g)";
 					SKIP_SH_HIST=1 cmdf /${var:-pick} "$TRIM";
 					SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD=;
 					set --; continue 2;
@@ -8024,7 +8034,8 @@ else
 				then 	PSKIP= XSKIP=;
 					((${#PREPEND})) && [[ ${REPLY:0:512} != *[!$IFS]* ]] \
 					  && echo '[prompt buffer]' >&2;
-					((!BAD_RES)) && {
+					#((!BAD_RES)) && 
+					{
 					  ((OPTV||OPTEXIT>1)) || [[ ${REPLY:0:32} = :* ]] \
 					  || [[ ${REPLY:0:512}${PREPEND:0:512} != *[!$IFS]* ]] \
 					  || { ((!${#REPLY_CMD_DUMP})) && is_txturl "${REPLY: ind}" >/dev/null ;};

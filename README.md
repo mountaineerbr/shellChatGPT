@@ -159,6 +159,29 @@ If no suffix is provided, it works as plain text completions.
 -->
 
 
+## PROJECT STATUS: MAINTENANCE MODE
+
+This project is now in maintenance mode. It is considered feature-complete for my personal use cases.
+
+This means:
+*   **Bug Fixes:** I will address critical bugs that affect core functionality.
+*   **No New Features:** Active development of new features has been discontinued. This includes, but is not limited to:
+    *   New reasoning modes like `--effort` or `--think`.
+    *   Logic for auto-detecting model capacity (`--modmax`) and workarounds for new models.
+    *   Updating default models to the latest versions for each service provider.
+    *   New TTS voices or audio formats.
+    *   Fixing or improving documentation.
+
+
+Users may find the script works with newer models, but will be responsible for their own configuration of parameters.
+
+For example, some models may not accept **Instructions** or **frequency** / **presence** **penalties**,
+which can be unset or set to null at the script command line incantation, as well as configuring the script
+through environment variables, or the configuration file.
+
+For more actively developed alternatives, see the projects listed in the [Acknowledgements section](#acknowledgements).
+
+
 ## ✨ Getting Started
 
 
