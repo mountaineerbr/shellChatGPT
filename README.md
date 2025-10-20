@@ -40,8 +40,8 @@ If no suffix is provided, it works as plain text completions.
 <details>
   <summary>★ Click to expand! ★</summary>
 
-- 1. [Index](#index)
-- 2. [Features](#-features)
+- 1. [Features](#-features)
+- 2. [Project Status](#project-status-maintenance-mode)
 - 3. [Getting Started](#-getting-started)
   - 3.1 [Required Packages](#-required-packages)
   - 3.2 [Optional Packages](#optional-packages)

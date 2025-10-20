@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.116.2  oct/2025  by mountaineerbr  GPL+3
+# v0.116.3  oct/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -5206,7 +5206,7 @@ function prompt_ttsf
 #speech synthesis (tts)
 function _ttsf
 {
-	typeset FOUT VOICEZ SPEEDZ fname input max ret pid var secs ok n m i
+	typeset FOUT VOICEZ SPEEDZ fname input input_orig max ret pid var secs ok n m i
 	typeset -a SPIN_CHARS=("${SPIN_CHARS8[@]}");
 	typeset EPN=10;
 	if is_tts_groqf
@@ -5246,7 +5246,8 @@ function _ttsf
 	fi  #https://help.openai.com/en/articles/8555505-tts-api
 	REPLAY_FILES=();
 
-	while input=${1:0: max}; set -- "${1:max}"; [[ ${input:0:320} = *[!$IFS]* ]]
+	input_orig=${1};
+	while input=${1:0: max}; set -- "${1: max}"; [[ ${input:0:320} = *[!$IFS]* ]]
 	do
 		if ((!CHAT_ENV))
 		then 	var=${input//\\\\[nt]/ };
@@ -5302,9 +5303,11 @@ $( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}
 				case "$(read_charf)" in
 					[Q]) 	return 202;;
 					[AaNnQq]) break 1;;  #no
-					*) 	continue;;
+					*) 	set -- "$input_orig";
+						continue;;
 				esac;;
 		esac
+		input_orig=${input_orig: max}
 
 	[[ $FOUT = "-"* ]] || [[ ! -e $FOUT ]] || {
 		du -h "$FOUT" >&2 2>/dev/null || _sysmsgf 'TTS File:' "$FOUT";
@@ -7423,7 +7426,8 @@ then  #temporary cache, --tmp
 	set_tmpf || exit;
 	_cmdmsgf 'Temp Dir:' "${CACHEDIR/"$HOME"/\~}";
 else
-	((${#TERMUX_VERSION})) && [[ ! -d $OUTDIR ]] && _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
+	#((${#TERMUX_VERSION})) && 
+	  [[ ! -d $OUTDIR ]] && _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
 	[[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR" ||
 	{ _warmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
 fi
