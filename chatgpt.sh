@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.116.3  oct/2025  by mountaineerbr  GPL+3
+# v0.116.4  oct/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -2423,7 +2423,7 @@ function set_mdcmdf
 			;;
 		glow*|mdcat*|mdless*|*)
 			command -v "${1%% *}" &>/dev/null || return 1;
-			eval "function mdf { 	$* \"\$@\" ;}";
+			eval "function mdf { 	$* ;}";
 			;;
 	esac; MD_CMD="${1%% *}";
 	#turn off folding for some software
@@ -5098,9 +5098,13 @@ function whisperf
 	if var=$*; [[ ${var:0:320} = *[!$IFS]* ]]
 	then
 		((${#var}>max)) && var=${var: ${#var}-max};
-		set -- -F prompt="$var";
+		if ((${#var} > 1024))
+		then 	set -- -F prompt="$(tr ';' ',' <<<"$var")";
+		else 	set -- -F prompt="${var//;/,}";
+		fi;
 		((CHAT_ENV+MTURN)) || sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${var: COLUMNS-17} ]] && echo ...)";
 	fi
+	#https://unix.stackexchange.com/questions/463424/curl-skips-unknown-form-field-when-passing-semicolon-delimited-string-as-for
 
 	((OPTW>2||OPTWW>2)) && granule=word || granule=segment;
 
@@ -5530,7 +5534,11 @@ function imgvarf
 	elif [[ -f $1 ]]  #img variations
 	then 	OPTII=1 EPN=4  #MOD=image-var
 	fi
-	[[ -n $prompt ]] && set -- "$@" -F prompt="$prompt"
+	[[ -n $prompt ]] &&
+		if ((${#prompt} > 1024))
+		then 	set -- "$@" -F prompt="$(tr ';' ',' <<<"$prompt")";
+		else 	set -- "$@" -F prompt="${prompt//;/,}";
+		fi;
 
 	case "$MOD_IMAGE" in
 		gpt-image*)
@@ -7846,7 +7854,7 @@ else
 			edf "${REPLY:-$@}"
 			case $? in
 				179|180) XSKIP=; :;;        #jumps
-				200) 	set --; ((PSKIP)) || REPLY=;
+				200) 	set --; ((PSKIP)) || REPLY=; BAD_RES=;
 					REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 					continue;;  #redo
 				201) 	OPTX= XSKIP= SKIP_SH_HIST= REPLY_CMD_DUMP=;
@@ -7866,7 +7874,7 @@ else
 							202) 	exit 202;;  #exit
 							201) 	OPTX= XSKIP= REPLY_CMD_DUMP= SKIP_SH_HIST=;
 								set --; break 1;;  #abort
-							200) 	((PSKIP)) || REPLY=;
+							200) 	((PSKIP)) || REPLY=; BAD_RES=;
 								REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 								set --; continue 2;;  #redo
 							19[26789]) edf "${REPLY:-$*}" || break 1;;  #edit
@@ -7916,7 +7924,7 @@ else
 
 					((RESUBW)) || record_confirmf
 					case $? in
-					0) 	#((BAD_RES)) ||
+					0) 	((BAD_RES && !EDIT && !WAPPEND)) ||
 						if ((RESUBW)) || recordf "$FILEINW"
 						then
 							is_amodelf "$MOD" && _sysmsgf $'\nTranscription:' 'generating..';
@@ -8049,7 +8057,7 @@ else
 						201)  #abort
 							echo '[bye]' >&2; break 2;;
 						200)  #redo
-							REPLY=${REPLY_CMD:-${REPLY_OLD:-$REPLY}} REPLY_CMD=;
+							REPLY=${REPLY_CMD:-${REPLY_OLD:-$REPLY}} REPLY_CMD= BAD_RES=;
 							REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 							echo '[redo]' >&2;
 							set --; continue;;
@@ -8245,7 +8253,7 @@ else
 			  case "$RET" in
 			    202) echo '[bye]' >&2; exit 202;;
 			    201) REPLY= XSKIP= REPLY_CMD_DUMP=;;  #abort
-			    200) EDIT=1 REPLY=$REPLY_CMD;
+			    200) EDIT=1 REPLY=$REPLY_CMD; BAD_RES=;
 				 REPLY_CMD_DUMP= WSKIP= XSKIP= SKIP=;  #E#
 			         set --; continue 1;;  #redo / abort
 			    199) SKIP=1 XSKIP= EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;

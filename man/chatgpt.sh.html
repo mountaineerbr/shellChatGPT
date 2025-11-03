@@ -1007,180 +1007,180 @@ as as suffix command, see examples below.</li>
 <h2 id="command-tables">Command Tables</h2>
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: left;">Misc</th>
 <th style="text-align: left;">Commands</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-S</code></td>
 <td style="text-align: left;">[<em>PROMPT</em>]</td>
 <td>Overwrite the system prompt.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-S:</code></td>
 <td style="text-align: left;"><code>:</code> [<em>PROMPT</em>]</td>
 <td>Prepend to current user prompt.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-S::</code></td>
 <td style="text-align: left;"><code>::</code> [<em>PROMPT</em>]</td>
 <td>Prepend to system prompt.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-S:::</code></td>
 <td style="text-align: left;"><code>:::</code></td>
 <td>Reset (inject) system prompt into request.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-S.</code></td>
 <td style="text-align: left;"><code>-.</code> [<em>NAME</em>]</td>
 <td>Load and edit custom prompt.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-S/</code></td>
 <td style="text-align: left;"><code>!awesome</code> [<em>NAME</em>]</td>
 <td>Load and edit awesome prompt (english).</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-S%</code></td>
 <td style="text-align: left;"><code>!awesome-zh</code>
 [<em>NAME</em>]</td>
 <td>Load and edit awesome prompt (chinese).</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-Z</code></td>
 <td style="text-align: left;"><code>!last</code></td>
 <td>Print last raw JSON or the processed text response.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!#</code></td>
 <td style="text-align: left;"><code>!save</code> [<em>PROMPT</em>]</td>
 <td>Save current prompt to shell history. <em>‡</em></td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!</code></td>
 <td style="text-align: left;"><code>!r</code>, <code>!regen</code></td>
 <td>Regenerate last response.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!!</code></td>
 <td style="text-align: left;"><code>!rr</code></td>
 <td>Regenerate response, edit prompt first.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!g:</code></td>
 <td style="text-align: left;"><code>!!g:</code> [<em>PROMPT</em>]</td>
 <td>Ground user prompt with web search results. <em>‡</em></td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!i</code></td>
 <td style="text-align: left;"><code>!info</code> [<em>REGEX</em>]</td>
 <td>Information on model and session settings.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!!i</code></td>
 <td style="text-align: left;"><code>!!info</code></td>
 <td>Monthly usage stats (OpenAI).</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!j</code></td>
 <td style="text-align: left;"><code>!jump</code></td>
 <td>Jump to request, append start seq primer (text cmpls).</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!!j</code></td>
 <td style="text-align: left;"><code>!!jump</code></td>
 <td>Jump to request, no response priming.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;">-</td>
 <td>Cat prompter as one-shot, &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!cat</code></td>
 <td style="text-align: left;"><code>!cat:</code>
 [<em>TXT</em>|<em>URL</em>|<em>PDF</em>]</td>
 <td>Cat <em>text</em>, <em>PDF</em> file, or dump <em>URL</em>.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!clot</code></td>
 <td style="text-align: left;"><code>!!clot</code></td>
 <td>Flood the TTY with patterns, as visual separator.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!dialog</code></td>
 <td style="text-align: left;">-</td>
 <td>Toggle the “dialog” interface.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!img</code></td>
 <td style="text-align: left;"><code>!media</code>
 [<em>FILE</em>|<em>URL</em>]</td>
 <td>Add image, media, or URL to prompt.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!md</code></td>
 <td style="text-align: left;"><code>!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Toggle markdown rendering in response.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!!md</code></td>
 <td style="text-align: left;"><code>!!markdown</code>
 [<em>SOFTW</em>]</td>
 <td>Render last response in markdown.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!rep</code></td>
 <td style="text-align: left;"><code>!replay</code></td>
 <td>Replay last TTS audio response.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!res</code></td>
 <td style="text-align: left;"><code>!resubmit</code></td>
 <td>Resubmit last STT recorded audio in cache.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!p</code></td>
 <td style="text-align: left;"><code>!pick</code> [<em>PROPMT</em>]</td>
 <td>File picker, appends filepath to user prompt. <em>‡</em></td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!pdf</code></td>
 <td style="text-align: left;"><code>!pdf:</code> [<em>FILE</em>]</td>
 <td>Convert PDF and dump text.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!photo</code></td>
 <td style="text-align: left;"><code>!!photo</code> [<em>INDEX</em>]</td>
 <td>Take a photo, optionally set camera index (Termux). <em>‡</em></td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!sh</code></td>
 <td style="text-align: left;"><code>!shell</code> [<em>CMD</em>]</td>
 <td>Run shell <em>command</em> and edit stdout (make request).
 <em>‡</em></td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!sh:</code></td>
 <td style="text-align: left;"><code>!shell:</code> [<em>CMD</em>]</td>
 <td>Same as <code>!sh</code> and insert stdout into current prompt.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!!sh</code></td>
 <td style="text-align: left;"><code>!!shell</code> [<em>CMD</em>]</td>
 <td>Run interactive shell <em>command</em> and return.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!time</code></td>
 <td style="text-align: left;"><code>!date</code></td>
 <td>Add timestamp to the start of user prompt. ‡</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!url</code></td>
 <td style="text-align: left;"><code>!url:</code> [<em>URL</em>]</td>
 <td>Dump URL text or YouTube transcript text.</td>
@@ -1189,85 +1189,85 @@ as as suffix command, see examples below.</li>
 </table>
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: left;">Script</th>
 <th style="text-align: left;">Settings and UX</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!fold</code></td>
 <td style="text-align: left;"><code>!wrap</code></td>
 <td>Toggle response wrapping.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-F</code></td>
 <td style="text-align: left;"><code>!conf</code></td>
 <td>Runtime configuration form TUI.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-g</code></td>
 <td style="text-align: left;"><code>!stream</code></td>
 <td>Toggle response streaming.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-h</code></td>
 <td style="text-align: left;"><code>!help</code> [<em>REGEX</em>]</td>
 <td>Print help or grep help for regex.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-l</code></td>
 <td style="text-align: left;"><code>!models</code> [<em>NAME</em>]</td>
 <td>List language models or show model details.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-o</code></td>
 <td style="text-align: left;"><code>!clip</code></td>
 <td>Copy responses to clipboard.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-u</code></td>
 <td style="text-align: left;"><code>!multi</code></td>
 <td>Toggle multiline prompter. &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-uu</code></td>
 <td style="text-align: left;"><code>!!multi</code></td>
 <td>Multiline, one-shot. &lt;<em>CTRL-D</em>&gt; flush.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-U</code></td>
 <td style="text-align: left;"><code>-UU</code></td>
 <td>Toggle cat prompter or set one-shot. &lt;<em>CTRL-D</em>&gt;
 flush.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-V</code></td>
 <td style="text-align: left;"><code>!debug</code></td>
 <td>Dump raw request block and confirm.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-v</code></td>
 <td style="text-align: left;">-</td>
 <td>Toggle interface verbose modes.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-x</code></td>
 <td style="text-align: left;"><code>!ed</code></td>
 <td>Toggle text editor interface.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-xx</code></td>
 <td style="text-align: left;"><code>!!ed</code></td>
 <td>Single-shot text editor.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-y</code></td>
 <td style="text-align: left;"><code>!tik</code></td>
 <td>Toggle python tiktoken use.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!q</code></td>
 <td style="text-align: left;"><code>!quit</code></td>
 <td>Exit. Bye.</td>
@@ -1276,132 +1276,132 @@ flush.</td>
 </table>
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: left;">Model</th>
 <th style="text-align: left;">Settings</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!Nill</code></td>
 <td style="text-align: left;"><code>-Nill</code></td>
 <td>Unset max response tokens (chat cmpls).</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!NUM</code></td>
 <td style="text-align: left;"><code>-M</code> [<em>NUM</em>]</td>
 <td>Maximum response tokens.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!!NUM</code></td>
 <td style="text-align: left;"><code>-N</code> [<em>NUM</em>]</td>
 <td>Model token capacity.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-a</code></td>
 <td style="text-align: left;"><code>!pre</code> [<em>VAL</em>]</td>
 <td>Presence penalty.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-A</code></td>
 <td style="text-align: left;"><code>!freq</code> [<em>VAL</em>]</td>
 <td>Frequency penalty.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-b</code></td>
 <td style="text-align: left;"><code>!responses</code>
 [<em>MOD</em>]</td>
 <td>Responses API request (experimental).</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>best</code></td>
 <td style="text-align: left;"><code>!best-of</code> [<em>NUM</em>]</td>
 <td>Best-of n results.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-j</code></td>
 <td style="text-align: left;"><code>!seed</code> [<em>NUM</em>]</td>
 <td>Seed number (integer).</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-K</code></td>
 <td style="text-align: left;"><code>!topk</code> [<em>NUM</em>]</td>
 <td>Top_k.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-m</code></td>
 <td style="text-align: left;"><code>!mod</code> [<em>MOD</em>]</td>
 <td>Model by name, empty to pick from list.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-n</code></td>
 <td style="text-align: left;"><code>!results</code> [<em>NUM</em>]</td>
 <td>Number of results.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-p</code></td>
 <td style="text-align: left;"><code>!topp</code> [<em>VAL</em>]</td>
 <td>Top_p.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-r</code></td>
 <td style="text-align: left;"><code>!restart</code> [<em>SEQ</em>]</td>
 <td>Restart sequence.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-R</code></td>
 <td style="text-align: left;"><code>!start</code> [<em>SEQ</em>]</td>
 <td>Start sequence.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-s</code></td>
 <td style="text-align: left;"><code>!stop</code> [<em>SEQ</em>]</td>
 <td>One stop sequence.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-t</code></td>
 <td style="text-align: left;"><code>!temp</code> [<em>VAL</em>]</td>
 <td>Temperature.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-w</code></td>
 <td style="text-align: left;"><code>!rec</code> [<em>ARGS</em>]</td>
 <td>Toggle voice-in STT. Optionally, set arguments.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-z</code></td>
 <td style="text-align: left;"><code>!tts</code> [<em>ARGS</em>]</td>
 <td>Toggle TTS chat mode (speech out).</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!blk</code></td>
 <td style="text-align: left;"><code>!block</code> [<em>ARGS</em>]</td>
 <td>Set and add custom options to JSON request.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!effort</code></td>
 <td style="text-align: left;">- [<em>MODE</em>]</td>
 <td>Reasoning effort: minimal, high, medium, or low (OpenAI).</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!think</code></td>
 <td style="text-align: left;">- [<em>NUM</em>]</td>
 <td>Thinking budget: tokens (Anthropic).</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!ka</code></td>
 <td style="text-align: left;"><code>!keep-alive</code>
 [<em>NUM</em>]</td>
 <td>Set duration of model load in memory (Ollama).</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!verb</code></td>
 <td style="text-align: left;"><code>!verbosity</code>
 [<em>MODE</em>]</td>
 <td>Model verbosity level (high, medium, or low).</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!vision</code></td>
 <td style="text-align: left;"><code>!audio</code>,
 <code>!multimodal</code></td>
@@ -1411,99 +1411,99 @@ flush.</td>
 </table>
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: left;">Session</th>
 <th style="text-align: left;">Management</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-C</code></td>
 <td style="text-align: left;">-</td>
 <td>Continue current history session (see <code>!break</code>).</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-H</code></td>
 <td style="text-align: left;"><code>!hist</code> [<em>NUM</em>]</td>
 <td>Edit history in editor or print the last <em>n</em> history
 entries.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>-P</code></td>
 <td style="text-align: left;"><code>-HH</code>, <code>!print</code></td>
 <td>Print session history.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>-L</code></td>
 <td style="text-align: left;"><code>!log</code> [<em>FILEPATH</em>]</td>
 <td>Save to log file.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!c</code></td>
 <td style="text-align: left;"><code>!copy</code> [<em>SRC_HIST</em>]
 [<em>DEST_HIST</em>]</td>
 <td>Copy session from source to destination.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!f</code></td>
 <td style="text-align: left;"><code>!fork</code>
 [<em>DEST_HIST</em>]</td>
 <td>Fork current session and continue from destination.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!k</code></td>
 <td style="text-align: left;"><code>!kill</code> [<em>NUM</em>]</td>
 <td>Comment out <em>n</em> last entries in history file.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!!k</code></td>
 <td style="text-align: left;"><code>!!kill</code>
 [[<em>0</em>]<em>NUM</em>]</td>
 <td>Dry-run of command <code>!kill</code>.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!s</code></td>
 <td style="text-align: left;"><code>!session</code>
 [<em>HIST_NAME</em>]</td>
 <td>Change to, search for, or create history file.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!!s</code></td>
 <td style="text-align: left;"><code>!!session</code>
 [<em>HIST_NAME</em>]</td>
 <td>Same as <code>!session</code>, break session.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!u</code></td>
 <td style="text-align: left;"><code>!unkill</code> [<em>NUM</em>]</td>
 <td>Uncomment <em>n</em> last entries in history file.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!!u</code></td>
 <td style="text-align: left;"><code>!!unkill</code>
 [[<em>0</em>]<em>NUM</em>]</td>
 <td>Dry-run of command <code>!unkill</code>.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!br</code></td>
 <td style="text-align: left;"><code>!break</code>,
 <code>!new</code></td>
 <td>Start new session (session break).</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!ls</code></td>
 <td style="text-align: left;"><code>!list</code>
 [<em>GLOB</em>|<em>.</em>|<em>pr</em>|<em>awe</em>]</td>
 <td>List history files with “<em>glob</em>” in <em>name</em>; Files:
 “<em>.</em>”; Prompts: “<em>pr</em>”; Awesome: “<em>awe</em>”.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: left;"><code>!grep</code></td>
 <td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
 <td>Grep sessions and copy session to hist tail.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: left;"><code>!tmp</code></td>
 <td style="text-align: left;"><code>!!tmp</code></td>
 <td>Fork session to a temporary cache.</td>

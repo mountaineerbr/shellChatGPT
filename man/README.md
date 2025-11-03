@@ -511,6 +511,7 @@ It is also worth trying to sample 3 - 5 times (increasing the number
 of responses with \`option -n 3', for example) in order to obtain
 a good response.
 -->
+
 <!--
 For more on prompt design, see:
 &#10; - <https://platform.openai.com/docs/guides/completion/prompt-design>
@@ -763,105 +764,105 @@ parameters and manage sessions.
 
 ## Command Tables
 
-| Misc      | Commands                        |                                                         |
-|:----------|:--------------------------------|---------------------------------------------------------|
-| `-S`      | \[*PROMPT*\]                    | Overwrite the system prompt.                            |
-| `-S:`     | `:` \[*PROMPT*\]                | Prepend to current user prompt.                         |
-| `-S::`    | `::` \[*PROMPT*\]               | Prepend to system prompt.                               |
-| `-S:::`   | `:::`                           | Reset (inject) system prompt into request.              |
-| `-S.`     | `-.` \[*NAME*\]                 | Load and edit custom prompt.                            |
-| `-S/`     | `!awesome` \[*NAME*\]           | Load and edit awesome prompt (english).                 |
-| `-S%`     | `!awesome-zh` \[*NAME*\]        | Load and edit awesome prompt (chinese).                 |
-| `-Z`      | `!last`                         | Print last raw JSON or the processed text response.     |
-| `!#`      | `!save` \[*PROMPT*\]            | Save current prompt to shell history. *‡*               |
-| `!`       | `!r`, `!regen`                  | Regenerate last response.                               |
-| `!!`      | `!rr`                           | Regenerate response, edit prompt first.                 |
-| `!g:`     | `!!g:` \[*PROMPT*\]             | Ground user prompt with web search results. *‡*         |
-| `!i`      | `!info` \[*REGEX*\]             | Information on model and session settings.              |
-| `!!i`     | `!!info`                        | Monthly usage stats (OpenAI).                           |
-| `!j`      | `!jump`                         | Jump to request, append start seq primer (text cmpls).  |
-| `!!j`     | `!!jump`                        | Jump to request, no response priming.                   |
-| `!cat`    | \-                              | Cat prompter as one-shot, \<*CTRL-D*\> flush.           |
-| `!cat`    | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text*, *PDF* file, or dump *URL*.                  |
-| `!clot`   | `!!clot`                        | Flood the TTY with patterns, as visual separator.       |
-| `!dialog` | \-                              | Toggle the “dialog” interface.                          |
-| `!img`    | `!media` \[*FILE*\|*URL*\]      | Add image, media, or URL to prompt.                     |
-| `!md`     | `!markdown` \[*SOFTW*\]         | Toggle markdown rendering in response.                  |
-| `!!md`    | `!!markdown` \[*SOFTW*\]        | Render last response in markdown.                       |
-| `!rep`    | `!replay`                       | Replay last TTS audio response.                         |
-| `!res`    | `!resubmit`                     | Resubmit last STT recorded audio in cache.              |
-| `!p`      | `!pick` \[*PROPMT*\]            | File picker, appends filepath to user prompt. *‡*       |
-| `!pdf`    | `!pdf:` \[*FILE*\]              | Convert PDF and dump text.                              |
-| `!photo`  | `!!photo` \[*INDEX*\]           | Take a photo, optionally set camera index (Termux). *‡* |
-| `!sh`     | `!shell` \[*CMD*\]              | Run shell *command* and edit stdout (make request). *‡* |
-| `!sh:`    | `!shell:` \[*CMD*\]             | Same as `!sh` and insert stdout into current prompt.    |
-| `!!sh`    | `!!shell` \[*CMD*\]             | Run interactive shell *command* and return.             |
-| `!time`   | `!date`                         | Add timestamp to the start of user prompt. ‡            |
-| `!url`    | `!url:` \[*URL*\]               | Dump URL text or YouTube transcript text.               |
+| Misc | Commands |  |
+|:---|:---|----|
+| `-S` | \[*PROMPT*\] | Overwrite the system prompt. |
+| `-S:` | `:` \[*PROMPT*\] | Prepend to current user prompt. |
+| `-S::` | `::` \[*PROMPT*\] | Prepend to system prompt. |
+| `-S:::` | `:::` | Reset (inject) system prompt into request. |
+| `-S.` | `-.` \[*NAME*\] | Load and edit custom prompt. |
+| `-S/` | `!awesome` \[*NAME*\] | Load and edit awesome prompt (english). |
+| `-S%` | `!awesome-zh` \[*NAME*\] | Load and edit awesome prompt (chinese). |
+| `-Z` | `!last` | Print last raw JSON or the processed text response. |
+| `!#` | `!save` \[*PROMPT*\] | Save current prompt to shell history. *‡* |
+| `!` | `!r`, `!regen` | Regenerate last response. |
+| `!!` | `!rr` | Regenerate response, edit prompt first. |
+| `!g:` | `!!g:` \[*PROMPT*\] | Ground user prompt with web search results. *‡* |
+| `!i` | `!info` \[*REGEX*\] | Information on model and session settings. |
+| `!!i` | `!!info` | Monthly usage stats (OpenAI). |
+| `!j` | `!jump` | Jump to request, append start seq primer (text cmpls). |
+| `!!j` | `!!jump` | Jump to request, no response priming. |
+| `!cat` | \- | Cat prompter as one-shot, \<*CTRL-D*\> flush. |
+| `!cat` | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text*, *PDF* file, or dump *URL*. |
+| `!clot` | `!!clot` | Flood the TTY with patterns, as visual separator. |
+| `!dialog` | \- | Toggle the “dialog” interface. |
+| `!img` | `!media` \[*FILE*\|*URL*\] | Add image, media, or URL to prompt. |
+| `!md` | `!markdown` \[*SOFTW*\] | Toggle markdown rendering in response. |
+| `!!md` | `!!markdown` \[*SOFTW*\] | Render last response in markdown. |
+| `!rep` | `!replay` | Replay last TTS audio response. |
+| `!res` | `!resubmit` | Resubmit last STT recorded audio in cache. |
+| `!p` | `!pick` \[*PROPMT*\] | File picker, appends filepath to user prompt. *‡* |
+| `!pdf` | `!pdf:` \[*FILE*\] | Convert PDF and dump text. |
+| `!photo` | `!!photo` \[*INDEX*\] | Take a photo, optionally set camera index (Termux). *‡* |
+| `!sh` | `!shell` \[*CMD*\] | Run shell *command* and edit stdout (make request). *‡* |
+| `!sh:` | `!shell:` \[*CMD*\] | Same as `!sh` and insert stdout into current prompt. |
+| `!!sh` | `!!shell` \[*CMD*\] | Run interactive shell *command* and return. |
+| `!time` | `!date` | Add timestamp to the start of user prompt. ‡ |
+| `!url` | `!url:` \[*URL*\] | Dump URL text or YouTube transcript text. |
 
-| Script  | Settings and UX      |                                                          |
-|:--------|:---------------------|----------------------------------------------------------|
-| `!fold` | `!wrap`              | Toggle response wrapping.                                |
-| `-F`    | `!conf`              | Runtime configuration form TUI.                          |
-| `-g`    | `!stream`            | Toggle response streaming.                               |
-| `-h`    | `!help` \[*REGEX*\]  | Print help or grep help for regex.                       |
-| `-l`    | `!models` \[*NAME*\] | List language models or show model details.              |
-| `-o`    | `!clip`              | Copy responses to clipboard.                             |
-| `-u`    | `!multi`             | Toggle multiline prompter. \<*CTRL-D*\> flush.           |
-| `-uu`   | `!!multi`            | Multiline, one-shot. \<*CTRL-D*\> flush.                 |
-| `-U`    | `-UU`                | Toggle cat prompter or set one-shot. \<*CTRL-D*\> flush. |
-| `-V`    | `!debug`             | Dump raw request block and confirm.                      |
-| `-v`    | \-                   | Toggle interface verbose modes.                          |
-| `-x`    | `!ed`                | Toggle text editor interface.                            |
-| `-xx`   | `!!ed`               | Single-shot text editor.                                 |
-| `-y`    | `!tik`               | Toggle python tiktoken use.                              |
-| `!q`    | `!quit`              | Exit. Bye.                                               |
+| Script | Settings and UX |  |
+|:---|:---|----|
+| `!fold` | `!wrap` | Toggle response wrapping. |
+| `-F` | `!conf` | Runtime configuration form TUI. |
+| `-g` | `!stream` | Toggle response streaming. |
+| `-h` | `!help` \[*REGEX*\] | Print help or grep help for regex. |
+| `-l` | `!models` \[*NAME*\] | List language models or show model details. |
+| `-o` | `!clip` | Copy responses to clipboard. |
+| `-u` | `!multi` | Toggle multiline prompter. \<*CTRL-D*\> flush. |
+| `-uu` | `!!multi` | Multiline, one-shot. \<*CTRL-D*\> flush. |
+| `-U` | `-UU` | Toggle cat prompter or set one-shot. \<*CTRL-D*\> flush. |
+| `-V` | `!debug` | Dump raw request block and confirm. |
+| `-v` | \- | Toggle interface verbose modes. |
+| `-x` | `!ed` | Toggle text editor interface. |
+| `-xx` | `!!ed` | Single-shot text editor. |
+| `-y` | `!tik` | Toggle python tiktoken use. |
+| `!q` | `!quit` | Exit. Bye. |
 
-| Model     | Settings                |                                                           |
-|:----------|:------------------------|-----------------------------------------------------------|
-| `!Nill`   | `-Nill`                 | Unset max response tokens (chat cmpls).                   |
-| `!NUM`    | `-M` \[*NUM*\]          | Maximum response tokens.                                  |
-| `!!NUM`   | `-N` \[*NUM*\]          | Model token capacity.                                     |
-| `-a`      | `!pre` \[*VAL*\]        | Presence penalty.                                         |
-| `-A`      | `!freq` \[*VAL*\]       | Frequency penalty.                                        |
-| `-b`      | `!responses` \[*MOD*\]  | Responses API request (experimental).                     |
-| `best`    | `!best-of` \[*NUM*\]    | Best-of n results.                                        |
-| `-j`      | `!seed` \[*NUM*\]       | Seed number (integer).                                    |
-| `-K`      | `!topk` \[*NUM*\]       | Top_k.                                                    |
-| `-m`      | `!mod` \[*MOD*\]        | Model by name, empty to pick from list.                   |
-| `-n`      | `!results` \[*NUM*\]    | Number of results.                                        |
-| `-p`      | `!topp` \[*VAL*\]       | Top_p.                                                    |
-| `-r`      | `!restart` \[*SEQ*\]    | Restart sequence.                                         |
-| `-R`      | `!start` \[*SEQ*\]      | Start sequence.                                           |
-| `-s`      | `!stop` \[*SEQ*\]       | One stop sequence.                                        |
-| `-t`      | `!temp` \[*VAL*\]       | Temperature.                                              |
-| `-w`      | `!rec` \[*ARGS*\]       | Toggle voice-in STT. Optionally, set arguments.           |
-| `-z`      | `!tts` \[*ARGS*\]       | Toggle TTS chat mode (speech out).                        |
-| `!blk`    | `!block` \[*ARGS*\]     | Set and add custom options to JSON request.               |
-| `!effort` | \- \[*MODE*\]           | Reasoning effort: minimal, high, medium, or low (OpenAI). |
-| `!think`  | \- \[*NUM*\]            | Thinking budget: tokens (Anthropic).                      |
-| `!ka`     | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama).            |
-| `!verb`   | `!verbosity` \[*MODE*\] | Model verbosity level (high, medium, or low).             |
-| `!vision` | `!audio`, `!multimodal` | Toggle multimodality type.                                |
+| Model | Settings |  |
+|:---|:---|----|
+| `!Nill` | `-Nill` | Unset max response tokens (chat cmpls). |
+| `!NUM` | `-M` \[*NUM*\] | Maximum response tokens. |
+| `!!NUM` | `-N` \[*NUM*\] | Model token capacity. |
+| `-a` | `!pre` \[*VAL*\] | Presence penalty. |
+| `-A` | `!freq` \[*VAL*\] | Frequency penalty. |
+| `-b` | `!responses` \[*MOD*\] | Responses API request (experimental). |
+| `best` | `!best-of` \[*NUM*\] | Best-of n results. |
+| `-j` | `!seed` \[*NUM*\] | Seed number (integer). |
+| `-K` | `!topk` \[*NUM*\] | Top_k. |
+| `-m` | `!mod` \[*MOD*\] | Model by name, empty to pick from list. |
+| `-n` | `!results` \[*NUM*\] | Number of results. |
+| `-p` | `!topp` \[*VAL*\] | Top_p. |
+| `-r` | `!restart` \[*SEQ*\] | Restart sequence. |
+| `-R` | `!start` \[*SEQ*\] | Start sequence. |
+| `-s` | `!stop` \[*SEQ*\] | One stop sequence. |
+| `-t` | `!temp` \[*VAL*\] | Temperature. |
+| `-w` | `!rec` \[*ARGS*\] | Toggle voice-in STT. Optionally, set arguments. |
+| `-z` | `!tts` \[*ARGS*\] | Toggle TTS chat mode (speech out). |
+| `!blk` | `!block` \[*ARGS*\] | Set and add custom options to JSON request. |
+| `!effort` | \- \[*MODE*\] | Reasoning effort: minimal, high, medium, or low (OpenAI). |
+| `!think` | \- \[*NUM*\] | Thinking budget: tokens (Anthropic). |
+| `!ka` | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
+| `!verb` | `!verbosity` \[*MODE*\] | Model verbosity level (high, medium, or low). |
+| `!vision` | `!audio`, `!multimodal` | Toggle multimodality type. |
 
-| Session | Management                             |                                                                                              |
-|:--------|:---------------------------------------|----------------------------------------------------------------------------------------------|
-| `-C`    | \-                                     | Continue current history session (see `!break`).                                             |
-| `-H`    | `!hist` \[*NUM*\]                      | Edit history in editor or print the last *n* history entries.                                |
-| `-P`    | `-HH`, `!print`                        | Print session history.                                                                       |
-| `-L`    | `!log` \[*FILEPATH*\]                  | Save to log file.                                                                            |
-| `!c`    | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination.                                                     |
-| `!f`    | `!fork` \[*DEST_HIST*\]                | Fork current session and continue from destination.                                          |
-| `!k`    | `!kill` \[*NUM*\]                      | Comment out *n* last entries in history file.                                                |
-| `!!k`   | `!!kill` \[\[*0*\]*NUM*\]              | Dry-run of command `!kill`.                                                                  |
-| `!s`    | `!session` \[*HIST_NAME*\]             | Change to, search for, or create history file.                                               |
-| `!!s`   | `!!session` \[*HIST_NAME*\]            | Same as `!session`, break session.                                                           |
-| `!u`    | `!unkill` \[*NUM*\]                    | Uncomment *n* last entries in history file.                                                  |
-| `!!u`   | `!!unkill` \[\[*0*\]*NUM*\]            | Dry-run of command `!unkill`.                                                                |
-| `!br`   | `!break`, `!new`                       | Start new session (session break).                                                           |
-| `!ls`   | `!list` \[*GLOB*\|*.*\|*pr*\|*awe*\]   | List history files with “*glob*” in *name*; Files: “*.*”; Prompts: “*pr*”; Awesome: “*awe*”. |
-| `!grep` | `!sub` \[*REGEX*\]                     | Grep sessions and copy session to hist tail.                                                 |
-| `!tmp`  | `!!tmp`                                | Fork session to a temporary cache.                                                           |
+| Session | Management |  |
+|:---|:---|----|
+| `-C` | \- | Continue current history session (see `!break`). |
+| `-H` | `!hist` \[*NUM*\] | Edit history in editor or print the last *n* history entries. |
+| `-P` | `-HH`, `!print` | Print session history. |
+| `-L` | `!log` \[*FILEPATH*\] | Save to log file. |
+| `!c` | `!copy` \[*SRC_HIST*\] \[*DEST_HIST*\] | Copy session from source to destination. |
+| `!f` | `!fork` \[*DEST_HIST*\] | Fork current session and continue from destination. |
+| `!k` | `!kill` \[*NUM*\] | Comment out *n* last entries in history file. |
+| `!!k` | `!!kill` \[\[*0*\]*NUM*\] | Dry-run of command `!kill`. |
+| `!s` | `!session` \[*HIST_NAME*\] | Change to, search for, or create history file. |
+| `!!s` | `!!session` \[*HIST_NAME*\] | Same as `!session`, break session. |
+| `!u` | `!unkill` \[*NUM*\] | Uncomment *n* last entries in history file. |
+| `!!u` | `!!unkill` \[\[*0*\]*NUM*\] | Dry-run of command `!unkill`. |
+| `!br` | `!break`, `!new` | Start new session (session break). |
+| `!ls` | `!list` \[*GLOB*\|*.*\|*pr*\|*awe*\] | List history files with “*glob*” in *name*; Files: “*.*”; Prompts: “*pr*”; Awesome: “*awe*”. |
+| `!grep` | `!sub` \[*REGEX*\] | Grep sessions and copy session to hist tail. |
+| `!tmp` | `!!tmp` | Fork session to a temporary cache. |
 
 *:* Commands with **colons** add their output to the current prompt
 buffer.
@@ -965,9 +966,11 @@ and resume from it as opposed to just copying it.
 If "`/copy` _current_" is run, a selector is shown to choose and copy
 a session to the tail of the current history file, and resume it.
 This is equivalent to running "`/fork`". -->
+
 <!--
 Change to a history file with command "`!session` \[_NAME_]",
 and then "`!fork`" the older session to the active session. -->
+
 <!--
 Or, "`!copy` \[_ORIGN_] \[_DEST_]" the session from a history file to the current
 or other history file.
@@ -993,6 +996,7 @@ amongst other functions.
 useful completions it's helpful to think about what information
 a programmer would need to perform a task. 
 -->
+
 <!--
 # TEXT EDITS  _(discontinued)_
 &#10;--
@@ -1461,8 +1465,10 @@ The script logic resembles a bowl of spaghetti code after a cat fight.
 <!-- Changing models in the same session may generate token count errors
 because the recorded token count may differ from model encoding to encoding.
 Set `option -y` for accurate token counting. -->
+
 <!-- With the exception of Davinci and newer base models, older models were designed
 to be run as one-shot. -->
+
 <!--
 `Zsh` does not read history file in non-interactive mode.
 &#10;`Ksh93` mangles multibyte characters when re-editing input prompt
@@ -1471,5 +1477,6 @@ cursor one char and press the up arrow key.
 &#10;`Ksh2020` lacks functionality compared to `Ksh83u+`, such as `read`
 with history, so avoid it.
 -->
+
 <!--
 # EXAMPLES -->
