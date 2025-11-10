@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.117.1  nov/2025  by mountaineerbr  GPL+3
+# v0.117.2  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
