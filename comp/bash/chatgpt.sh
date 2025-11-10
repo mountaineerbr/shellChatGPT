@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.114
+# v0.117
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -59,73 +59,78 @@ _chatgptsh()
     'llama3'  'gemini-1.5-flash-latest'  'gemini-1.5-pro-latest' )
 
   opts="-@ --alpha
-        -Nill -M
-        --max -N
-        --modmax
-        -a --presence-penalty
-        -A --frequency-penalty
-        -b --responses
-	--best-of
-        --logprobs
-	-j --seed
-        -K --top-k
+        -Nill -M --max --max-tokens
+        -N --modmax --mod-max
+        -a --presence-penalty --presence --pre
+        -A --frequency-penalty --frequency --freq
+        -b --responses --resp
+        --best-of --best
+        -j --seed
+        -K --top-k --topk
         --keep-alive --ka
-        -m --model
+        -m --model --mod
         --multimodal
+        --vision
+        --audio
         -n --results
-        -p --top-p
-        -r --restart
-        -R --start
+        -p --top-p --topp
+        -r --restart --restart-seq --restart-sequence
+        -R --start --start-seq --start-sequence
         -s --stop
         -S --instruction
         -. -, -,,
-        -t --temperature
-	--time  --no-time
+        -t --temperature --temp
+        --time --date --no-time --no-date
         -c --chat -cc
-        -C --continue
+        -C --continue --resume
         -d --text
-	--effort
+        --effort --budget
         -e --edit
         -E --exit -EE
         -g --stream
         -G --no-stream
-	--effort  --think
+        --think
         -i --image
+        -X --media
         -q -qq --insert
+        --awesome --awesome-zh
         -T --tiktoken -TT -TTT
-        -w --transcribe -ww -www
+        -w --transcribe --stt -ww -www
         -W --translate -WW -WWW
         --api-key
         -f --no-conf
         -F -FF
-        --fold --no-fold
-        --google  --groq  --anthropic  --github  --openai
-	--xai  --deepseek
+        --fold --wrap --no-fold --no-wrap
+        --google --goo --groq --anthropic --ant --github --git --openai
+        --xai --grok --deepseek --deep --novita --nov
         -h --help
         -H --hist -HH -P -PP --print
-        -k --no-colour
+        -k --no-colour --no-color
         -l --list-models
         -L --log
-        --localai
+        --source
+        --tmp
+        --localai --local-ai --local
         --mistral
         --md --markdown --md= --markdown=
         --no-md --no-markdown
-        -o --clipboard
+        -o --clipboard --clip
         -O --ollama
-        -u --multi
+        -u --multi --multiline
         -U --cat
         -v -vv
         -V -VV
         -x --editor
         -y --tik
         -Y --no-tik
-        -z --tts
-	--format
-	--no-truncation
-	--verb --verbosity --no-verbosity
-	--voice
+        -z --tts --speech
+        --format
+        --no-truncation
+        --verb --verbosity --no-verbosity
+        --voice
         -Z --last
-	--version
+        --info
+        --version
   "
 
 
@@ -136,13 +141,13 @@ _chatgptsh()
     -@|-[!-]*@|--alpha)
       ((${#cur})) || COMPREPLY=( '[[percent%]colour]' '"10%white"' )
       ;;
-    -[aApt]|-[!-]*[aApt]|--presence*|--frequency*|--top-p|--temperature)
+    -[aApt]|-[!-]*[aApt]|--presence*|--pre|--frequency*|--freq|--top-p|--topp|--temperature|--temp)
       ((${#cur})) || COMPREPLY=( '[float]' )
       ;;
-    -[NbBKn]|-[!-]*[NbBKn]|--modmax|--best-of|--logprobs|--top-k|--keep-alive|--ka|--results|--seed)
+    -[NbBKn]|-[!-]*[NbBKn]|--modmax*|--best-of*|--best|--top-k|--topk|--keep-alive|--ka|--results|--seed)
       ((${#cur})) || COMPREPLY=( '[integer]' )
       ;;
-    -M|-[!-]*M|--max)
+    -M|-[!-]*M|--max|--max-tokens)
       ((${#cur})) || COMPREPLY=( '[integer]' '[integer-integer]' )
       ;;
     -r|-[!-]*r|--restart*)
@@ -154,23 +159,23 @@ _chatgptsh()
     -s|-[!-]*s|--stop*)
       ((${#cur})) || COMPREPLY=( '[stop-sequence]' '"\\nQ: "' '"\\nA:"' )
       ;;
-    --effort*)
+    --effort|--budget)
       ((${#cur})) || COMPREPLY=( 'minimal' 'low' 'medium' 'high' )
       ;;
-    --think*)
+    --think)
       ((${#cur})) || COMPREPLY=( 'TOKEN_NUM' '16000' )
       ;;
     --md|--markdown)
       COMPREPLY=( $(compgen -W "bat pygmentize glow mdcat mdless" -- "${cur##*=}") )
       ;;
-    -m|-[!-]*m|--model)
+    -m|-[!-]*m|--model|--mod)
       COMPREPLY=( $(compgen -W "$(chatgpt.sh -EE -lll 2>/dev/null)" -- "${cur}") )
       ((${#COMPREPLY[@]})) || COMPREPLY=( "${models[@]}" )
       ;;
     --format)
       COMPREPLY=( mp3 opus aac flac wav pcm16  mulaw ogg )
       ;;
-    --verb*|--verbosity*)
+    --verb|--verbosity)
       ((${#cur})) || COMPREPLY=( 'low' 'medium' 'high' )
       ;;
     --voice)

@@ -1,7 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.114
+# v0.117
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -117,34 +117,36 @@ _chatgpt.sh()
   _arguments -s -S : \
     {-@,--alpha}'[Mask transparent colour]:alpha -- [[percent%%]colour]' \
     '-Nill[Unset model max response]' \
-    {-M,--max}'[Maximum response tokens]:max response -- [integer[-integer]]' \
-    {-N,--modmax}'[Model capacity tokens]:model capacity -- [integer]' \
-    {-a,--presence-penalty}'[Presence penalty]:presence-penalty -- [float]' \
-    {-A,--frequency-penalty}'[Frequency penalty]:frequency-penalty -- [float]' \
-    {-b,--responses}'[Use Responses API]' \
-    --best-of'[Best-of]:best-of -- [integer]' \
-    --logprobs'[Log probabilities]:log-probs -- [integer]' \
+    {-M,--max,--max-tokens}'[Maximum response tokens]:max response -- [integer[-integer]]' \
+    {-N,--modmax,--mod-max}'[Model capacity tokens]:model capacity -- [integer]' \
+    {-a,--presence-penalty,--presence,--pre}'[Presence penalty]:presence-penalty -- [float]' \
+    {-A,--frequency-penalty,--frequency,--freq}'[Frequency penalty]:frequency-penalty -- [float]' \
+    {-b,--responses,--resp}'[Use Responses API]' \
+    {--best-of,--best}'[Best-of]:best-of -- [integer]' \
     {-j,--seed}'[Seed number]:seed -- [integer]' \
-    {-K,--top-k}'[Top_k value]:top_k -- [integer]' \
+    {-K,--top-k,--topk}'[Top_k value]:top_k -- [integer]' \
     {--ka,--keep-alive}'[Keep-alive seconds]:keep-alive -- [integer]' \
-    {-m+,--model}'[Set language model]:model name:__mod_listf' \
+    {-m+,--model,--mod}'[Set language model]:model name:__mod_listf' \
     '--multimodal[Enable multimodal mode]' \
+    '--vision[Enable vision mode]' \
+    '--audio[Enable audio mode]' \
     {-n,--results}'[Number of results]:results -- [integer]' \
-    {-p,--top-p}'[Top_p value]:top_p -- [float]' \
-    {-r,--restart}'[Restart sequence]:restart-sequence:(sequence \\nQ\:\ )' \
-    {-R,--start}'[Start sequence]:start-sequence:(sequence \\nA\:)' \
+    {-p,--top-p,--topp}'[Top_p value]:top_p -- [float]' \
+    {-r,--restart,--restart-seq,--restart-sequence}'[Restart sequence]:restart-sequence:(sequence \\nQ\:\ )' \
+    {-R,--start,--start-seq,--start-sequence}'[Start sequence]:start-sequence:(sequence \\nA\:)' \
     {-s,--stop}'[Stop sequences]:stop-sequence:(sequence \\nQ\:\  \\nA\:)' \
-    {-t,--temperature}'[Temperature]:temperature -- [float]' \
+    {-t,--temperature,--temp}'[Temperature]:temperature -- [float]' \
     {-c,-cc,--chat}'[Text or native chat completions]' \
-    {-C,--continue}'[Continue from last session]' \
+    {-C,--continue,--resume}'[Continue from last session]' \
     {-d,--text}'[Text completions]' \
-    --effort'[Reasoning effort]:effort:(minimal low medium high)' \
+    {--effort,--budget}'[Reasoning effort]:effort:(minimal low medium high)' \
     --think'[Thinking budget]:effort:(TOKEN_NUM 16000)' \
     {-e,--edit}'[Edit first prompt]' \
     {-E,-EE,--exit}'[Exit on first run]' \
     {-g,--stream}'[Stream response on]' \
     {-G,--no-stream}'[Stream response off]' \
     {-i,--image}'[Image generation, variation or edit]' \
+    {-X,--media}'[Media file]:media file:_files' \
     {-q,-qq,--insert}'[Insert text mode (two for multiturn)]' \
     {-S,--instruction}'[Instruction prompt]:instruction:__pr_list3f' \
     {-S.-,-.+}'[Load custom prompt]:name:__pr_listf' \
@@ -152,40 +154,46 @@ _chatgpt.sh()
     {-S\,\,-,-\,\,+}'[Edit template of custom prompt]:name:__pr_listf' \
     -S/-'[Awesome-prompts]:act:__awesome_list2f' \
     -S%-'[Awesome-prompts]:act:__awesome_list4f' \
+    '--awesome[Awesome-prompts]' \
+    '--awesome-zh[Awesome-prompts (Chinese)]' \
     {-T,--tiktoken}'[Count input tokens]' \
     '-TT[Print input tokens]' \
     '-TTT[List available encodings]' \
-    {-w,--transcribe}'[Transcribe audio]' \
+    {-w,--transcribe,--stt}'[Transcribe audio]' \
     {-ww,-www}'[Transcribe audio (phrase and word-level timestamps)]' \
     {-W,--translate}'[Translate audio to English]' \
     {-WW,-WWW}'[Translate audio to English (phrase and word-level timestamps)]' \
     '--api-key[API key]:key' \
     {-f,--no-conf}'[Ignore configuration file]' \
     {-F,-FF}'[Edit configuration or dump template]' \
-    {--fold,--no-fold}'[Response folding on/off]' \
+    {--fold,--wrap}'[Response folding on]' \
+    {--no-fold,--no-wrap}'[Response folding off]' \
     {-h,--help}'[Print help page]' \
     {-H,--hist}'[Edit history file]' \
     {-HH,-P,-PP,--print}'[Print out last session from history]' \
-    {-k,--no-colour}'[Disable color output]' \
+    {-k,--no-colour,--no-color}'[Disable color output]' \
     {-l,--list-models}'[List models]:model name (optional)' \
     {-L,--log}'[Log file]:log filepath:_files' \
+    '--source[Source file]:source file:_files' \
+    '--tmp[Use temporary directory]' \
     {-O,--ollama}'[Ollama integration]' \
-    '--localai[LocalAI integration]' \
+    {--localai,--local-ai,--local}'[LocalAI integration]' \
     '--mistral[Mistral AI integration]' \
-    '--google[GoogleAI integration]' \
+    {--google,--goo}'[GoogleAI integration]' \
     '--groq[Groq integration]' \
-    '--anthropic[Anthropic integration]' \
-    '--github[GitHub Models integration]' \
-    '--xai[xAI integration]' \
-    '--deepseek[DeepSeek integration]' \
+    {--anthropic,--ant}'[Anthropic integration]' \
+    {--github,--git}'[GitHub Models integration]' \
+    {--xai,--grok}'[xAI integration]' \
+    {--deepseek,--deep}'[DeepSeek integration]' \
+    {--novita,--nov}'[Novita AI integration]' \
     '--openai[Reset defaults to OpenAI]' \
-    '--time[Instruction timestamp]' \
-    '--no-time[Unset instruction timestamp]' \
+    {--time,--date}'[Instruction timestamp]' \
+    {--no-time,--no-date}'[Unset instruction timestamp]' \
     {--md,--markdown}'[Enable markdown rendering]' \
     {--md=-,--markdown=-}'[Set markdown software (=cmd)]:markdown command:(bat pygmentize glow mdcat mdless)' \
     {--no-md,--no-markdown}'[Disable markdown rendering]' \
-    {-o,--clipboard}'[Copy to clipboard]' \
-    {-u,--multi}'[Multiline prompter (ctrl-d)]' \
+    {-o,--clipboard,--clip}'[Copy to clipboard]' \
+    {-u,--multi,--multiline}'[Multiline prompter (ctrl-d)]' \
     {-U,--cat}'[Cat prompter (ctrl-d)]' \
     --no-truncation'[Disable context truncation (Responses API)]' \
     --verb{,osity}'[Model response verbosity]:mode:(low medium high)' \
@@ -196,10 +204,11 @@ _chatgpt.sh()
     {-x,--editor}'[Edit prompt in text editor]' \
     {-y,--tik}'[Set tiktoken for chat]' \
     {-Y,--no-tik}'[Unset tiktoken for chat]' \
-    {-z,--tts}'[Synthesize speech]' \
+    {-z,--tts,--speech}'[Synthesize speech]' \
     --format'[TTS out-format]:format:(mp3 opus aac flac wav pcm16  mulaw ogg)' \
     --voice'[TTS voice]:voice:(alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Basil-PlayAI Calum-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Mamaw-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI)' \
     {-Z,--last}'[Dump last response JSON]' \
+    '--info[Print info]' \
     --version'[Print script version]' \
     '1:session/file:__session_or_pr_listf' '*:file:_files'
     #-{0..9}'[Maximum response tokens]:max response -- integer [0-9]'
