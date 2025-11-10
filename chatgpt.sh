@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.116.4  oct/2025  by mountaineerbr  GPL+3
+# v0.117.1  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -961,6 +961,7 @@ function model_capf
 	gpt-[5-9]*) MODMAX=400000;;
 	gpt-[4-9].[1-9]*) MODMAX=1048576;;
 	ai21-jamba-1.5-*) MODMAX=262144;;
+	grok-[4-9]-fast-reasoning|grok-[4-9]-fast-non-reasoning) MODMAX=2000000;;
 	codestral-2501|grok-[4-9]*|grok-code*) MODMAX=256000;;
 	o1|o1-mini|o3|o3-mini|o4-mini) MODMAX=200000;;
 	phi-4-mini*|phi-4-multimodal*|gpt-oss*|\
@@ -3791,7 +3792,7 @@ function _warmsgf
 function _cmdmsgf
 {
 	BWHITE="${WHITE}" Color200="${CYAN}" \
-	_sysmsgf "$(printf '%-11s' "$1")" "=> ${2:-unset}"
+	_sysmsgf "$(printf '%-11s' "$1")" "=> ${2:-unset}" "${@:3}"
 }
 function cmdmsgf
 {
@@ -4877,6 +4878,9 @@ function record_confirmf
 	fi
 	printf "\\n${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * [e]dit, [r]edo, [w]hspr_off * ' >&2
 	printf "\\r${NC}${BWHITE}${ON_PURPLE}%s\\a${NC}\\n" ' * Press ENTER to  STOP record * ' >&2
+	var=$(datef) var=${var##*T} var=${var%%[-+]*}
+	_cmdmsgf 'Record Start' "$var"
+
 }
 
 #record mic
@@ -6347,7 +6351,7 @@ do 	_spinf 	#grep session with user regex
 				for ((n=0;n<12;++n))
 				do 	_spinf
 					IFS=$'\t' read -r time token string || break
-					buff_end="${buff_end}${buff_end:+$NL}${string:1: ${#string}-2}"
+					buff_end="${string:1: ${#string}-2}${buff_end:+$NL}${buff_end}"
 				done <<<"${buff}"
 			fi
 
@@ -6392,7 +6396,7 @@ done
 			REPLY= reply= time= token= string= buff= buff_end= index= m= n=
 			continue
 		fi
-		buff="${REPLY}"${buff:+$'\n'}"${buff}"
+		buff="${buff}"${buff:+$'\n'}"${REPLY}"
 	done < <( 	tac -- "$file" && {
 			((OPTPRINT+OPTHH)) || _warmsgf '(end of hist file)' ;}
 			echo BREAK;
@@ -7788,23 +7792,30 @@ else
 	fi
 
 	#session and chat cmds
-	case "$1" in
-		[.]|[/!.][/.]) 	set -- '/fork current' "${@:2}";;
-		[/!]) 	set -- '/session' "${@:2}";;
-	esac;
 	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
 	then 	case "$1" in
 			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )
 				OPTV=100 sessionf "$1" "${@:2:1}" && set -- "${@:3}";;
 			*) 	OPTV=100 sessionf "$1" && set -- "${@:2}";;
 		esac
-	elif cmdf "$@"
-	then 	set -- ; SKIP_SH_HIST=;
-	else  #print session context?
-		if ((OPTRESUME==1)) && ((OPTV<2)) && [[ -s $FILECHAT ]]
-		then 	OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
-		fi
 	fi
+
+	#resume from older session?
+	case "$1" in
+		[.]|[/!.][/.]) 	set -- '/fork current' "${@:2}";;
+		[/!]) 	set -- '/session' "${@:2}";;
+	esac;
+
+	#run a command?
+	if cmdf "$@"
+	then 	set -- ; SKIP_SH_HIST=;
+	fi
+
+	#print session context?
+	if ((OPTRESUME==1)) && ((OPTV<2)) && [[ -s $FILECHAT ]]
+	then 	OPTPRINT=1 session_sub_printf "$(tail -- "$FILECHAT" >"$FILEFIFO")$FILEFIFO" >/dev/null;
+	fi
+	
 	((OPTRESUME)) && BREAK_SET= && fix_breakf "$FILECHAT";
 
 	if ((${#})) && ((!(OPTE+OPTX) )) && [[ ! -e $1 && ! -e ${@:${#}} ]]
