@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.117.2  nov/2025  by mountaineerbr  GPL+3
+# v0.118  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1152,7 +1152,7 @@ function promptf
 		fi
 	fi & pid=$! PIDS+=($!)  #catch <CTRL-C>
 
-	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2;" INT;
+	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2; TRAP_WEDIT=1 EDIT=1;" INT;
 	wait $pid; printf "${NC}\\n" >&2;
 	trap 'exit' INT; RET_APRF=;
 	((STREAM)) && [[ -s $FILEFIFO ]] && {
@@ -2596,7 +2596,7 @@ function cmdf
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; xskip=1;
 			unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP HIST_LOOP TOTAL_OLD \
-			  REPLY_CMD_DUMP RESUBW REPLY_CMD BAD_RES EDIT PREPEND SKIP_SH_HIST \
+			  REPLY_CMD_DUMP RESUBW REPLY_CMD TRAP_WEDIT TRAP_EDIT BAD_RES EDIT PREPEND SKIP_SH_HIST \
 			  PSKIP XSKIP WSKIP SKIP JUMP REGEN INT_RES MEDIA MEDIA_IND MEDIA_CMD_IND BLOCK_CMD;
 			;;
 		block*|blk*)
@@ -6352,7 +6352,7 @@ do 	_spinf 	#grep session with user regex
 				do 	_spinf
 					IFS=$'\t' read -r time token string || break
 					buff_end="${string:1: ${#string}-2}${buff_end:+$NL}${buff_end}"
-				done <<<"${buff}"
+				done < <(tac <<<"${buff}")
 			fi
 
 			((OPTHH && OPTV)) && break 2;  #IPC#
@@ -6396,7 +6396,7 @@ done
 			REPLY= reply= time= token= string= buff= buff_end= index= m= n=
 			continue
 		fi
-		buff="${buff}"${buff:+$'\n'}"${REPLY}"
+		buff="${REPLY}"${buff:+$'\n'}"${buff}"
 	done < <( 	tac -- "$file" && {
 			((OPTPRINT+OPTHH)) || _warmsgf '(end of hist file)' ;}
 			echo BREAK;
@@ -7012,7 +7012,7 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_EDIT EPN_OLD OPT_SOURCE NC  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD OPT_SOURCE NC  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
@@ -7864,7 +7864,7 @@ else
 		then 	((EDIT)) || REPLY=""  #!#
 			edf "${REPLY:-$@}"
 			case $? in
-				179|180) XSKIP=; :;;        #jumps
+				179|180) XSKIP= BAD_RES=; :;;        #jumps
 				200) 	set --; ((PSKIP)) || REPLY=; BAD_RES=;
 					REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 					continue;;  #redo
@@ -7883,20 +7883,20 @@ else
 					} || NO_CLR=1 new_prompt_confirmf abort
 						case $? in
 							202) 	exit 202;;  #exit
-							201) 	OPTX= XSKIP= REPLY_CMD_DUMP= SKIP_SH_HIST=;
+							201) 	OPTX= XSKIP= REPLY_CMD_DUMP= SKIP_SH_HIST= BAD_RES=;
 								set --; break 1;;  #abort
 							200) 	((PSKIP)) || REPLY=; BAD_RES=;
 								REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 								set --; continue 2;;  #redo
-							19[26789]) edf "${REPLY:-$*}" || break 1;;  #edit
-							195) 	WSKIP=1 XSKIP= EDIT= WAPPEND=1 REPLY_OLD=$REPLY REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							19[26789]) edf "${REPLY:-$*}" || break 1; BAD_RES=;;  #edit
+							195) 	WSKIP=1 XSKIP= EDIT= WAPPEND=1 REPLY_OLD=$REPLY REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST= BAD_RES=;
 								((OPTW)) || cmdf -ww;
 								set --; break;;  #whisper append (hidden option)
-							0) 	XSKIP=1;
+							0) 	XSKIP=1 BAD_RES=;
 								((${#REPLY}+${#PREPEND})) || OPTX=;
 								set -- "$REPLY"; break;  #IPC#
-								trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
-							*) 	((OPTX>1)) && OPTX=;
+								trap 'trap "exit" INT; TRAP_WEDIT=1 TRAP_EDIT=1' INT;;  #yes
+							*) 	((OPTX>1)) && OPTX=; BAD_RES=;
 								SKIP_SH_HIST= XSKIP= PREPEND= REPLY_CMD_DUMP= REPLY_CMD=;
 								((${#PREPEND})) && echo '[buffer clear]' >&2;
 								set --; break;;  #no
@@ -7935,10 +7935,12 @@ else
 
 					((RESUBW)) || record_confirmf
 					case $? in
-					0) 	((BAD_RES && !EDIT && !WAPPEND)) ||
+					0) 	((BAD_RES && !EDIT && !WAPPEND)) || ((TRAP_WEDIT)) ||
 						if ((RESUBW)) || recordf "$FILEINW"
 						then
 							is_amodelf "$MOD" && _sysmsgf $'\nTranscription:' 'generating..';
+							((WAPPEND)) && ((${#REPLY})) &&  #make sure not to lose last user input!
+								((${#REPLY_OLD} != ${#REPLY})) && REPLY_OLD=$REPLY;
 							REPLY=$(
 								set --; OPTC= OPTCMPL= MTURN=;  #K#
 								((OPENAI+LOCALAI)) ||
@@ -7976,7 +7978,8 @@ else
 								202) 	exit 202;;  #exit
 							esac;
 							echo '[record abort]' >&2;
-						fi; ((OPTW>1)) && OPTW=; XSKIP=;;
+						fi; ((OPTW>1)) && OPTW=;
+						TRAP_WEDIT= XSKIP=;;
 					202) 	exit 202;;  #exit
 					201|196)  #whisper off
 						WSKIP= XSKIP= OPTW= REPLY= SKIP_SH_HIST=;
@@ -8073,40 +8076,41 @@ else
 							echo '[redo]' >&2;
 							set --; continue;;
 						199)  #edit
-							WSKIP=1 EDIT=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							WSKIP=1 EDIT=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST= BAD_RES=;
 							echo '[edit]' >&2;
 							continue;;
 						198)  #editor one-shot
-							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST= BAD_RES=;
 							((OPTX)) || OPTX=2;
 							echo "[text editor$( ((OPTX>1)) && echo ' one-shot' )]" >&2
 							set -- ;continue 2;;
 						197)  #multiline one-shot
-							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST= BAD_RES=;
 							((OPTCTRD))||OPTCTRD=2
 							echo '[literal newline <ctr-j>]' >&2
 							echo "[readline <ctr-d>$( ((OPTCTRD>1)) && echo ' one-shot' )]" >&2
 							set -- ;continue;;  #A#
 						192)  #cat one-shot
-							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							EDIT=1 SKIP=1 XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST= BAD_RES=;
 							((CATPR))||CATPR=2
 							echo '[literal newline <ctr-j>]' >&2
 							echo "[cat <ctr-d>$( ((CATPR>1)) && echo ' one-shot' )]" >&2
 							set -- ;continue;;  #A#
 						196)  #whisper off
-							 OPTW= XSKIP= WSKIP=1 EDIT=1 SKIP_SH_HIST=;
+							 OPTW= XSKIP= WSKIP=1 EDIT=1 SKIP_SH_HIST= BAD_RES=;
 							continue 2;;
 						195)  #whisper append
-							WSKIP=1 WAPPEND=1 XSKIP= EDIT= REPLY_OLD=$REPLY REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							WSKIP=1 WAPPEND=1 XSKIP= EDIT= REPLY_OLD=$REPLY REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST= BAD_RES=;
 							((OPTW)) || cmdf -ww;
 							echo '[transcription append]' >&2; continue;;
 						194)  #whisper retry request
+							BAD_RES=;
 							cmdf /resubmit;
 							set --; continue 2;;
-						0) 	:;
-							trap 'trap "exit" INT; TRAP_EDIT=1' INT;;  #yes
+						0) 	BAD_RES=; :;
+							trap 'trap "exit" INT; TRAP_WEDIT=1 TRAP_EDIT=1' INT;;  #yes
 						*) 	((${#PREPEND})) && echo '[buffer clear]' >&2;
-							REPLY= PREPEND= XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST=;
+							REPLY= PREPEND= XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST= BAD_RES=;
 							set -- ;break;;  #no
 					esac;
 				else
@@ -8263,14 +8267,14 @@ else
 			    REPLY="${REPLY}${NL}${NL}${REPLY_CMD_DUMP}";
 			  case "$RET" in
 			    202) echo '[bye]' >&2; exit 202;;
-			    201) REPLY= XSKIP= REPLY_CMD_DUMP=;;  #abort
-			    200) EDIT=1 REPLY=$REPLY_CMD; BAD_RES=;
+			    201) REPLY= XSKIP= REPLY_CMD_DUMP= BAD_RES=;;  #abort
+			    200) EDIT=1 REPLY=$REPLY_CMD BAD_RES=;
 				 REPLY_CMD_DUMP= WSKIP= XSKIP= SKIP=;  #E#
 			         set --; continue 1;;  #redo / abort
-			    199) SKIP=1 XSKIP= EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;
+			    199) SKIP=1 XSKIP= EDIT=1 REPLY_CMD_DUMP= REPLY_CMD= BAD_RES=;
 			    	set --; continue 1;;  #edit in bash readline
 			    198) ((OPTX)) || OPTX=2;
-			    	SKIP=1 XSKIP= EDIT=1 REPLY_CMD_DUMP= REPLY_CMD=;
+			    	SKIP=1 XSKIP= EDIT=1 REPLY_CMD_DUMP= REPLY_CMD= BAD_RES=;
 			    	set --; continue 1;;  #edit in text editor
 			  esac
 			  set -- "${*}${*:+${REPLY_CMD_DUMP:+${NL}${NL}}}${REPLY_CMD_DUMP}";
@@ -8564,8 +8568,8 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			var=$OPTFOLD;
 		fi
 		((TRAP_EDIT)) && continue;
-		trap "exit" INT; TRAP_EDIT=;
-		REPLY_CMD_DUMP=;
+		trap "exit" INT;
+		TRAP_WEDIT= TRAP_EDIT= REPLY_CMD_DUMP=;
 
 		if ((${#BLOCK}>96000))  #96KB
 		then 	buff="${FILE%.*}.block.json"
