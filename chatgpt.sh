@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.118  nov/2025  by mountaineerbr  GPL+3
+# v0.118.1  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -2633,7 +2633,7 @@ function cmdf
 			cmdmsgf 'Streaming' $(_onoff ${STREAM:-0})
 			;;
 		-h|h|help|-\?|\?)
-			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*Notes/p' <<<"$HELP");
+			var=$(sed -n -e 's/^   //' -e '/^[[:space:]]*-----* /,/^[[:space:]]*‡/p' <<<"$HELP");
 			less -S <<<"${var}" >&2; xskip=1;
 			;;
 		-h\ *|h\ *|[/!]h*|help?*|-\?*|\?*)
@@ -3538,7 +3538,7 @@ function cmdf
 			fi
 			;;
 		res|resub|resubmit)
-			RESUBW=1 SKIP=1 WSKIP=1;
+			RESUBW=1 SKIP=1 WSKIP=1 PSKIP=1;
 			;;
 		verbosity*|verb*|no-verbosity*)
 			set -- "${*##@(no-verbosity|verbosity|verb)*([$IFS])}"
@@ -5025,6 +5025,8 @@ silenceremove=start_periods=${start_periods}:start_threshold=${threshold}:start_
 #set whisper language
 function _set_langf
 {
+	[[ $1 = [,./][a-z][a-z] ]] && set -- "${1:1}";
+
 	if [[ $1 = [a-z][a-z] ]]
 	then 	if ((!OPTWW))
 		then 	LANGW="-F language=$1"
@@ -5082,6 +5084,9 @@ function whisperf
 	then 	file="$1"; shift;
 	elif ((${#} >1)) && is_audiof "${@:${#}}"
 	then 	file="${@:${#}}"; set -- "${@:1:$((${#}-1))}";
+	elif [[ ! -e "$1" ]]
+	then 	printf "${BRED}Err: %s --${NC} %s\\n" 'File does not exist' "${1:-nill}" >&2
+		return 1
 	else 	printf "${BRED}Err: %s --${NC} %s\\n" 'Unknown audio format' "${1:-nill}" >&2
 		return 1
 	fi ;[[ -f $1 ]] && shift  #get rid of eventual second filename
