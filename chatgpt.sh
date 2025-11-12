@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.118.1  nov/2025  by mountaineerbr  GPL+3
+# v0.118.2  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -3538,7 +3538,8 @@ function cmdf
 			fi
 			;;
 		res|resub|resubmit)
-			RESUBW=1 SKIP=1 WSKIP=1 PSKIP=1;
+			RESUBW=1 SKIP=1 WSKIP=1 PSKIP=1 REPLY=;
+			((OPTW)) || { 	cmdf -w; return; }
 			;;
 		verbosity*|verb*|no-verbosity*)
 			set -- "${*##@(no-verbosity|verbosity|verb)*([$IFS])}"
@@ -6026,9 +6027,10 @@ function set_reccmdf
 	then 	is_amodelf "$MOD" && typeset OPTV=2;
 		set_termuxpulsef ||
 		if command -v termux-microphone-record
-		then 	REC_CMD='termux-microphone-record -r 16000 -c 1 -l 0 -f';
+		then 	REC_FMT="m4a";
+			REC_CMD='termux-microphone-record -r 16000 -c 1 -l 0 -f';
 			is_amodelf "$MOD" ||  #termux-mic encodes m4a only
-			FILEINW="${FILEINW%.*}.m4a";  #encoder aac
+			FILEINW="${FILEINW%.*}.${REC_FMT:=m4a}";  #encoder aac
 			return 0;
 		fi >/dev/null 2>&1
 	fi
