@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.118.2  nov/2025  by mountaineerbr  GPL+3
+# v0.118.3  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -7942,7 +7942,7 @@ else
 
 					((RESUBW)) || record_confirmf
 					case $? in
-					0) 	((BAD_RES && !EDIT && !WAPPEND)) || ((TRAP_WEDIT)) ||
+					0) 	((BAD_RES && !WAPPEND)) || ((TRAP_WEDIT)) ||
 						if ((RESUBW)) || recordf "$FILEINW"
 						then
 							is_amodelf "$MOD" && _sysmsgf $'\nTranscription:' 'generating..';
@@ -8705,7 +8705,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			HIST_TIME= BREAK_SET=;
 		elif ((MTURN))
 		then
-			((OPTW)) && RESUBW=1;
+			((OPTW)) && RESUBW=1 TRAP_WEDIT=1;
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
 			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD=;
 			unset PSKIP JUMP REGEN REPLY_CMD INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX OPTE BLOCK_CMD OPTAWE;
