@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2025
-title: CHATGPT.SH(1) v0.118 \| General Commands Manual
+title: CHATGPT.SH(1) v0.118.4 \| General Commands Manual
 ---
 
 # NAME
@@ -203,7 +203,7 @@ Frequency penalty (cmpls/chat, -2.0 - 2.0).
 **--best-of** \[*NUM*\]  
 Best of results, must be greater than `option -n` (cmpls). Def=*1*.
 
-**--effort** \[*high*\|*medium*\|*low*\|*minimal*\] (OpenAI)
+**--effort** \[*high*\|*medium*\|*low*\|*minimal*\|*none*\] (OpenAI)
 
 **--think** \[*token_num*\] (Anthropic / Google)  
 Amount of effort in reasoning models.
@@ -839,8 +839,8 @@ parameters and manage sessions.
 | `-w` | `!rec` \[*ARGS*\] | Toggle voice-in STT. Optionally, set arguments. |
 | `-z` | `!tts` \[*ARGS*\] | Toggle TTS chat mode (speech out). |
 | `!blk` | `!block` \[*ARGS*\] | Set and add custom options to JSON request. |
-| `!effort` | \- \[*MODE*\] | Reasoning effort: minimal, high, medium, or low (OpenAI). |
-| `!think` | \- \[*NUM*\] | Thinking budget: tokens (Anthropic). |
+| `!effort` | \- \[*MODE*\] | Effort: high, medium, low, minimal, or none (OpenAI). |
+| `!think` | \- \[*NUM*\] | Budget: tokens (Anthropic). |
 | `!ka` | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
 | `!verb` | `!verbosity` \[*MODE*\] | Model verbosity level (high, medium, or low). |
 | `!vision` | `!audio`, `!multimodal` | Toggle multimodality type. |

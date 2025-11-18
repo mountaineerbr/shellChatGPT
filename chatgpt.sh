@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.118.3  nov/2025  by mountaineerbr  GPL+3
+# v0.118.4  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -18,7 +18,7 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-gpt-5}"
+MOD_CHAT="${MOD_CHAT:-gpt-5.1}"
 # Image model
 MOD_IMAGE="${MOD_IMAGE:-gpt-image-1}"
 # Transcription model (STT)
@@ -123,7 +123,7 @@ OPTFOLD=1
 #  Chat mode of text cmpls sets "\nQ: " and "\nA:"
 # Reasoning effort
 #REASON_EFFORT=
-#OpenAI: effort -- minimal, low, medium, high
+#OpenAI: effort -- none, minimal, low, medium, high
 #Anthropic: reasoning budget -- tokens
 #Gemini: thinking budget -- tokens
 # Model verbosity  (OpenAI)
@@ -519,8 +519,8 @@ Command List
       -w      !rec     [ARGS]   Toggle voice-in chat mode (STT, Whisper).
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
-    !effort   -        [MODE]   Reasoning: minimal, high, medium, or low (OpenAI).
-    !think    -         [NUM]   Thinking budget: tokens (Anthropic/Google).
+    !effort   -        [MODE]   Mode: high, medium, low, minimal, none (OpenAI).
+    !think    -         [NUM]   Budget: tokens (Anthropic/Google).
      !ka      !keep-alive [NUM] Set duration of model load in memory
     !verb     !verbosity [MODE] Model verbosity (high, medium, or low).
    !vision    !audio            Toggle model multimodality type.
@@ -682,7 +682,7 @@ Options
 		Frequency penalty (cmpls/chat, -2.0 - 2.0).
 	--best-of   [NUM]
 		Best of results, must be greater than opt -n (cmpls). Def=1.
-	--effort  [ high | medium | low | minimal ]    (OpenAI)
+	--effort  [ high | medium | low | minimal | none ]    (OpenAI)
 	--think   [ token_num ]              (Anthropic/Google)
 		Amount of effort in reasoning models.
 	--format  [ mp3 | wav | flac | opus | aac | pcm16 | mulaw | ogg ]
@@ -958,6 +958,7 @@ function model_capf
 	case "${model}" in
 	llama-4-scout-17b-16e-instruct|\
 	llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
+	gpt-[5].1*) ((MOD_REASON || ${REASON_EFFORT:+1}0)) && MODMAX=196000 || MODMAX=400000;;
 	gpt-[5-9]*) MODMAX=400000;;
 	gpt-[4-9].[1-9]*) MODMAX=1048576;;
 	ai21-jamba-1.5-*) MODMAX=262144;;
@@ -1015,6 +1016,7 @@ function model_capf
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*|\
 		grok-2-vision*|gemma-3-[14]*)
 			MODMAX=32768;;
+		gpt-[5].1*) ((MOD_REASON || ${REASON_EFFORT:+1}0)) && MODMAX=196000 || MODMAX=400000;;
 		gpt-[5-9]*) MODMAX=400000;;
 		gpt-[4-9].[1-9]*|gpt-[5-9][!.a-z]*) MODMAX=1047576;;
 		o1-*preview*|o1-*mini*|gpt-[4-9].[1-9]*|gpt-[4-9][a-z]*|chatgpt-*|gpt-[5-9]*|\
@@ -2284,7 +2286,7 @@ CONF_DIALOG="\Zr# RUNTIME OPTIONS #\ZR
     This field's meaning \ZbCHANGES\ZB based on the API provider:
     - For \ZbAnthropic\ZB:  Set an \Zbinteger\ZB as reasoning budget.
     - For \ZbGoogle\ZB:  Set a positive \Zbinteger\ZB; \Zb0\ZB to turn off; \Zb-1\ZB for dynamic thinking.
-    - For \ZbOpenAI\ZB:  Set effort as \Zblow\ZB, \Zbmedium\ZB, or \Zbhigh\ZB.
+    - For \ZbOpenAI\ZB:  Set effort as \Zbnone\ZB, \Zbminimal\ZB, \Zblow\ZB, \Zbmedium\ZB, or \Zbhigh\ZB.
 
   * \ZbMultimodal\ZB:
     This option accepts three values:
@@ -2894,7 +2896,7 @@ function cmdf
 			else
 				((EPN==12)) || EPN_OLD=$EPN; EPN=12;
 				is_responses_apif "$MOD" && set -- "${1:-$MOD}";
-				MOD_RESPONSES=${MOD_RESPONSES:-$MOD} MOD=${1:-gpt-4.1};
+				MOD_RESPONSES=${MOD_RESPONSES:-$MOD} MOD=${1:-gpt-5.1};
 			fi
 
 			[[ "$var" = "$MOD" ]] || cmdf /model "$MOD";
@@ -4730,11 +4732,11 @@ function set_optsf
 			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 		}
 		case "$MOD" in
-			*-high|*-medium|*-low|*-minimal) 	REASON_EFFORT=${MOD##*-} MOD=${MOD%-*};;
+			*-high|*-medium|*-low|*-minimal|*-none) 	REASON_EFFORT=${MOD##*-} MOD=${MOD%-*};;
 		esac;
 		case "$REASON_EFFORT" in
-			high|medium|low|minimal|'') 	:;;
-			?*) 	_warmsgf 'Warning:' "reason_effort must be high, medium, low, or minimal -- $REASON_EFFORT";;
+			high|medium|low|minimal|none|'') 	:;;
+			?*) 	_warmsgf 'Warning:' "reason_effort must be high, medium, low, minimal, or none -- $REASON_EFFORT";;
 		esac;
 		;;
 		grok-[34]*mini*|grok-[4-9]*|grok-4-0709)
@@ -4772,7 +4774,7 @@ function set_optsf
 		fi;
 	else 	if [[ $REASON_EFFORT != *[a-z]* ]]
 		then 	_warmsgf "Err:" "reasoning effort -- $REASON_EFFORT";
-			_warmsgf 'Note:' "reasoning effort must be [ minimal | low | medium | high ]!";
+			_warmsgf 'Note:' "reasoning effort must be [ none | minimal | low | medium | high ]!";
 			REASON_EFFORT=;
 		fi;
 	fi;
@@ -7523,7 +7525,7 @@ then 	OPTRESUME=1 BREAK_SET=
 	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
 elif ((OPTTIKTOKEN))
 then
-	((OPTTIKTOKEN>2)) || sysmsgf 'Language Model:' "$MOD"
+	((OPTTIKTOKEN>2)) || [[ ! -t 0 ]] || sysmsgf 'Language Model:' "$MOD"
 	((${#})) || [[ -t 0 ]] || set -- "-"
 	[[ -f $* ]] && [[ -t 0 ]] &&
 	if is_pdff "$*" || is_docf "$*"
@@ -8672,7 +8674,8 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			BAD_RES= PSKIP=;
 			((${#tkn[@]}>1 || STREAM)) && ((${#ans})) && ((MTURN+OPTRESUME))
 		then
-			if CKSUM=$(cksumf "$FILECHAT") ;[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]]
+			if CKSUM=$(cksumf "$FILECHAT")
+				[[ $CKSUM != "${CKSUM_OLD:-$CKSUM}" ]] && ((!BREAK_SET || OPTRESUME))
 			then 	Color200=${NC} _warmsgf \
 				'Err: History file modified'$'\n' 'Fork session? Y/n/[i]gnore_all ' ''
 				case "$(read_charf)" in

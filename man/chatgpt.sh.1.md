@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.118 | General Commands Manual
+% CHATGPT.SH(1) v0.118.4 | General Commands Manual
 % mountaineerbr
 % November 2025
 
@@ -251,7 +251,7 @@ before the text prompt itself.
 : Best of results, must be greater than `option -n` (cmpls). Def=_1_.
 
 
-**\--effort**  \[_high_|_medium_|_low_|_minimal_]  (OpenAI)
+**\--effort**  \[_high_|_medium_|_low_|_minimal_|_none_]  (OpenAI)
 
 **\--think**   \[_token_num_]            (Anthropic / Google)
 
@@ -976,7 +976,7 @@ to change parameters and manage sessions.
  --------------    -----------------------    ----------------------------------------------------------
 
  Model             Settings
- --------------    ------------------------    ------------------------------------------------------------
+ --------------    ------------------------    ------------------------------------------------------------------
    `!Nill`         `-Nill`                     Unset max response tokens (chat cmpls).
     `!NUM`         `-M`          \[_NUM_]      Maximum response tokens.
    `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
@@ -996,12 +996,12 @@ to change parameters and manage sessions.
       `-w`         `!rec`       \[_ARGS_]      Toggle voice-in STT. Optionally, set arguments.
       `-z`         `!tts`       \[_ARGS_]      Toggle TTS chat mode (speech out).
     `!blk`         `!block`     \[_ARGS_]      Set and add custom options to JSON request.
- `!effort`          \-          \[_MODE_]      Reasoning effort: minimal, high, medium, or low (OpenAI).
-  `!think`          \-           \[_NUM_]      Thinking budget: tokens (Anthropic).
+ `!effort`          \-          \[_MODE_]      Effort: high, medium, low, minimal, or none (OpenAI).
+  `!think`          \-           \[_NUM_]      Budget: tokens (Anthropic).
      `!ka`         `!keep-alive` \[_NUM_]      Set duration of model load in memory (Ollama).
    `!verb`         `!verbosity` \[_MODE_]      Model verbosity level (high, medium, or low).
   `!vision`        `!audio`, `!multimodal`     Toggle multimodality type.
- --------------    ------------------------    ------------------------------------------------------------
+ --------------    ------------------------    ------------------------------------------------------------------
 
  Session           Management
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------

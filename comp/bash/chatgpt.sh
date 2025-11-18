@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.118
+# v0.118.4
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -160,7 +160,7 @@ _chatgptsh()
       ((${#cur})) || COMPREPLY=( '[stop-sequence]' '"\\nQ: "' '"\\nA:"' )
       ;;
     --effort|--budget)
-      ((${#cur})) || COMPREPLY=( 'minimal' 'low' 'medium' 'high' )
+      ((${#cur})) || COMPREPLY=( 'none' 'minimal' 'low' 'medium' 'high' )
       ;;
     --think)
       ((${#cur})) || COMPREPLY=( 'TOKEN_NUM' '16000' )

@@ -1,7 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.118
+# v0.118.4
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -139,7 +139,7 @@ _chatgpt.sh()
     {-c,-cc,--chat}'[Text or native chat completions]' \
     {-C,--continue,--resume}'[Continue from last session]' \
     {-d,--text}'[Text completions]' \
-    {--effort,--budget}'[Reasoning effort]:effort:(minimal low medium high)' \
+    {--effort,--budget}'[Reasoning effort]:effort:(none minimal low medium high)' \
     --think'[Thinking budget]:effort:(TOKEN_NUM 16000)' \
     {-e,--edit}'[Edit first prompt]' \
     {-E,-EE,--exit}'[Exit on first run]' \
