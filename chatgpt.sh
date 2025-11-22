@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.118.4  nov/2025  by mountaineerbr  GPL+3
+# v0.119  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -128,6 +128,9 @@ OPTFOLD=1
 #Gemini: thinking budget -- tokens
 # Model verbosity  (OpenAI)
 #VERBOSITY=""  #low, medium, or high
+#
+#Whisper context max chars
+WCONTEXT_MAX=490
 
 # INSTRUCTION
 # Chat completions, chat mode only
@@ -5106,7 +5109,7 @@ function whisperf
 	#Transcription: may set `--form file_url="https://docs.mistral.ai/audio/obama.mp3"`
 
 	#set a prompt (224 tokens, GPT2 encoding)
-	max=490  #2-3 chars/tkn code and foreign languages, 4 chars/tkn english
+	max=${WCONTEXT_MAX:-490}  #2-3 chars/tkn code and foreign languages, 4 chars/tkn english
 	if var=$*; [[ ${var:0:320} = *[!$IFS]* ]]
 	then
 		((${#var}>max)) && var=${var: ${#var}-max};
@@ -7951,7 +7954,7 @@ else
 							((WAPPEND)) && ((${#REPLY})) &&  #make sure not to lose last user input!
 								((${#REPLY_OLD} != ${#REPLY})) && REPLY_OLD=$REPLY;
 							REPLY=$(
-								set --; OPTC= OPTCMPL= MTURN=;  #K#
+								set --; OPTC= OPTCMPL= MTURN=; context=  #K#
 								((OPENAI+LOCALAI)) ||
 								  BASE_URL=$OPENAI_BASE_URL_DEF OPENAI_API_KEY=$OPENAI_API_KEY_DEF;
 
@@ -7966,7 +7969,7 @@ else
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= MULTIMODAL=;
 
 								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
-								context="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}";
+								context="${WCHAT_C:-${HIST_C}}";
 								((${#context})) && set -- "$@" "$context";
 
 								whisperf "$FILEINW" "$@";
@@ -8823,10 +8826,12 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		fi
 		if ((OPTW))
 		then 	#whisper auto context for better transcription / translation
-			WCHAT_C="${WCHAT_C:-$(escapef "${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}")}\\n\\n${REPLY:-$*}\\n\\n$(
-			  ((${#ans} > 245)) && ans=${ans: ${#ans}-245}; printf '%s' "${ans#*[$IFS]}" )";
+			WCHAT_C="${WCHAT_C:-${HIST_C}}"$'\n\n'"${REPLY:-$*}"$'\n\n'"$(
+			  ((${#ans}>${WCONTEXT_MAX:-490})) && ans=${ans: ${#ans}-${WCONTEXT_MAX:-490}};
+			  printf '%b' "${ans}" )";
+
 			#trim right away, max 224 tkns, GPT-2 encoding
-			((${#WCHAT_C}>490)) && WCHAT_C=${WCHAT_C: ${#WCHAT_C}-490};
+			((${#WCHAT_C}>${WCONTEXT_MAX:-490})) && WCHAT_C=${WCHAT_C: ${#WCHAT_C}-${WCONTEXT_MAX:-490}};
 			SMALLEST=1 INDEX=64 trim_lf "${WCHAT_C}" $'*[ \t\n]';
 			WCHAT_C="$TRIM";
 			#https://platform.openai.com/docs/guides/speech-to-text/improving-reliability
