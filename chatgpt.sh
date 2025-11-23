@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.119  nov/2025  by mountaineerbr  GPL+3
+# v0.120  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -5108,6 +5108,8 @@ function whisperf
 	#Chat with Audio: requires audio file web url!
 	#Transcription: may set `--form file_url="https://docs.mistral.ai/audio/obama.mp3"`
 
+	case "$MOD_AUDIO" in gpt-4o-transcribe-diarize) :;;
+		*)
 	#set a prompt (224 tokens, GPT2 encoding)
 	max=${WCONTEXT_MAX:-490}  #2-3 chars/tkn code and foreign languages, 4 chars/tkn english
 	if var=$*; [[ ${var:0:320} = *[!$IFS]* ]]
@@ -5119,6 +5121,8 @@ function whisperf
 		fi;
 		((CHAT_ENV+MTURN)) || sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${var: COLUMNS-17} ]] && echo ...)";
 	fi
+	;;
+	esac;
 	#https://unix.stackexchange.com/questions/463424/curl-skips-unknown-form-field-when-passing-semicolon-delimited-string-as-for
 
 	((OPTW>2||OPTWW>2)) && granule=word || granule=segment;
@@ -7009,7 +7013,8 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 		U) 	CATPR=1 OPTCTRD=;;
 		v) 	((++OPTV));;
 		V) 	((++OPTVV));;  #debug
-		version) while read; do 	[[ $REPLY = \#\ v* ]] || continue; printf '%s\n' "$REPLY"; exit; done <"${BASH_SOURCE[0]:-$0}";;
+		version) [[ -t 1 ]] && hellof >&2;
+			while read; do 	[[ $REPLY = \#\ v* ]] || continue; printf '%s\n' "$REPLY"; exit; done <"${BASH_SOURCE[0]:-$0}";;
 		x) 	((OPTX)) && OPTX=2 || OPTX=1;;
 		w) 	((++OPTW)); WSKIP=1;;
 		W) 	((++OPTW)); ((++OPTWW)); WSKIP=1;;
@@ -7209,7 +7214,7 @@ if ((OLLAMA)) ||
 	[[ "${OPENAI_BASE_URL}" = *localhost:11434* ]]
 then 	set_ollamaf;
 	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
-else  	unset OLLAMA OLLAMA_BASE_URL;
+else  	unset OLLAMA;
 fi
 
 #custom host / localai
@@ -7237,7 +7242,7 @@ then
 	then 	OPTSUFFIX= OPTCMPL= OPTC=2;
 	fi; MISTRALAI=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTB NOVITAAI XAI DEEPSEEK;
-elif unset MISTRAL_API_KEY MISTRAL_BASE_URL MISTRALAI;
+elif unset MISTRALAI;
 #github azure api
 	((GITHUBAI)) ||
 	[[ "${GITHUB_BASE_URL:-$OPENAI_BASE_URL}" = *ai.azure.com* ]]
@@ -7275,7 +7280,7 @@ then
 	GITHUBAI=1 OPTC=2;  #chat completions only
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI DEEPSEEK;
 	#-H "X-GitHub-Api-Version: 2022-11-28"
-elif unset GITHUB_TOKEN GITHUB_BASE_URL GITHUBAI;
+elif unset GITHUBAI;
 #deepseek
 	((DEEPSEEK)) ||
 	[[ "${DEEPSEEK_BASE_URL:-$OPENAI_BASE_URL}" = *deepseek.com* ]]
@@ -7292,7 +7297,7 @@ then
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI;
 	#Unsupported：temperature、top_p、presence_penalty、frequency_penalty、logprobs (err)、top_logprobs  (err).
 
-elif unset DEEPSEEK_API_KEY DEEPSEEK_BASE_URL DEEPSEEK;
+elif unset DEEPSEEK;
 #novita ai
 	((NOVITAAI)) ||
 	[[ "${NOVITA_BASE_URL:-$OPENAI_BASE_URL}" = *api.novita.ai* ]]
@@ -7302,7 +7307,7 @@ then
 	NOVITAAI=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI XAI DEEPSEEK;
 else
-	unset NOVITA_API_KEY NOVITA_BASE_URL NOVITAAI;
+	unset NOVITAAI;
 fi
 
 ((ANTHROPICAI+GROQAI+GOOGLEAI+LOCALAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK)) || OPENAI=1;
