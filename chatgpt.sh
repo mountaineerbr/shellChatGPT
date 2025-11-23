@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.120  nov/2025  by mountaineerbr  GPL+3
+# v0.120.1  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1057,6 +1057,8 @@ function model_capf
 #make cmpls request
 function __promptf
 {
+	((MISTRALAI)) || typeset MISTRAL_API_KEY
+
 	if curl "$@" ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
 		-X POST \
 		-H "Content-Type: application/json" \
@@ -5308,7 +5310,7 @@ $( ((${#INSTRUCTION_SPEECH})) && echo "\"instructions\": \"${INSTRUCTION_SPEECH}
 					do 	[[ -s $FOUT ]] || sleep 0.2;
 					done; n=;  #delay until unique file creation
 					break 1;;
-				[CcEeKkQqSs]|$'\e')  ok=1 ret=130;
+				[CcEeKkQqSs/!-]|$'\e')  ok=1 ret=130;
 					kill -s INT -- $pid 2>/dev/null;
 					break 1;;
 			esac
