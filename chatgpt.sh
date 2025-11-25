@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.120.1  nov/2025  by mountaineerbr  GPL+3
+# v0.120.2  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -6576,7 +6576,7 @@ function sessionf
 		    then  FILECHAT="${file:-$FILECHAT}" cmdf /break;
 		          unset MAIN_LOOP HIST_LOOP TOTAL_OLD MAX_PREV;
 		    else  #print snippet of tail session
-		          [[ ${file:-$FILECHAT} = "$FILECHAT" ]] || ((OPTV+BREAK_SET+break)) ||
+		          [[ ${file:-$FILECHAT} = "$FILECHAT" ]] || ((OPTHH+OPTV+BREAK_SET+break)) ||
 		            OPTPRINT=1 session_sub_printf "${file:-$FILECHAT}" >/dev/null
 		    fi
 		fi
@@ -8665,9 +8665,10 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				((OPTCMPL)) || ! _warmsgf 'Err';
 
 				#check for GitHub Models capacity-type error
-				if ((GITHUBAI)) && ((JUMP+BAD_RES==0))
-				then 	var=$(jq -e '.error|.message//.details' "$file" 2>/dev/null | sed 's/^.*Max size: //');
-					var=${var//[!0-9]};
+				if ((GITHUBAI)) && ((JUMP+BAD_RES==0)) &&
+					var=$(jq -e '.error|.message//.details' "$file" 2>/dev/null)
+					grep -q -e 'Max size: ' <<<"$var"
+				then 	var=$(sed -n -e 's/^.*Max size: //' <<<"$var") var=${var//[!0-9]};
 					if ((var)) && ((var<MODMAX))
 					then 	MODMAX=$var JUMP=1 BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD= var=;
 						_sysmsgf 'Model Capacity:' "auto reset -- $MODMAX";
