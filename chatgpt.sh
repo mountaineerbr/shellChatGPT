@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.120.2  nov/2025  by mountaineerbr  GPL+3
+# v0.120.3  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1826,9 +1826,11 @@ function set_histf
 		fi;;
 	esac;
 
-	((!OPTC)) || [[ $HIST = "$stringc"*(\\n) ]] ||  #hist contains only one/system prompt?
-	trim_lrf "$HIST" "?(\\\\[ntrvf]|$NL)?( )" "*(\\\\[ntrvf])"
-	HIST="$TRIM"  #del one leading nl+sp  #del multiple trailing nl
+	#hist contains only one/system prompt?
+	((!OPTC)) || ((HIST_LOOP<2)) || {
+		trim_lrf "$HIST" "?(\\\\[ntrvf]|$NL)?( )" "*(\\\\[ntrvf])"
+		HIST="$TRIM"
+	};  #del one leading nl+sp  #del multiple trailing nl
 }
 #https://thoughtblogger.com/continuing-a-conversation-with-a-chatbot-using-gpt/
 
@@ -2602,7 +2604,7 @@ function cmdf
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-${INSTRUCTION:-$GINSTRUCTION}} GINSTRUCTION_PERM=${GINSTRUCTION:-$GINSTRUCTION_PERM} INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; xskip=1;
-			unset CKSUM_OLD MAX_PREV WCHAT_C MAIN_LOOP HIST_LOOP TOTAL_OLD \
+			unset CKSUM_OLD MAX_PREV WCONTEXT MAIN_LOOP HIST_LOOP TOTAL_OLD \
 			  REPLY_CMD_DUMP RESUBW REPLY_CMD TRAP_WEDIT TRAP_EDIT BAD_RES EDIT PREPEND SKIP_SH_HIST \
 			  PSKIP XSKIP WSKIP SKIP JUMP REGEN INT_RES MEDIA MEDIA_IND MEDIA_CMD_IND BLOCK_CMD;
 			;;
@@ -7031,7 +7033,7 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCHAT_C MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD OPT_SOURCE NC  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCONTEXT MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD OPT_SOURCE NC  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 typeset -l OPTS_QUALITY  #lowercase vars
 
@@ -7393,11 +7395,12 @@ then 	if ((!OPTHH)) && ((!OPTV))
 	fi
 fi
 
-(( (OPTI+OPTEMBED) || (OPTW+OPTZ && !MTURN) )) &&
+(( (OPTI+OPTEMBED) || (OPTZ && !MTURN) )) &&
 for arg  #!# escape input
 do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
 done; unset arg init;
+#whisper context should ideally be unescaped
 
 ((${#BLOCK_USR})) && {
 	trim_rf "$BLOCK_USR" $',*([\n\t ])'
@@ -7976,7 +7979,7 @@ else
 								MOD=$MOD_AUDIO OPTT=${OPTTW:-0} JQCOL= MULTIMODAL=;
 
 								[[ -z ${WARGS[*]} ]] || set -- "${WARGS[@]}" "$@";
-								context="${WCHAT_C:-${HIST_C}}";
+								context="${WCONTEXT:-${HIST}}";
 								((${#context})) && set -- "$@" "$context";
 
 								whisperf "$FILEINW" "$@";
@@ -8666,15 +8669,13 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 
 				#check for GitHub Models capacity-type error
 				if ((GITHUBAI)) && ((JUMP+BAD_RES==0)) &&
-					var=$(jq -e '.error|.message//.details' "$file" 2>/dev/null)
-					grep -q -e 'Max size: ' <<<"$var"
-				then 	var=$(sed -n -e 's/^.*Max size: //' <<<"$var") var=${var//[!0-9]};
-					if ((var)) && ((var<MODMAX))
-					then 	MODMAX=$var JUMP=1 BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD= var=;
-						_sysmsgf 'Model Capacity:' "auto reset -- $MODMAX";
-						_sysmsgf '[auto retry]'; read_charf -t 1 >/dev/null 2>&1;
-						set --; continue;
-					fi
+					var=$(jq -e '.error|.message//.details' "$file" 2>/dev/null | sed -n -e 's/^.*Max size: //p') &&
+					var=${var//[!0-9]} && ((${#var}>3)) &&
+					((var)) && ((var<MODMAX))
+				then 	MODMAX=$var JUMP=1 BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD= var=;
+					_sysmsgf 'Model Capacity:' "auto reset -- $MODMAX";
+					_sysmsgf '[auto retry]'; read_charf -t 1 >/dev/null 2>&1;
+					set --; continue;
 				fi;
 
 				_warmsgf "(response empty)";
@@ -8828,20 +8829,20 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
  				ans_tts=$(escapef "$ans_tts");
 			fi
 
+			#tts input must be escaped
 			trap '' INT;
 			ttsf "${ZARGS[@]}" "${ans_tts:-$ans}";
 			trap 'exit' INT;
 		fi
 		if ((OPTW))
 		then 	#whisper auto context for better transcription / translation
-			WCHAT_C="${WCHAT_C:-${HIST_C}}"$'\n\n'"${REPLY:-$*}"$'\n\n'"$(
-			  ((${#ans}>${WCONTEXT_MAX:-490})) && ans=${ans: ${#ans}-${WCONTEXT_MAX:-490}};
-			  printf '%b' "${ans}" )";
+			#whisper context should ideally be unescaped
+			WCONTEXT="${WCONTEXT:-${HIST}}"$'\n\n'"${REPLY:-$*}"$'\n\n'"${ans}"
 
 			#trim right away, max 224 tkns, GPT-2 encoding
-			((${#WCHAT_C}>${WCONTEXT_MAX:-490})) && WCHAT_C=${WCHAT_C: ${#WCHAT_C}-${WCONTEXT_MAX:-490}};
-			SMALLEST=1 INDEX=64 trim_lf "${WCHAT_C}" $'*[ \t\n]';
-			WCHAT_C="$TRIM";
+			((${#WCONTEXT}>${WCONTEXT_MAX:-490})) && WCONTEXT=${WCONTEXT: ${#WCONTEXT}-${WCONTEXT_MAX:-490}};
+			SMALLEST=1 INDEX=64 trim_lf "$(unescapef "$WCONTEXT")" $'*[ \t\n]';
+			WCONTEXT="$TRIM";
 			#https://platform.openai.com/docs/guides/speech-to-text/improving-reliability
 		fi
 
