@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.120.3  nov/2025  by mountaineerbr  GPL+3
+# v0.121  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -5277,7 +5277,8 @@ function _ttsf
 	while input=${1:0: max}; set -- "${1: max}"; [[ ${input:0:320} = *[!$IFS]* ]]
 	do
 		if ((!CHAT_ENV))
-		then 	var=${input//\\\\[nt]/ };
+		then 	((${#input}>COLUMNS)) && var=${input: ${#input}-COLUMNS} || var=${input};
+			var=${var//\\\\[nt]/ };
 			_sysmsgf $'\nFile Out:' "${FOUT/"$HOME"/"~"}";
 			sysmsgf 'Text Prompt:' "${var:0: COLUMNS-17}$([[ -n ${input: COLUMNS-17} ]] && echo ...)";
 		fi; REPLAY_FILES=("${REPLAY_FILES[@]}" "$FOUT"); var= ;
@@ -8645,6 +8646,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 					ans="${ans}"${ans:+${buff:+\\n---\\n}}"${buff}" var=
 				done
 			fi
+
 			if ((OLLAMA))
 			then 	tkn=($(jq -r -s '.[-1]|.prompt_eval_count//"0", .eval_count//"0", "0", .created_at//"0", (.eval_duration/1000000000)?, (.eval_count/(.eval_duration/1000000000)?)?' "$FILE") )
 				((STREAM)) && ((MAX_PREV+=tkn[1]));
@@ -8696,12 +8698,14 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 					*) 		sessionf /copy "$FILECHAT" || break;;
 				esac
 			fi
+
 			if ((OPTB>1))  #best_of disables streaming response
 			then 	start_tiktokenf
 				tkn[1]=$(
 					((EPN==6||EPN==12)) && A_TYPE=;
 					__tiktokenf "${A_TYPE}${ans}");
 			fi
+
 			ans="${A_TYPE##$SPC1}${ans}"
 			((${#SUFFIX})) && ans=${ans}${SUFFIX}
 			((BREAK_SET)) && _break_sessionf;
@@ -8712,7 +8716,10 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			then
 			    push_tohistf "$(escapef ":${INSTRUCTION:-$GINSTRUCTION}")" $( ((MAIN_LOOP)) || echo $TOTAL_OLD )
 			fi
-			((OPTAWE)) ||
+
+			((MAX_PREV>0)) || MAX_PREV=;  #make sure to adjust arithmetics
+			((TOTAL_OLD>0)) || TOTAL_OLD=${MAX_PREV:-${tkn[0]}};
+			((OPTAWE)) ||  #awesome prompts are set as instruction
 			push_tohistf "$(escapef "${Q_TYPE##$SPC1}${REC_OUT}")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : 0 ))" "${tkn[3]}"
 			push_tohistf "$ans" "$((${tkn[1]:-${tkn_ans:-0}}-tkn[2]))" "${tkn[3]}" || OPTC= OPTRESUME= OPTCMPL= MTURN=;
 
