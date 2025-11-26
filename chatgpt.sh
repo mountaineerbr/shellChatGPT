@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.121  nov/2025  by mountaineerbr  GPL+3
+# v0.121.1  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -6730,7 +6730,7 @@ function set_googleaif
 		fi
 		printf '%s\b' 'o' >&2;
 		((!${#1})) ||
-		  curl -sS --max-time 10 -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		  curl -fsS --max-time 10 -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$block" | jq -er '.totalTokens//.tokenCount//empty'; ret=$?;
 		printf '%s\b' ' ' >&2;
