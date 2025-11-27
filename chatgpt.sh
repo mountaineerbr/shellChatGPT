@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.121.1  nov/2025  by mountaineerbr  GPL+3
+# v0.121.2  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -464,7 +464,7 @@ Command List
       !#      !save   [PROMPT]  Save current prompt to shell history. ‡
        !      !r, !regen        Regenerate last response.
       !!      !rr               Regenerate response, edit prompt first.
-      !g:    !!g:     [PROMPT]  Ground web search, insert results. ‡
+      !g:    !!g:     [PROMPT]  Ground with web search, insert results. ‡
       !i      !info   [REGEX]   Info on model and session settings.
      !!i     !!info             Monthly usage stats (OpenAI).
       !j      !jump             Jump to request, append response primer.
@@ -943,15 +943,15 @@ function model_capf
 	((GOOGLEAI)) && {
 	case "${model}" in
 	gemini-1.5-pro*) MODMAX=2000000;;
-	gemini-2.0-flash*|gemini-2.0-flash-exp*|\
-	gemini-2.[0-9]-pro*|gemini-exp*|\
-	learnlm-2.0-flash*) MODMAX=1048576;;
 	gemini-1.5-flash*) MODMAX=1000000;;
 	gemma-3-27b-it) MODMAX=131072;;
 	gemini-1.0*-pro-vision*) MODMAX=12288;;
 	gemini-embedding-exp*|gemma-3n-e4b-it) MODMAX=8192;;
 	gemini-2.0-flash-preview-image-generation|\
 	gemma-3*) MODMAX=32768;;
+	gemini-2.0-flash*|gemini-2.0-flash-exp*|\
+	gemini-2.[0-9]-pro*|gemini-exp*|gemini-*|\
+	learnlm-2.0-flash*) MODMAX=1048576;;
 	embedding-001|text-embedding-004) MODMAX=2048;;
 	embedding-gecko-001) MODMAX=1024;;
 	*) nomatch=1;;
@@ -1005,10 +1005,7 @@ function model_capf
 			MODMAX=2049;;
 		embedding-gecko-001) MODMAX=1024;;
 		aqa) MODMAX=7168;;
-		gemini-2.0-flash*) MODMAX=1048576;;
-		gemini-1.5-flash*) MODMAX=1000000;;
-		gemini-1.5-pro*) MODMAX=2000000;;
-		gemini-exp*|gemini-*) MODMAX=2097152;;
+		gemini-exp*|gemini-*) MODMAX=1048576;;  #2097152;;
 		learnlm-1.5-pro*|*qwen-2.5-72b-instruct|-32k*) MODMAX=32000;;
 		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
 			MODMAX=16000;;
@@ -8631,7 +8628,8 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				) )  #[0]input_tkn  [1]output_tkn  [2]reason_tkn  [3]time  [4]cmpl_time  [5]tkn_rate
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$( ((EPN==6||EPN==12)) && A_TYPE=; __tiktokenf "${A_TYPE}${ans}");
-				  ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans)); TOTAL_OLD=; tkn=();
+				  ((tkn_ans)) && ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans));
+				  TOTAL_OLD=; tkn=();
 				};
 			else
 				{ ((ANTHROPICAI && EPN==0)) && tkn=(0 0) ;} ||
