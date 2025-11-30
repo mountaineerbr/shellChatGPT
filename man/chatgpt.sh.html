@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.120 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.122 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.120 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.122 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2025</p>
 </header>
@@ -1058,7 +1058,7 @@ as as suffix command, see examples below.</li>
 <tr>
 <td style="text-align: left;"><code>!#</code></td>
 <td style="text-align: left;"><code>!save</code> [<em>PROMPT</em>]</td>
-<td>Save current prompt to shell history. <em>‡</em></td>
+<td>Save current prompt to shell history (readline). <em>‡</em></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>!</code></td>
@@ -1543,9 +1543,14 @@ when typed at the end of the current prompt, such as “[<em>PROMPT</em>]
 <code>/sh</code>”, which opens a new shell instance to execute commands
 interactively. Shell command or file dumps are appended to the current
 prompt.</p>
-<p>Any “<code>!CMD</code>” not matching a chat command is executed by
-the shell as an alias for “<code>!sh CMD</code>”. Note that this
-shortcut only works with operator exclamation mark.</p>
+<p>Any command prefixed with a single exclamation mark
+(<code>!CMD</code>) that does not match a built-in command is executed
+by the shell. This is a shortcut for <code>!sh CMD</code>, and its
+standard output is appended to the current prompt.</p>
+<p>To execute a shell command without appending its output, use the
+double exclamation mark form explicitly (<code>!!sh CMD</code>). This
+shell execution facility is exclusive to the <code>!</code>
+operator.</p>
 <h2 id="api-parameter-injection">API Parameter Injection</h2>
 <p>Envar <strong>$BLOCK_USR</strong> can be set to raw model options in
 JSON syntax, according to each API, to be injected in the request block.

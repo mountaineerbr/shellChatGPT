@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2025
-title: CHATGPT.SH(1) v0.120 \| General Commands Manual
+title: CHATGPT.SH(1) v0.122 \| General Commands Manual
 ---
 
 # NAME
@@ -774,7 +774,7 @@ parameters and manage sessions.
 | `-S/` | `!awesome` \[*NAME*\] | Load and edit awesome prompt (english). |
 | `-S%` | `!awesome-zh` \[*NAME*\] | Load and edit awesome prompt (chinese). |
 | `-Z` | `!last` | Print last raw JSON or the processed text response. |
-| `!#` | `!save` \[*PROMPT*\] | Save current prompt to shell history. *‡* |
+| `!#` | `!save` \[*PROMPT*\] | Save current prompt to shell history (readline). *‡* |
 | `!` | `!r`, `!regen` | Regenerate last response. |
 | `!!` | `!rr` | Regenerate response, edit prompt first. |
 | `!g:` | `!!g:` \[*PROMPT*\] | Ground user prompt with web search results. *‡* |
@@ -906,9 +906,14 @@ the current prompt, such as “\[*PROMPT*\] `/sh`”, which opens a new
 shell instance to execute commands interactively. Shell command or file
 dumps are appended to the current prompt.
 
-Any “`!CMD`” not matching a chat command is executed by the shell as an
-alias for “`!sh CMD`”. Note that this shortcut only works with operator
-exclamation mark.
+Any command prefixed with a single exclamation mark (`!CMD`) that does
+not match a built-in command is executed by the shell. This is a
+shortcut for `!sh CMD`, and its standard output is appended to the
+current prompt.
+
+To execute a shell command without appending its output, use the double
+exclamation mark form explicitly (`!!sh CMD`). This shell execution
+facility is exclusive to the `!` operator.
 
 ## API Parameter Injection
 

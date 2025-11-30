@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.121.2  nov/2025  by mountaineerbr  GPL+3
+# v0.122  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -581,7 +581,8 @@ Command List
 
       Any \`!CMD' not matching a chat command is executed by the shell
       as shortcut for \`!sh CMD' and the output appended to the prompt.
-      Conversely, \`!!sh CMD' does not append the command dump.
+      Conversely, \`!!sh CMD' does not append the command dump. This
+      feature is activated with the exclamation mark operator only.
 
 
 Options
@@ -1853,7 +1854,7 @@ function push_tohistf
 	string=$1; ((${#string})) || ((OPTCMPL)) || return; CKSUM_OLD=;
 	token=$2; ((token>0)) || {
 		start_tiktokenf;    ((OPTTIK)) && _printbf '(tiktoken)';
-		token=$(__tiktokenf "${string}");
+		token=$(OPTV=98 __tiktokenf "${string}");
 		((token+=TKN_ADJ)); ((OPTTIK)) && _printbf '          '; };
 	time=${3:-$(datef)}
 	printf '%s%.22s\t%d\t"%s"\n' "$INT_RES" "$time" "$token" "${string:-${Q_TYPE##$SPC1}}" >> "$FILECHAT"
@@ -6714,6 +6715,8 @@ function set_googleaif
 	function __tiktokenf
 	{
 		typeset epn block buff ret;
+		((OPTV==98)) || set -- "$(escapef "$*")";  #IPC
+
 		if [[ $MOD = *embedding* ]]
 		then 	epn="countTextTokens";
 			block="{ \"prompt\": {\"text\": \"${*}\"}}";
@@ -6729,8 +6732,8 @@ function set_googleaif
 		((!${#1})) ||
 		  curl -fsS --max-time 10 -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
-			-d "$block" | jq -er '.totalTokens//.tokenCount//empty'; ret=$?;
-		printf '%s\b' ' ' >&2;
+			-d "$block" | jq -er '.totalTokens//.tokenCount//empty';  #debug: --fail-with-body
+		ret=$?; printf '%s\b' ' ' >&2;
 		((!ret)) || _tiktokenf "$*";
 	}
 	function tiktokenf
@@ -8627,7 +8630,10 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				  fi
 				) )  #[0]input_tkn  [1]output_tkn  [2]reason_tkn  [3]time  [4]cmpl_time  [5]tkn_rate
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
-				  tkn_ans=$( ((EPN==6||EPN==12)) && A_TYPE=; __tiktokenf "${A_TYPE}${ans}");
+				  tkn_ans=$(
+					((GOOGLEAI)) && OPTV=98;
+				  	((EPN==6||EPN==12)) && A_TYPE=;
+				  	__tiktokenf "${A_TYPE}${ans}" );
 				  ((tkn_ans)) && ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans));
 				  TOTAL_OLD=; tkn=();
 				};
@@ -8700,6 +8706,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			if ((OPTB>1))  #best_of disables streaming response
 			then 	start_tiktokenf
 				tkn[1]=$(
+					((GOOGLEAI)) && OPTV=98;
 					((EPN==6||EPN==12)) && A_TYPE=;
 					__tiktokenf "${A_TYPE}${ans}");
 			fi
@@ -8827,7 +8834,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			ans=${ans##"${A_TYPE##$SPC1}"};
 			#detect and remove possible markdown from $ans to avoid some tts glitches
 			if [[ OPTMD -gt 0 || \\n$ans = *\\n@(\#\ |[\*-]\ |\>\ )* ]]
-			then 	ans_tts=$(unescapef "$ans");
+			then 	ans_tts=$(unescapef "$ans") &&
 				ans_tts=$(
 					unmarkdownf <<<"$ans_tts" || {
 					command -v pandoc >/dev/null 2>&1 && pandoc --from markdown --to plain <<<"$ans_tts" ;} ) 2>/dev/null;
@@ -8846,7 +8853,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 
 			#trim right away, max 224 tkns, GPT-2 encoding
 			((${#WCONTEXT}>${WCONTEXT_MAX:-490})) && WCONTEXT=${WCONTEXT: ${#WCONTEXT}-${WCONTEXT_MAX:-490}};
-			SMALLEST=1 INDEX=64 trim_lf "$(unescapef "$WCONTEXT")" $'*[ \t\n]';
+			SMALLEST=1 INDEX=64 trim_lf "$(_unescapef "$WCONTEXT")" $'*[ \t\n]';
 			WCONTEXT="$TRIM";
 			#https://platform.openai.com/docs/guides/speech-to-text/improving-reliability
 		fi
