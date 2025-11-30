@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.122  nov/2025  by mountaineerbr  GPL+3
+# v0.122.1  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1854,7 +1854,7 @@ function push_tohistf
 	string=$1; ((${#string})) || ((OPTCMPL)) || return; CKSUM_OLD=;
 	token=$2; ((token>0)) || {
 		start_tiktokenf;    ((OPTTIK)) && _printbf '(tiktoken)';
-		token=$(OPTV=98 __tiktokenf "${string}");
+		token=$(OPTV=97 __tiktokenf "${string}");
 		((token+=TKN_ADJ)); ((OPTTIK)) && _printbf '          '; };
 	time=${3:-$(datef)}
 	printf '%s%.22s\t%d\t"%s"\n' "$INT_RES" "$time" "$token" "${string:-${Q_TYPE##$SPC1}}" >> "$FILECHAT"
@@ -6715,7 +6715,7 @@ function set_googleaif
 	function __tiktokenf
 	{
 		typeset epn block buff ret;
-		((OPTV==98)) || set -- "$(escapef "$*")";  #IPC
+		((OPTV==97)) || set -- "$(escapef "$*")";  #IPC
 
 		if [[ $MOD = *embedding* ]]
 		then 	epn="countTextTokens";
@@ -8631,7 +8631,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				) )  #[0]input_tkn  [1]output_tkn  [2]reason_tkn  [3]time  [4]cmpl_time  [5]tkn_rate
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$(
-					((GOOGLEAI)) && OPTV=98;
+					((GOOGLEAI)) && OPTV=97;
 				  	((EPN==6||EPN==12)) && A_TYPE=;
 				  	__tiktokenf "${A_TYPE}${ans}" );
 				  ((tkn_ans)) && ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans));
@@ -8706,7 +8706,7 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			if ((OPTB>1))  #best_of disables streaming response
 			then 	start_tiktokenf
 				tkn[1]=$(
-					((GOOGLEAI)) && OPTV=98;
+					((GOOGLEAI)) && OPTV=97;
 					((EPN==6||EPN==12)) && A_TYPE=;
 					__tiktokenf "${A_TYPE}${ans}");
 			fi
