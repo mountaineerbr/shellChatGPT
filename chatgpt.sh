@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.122.3  nov/2025  by mountaineerbr  GPL+3
+# v0.122.4  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -7494,7 +7494,9 @@ then 	#(shell completion script)
 	((OPTL>2)) && [[ -s $FILEMODEL ]] && cat -- "$FILEMODEL" ||
 	list_modelsf "$@" || list_models_errf "$@";
 elif ((OPTFF))
-then 	if [[ -s "$CHATGPTRC" ]] && ((OPTFF<2))
+then 	if ((OPTFF<2)) && [[ ! -t 1 ]] && [[ -s "$CHATGPTRC" ]]
+	then 	cat -- "$CHATGPTRC";
+	elif ((OPTFF<2)) && [[ -s "$CHATGPTRC" ]]
 	then 	_edf "$CHATGPTRC";
 	else 	curl --fail -sL "https://gitlab.com/fenixdragao/shellchatgpt/-/raw/main/.chatgpt.conf";
 		CHATGPTRC="stdout [$CHATGPTRC]";
