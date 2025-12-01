@@ -20,7 +20,7 @@ title: CHATGPT.SH(1) v0.122.3 \| General Commands Manual
    **chatgpt.sh** `-z` \[`opt`..\] \[*OUTFILE*\|*FORMAT*\|*-*\]
 \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
    **chatgpt.sh** `-bccWwz` \[`opt`..\] -- \[*PROMPT*\] --
-\[`stt_arg`..\] -- \[`tts_arg`..\]
+\[*stt_arg*..\] -- \[*tts_arg*..\]
 
    **chatgpt.sh** `-l` \[*MODEL*\]  
    **chatgpt.sh** `-TTT` \[-v\] \[`-m`\[*MODEL*\|*ENCODING*\]\]

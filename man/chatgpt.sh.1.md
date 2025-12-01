@@ -14,7 +14,7 @@
 |    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_|_._] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_|_._] \[_PROMPT-EN_]
 |    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
-|    **chatgpt.sh** `-bccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[`stt_arg`..] \-- \[`tts_arg`..] 
+|    **chatgpt.sh** `-bccWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[_stt_arg_..] \-- \[_tts_arg_..] 
 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_|_PDF_FILE_]
