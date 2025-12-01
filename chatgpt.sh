@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.122.1  nov/2025  by mountaineerbr  GPL+3
+# v0.122.2  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -7539,7 +7539,7 @@ then 	OPTRESUME=1 BREAK_SET=
 	_sysmsgf "Hist   File:" "${FILECHAT_OLD:-$FILECHAT}"
 elif ((OPTTIKTOKEN))
 then
-	((OPTTIKTOKEN>2)) || [[ ! -t 0 ]] || sysmsgf 'Language Model:' "$MOD"
+	((OPTTIKTOKEN>2)) || [[ ! -t 0 && ! -t 1 ]] || sysmsgf 'Language Model:' "$MOD"
 	((${#})) || [[ -t 0 ]] || set -- "-"
 	[[ -f $* ]] && [[ -t 0 ]] &&
 	if is_pdff "$*" || is_docf "$*"
