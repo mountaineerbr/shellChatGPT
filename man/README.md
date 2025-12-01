@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2025
-title: CHATGPT.SH(1) v0.122 \| General Commands Manual
+title: CHATGPT.SH(1) v0.122.3 \| General Commands Manual
 ---
 
 # NAME
@@ -13,6 +13,21 @@ title: CHATGPT.SH(1) v0.122 \| General Commands Manual
 
    **chatgpt.sh** \[`-bb`\|`-cc`\|`-dd`\|`-qq`\] \[`opt`..\]
 \[*PROMPT*\|*TEXT_FILE*\|*PDF_FILE*\]  
+   **chatgpt.sh** `-w` \[`opt`..\] \[*AUDIO_FILE*\|*.*\] \[*LANG*\]
+\[*PROMPT*\]  
+   **chatgpt.sh** `-W` \[`opt`..\] \[*AUDIO_FILE*\|*.*\]
+\[*PROMPT-EN*\]  
+   **chatgpt.sh** `-z` \[`opt`..\] \[*OUTFILE*\|*FORMAT*\|*-*\]
+\[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
+   **chatgpt.sh** `-bccWwz` \[`opt`..\] -- \[*PROMPT*\] --
+\[`stt_arg`..\] -- \[`tts_arg`..\]
+
+   **chatgpt.sh** `-l` \[*MODEL*\]  
+   **chatgpt.sh** `-TTT` \[-v\] \[`-m`\[*MODEL*\|*ENCODING*\]\]
+\[*INPUT*\|*TEXT_FILE*\|*PDF_FILE*\]  
+   **chatgpt.sh** `-HPP` \[`/`*HIST_NAME*\|*.*\]  
+   **chatgpt.sh** `-HPw`
+
    **chatgpt.sh** `-i` \[`opt`..\] \[*S*\|*M*\|*L*\]\[*hd*\]
 \[*PROMPT*\] \#dall-e-3  
    **chatgpt.sh** `-i` \[`opt`..\]
@@ -21,20 +36,7 @@ title: CHATGPT.SH(1) v0.122 \| General Commands Manual
 \[*X*\|*L*\|*P*\]\[*high*\|*medium*\|*low*\] \[*PNG_FILE*\]  
    **chatgpt.sh** `-i` \[`opt`..\]
 \[*X*\|*L*\|*P*\]\[*high*\|*medium*\|*low*\] \[*PNG_FILE*\]
-\[*MASK_FILE*\] \[*PROMPT*\]  
-   **chatgpt.sh** `-w` \[`opt`..\] \[*AUDIO_FILE*\|*.*\] \[*LANG*\]
-\[*PROMPT*\]  
-   **chatgpt.sh** `-W` \[`opt`..\] \[*AUDIO_FILE*\|*.*\]
-\[*PROMPT-EN*\]  
-   **chatgpt.sh** `-z` \[`opt`..\] \[*OUTFILE*\|*FORMAT*\|*-*\]
-\[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
-   **chatgpt.sh** `-bccWwz` \[`opt`..\] -- \[*PROMPT*\] --
-\[`stt_arg`..\] -- \[`tts_arg`..\]  
-   **chatgpt.sh** `-l` \[*MODEL*\]  
-   **chatgpt.sh** `-TTT` \[-v\] \[`-m`\[*MODEL*\|*ENCODING*\]\]
-\[*INPUT*\|*TEXT_FILE*\|*PDF_FILE*\]  
-   **chatgpt.sh** `-HPP` \[`/`*HIST_NAME*\|*.*\]  
-   **chatgpt.sh** `-HPw`
+\[*MASK_FILE*\] \[*PROMPT*\]
 
 # DESCRIPTION
 

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.122 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.122.3 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.122 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.122.3 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2025</p>
 </header>
@@ -183,18 +183,6 @@ STT / TTS</div>
 [<code>-bb</code>|<code>-cc</code>|<code>-dd</code>|<code>-qq</code>]
 [<code>opt</code>..]
 [<em>PROMPT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>S</em>|<em>M</em>|<em>L</em>][<em>hd</em>] [<em>PROMPT</em>]
-#dall-e-3<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
-[<em>PROMPT</em>] #gpt-image<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
-[<em>PNG_FILE</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
-[<em>PNG_FILE</em>] [<em>MASK_FILE</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-w</code> [<code>opt</code>..]
 [<em>AUDIO_FILE</em>|<em>.</em>] [<em>LANG</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-W</code> [<code>opt</code>..]
@@ -204,14 +192,27 @@ STT / TTS</div>
 [<em>SPEED</em>] [<em>PROMPT</em>]<br />
    <strong>chatgpt.sh</strong> <code>-bccWwz</code> [<code>opt</code>..]
 -- [<em>PROMPT</em>] -- [<code>stt_arg</code>..] --
-[<code>tts_arg</code>..]<br />
-   <strong>chatgpt.sh</strong> <code>-l</code> [<em>MODEL</em>]<br />
+[<code>tts_arg</code>..]</div>
+<div class="line-block">   <strong>chatgpt.sh</strong> <code>-l</code>
+[<em>MODEL</em>]<br />
    <strong>chatgpt.sh</strong> <code>-TTT</code> [-v]
 [<code>-m</code>[<em>MODEL</em>|<em>ENCODING</em>]]
 [<em>INPUT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HPP</code>
 [<code>/</code><em>HIST_NAME</em>|<em>.</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HPw</code></div>
+<div class="line-block">   <strong>chatgpt.sh</strong> <code>-i</code>
+[<code>opt</code>..] [<em>S</em>|<em>M</em>|<em>L</em>][<em>hd</em>]
+[<em>PROMPT</em>] #dall-e-3<br />
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
+[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
+[<em>PROMPT</em>] #gpt-image<br />
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
+[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
+[<em>PNG_FILE</em>]<br />
+   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
+[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
+[<em>PNG_FILE</em>] [<em>MASK_FILE</em>] [<em>PROMPT</em>]</div>
 <h1 id="description">DESCRIPTION</h1>
 <p>This script acts as a wrapper for ChatGPT, DALL-E, STT (Whisper), and
 TTS endpoints from OpenAI. Various service providers such as LocalAI,

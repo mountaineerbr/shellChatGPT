@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.122.2  nov/2025  by mountaineerbr  GPL+3
+# v0.122.3  nov/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -239,18 +239,20 @@ HELP="Name
 
 Synopsis
 	${0##*/} [-bb|-cc|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
-	${0##*/} -i [opt..] [S|M|L][hd] [PROMPT]  #dall-e-3
-	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PROMPT]  #gpt-image
-	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE]
-	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE] [MASK_FILE] [PROMPT]
 	${0##*/} -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
 	${0##*/} -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
 	${0##*/} -bccWwz [opt..] -- [PROMPT] -- [stt_arg..] -- [tts_arg..]
+
 	${0##*/} -l [MODEL]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
 	${0##*/} -HPP [/HIST_NAME|.]
 	${0##*/} -HPw
+
+	${0##*/} -i [opt..] [S|M|L][hd] [PROMPT]  #dall-e-3
+	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PROMPT]  #gpt-image
+	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE]
+	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE] [MASK_FILE] [PROMPT]
 
 
 Description
