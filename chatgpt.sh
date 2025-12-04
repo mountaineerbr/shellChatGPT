@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.122.4  nov/2025  by mountaineerbr  GPL+3
+# v0.122.5  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1447,7 +1447,7 @@ function prompt_prettyf
 	fi
 
 	jq -r ${STREAM:+-j --unbuffered} \
-	"((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
+	"((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then (if (${STREAM:-0}>0) then .[] else . end) else . end) end |
 	  ( ((.delta.content)//(.delta.reasoning)//(.delta.reasoning_content)//(.delta.text)//(.delta.thinking)//(.delta.audio.transcript)
 	    //.text//.response//.completion//.reasoning//( (.content // []) | .[]? | (.text // .thinking) )
 	    //(.message.reasoning)//(.message.content${ANTHROPICAI:+skip})
@@ -1490,7 +1490,7 @@ function prompt_pf
 		#https://cookbook.openai.com/articles/gpt-oss/handle-raw-cot
 		#missing: thinking and audio transcriptions (responses api)
 	else
-		set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then .[] else . end) end |
+		set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then (if (${STREAM:-0}>0) then .[] else . end) else . end) end |
 		(.delta.content)//(.delta.reasoning)//(.delta.reasoning_content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//.reasoning//( (.content // []) | .[]? | (.text//.thinking))//.message.reasoning//(.message.content${ANTHROPICAI:+skip})//(.delta.thinking)//(.message.reasoning_content)//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@";
 	fi
 
