@@ -1,5 +1,5 @@
 # shellChatGPT
-Shell wrapper for OpenAI's ChatGPT, DALL-E, STT (Whisper), and TTS. Features LocalAI, Ollama, Gemini, Mistral, and more service providers.
+Shell wrapper for OpenAI's ChatGPT, STT (Whisper), and TTS. Features LocalAI, Ollama, Gemini, Mistral, and more service providers.
 
 
 ![Showing off Chat Completions](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls.gif)
@@ -69,11 +69,6 @@ If no suffix is provided, it works as plain text completions.
   - 11.2 [Zsh](#zsh)
   - 11.3 [Troubleshoot](#troubleshoot-shell)
 - 12. [Notes and Tips](#-notes-and-tips)
-- 13. [Image Generations](#%EF%B8%8F-image-generations)
-- 14. [Image Variations](#image-variations)
-- 15. [Image Edits](#image-edits)
-  - 15.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
-  - 15.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
 - 16. [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
 - 17. [Service Providers](#service-providers)
   - 17.1 [LocalAI](#localai)
@@ -95,8 +90,6 @@ If no suffix is provided, it works as plain text completions.
   - 17.7 [GitHub Models](#github-models)
   - 17.8 [Novita AI](#novita-ai)
   - 17.9 [xAI](#xai)
-    - 17.9.1 [xAI Live Search](#xai-live-search)
-    - 17.9.2 [xAI Image Generation](#xai-image-generation)
   - 17.10 [DeepSeek](#deepseek)
 - 18. [Arch Linux Users](#arch-linux-users)
 - 19. [Termux Users](#termux-users)
@@ -113,6 +106,16 @@ If no suffix is provided, it works as plain text completions.
 - 26. [Acknowledgements](#acknowledgements)
 
 <!-- - 9. [Local Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
+<!--
+- 13. [Image Generations](#%EF%B8%8F-image-generations)
+- 14. [Image Variations](#image-variations)
+- 15. [Image Edits](#image-edits)
+  - 15.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
+  - 15.2 [Inpaint - Fill in the Gaps](#inpaint---fill-in-the-gaps)
+
+    - 17.9.1 [xAI Live Search](#xai-live-search)
+    - 17.9.2 [xAI Image Generation](#xai-image-generation)
+  -->
 
 </details>
 
@@ -206,12 +209,11 @@ Packages required for specific features.
 <details>
   <summary>Click to expand!</summary>
 
-- `Base64` - Image endpoint, multimodal models
+- `Base64` - Image input in vision models
 - `Python` - Modules tiktoken, markdown, bs4
-- `ImageMagick`/`fbida` - Image edits and variations
 - `SoX`/`Arecord`/`FFmpeg` - Record input (STT, Whisper)
 - `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
-- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open files, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`termux-tools`/`play-audio` - Termux system
@@ -219,6 +221,10 @@ Packages required for specific features.
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
 - `yt-dlp` - Dump YouTube captions
 
+<!--
+- `ImageMagick`/`fbida` - Image edits and variations
+
+-->
 </details>
 
 
@@ -305,11 +311,11 @@ The `chatgpt.sh` script can be run in various modes by setting
 
 | Option | Description   (independent modes)                                   |
 |--------|---------------------------------------------------------------------|
-| `-i`   | [Image generation and editing](#%EF%B8%8F-image-generations)        |
 | `-w`   | [Speech-To-Text](#-speech-transcriptions--translations) (Whisper)   |
 | `-W`   | Speech-To-Text (Whisper), translation to English                    |
 | `-z`   | [Text-To-Speech](man/README.md#text-to-voice-tts) (TTS), text input |
 
+<!-- | `-i`   | [Image generation and editing](#%EF%B8%8F-image-generations)        | -->
 
 ## 💬  Native Chat Completions
 
@@ -886,6 +892,7 @@ name as the instruction prompt.
 -->
 
 
+<!--
 ## 🖼️ Image Generations
 
 Currently, the scripts defaults to the **gpt-image** model. The user must
@@ -924,13 +931,16 @@ Generate image variation:
 
 In this example, a mask is made from the white colour.
 
+-->
 
+<!--
 ### Inpaint - Fill in the Gaps
 
 ![Showing off Image Edits - Inpaint](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits2.gif)
+-->
 <!-- ![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png) -->
 
-Adding a bat in the night sky.
+<!-- Adding a bat in the night sky. -->
 
 
 ## 🔊 Speech Transcriptions / Translations
@@ -1368,6 +1378,7 @@ Some models also work with native text completions. For that,
 set command-line `option -c` instead.
 
 
+<!--
 #### xAI Live Search
 
 To enable live search in the API, use chat command `/g [prompt]`
@@ -1391,6 +1402,7 @@ Check more live search parameters at [xAI API docs](https://docs.x.ai/docs/guide
 
 The model `grok-2-image-1212` is supported for image generation with
 invocation `chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"`.
+-->
 
 
 ### DeepSeek
@@ -1608,8 +1620,10 @@ in general are not really worth developer efforts sometimes, it is frustating!
 The project will enter a maintenance phase from 2025 onwards, focusing primarily
 on bug fixes and stability.
 
-- We may only partially support the _image generation_ and _image editing_
+- We may only partially support the _image generation_, _image variations_ and _image editing_
 specific OpenAI endpoints.
+
+- Update: Dropped support for _image generation_, _variations_ and _editing_ endpoints (_Dec-2025_).
 
 - Text completions endpoint is planned to be deprecated when there are
 no models compatible with this endpoint anymore.

@@ -1,11 +1,11 @@
-% CHATGPT.SH(1) v0.122.3 | General Commands Manual
+% CHATGPT.SH(1) v0.123 | General Commands Manual
 % mountaineerbr
 % November 2025
 
 
 # NAME
 
-|    chatgpt.sh \-- Wrapper for ChatGPT / DALL-E / STT / TTS
+|    chatgpt.sh \-- Wrapper for ChatGPT / STT / TTS
 
 
 # SYNOPSIS
@@ -21,15 +21,17 @@
 |    **chatgpt.sh** `-HPP` \[`/`_HIST_NAME_|_._]
 |    **chatgpt.sh** `-HPw`
 
+<!--
 |    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_]\[_hd_] \[_PROMPT_]  #dall-e-3
 |    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PROMPT_]  #gpt-image
 |    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PNG_FILE_]
 |    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
+-->
 
 
 # DESCRIPTION
 
-This script acts as a wrapper for ChatGPT, DALL-E, STT (Whisper), and TTS
+This script acts as a wrapper for ChatGPT, STT (Whisper), and TTS
 endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
 xAI, and DeepSeek APIs are supported.
@@ -38,7 +40,7 @@ By default, the script runs in single-turn of chat completion mode,
 processing INPUT directly when no options are set.
 
 Handles single-turn and multi-turn modes, pure text and native chat completions,
-image generation and editing, speech-to-text, and text-to-speech models.
+speech-to-text, and text-to-speech models.
 
 Positional arguments are read as a single PROMPT. Some functions
 such as Whisper (STT) and TTS may handle optional positional parameters
@@ -101,6 +103,7 @@ before the text prompt itself.
 : Unset response streaming.
 
 
+<!--
 **-i**, **\--image**   \[_PROMPT_]
 
 : Generate images given a prompt.
@@ -115,6 +118,7 @@ before the text prompt itself.
 **-i**   \[_PNG_] \[_MASK_] \[_PROMPT_]
 
 : Edit image with mask and prompt (required).
+-->
 
 
 **-q**, **-qq**, **\--insert**
@@ -212,11 +216,13 @@ before the text prompt itself.
 
 ## Model Settings
 
+<!--
 **-\@**, **\--alpha**   \[\[_VAL%_]_COLOUR_]
 
 :      Transparent colour of image mask. Def=_black_.
 
        Fuzz intensity can be set with \[_VAL%_]. Def=_0%_.
+-->
 
 
 **-Nill**
@@ -751,6 +757,7 @@ or added with chat command "`/audio` _path/to/file.mp3_".
 To activate the audio synthesis output mode of an audio model, make sure to set command line `option -z`!
 
 
+<!--
 # IMAGE GENERATIONS AND EDITS (Dall-E)
 
 `Option -i` **generates images** according to text PROMPT. If the first
@@ -782,6 +789,7 @@ or "_vivid_" as one of the first  positional parameters at command line invocati
 Note that the user needs to verify his organisation to use _gpt-image_ models!
 
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
+-->
 
 
 # TEXT / CHAT COMPLETIONS
@@ -923,11 +931,11 @@ to change parameters and manage sessions.
 
  Misc              Commands
  --------------    ------------------------------    -------------------------------------------------------------
-       `-S`                     \[_PROMPT_]          Overwrite the system prompt.
-     ` -S:`        `:`          \[_PROMPT_]          Prepend to current user prompt.
-     `-S::`        `::`         \[_PROMPT_]          Prepend to system prompt.
-    `-S:::`        `:::`                             Reset (inject) system prompt into request.
-      `-S.`        `-.`          \[_NAME_]           Load and edit custom prompt.
+       `-S`                     \[_PROMPT_]          Set (overwrite) or unset the system instruction.
+     ` -S:`        `:`          \[_PROMPT_]          Prepend to current _user_ prompt.
+     `-S::`        `::`         \[_PROMPT_]          Prepend to system instruction.
+    `-S:::`        `:::`                             Restore the previously set system instruction.
+      `-S.`        `-.`          \[_NAME_]           Load and edit custom instruction prompt.
       `-S/`        `!awesome`    \[_NAME_]           Load and edit awesome prompt (english).
       `-S%`        `!awesome-zh` \[_NAME_]           Load and edit awesome prompt (chinese).
        `-Z`        `!last`                           Print last raw JSON or the processed text response.
@@ -1215,6 +1223,7 @@ Please note and make sure to backup your important custom prompts!
 They are located at "`~/.cache/chatgptsh/`" with the extension "_.pr_".
 
 
+<!--
 # IMAGES / DALL-E
 
 ## 1. Image Generations
@@ -1276,6 +1285,7 @@ script. Paint a portion of the outer area of an image with _alpha_,
 or a defined _transparent_ _colour_ which will be used as the mask, and set the
 same _colour_ in the script with `option -@`. Choose the best result amongst
 many results to continue the out-painting process step-wise.
+-->
 
 
 # STT / VOICE-IN / WHISPER
@@ -1396,17 +1406,15 @@ set command-line `option -c` instead.
 :   Default instruction language in chat mode. <!-- and Whisper language. -->
 
 
-**MOD_CHAT**, **MOD_IMAGE**, **MOD_AUDIO**,
+**MOD_CHAT**, **MOD_AUDIO**, **MOD_SPEECH**,
 
-**MOD_SPEECH**, **MOD_LOCALAI**, **MOD_OLLAMA**,
+**MOD_LOCALAI**, **MOD_OLLAMA**, **MOD_MISTRAL**,
 
-**MOD_MISTRAL**, **MOD_AUDIO_MISTRAL**, **MOD_GOOGLE**,
+**MOD_AUDIO_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
 
-**MOD_GROQ**, **MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**,
+**MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**, **MOD_ANTHROPIC**,
 
-**MOD_ANTHROPIC**, **MOD_GITHUB**, **MOD_NOVITA**,
-
-**MOD_XAI**, **MOD_DEEPSEEK**
+**MOD_GITHUB**, **MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**
 
 :    Set default model for each endpoint / provider.
 
@@ -1435,7 +1443,7 @@ set command-line `option -c` instead.
 
 **OUTDIR**
 
-:    Output directory for received image and audio.
+:    Output directory for received audio and files.
 
 
 **RESTART**
@@ -1638,18 +1646,19 @@ See the online man page and `chatgpt.sh` usage examples at:
 
 Optional packages for specific features.
 
-- `Base64` - Image endpoint, vision models
+- `Base64` - Image input in vision models
 - `Python` - Modules tiktoken, markdown, bs4
-- `ImageMagick`/`fbida` - Image edits and variations
 - `SoX`/`Arecord`/`FFmpeg` - Record input (STT, Whisper)
 - `mpv`/`SoX`/`Vlc`/`FFplay`/`afplay` - Play TTS output
-- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open images, set clipboard
+- `xdg-open`/`open`/`xsel`/`xclip`/`pbcopy` - Open files, set clipboard
 - `W3M`/`Lynx`/`ELinks`/`Links` - Dump URL text
 - `bat`/`Pygmentize`/`Glow`/`mdcat`/`mdless` - Markdown support
 - `termux-api`/`termux-tools`/`play-audio` - Termux system
 - `poppler`/`gs`/`abiword`/`ebook-convert`/`LibreOffice` - Dump PDF or Doc as text
 - `dialog`/`kdialog`/`zenity`/`osascript`/`termux-dialog` - File picker
 - `yt-dlp` - Dump YouTube captions
+
+<!-- - `ImageMagick`/`fbida` - Image edits and variations -->
 
 
 # CAVEATS
@@ -1664,6 +1673,8 @@ This project _does not support_ "Function Calling", "Structured Outputs",
 capabilities.
 
 Support for "Responses API" is limited and experimental at this point.
+
+Image generations, variations, and editing endpoints was dropped in December-2005, script version v124.
 
 
 # BUGS

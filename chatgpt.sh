@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.122.5  dec/2025  by mountaineerbr  GPL+3
+# v0.123  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -19,9 +19,6 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
 MOD_CHAT="${MOD_CHAT:-gpt-5.1}"
-# Image model
-MOD_IMAGE="${MOD_IMAGE:-gpt-image-1}"
-# Transcription model (STT)
 MOD_AUDIO="${MOD_AUDIO:-whisper-1}"  #gpt-4o-mini-transcribe
 # Speech model (TTS)
 MOD_SPEECH="${MOD_SPEECH:-gpt-4o-mini-tts}"  #tts-1
@@ -88,16 +85,6 @@ OPTMAX_DEF=$OPTMAX
 #OPTSEED=
 # Set python tiktoken
 #OPTTIK=
-# Image size
-#OPTS=1024x1024  #1024x1024auto
-#gpt-image: 1024x1024, 1536x1024 (landscape), or 1024x1536 (portrait)
-#dall-e-3: 1024x1024, 1792x1024 (landscape), or 1024x1792 (portrait)
-#dall-e-2: 256x256 (small), 512x512 (medium), or 1024x1024 (large)
-#quality: high, medium, low, or auto (gpt-image), hd or standard (dall-e-3)
-#Image style  #dall-e-3
-#OPTI_STYLE=natural  #vivid
-# Image out format  #dall-e-2/3
-OPTI_FMT=b64_json  #url
 # TTS voice
 OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 # TTS voice speed
@@ -234,7 +221,7 @@ TIME_RFC5322_FMT='%a, %d %b %Y %H:%M:%S %z'
 SCRIPT_NAME="${0##*/}"
 
 HELP="Name
-	${0##*/} -- Wrapper for ChatGPT / DALL-E / STT / TTS
+	${0##*/} -- Wrapper for ChatGPT / STT / TTS
 
 
 Synopsis
@@ -249,19 +236,13 @@ Synopsis
 	${0##*/} -HPP [/HIST_NAME|.]
 	${0##*/} -HPw
 
-	${0##*/} -i [opt..] [S|M|L][hd] [PROMPT]  #dall-e-3
-	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PROMPT]  #gpt-image
-	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE]
-	${0##*/} -i [opt..] [X|L|P][high|medium|low] [PNG_FILE] [MASK_FILE] [PROMPT]
-
 
 Description
-	Wraps ChatGPT, DALL-E, STT, and TTS endpoints from various
+	Wraps ChatGPT, STT, and TTS endpoints from various
 	providers.
 
 	Defaults to single-turn native chat completions. Handles multi-turn
-	chat, text completions, image generation/editing, speech-to-text,
-	and text-to-speech models.
+	chat, text completions, speech-to-text, and text-to-speech models.
 
 	Positional arguments are read as a single PROMPT. Some functions
 	such as Whisper (STT) and TTS may handle optional positional
@@ -326,28 +307,6 @@ Instruction Prompts
 	audio models, set a robust \`INSTRUCTION' parameter as usual.
 
 
-Image Generations and Edits (Dall-E)
-	Option -i generates or edits images. A text prompt is required for
-	generations. An image file is required for variations. Edits need
-	an image file, a mask (or the image must have a transparent layer),
-	and a text prompt to direct the editing.
-
-	Size of output image may be set as the first positional parameter,
-	which defaults to \`1024x1024auto':
-
-	gpt-image: \`1024x1024' (L, Large, Square), \`1536x1024' (X, Landscape),
-	           or \`1024x1536' (P, Portrait).
-	dall-e-3: \`1024x1024', \`1792x1024', or \`1024x1792'.
-	dall-e-2: \`256x256' (Small), \`512x512' (M, Medium), or \`1024x1024'.
-
-	A parameter \`high', \`medium', \`low', or \`auto' may also be appended
-	to the size parameter for gpt-image quality, such as \`Xhigh' or
-	\`1536x1024high', and \`hd' or \`standard' for dall-e-3.
-
-	For dall-e-3, optionally set the generation style as either \"natural\"
-	or \"vivid\" as one of the first positional parameters.
-
-
 Speech-To-Text (STT, Whisper)
 	Option -w transcribes audio to any language, and option -W translates
 	audio to English text. Set these options twice to have phrasal-
@@ -391,11 +350,11 @@ Environment
 	LC_ALL
 	LANG 		Default instruction language (chat mode).
 
-	MOD_CHAT        MOD_IMAGE          MOD_AUDIO
-	MOD_SPEECH      MOD_LOCALAI        MOD_OLLAMA
-	MOD_MISTRAL     MOD_AUDIO_MISTRAL  MOD_GOOGLE
-	MOD_GROQ        MOD_AUDIO_GROQ     MOD_SPEECH_GROQ
-	MOD_ANTHROPIC   MOD_GITHUB         MOD_NOVITA       MOD_XAI
+	MOD_CHAT           MOD_AUDIO         MOD_SPEECH
+	MOD_LOCALAI        MOD_OLLAMA        MOD_MISTRAL
+	MOD_AUDIO_MISTRAL  MOD_GOOGLE        MOD_GROQ
+	MOD_AUDIO_GROQ     MOD_SPEECH_GROQ   MOD_ANTHROPIC
+	MOD_GITHUB         MOD_NOVITA        MOD_XAI
 			Set default model for each endpoint / provider.
 
 	OPENAI_BASE_URL
@@ -411,7 +370,7 @@ Environment
 	GITHUB_TOKEN 	Keys for OpenAI, Gemini, Mistral, Groq, Anthropic,
 			GitHub Models, Novita, xAI, and DeepSeek APIs.
 
-	OUTDIR 		Output directory for received image and audio.
+	OUTDIR 		Output directory for received audio / files.
 
 	RESTART
 	START           Restart and start sequences. May be set to null.
@@ -455,11 +414,11 @@ Command List
 
    -------   ----------------   -----------------------------------------
    --- Misc Commands ------------------------------------------------
-      -S              [PROMPT]  Overwrite the system prompt.
-      -S:     :       [PROMPT]  Prepend to current user prompt.
-     -S::     ::      [PROMPT]  Prepend to system prompt.
-     -S:::    :::               Reset (inject) system prompt into request.
-      -S.     -.       [NAME]   Load and edit custom prompt.
+      -S              [PROMPT]  Set (overwrite) or unset system instruction.
+      -S:     :       [PROMPT]  Prepend to current \`user' prompt.
+     -S::     ::      [PROMPT]  Prepend to system instruction.
+     -S:::    :::               Restore previous system instruction.
+      -S.     -.       [NAME]   Load and edit custom instruction prompt.
       -S/    !awe      [NAME]   Load and edit awesome prompt (en).
       -S%    !awe-zh   [NAME]   Load and edit awesome prompt (zh).
       -Z      !last             Print last raw JSON or processed response.
@@ -671,9 +630,6 @@ Options
 		Options -eex to edit last text buffer from cache.
 
 	Model Settings
-	-@, --alpha  [[VAL%]COLOUR]
-		Transparent colour of image mask. Def=black.
-		Fuzz intensity can be set with [VAL%]. Def=0%.
 	-Nill
 		Unset model max response tokens (chat cmpls only).
 	-NUM
@@ -752,12 +708,6 @@ Options
 		Response streaming.
 	-G, --no-stream
 		Unset response streaming.
-	-i, --image   [PROMPT]
-		Generate images given a prompt.
-	-i  [PNG]
-		Create variations of a given image.
-	-i  [PNG] [MASK] [PROMPT]
-		Edit image with mask, and prompt (required).
 	-q, -qq, --insert
 		Insert text mode. Use \`[insert]' tag within the prompt.
 		Set twice for multi-turn (\`instruct', Mistral \`code' models).
@@ -790,14 +740,14 @@ Options
 ENDPOINTS=(
 	/completions               #0
 	/moderations               #1
-	/edits                     #2  -> chat/completions
-	/images/generations        #3
-	/images/variations         #4
-	/embeddings                #5
+	/edits                     #2  -> chat/completions [openai]
+	/images/generations        #3  -> dropped [v123]
+	/images/variations         #4  -> dropped [v123]
+	/embeddings                #5  -> dropped [v123]
 	/chat/completions          #6
 	/audio/transcriptions      #7
 	/audio/translations        #8
-	/images/edits              #9
+	/images/edits              #9  -> dropped [v123]
 	/audio/speech              #10
 	/models                    #11
 	/responses                 #12
@@ -829,19 +779,14 @@ function set_model_epnf
 	fi
 
 	case "$1" in
-		*dalle-e*|*stable*diffusion*)
-			# 3 generations  4 variations  9 edits
-			((OPTII)) && EPN=4 || EPN=3;
-			((OPTII_EDITS)) && EPN=9;;
 		tts-*|*-tts-*|*-tts) 	EPN=10;;
 		*whisper*|*transcribe*|*transcription*|stt-*|*-stt-*|*-stt|\
 		*voxtral-mini${OPTC}${OPTCMPL}${MTURN}*)  #K#
 			((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	EPN=0;;
-		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|*moderation*|*embed*|*similarity*)
+		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|*moderation*)
 			is_amodelf "$1" || is_visionf "$1";
 			case "$1" in
-				*embed*|*similarity*) 	EPN=5 OPTEMBED=1;;
 				*moderation*) 	EPN=1 OPTEMBED=1;;
 				*) 		EPN=0;;
 			esac;;
@@ -857,34 +802,23 @@ function set_model_epnf
 			#also: <https://tiktokenizer.vercel.app/>
 				;;
 		*) 		#fallback
-				case "$1" in
-					*embed*|*similarity*)
-						EPN=5 OPTEMBED=1;;
-					*)
-						if ((OPTZ && !(MTURN+CHAT_ENV) ))
-						then 	OPTCMPL= OPTC= EPN=10;
-						elif ((OPTW && !(MTURN+CHAT_ENV) ))
-						then 	OPTCMPL= OPTC= EPN=7;
-						elif ((OPTI && !(MTURN+CHAT_ENV) ))
-						then 	# 3 generations  4 variations  9 edits
-							((OPTII)) && EPN=4 || EPN=3;
-							((OPTII_EDITS)) && EPN=9;
-						elif ((OPTEMBED))
-						then 	OPTCMPL= OPTC= EPN=1;
-						elif ((OPTCMPL || OPTSUFFIX))
-						then 	is_amodelf "$1" || is_visionf "$1";
-							OPTC= EPN=0;
-						elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI || GITHUBAI || NOVITAAI || XAI || DEEPSEEK))
-						then 	is_amodelf "$1" || is_visionf "$1";
-							OPTCMPL= EPN=6;
-						elif ((OPTC))
-						then 	is_amodelf "$1" || is_visionf "$1";
-							OPTCMPL= EPN=0;
-						else 	is_amodelf "$1" || is_visionf "$1";
-							EPN=0;  #defaults
-						fi;;
-				esac
-				return 1;;
+			if ((OPTZ && !(MTURN+CHAT_ENV) ))
+			then 	OPTCMPL= OPTC= EPN=10;
+			elif ((OPTW && !(MTURN+CHAT_ENV) ))
+			then 	OPTCMPL= OPTC= EPN=7;
+			elif ((OPTCMPL || OPTSUFFIX))
+			then 	is_amodelf "$1" || is_visionf "$1";
+				OPTC= EPN=0;
+			elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI || GITHUBAI || NOVITAAI || XAI || DEEPSEEK))
+			then 	is_amodelf "$1" || is_visionf "$1";
+				OPTCMPL= EPN=6;
+			elif ((OPTC))
+			then 	is_amodelf "$1" || is_visionf "$1";
+				OPTCMPL= EPN=0;
+			else 	is_amodelf "$1" || is_visionf "$1";
+				EPN=0;  #defaults
+			fi;
+			return 1;;
 	esac
 }
 
@@ -925,7 +859,7 @@ function model_capf
 	mistral-medium-2505|mistral-medium-latest|mistral-small-2503|mistral-small-latest|\
 	mistral-tiny-2407|mistral-tiny-latest|open-mistral-nemo*|pixtral-12b*|pixtral-large*) MODMAX=131072;;
 	open-mixtral-8x22b*) MODMAX=65536;;
-	codestral-2405|codestral-embed*|mistral-embed|mistral-large-2402|mistral-medium-2312|\
+	codestral-2405|mistral-large-2402|mistral-medium-2312|\
 	mistral-moderation*|mistral-ocr*|mistral-saba*|mistral-small-2[34]??|mistral-small-2501|mistral-small|\
 	mistral-tiny-2312|mistral-tiny|open-mistral-7b|open-mixtral-8x7b|*voxtral-mini*|*voxtral-small*) MODMAX=32768;;
 	magistral-small*|magistral-medium*|magistral*) MODMAX=40960;;
@@ -949,14 +883,12 @@ function model_capf
 	gemini-1.5-flash*) MODMAX=1000000;;
 	gemma-3-27b-it) MODMAX=131072;;
 	gemini-1.0*-pro-vision*) MODMAX=12288;;
-	gemini-embedding-exp*|gemma-3n-e4b-it) MODMAX=8192;;
+	gemma-3n-e4b-it) MODMAX=8192;;
 	gemini-2.0-flash-preview-image-generation|\
 	gemma-3*) MODMAX=32768;;
 	gemini-2.0-flash*|gemini-2.0-flash-exp*|\
 	gemini-2.[0-9]-pro*|gemini-exp*|gemini-*|\
 	learnlm-2.0-flash*) MODMAX=1048576;;
-	embedding-001|text-embedding-004) MODMAX=2048;;
-	embedding-gecko-001) MODMAX=1024;;
 	*) nomatch=1;;
 	esac; ((nomatch)) || return 0; nomatch= ;}
 
@@ -981,8 +913,6 @@ function model_capf
 	phi-3-*[8,128]k-instruct|gpt-4o*) MODMAX=131072;;
 	phi-4) MODMAX=16384;;
 	meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|jais-30b-chat) MODMAX=8192;;
-	text-embedding-3-*) MODMAX=8191;;
-	cohere-embed-v3-*) MODMAX=512;;
 	phi-3-*4k-instruct) MODMAX=4096;;
 	phi-4-reasoning) MODMAX=32768;;
 	*) nomatch=1;;
@@ -998,15 +928,13 @@ function model_capf
 		open-mixtral-8x22b|text-davinci-002-render-sha|*-64k*)
 			MODMAX=64000;;
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
-		code-davinci-00[2-9]*|mistral-embed*|-8k*)
+		code-davinci-00[2-9]*|-8k*)
 			MODMAX=8001;;
 		*llama-3-8b-instruct|*llama-3-70b-instruct|*gemma-2-9b-it|\
-		*hermes-2-pro-llama-3-8b|llama3*|text-embedding-ada-002|\
-		*embedding*-002|grok-vision-beta)
+		*hermes-2-pro-llama-3-8b|llama3*|grok-vision-beta)
 			MODMAX=8191;;  #8192
 		davinci|curie|babbage|ada)
 			MODMAX=2049;;
-		embedding-gecko-001) MODMAX=1024;;
 		aqa) MODMAX=7168;;
 		gemini-exp*|gemini-*) MODMAX=1048576;;  #2097152;;
 		learnlm-1.5-pro*|*qwen-2.5-72b-instruct|-32k*) MODMAX=32000;;
@@ -1042,8 +970,6 @@ function model_capf
 		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
 		gpt-4*|*-bison*|*-unicorn|*wizardlm-2-8x22b)
 			MODMAX=65535;;
-		cohere-embed-v3-*) 	MODMAX=1000;;
-		*embedding-gecko*) 	MODMAX=3072;;
 		*) 	MODMAX=8192;
 			((OPTV==99)) || OPTV=99 NOVITAAI=1 MISTRALAI=1 GROQAI=1 GOOGLEAI=1 GITHUBAI=1 model_capf "${model##ft:}";  #IPC#
 			;;
@@ -1095,11 +1021,13 @@ function _promptf
 			then 	sed -n -e 's/^[[:space:]]*//' \
 				-e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//p' \
 				-e '/^[[:space:]]*\[[A-Za-z_][A-Za-z_]*\]/d' \
+				-e '/^[[:space:]]*:/d' \
 				-e '/^[[:space:]]*$/d';
 			else 	sed -e 's/^[[:space:]]*//' \
 				-e 's/^[[:space:]]*[Dd][Aa][Tt][Aa]:[[:space:]]*//' \
 				-e '/^[[:space:]]*[A-Za-z_][A-Za-z_]*:/d' \
 				-e '/^[[:space:]]*\[[A-Za-z_][A-Za-z_]*\]/d' \
+				-e '/^[[:space:]]*:/d' \
 				-e '/^[[:space:]]*$/d';
 			fi |
 			if ((OPTC))
@@ -1119,7 +1047,7 @@ function promptf
 {
 	typeset pid ret
 
-	if ((OPTVV)) && ((!OPTII))
+	if ((OPTVV))
 	then 	block_printf || {
 		  REPLY=${REPLY_CMD:-$REPLY} REGEN= JUMP= PSKIP=;
 		  REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
@@ -1145,18 +1073,9 @@ function promptf
 		else 	printf "${BYELLOW}%*s\\r" "$COLUMNS" "C" >&2;
 		fi
 
-		COLUMNS=$((COLUMNS-1)) _promptf ||
-			if ((OPTI))
-			then 	printf "${NC}" >&2;
-				jq . "$FILE" >&2 2>/dev/null;
-				exit;
-			else  	exit;  #!#
-			fi
+		COLUMNS=$((COLUMNS-1)) _promptf || { 	! printf "${NC}" >&2; exit 1 ;}  #!#
+		prompt_printf;
 
-		if ((OPTI))
-		then 	prompt_imgprintf
-		else 	prompt_printf
-		fi
 	fi & pid=$! PIDS+=($!)  #catch <CTRL-C>
 
 	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2; TRAP_WEDIT=1 EDIT=1;" INT;
@@ -1402,13 +1321,6 @@ function prompt_printf
 	then 	typeset OPTC OPTV;
 	else 	set -- "$FILE"; unset STREAM;
 	fi
-	if ((OPTEMBED))
-	then 	jq -r '(.data),
-		(.model//"'"$MOD"'"//"?")+" ("+(.object//"?")+") ["
-		+(.usage.prompt_tokens//"?"|tostring)+" / "
-		+(.usage.total_tokens//"?"|tostring)+" tkns]"' "$@" >&2
-		return
-	fi
 
 	if ((OPTMD)) && ((MD_CMD_UNBUFF))
 	then
@@ -1441,7 +1353,7 @@ function prompt_prettyf
 {
 	((STREAM)) || unset STREAM;
 
-	if ((EPN==12))
+	if ((EPN==12))  #responses api hack
 	then 	prompt_pf -r ${STREAM:+-j --unbuffered} "$@";
 		return;
 	fi
@@ -1557,30 +1469,6 @@ function _openf
 }
 #https://budts.be/weblog/2011/07/xdf-open-vs-exo-open/
 
-#print image endpoint response
-function prompt_imgprintf
-{
-	typeset n m fname fout
-	if [[ $OPTI_FMT = b64_json ]]
-	then 	[[ -d "${FILEOUT%/*}" ]] || FILEOUT="${FILEIN}"
-		n=0 m=0
-		for fname in "${FILEOUT%.*}"*
-		do 	fname="${fname%.*}" fname="${fname##*[!0-9]}"
-			((m>fname)) || ((m=fname+1))
-		done
-		while jq -e ".data[${n}]" "$FILE" >/dev/null 2>&1
-		do 	fout="${FILEOUT%.*}${m}.png"
-			jq -r ".data[${n}].b64_json" "$FILE" | { 	base64 -d || base64 -D ;} > "$fout"
-			_sysmsgf 'File Out:' "${fout/"$HOME"/"~"}";
-			((OPTV)) ||  _openf "$fout" || function _openf { : ;}
-			((++n, ++m)); ((n<128)) || break;
-		done
-		((n)) || ! _warmsgf 'Err';
-	else 	jq -r '.data[].url' "$FILE" || ! _warmsgf 'Err';
-	fi &&
-	jq -r 'if .data[].revised_prompt then "\nREVISED PROMPT: "+.data[].revised_prompt else empty end' "$FILE" >&2
-}
-
 function prompt_audiof
 {
 	((OPTVV)) && { _warmsgf "Transcription:" "BaseURL: ${BASE_URL}${ENDPOINTS[EPN]}";
@@ -1609,8 +1497,6 @@ function list_modelsf
 	if [[ -n $1 ]]
 	then  	jq . "$FILE" || ! _warmsgf 'Err';
 	else 	{   jq -r '.data[].id' "$FILE" | sort && {
-		    {    ((!OPENAI)) || [[ $BASE_URL != "$OPENAI_BASE_URL_DEF" ]] ||
-		        printf '%s\n' text-moderation-latest text-moderation-stable ;}  #deprecated: 2025-10-27 shutdown
 		    ((!MISTRALAI)) || printf '%s\n' mistral-moderation-latest;
 		  }
 		} | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
@@ -2326,48 +2212,6 @@ function set_titlef
 	fi
 }
 
-#set output image size and quality
-function set_imgsizef
-{
-	typeset opts_quality
-	case "$1" in  #dall-e-3 quality
-		[Hh][Dd] | [Hh][Dd]* | *[Hh][Dd])
-			OPTS_QUALITY="hd" opts_quality=1;
-			set -- "${1/[Hh][Dd]}";;
-	esac
-	case "$1" in  #gpt-image quality
-		[Hh][Ii][Gg][Hh] | [Hh][Ii][Gg][Hh]* | *[Hh][Ii][Gg][Hh])
-			OPTS_QUALITY="high" opts_quality=1;
-			set -- "${1/[Hh][Ii][Gg][Hh]}";;
-		[Mm][Ee][Dd][Ii][Uu][Mm] | [Mm][Ee][Dd][Ii][Uu][Mm]* | *[Mm][Ee][Dd][Ii][Uu][Mm])
-			OPTS_QUALITY="medium" opts_quality=1;
-			set -- "${1/[Mm][Ee][Dd][Ii][Uu][Mm]}";;
-		[Ll][Oo][Ww] | *[Ll][Oo][Ww] | *[Ll][Oo][Ww])
-			OPTS_QUALITY="low" opts_quality=1;
-			set -- "${1/[Ll][Oo][Ww]}";;
-	esac
-	case "$1" in  #size, width x height
-		1024*1792 | [Pp] | [Pp][Oo][Rr][Tt][Rr][Aa][Ii][Tt] )  #portrait
-			case "$MOD_IMAGE" in gpt-image*) 	OPTS=1024x1536;;
-				*) 	OPTS=1024x1792;;
-			esac;;
-		1792* | [Xx] | [Ll][Aa][Nn][Dd][Ss][Cc][Aa][Pp][Ee] )  #landscape
-			case "$MOD_IMAGE" in gpt-image*) 	OPTS=1536x1024;;
-				*) 	OPTS=1792x1024;;
-			esac;;
-		1024* | [LlSs] | [Ll][Aa][Rr][Gg][Ee] | [Ss][Qq][Uu][Aa][Rr][Ee] )  #large, square
-			OPTS=1024x1024;;
-		512*  |  [Mm]  | [Mm][Ee][Dd][Ii][Uu][Mm] ) OPTS=512x512;;  #medium, dall-e-2
-		256*  |  [Ss]  | [Ss][Mm][Aa][Ll][Ll] )     OPTS=256x256;;  #small, dall-e-2
-		*)  #fallbacks
-			[[ -z $OPTS ]] || return 1;
-			if [[ $MOD_IMAGE = *dall-e*2 ]] && [[ opts_quality -eq 0 ]]
-			then 	OPTS=512x512;
-			else 	OPTS=1024x1024;
-			fi; ((opts_quality));;
-	esac;
-}
-
 # Nill, null, none, inf; Nil, nul; -N---, --- (chat);
 GLOB_NILL='?(-)?([Nn])[OoIiUu][NnLl][EeLlFf]' GLOB_NILL2='?(-)?([Nn])[IiUu][Ll]' GLOB_NILL3='?(-)?([Nn])-*(-)'
 function set_maxtknf
@@ -2490,12 +2334,13 @@ function cmdf
 {
 	typeset append filein fileinq outdir ans buff out var wc xskip pid m n
 	typeset -a argv args arr;
-	((${#HARGS})) || typeset HARGS;
+	((${#HARGS})) || typeset HARGS;  #args for shell history (prioritary)
+	#deal with cmdf() recursive calls:
 	((CMD_ENV)) && typeset SKIP_SH_HIST=1; typeset CMD_ENV=${CMD_ENV:-1};
 	[[ "${1:0:128}${2:0:64}" = *([$IFS:])[/!-]* ]] || return;
 	printf "${NC}" >&2;
 
-	argv=("$@");
+	argv=("$@");  #original user args
 	trim_lf "$1" "*([$IFS:])?([/!])";
 	set -- "$TRIM" "${@:2}";
 	args=("$@"); set -- "$*";
@@ -2945,14 +2790,28 @@ function cmdf
 			PSKIP= XSKIP= SKIP=1 EDIT=1
 			var=$(INSTRUCTION=$* CMD_CHAT=1; awesomef && echo "$INSTRUCTION") && REPLY="-S $var"
 			;;
-		-S:::|-:::|-S::::|-::::)  #reset system prompt
-			REPLY=":${REPLY#*:}";
+		-S:::|-:::|-S:::*|-:::*)  #reset system prompt
+			SKIP_SH_HIST=1 REPLY=":::";
 			return 181;
 			;;
-		-S*|-:*)
+		-S)  #unset system prompt
+			if ((${#INSTRUCTION}+${#GINSTRUCTION}+${#GINSTRUCTION_PERM})) ||
+				((ANTHROPICAI && ${#INSTRUCTION_OLD}))
+			then
+				SKIP=1 PSKIP=1 SKIP_SH_HIST=1 REPLY=;
+				INSTRUCTION= GINSTRUCTION= GINSTRUCTION_PERM=;
+				((ANTHROPICAI)) && INSTRUCTION_OLD=;  #R#
+				_sysmsgf "System Prompt: unset";
+			else
+				#toggle system prompt reset
+				cmdf -S:::; SKIP_SH_HIST=1;
+				return;
+			fi
+			;;
+		-S*|-:*)  #set system prompt
 			trim_lf "$*" "-[S:]*([$': \t'])"
 			set -- "$TRIM"
-			SKIP=1 PSKIP=1 REPLY="::${*}"
+			SKIP=1 PSKIP=1 SKIP_SH_HIST=1 REPLY="::${*}";
 			unset INSTRUCTION GINSTRUCTION
 			;;
 		time|date|time\ *|date\ *)
@@ -3398,8 +3257,10 @@ function cmdf
 						REPLY= RET=201 REPLY_CMD_DUMP=;
 						WSKIP= SKIP= XSKIP= EDIT= append=; break 2;;  #abort / discard
 					[Rr]) 	SKIP_SH_HIST=; typeset SKIP_SH_HIST=1;
-						SKIP=1 EDIT=1 RET=200 REPLY="!${args[*]}";
+						SKIP=1 EDIT=1 RET=200;
 						REPLY_CMD_DUMP= WSKIP= XSKIP= SKIP=;  #E#
+						REPLY="${HARGS:-${args[*]:-$*}}";  #substitute command operator(s)  #Q#
+						[[ ${REPLY:0:1} = [/!] ]] && REPLY="${REPLY:0:1}${REPLY}" || REPLY="!${REPLY}";
 						break 2;;  #redo
 					[EeYy]|$'\e')
 						SKIP_SH_HIST=; typeset SKIP_SH_HIST=1;
@@ -3417,7 +3278,11 @@ function cmdf
 
 			HARGS=;
 			((append)) && [[ ${REPLY:0:32} != [/!]* ]] && REPLY=:$REPLY;
-			((SKIP_SH_HIST)) || shell_histf "!${HARGS[*]:-${args[*]}}"; SKIP_SH_HIST=1;
+			((SKIP_SH_HIST)) || {  #add to shell history
+				var="${HARGS[*]:-${args[*]:-$*}}";  #substitute command operator(s)  #Q#
+				[[ ${var:0:1} = [/!] ]] && var="${var:0:1}${REPLY}" || var="!${var}";
+				shell_histf "!${var}";
+			}; SKIP_SH_HIST=1;
 			#((RET==200||RET==201)) || REPLY_CMD_BLOCK=1;
 			;;
 		tmp|[/!]tmp)  #temporary cache
@@ -3565,51 +3430,25 @@ function cmdf
 			cmdmsgf 'Dialog' $(_onoff $( ((NO_DIALOG)) && echo 0 || echo 1) )
 			;;
 		[/!]g*|g*)  #ground context
-			HARGS=${HARGS:-$*};
-			case "$*" in [/!]g:*|g:*) 	append=1;; esac;  #prompt buffer
-			trim_lf "$*" "?([/!])g*(:)$SPC";
+			typeset engine query url
+			HARGS=${HARGS:-${args[*]:-$*}};
+			case "$*" in [/!]g:*|g:*|[/!]gg:*|gg:*) 	append=1;; esac;  #edit buffer
+
+			trim_lf "$*" "?([/!])g*([g:])$SPC";
 			set -- "$TRIM";
 
 			case "${args[*]:-$*}" in
-			  [/!]*)
-			    n=50; var=$(
+			  [/!]*|gg*)
+			    n=50; engine=$(
 			      printf 'Search Engine:\n' >&2;
-			      select var in '[g]oogle' '[d]uckduckgo' '[b]rave' '[a]bort'
+			      select engine in '[d]uckduckgo' '[b]rave' '[m]ojeek' '[e]cosia' '[y]andex' '[s]tartpage' '[g]oogle' '[a]bort'
 			      do 	break;
 			      done </dev/tty;
-			      echo "${var:-$REPLY}")
-
-			    case "$var" in
-			      [AaQq]|[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit|[$'\e\t ']*)
-			        EDIT=1; echo '[abort]' >&2; return 0;;
-			      brave|b*) out=Brave;
-			        var="https://search.brave.com/search?q=${*//[&?]/+}&source=web";;
-			      duckduckgo|d*) out=DuckDuckGo;
-			        var="https://html.duckduckgo.com/html/?q=${*//[&?]/+}&kl=wt-wt&kj=wt-wt&k1=-1&kv=${n}";;
-			      google|g*|*)
-			        var="https://www.google.com/search?q=${*//[&?]/+}&num=${n}";;
-			    esac;
+			      echo "${engine:-$REPLY}")
 			    ;;
-			    *)
+			    *)  #provider specific web search function, or the in-house solution
 
-			    if ((XAI)) && case "$MOD" in
-			    	grok*-[3-9]*) 	:;;
-			    	*) 	! :;;
-			    	esac;
-			    then
-			      BLOCK_CMD="\"search_parameters\": {
-  \"mode\": \"on\",
-  \"sources\": [
-  { \"type\": \"x\" },
-  { \"type\": \"news\" },
-  { \"type\": \"web\", \"safe_search\": false }
-  ],
-  \"max_search_results\": 30
-}";  #"return_citations": True
-			      ((OPTV)) || printf "${BWHITE}%s\\n${NC}" "xAI Live Search" >&2;
-			      REPLY="$*" SKIP=1 PSKIP=1 JUMP=1;
-			      return 0;
-			    elif ((ANTHROPICAI)) && case "$MOD" in
+			    if ((ANTHROPICAI)) && case "$MOD" in
 			    	claude*-[4-9]*|claude-opus-[4-9]*|claude-sonnet-[4-9]*|claude*-[4-9]*-sonnet*|claude-3-7*|claude-3-5-sonnet-latest|claude-3-5-haiku-latest) 	:;;
 			    	*) 	! :;;
 			    	esac;
@@ -3621,6 +3460,7 @@ function cmdf
 }]";
 			      ((OPTV)) || printf "${BWHITE}%s\\n${NC}" "Anthropic Web Search" >&2;
 			      REPLY="$*" SKIP=1 PSKIP=1 JUMP=1;
+
 			      return 0;
 			    elif ((GOOGLEAI)) && case "$MOD" in
 			    	gemini-[2-9]*) 	:;;
@@ -3630,6 +3470,7 @@ function cmdf
 			      BLOCK_CMD="\"tools\": [ { \"google_search\": {} } ]";
 			      ((OPTV)) || printf "${BWHITE}%s\\n${NC}" "Google Search Tool" >&2;
 			      REPLY="$*" SKIP=1 PSKIP=1 JUMP=1;
+
 			      return 0;
 			    elif ((OPENAI)) && case "${MOD##*/}" in
 			    	*gpt*-search*|*-deep-research*) 	:;;
@@ -3643,17 +3484,61 @@ function cmdf
 			      esac;
 			      ((OPTV)) || printf "${BWHITE}%s\\n${NC}" "OpenAI Web Search Tool" >&2;
 			      REPLY="$*" SKIP=1 PSKIP=1 JUMP=1;
+
 			      return 0;
 			    fi;
 
-			    n=50;
-			    var="https://www.google.com/search?num=${n}&q=${*//[&?]/+}";
+			    engine=duckduckgo;
 			    ;;
 			esac;
 
-			((OPTV)) || printf "${BWHITE}%s\\n${NC}" "${out:-Google}" >&2;
-			cmdf /url${append:+:} "${var:-err}";
-			REPLY="$REPLY"$'\n\n'"$*";
+			query=$(urlencode "$*") || query=$(_urlencode "$*") || query=$*;
+
+			case "$engine" in
+			  8|[AaQq]|[Aa]bort|*bort|[Cc]ancel|[Ee]xit|[Qq]uit|[$'\e\t ']*)
+			    EDIT=1; echo '[abort]' >&2;
+			    return 0;
+			    ;;
+			  7|[Gg]oogle|*oogle|[Gg]*)  #scrape block
+			    engine=Google n=50;
+			    url="https://www.google.com/search?q=${query}&num=${n}&gbv=1";
+			    ;;
+			  6|[Ss]tart[Pp]age|*tart[Pp]age|[Ss]*)  #scrape block
+			    engine=StartPage;
+			    url="https://www.startpage.com/sp/search?query=${query}";
+			    ;;
+			  5|[Yy]andex|*andex|[Yy]*)  #scrape block
+			    engine=Yandex;
+			    url="https://yandex.com/search/?text=${query}";
+			    ;;
+			  4|[Ee]cosia|*cosia|[Ee]*)
+			    engine=Ecosia;
+			    url="https://www.ecosia.org/search?method=index&q=${query}";
+			    ;;
+			  3|[Mm]ojeek|*ojeek|[Mm]*)
+			    engine=Mojeek;
+			    url="https://www.mojeek.com/search?q=${query}";
+			    ;;
+			  2|[Bb]rave|*rave|[Bb]*)
+			    engine=Brave;
+			    n=0;
+			    url="https://search.brave.com/search?q=${query}&source=web&count=20&offset=${n}";
+			    #https://api-dashboard.search.brave.com/app/documentation/web-search/query
+			    ;;
+			  1|[Dd]uck[Dd]uck[Gg]o|*uck[Dd]uck[Gg]o|[Dd]*|*)
+			    engine=DuckDuckGo;
+			    var= n=;  #((n>1)) && var="&s=$((n*12))&v=l&dc=$(( (n*12)-1))";
+			    url="https://html.duckduckgo.com/html/?q=${query}&k1=-1&kv=1&kaf=1&kp=-2&kl=wt-wt${var}";
+			    #https://duckduckgo.com/lite/?q=query  #https://lite.duckduckgo.com/lite
+			    #https://duckduckgo.com/duckduckgo-help-pages/settings/params
+			    ;;
+			esac;  #see: surfraw, curl-impersonate
+
+			((OPTV)) || printf "${BWHITE}%s\\n<%s>\\n${NC}" "${engine:-[DuckDuckGo]}" "${url}" >&2;
+
+			#simple search dump, few results but relevant ones..
+			cmdf /url${append:+:} "${url:-err}";
+			((RET)) || REPLY="${REPLY}"${REPLY:+$'\n\n'}"${*}";
 			return 0;
 			;;
 		q|quit|exit|bye)
@@ -4805,21 +4690,18 @@ function set_optsf
 		;;
 	esac;
 
-	((OPTI+OPTEMBED)) || {
-	  ((OPTW+OPTZ && !CHAT_ENV)) || {
-	    check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
-	    check_optrangef "$OPTAA"  -2.0 2.0 'Frequency-penalty'
-	    ((OPTB)) && check_optrangef "${OPTB:-$OPTN}"  "$OPTN" 50 'Best_of'
-	    #logprobs: 0-5, top_logprobs: 0-20
+	((OPTW+OPTZ && !CHAT_ENV)) || {
+	  check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
+	  check_optrangef "$OPTAA"  -2.0 2.0 'Frequency-penalty'
+	  ((OPTB)) && check_optrangef "${OPTB:-$OPTN}"  "$OPTN" 50 'Best_of'
+	  #logprobs: 0-5, top_logprobs: 0-20
 
-	    check_optrangef "$OPTP"  0.0 1.0 'Top_p'
-	    ((OPTMAX_NILL)) ||
-	    check_optrangef "$OPTMAX"  1 "$MODMAX" 'Response Max Tokens'
-	  }
-	  check_optrangef "$OPTT"  0.0 $( ((MISTRALAI+ANTHROPICAI)) && echo 1.0 || echo 2.0) 'Temperature'  #whisper 0.0 - 1.0
-	  #change temp or top_p but not both
+	  check_optrangef "$OPTP"  0.0 1.0 'Top_p'
+	  ((OPTMAX_NILL)) ||
+	  check_optrangef "$OPTMAX"  1 "$MODMAX" 'Response Max Tokens'
 	}
-	((OPTI)) && check_optrangef "$OPTN"  1 10 'Number of Results'
+	check_optrangef "$OPTT"  0.0 $( ((MISTRALAI+ANTHROPICAI)) && echo 1.0 || echo 2.0) 'Temperature'  #whisper 0.0 - 1.0
+	#change temp or top_p but not both
 	[[ "$OPTSEED" = *[!0-9]* ]] &&
 	  printf "${RED}Warning: Unexpected %s${NC}${BRED} -- %s  ${NC}${YELLOW}(integer)${NC}\\n" "seed" "$OPTSEED" >&2;
 
@@ -5434,283 +5316,31 @@ function __set_speedf
 	esac
 }
 
-#image generations
-function imggenf
+
+#url encode/decode - percente codes
+_urlencode()
 {
-	typeset size
-	((XAI)) || size="\"size\": \"$OPTS\","
-	BLOCK="{
-\"model\": \"$MOD_IMAGE\",
-\"prompt\": \"${*:?IMG PROMPT ERR}\",
-${size}
-\"n\": ${OPTN:-1},
-\"response_format\": \"$OPTI_FMT\"${BLOCK_USR:+,$NL}$BLOCK_USR
-}"
-	promptf
+    typeset i length="${#1}"
+    for (( i = 0; i < length; i++ )); do
+        typeset c="${1:$i:1}"
+        case $c in
+            [a-zA-Z0-9.~_-]) printf "$c" ;;
+            *) printf '%%%02X' "'$c" ;;
+        esac
+    done
 }
-
-function imggen3f
+urldecode()
 {
-	BLOCK="{
-\"model\": \"$MOD_IMAGE\",
-\"prompt\": \"${*:?IMG PROMPT ERR}\",
-\"size\": \"$OPTS\",
-\"n\": ${OPTN:-1},
-\"quality\": \"${OPTS_QUALITY:-standard}\", ${OPTI_STYLE:+\"style\": \"$OPTI_STYLE\",}
-\"response_format\": \"$OPTI_FMT\"${BLOCK_USR:+,$NL}$BLOCK_USR
-}"
-	promptf
+    typeset url_encoded="${1//+/ }"
+    printf '%b' "${url_encoded//\%/\\x}"
 }
+#https://gist.github.com/cdown/1163649
+#https://unix.stackexchange.com/questions/159253/decoding-url-encoding-percent-encoding
 
-function imggen_gptf
+#encode URL with UTF-8 chars
+urlencode()
 {
-	BLOCK="{
-\"model\": \"$MOD_IMAGE\", \"moderation\": \"low\",
-\"prompt\": \"${*:?IMG PROMPT ERR}\",
-\"size\": \"$OPTS\",
-\"n\": ${OPTN:-1},
-\"quality\": \"${OPTS_QUALITY:-auto}\"${BLOCK_USR:+,$NL}$BLOCK_USR
-}"
-	promptf
-}
-#output_compression: webp *png
-#output_format: png jpeg *webp
-#background: transparent *auto
-
-#image variations
-function prompt_imgvarf
-{
-	curl -\# ${OPTV:+-Ss} ${FAIL} -L "${BASE_URL}${ENDPOINTS[EPN]}" \
-		-H "Authorization: Bearer $OPENAI_API_KEY" \
-		-F image="@$1" \
-		-F n="${OPTN:-1}" \
-		-F size="$OPTS" \
-		"${@:2}" \
-		-o "$FILE"
-}
-
-#image edits+variations
-function imgvarf
-{
-	typeset size prompt mask ret; unset ARGS PNG32
-	[[ -f ${1:?input PNG path required} ]]
-
-	#when file is last pos arg, shift it to the first
-	if ((${#} > 1)) && [[ -f ${@:$#} ]] && [[ ! -f ${@:$# -1} ]]  #img edits
-	then 	set -- "${@:$#}" "${@:1:$# -1}"
-	fi
-
-	if command -v magick >/dev/null 2>&1
-	then 	if ! _is_pngf "$1" || ! _is_squaref "$1" || ! _is_rgbf "$1" ||
-			{ 	((${#} > 1)) && [[ ! -e $2 ]] ;} || [[ -n ${OPT_AT+force} ]]
-		then  #not png or not square, or needs alpha
-			if ((${#} > 1)) && [[ ! -e $2 ]]
-			then  #needs alpha
-				_set_alphaf "$1"
-			else  #no need alpha
-			      #resize and convert (to png32?)
-				if _is_opaquef "$1"
-				then  #is opaque
-					ARGS="" PNG32="" ;((OPTV)) ||
-					printf '%s\n' 'Alpha not needed, opaque image' >&2
-				else  #is transparent
-					ARGS="-alpha set" PNG32="png32:" ;((OPTV)) ||
-					printf '%s\n' 'Alpha not needed, transparent image' >&2
-				fi
-			fi
-			_is_rgbf "$1" || { 	PNG32="png32:" ;printf '%s\n' 'Image colour space is not RGB(A)' >&2 ;}
-			img_convf "$1" $ARGS "${PNG32}${FILEIN}" &&
-				set -- "${FILEIN}" "${@:2}"  #adjusted
-		else 	((OPTV)) ||
-			printf '%s\n' 'No adjustment needed in image file' >&2
-		fi ;unset ARGS PNG32
-
-		if [[ -f $2 ]]  #edits + mask file
-		then 	size=$(print_imgsizef "$1")
-			if ! _is_pngf "$2" || ! _is_rgbf "$2" || {
-				[[ $(print_imgsizef "$2") != "$size" ]] &&
-				{ 	((OPTV)) || printf '%s\n' 'Mask size differs' >&2 ;}
-			} || _is_opaquef "$2" || [[ -n ${OPT_AT+true} ]]
-			then 	mask="${FILEIN%.*}_mask.png" PNG32="png32:" ARGS=""
-				_set_alphaf "$2"
-				img_convf "$2" -scale "$size" $ARGS "${PNG32}${mask}" &&
-					set  -- "$1" "$mask" "${@:3}"  #adjusted
-			else 	((OPTV)) ||
-				printf '%s\n' 'No adjustment needed in mask file' >&2
-			fi
-		fi
-	fi ;unset ARGS PNG32
-
-	_chk_imgsizef "$1" || return 2
-
-	## one prompt  --  generations
-	## one file  --  variations
-	## one file (alpha) and one prompt  --  edits
-	## two files, (and one prompt)  --  edits
-	if [[ -f $1 ]] && ((${#} > 1))  #img edits
-	then 	OPTII=1 EPN=9  #MOD=image-ed
-		if ((${#} > 2)) && [[ -f $2 ]]
-		then 	prompt="${@:3}" ;set -- "${@:1:2}"
-		elif ((${#} > 1)) && [[ ! -e $2 ]]
-		then 	prompt="${@:2}" ;set -- "${@:1:1}"
-		fi
-		[[ -f $2 ]] && set -- "${@:1:1}" -F mask="@$2"
-	elif [[ -f $1 ]]  #img variations
-	then 	OPTII=1 EPN=4  #MOD=image-var
-	fi
-	[[ -n $prompt ]] &&
-		if ((${#prompt} > 1024))
-		then 	set -- "$@" -F prompt="$(tr ';' ',' <<<"$prompt")";
-		else 	set -- "$@" -F prompt="${prompt//;/,}";
-		fi;
-
-	case "$MOD_IMAGE" in
-		gpt-image*)
-			set -- "$@" -F model="$MOD_IMAGE";;
-		dall-e*)
-			set -- "$@" -F response_format="$OPTI_FMT";;
-	esac
-
-	if prompt_imgvarf "$@"
-	then 	prompt_imgprintf;
-	else 	ret=$?
-		jq . "$FILE" >&2 2>/dev/null;
-		return $ret
-	fi
-}
-#https://legacy.imagemagick.org/Usage/resize/
-#https://imagemagick.org/Usage/masking/#alpha
-#https://stackoverflow.com/questions/41137794/
-#https://stackoverflow.com/questions/2581469/
-#https://superuser.com/questions/1491513/
-#
-#set alpha flags for IM
-function _set_alphaf
-{
-	unset ARGS PNG32
-	if _has_alphaf "$1"
-	then  #has alpha
-		if _is_opaquef "$1" || [[ -n ${OPT_AT+force} ]]
-		then  #is opaque
-			ARGS="-alpha set -fuzz ${OPT_AT_PC:-0}% -transparent ${OPT_AT:-black}" PNG32="png32:"
-			((OPTV)) ||
-			printf '%s\n' 'File has alpha but is opaque' >&2
-		else  #is transparent
-			ARGS="-alpha set" PNG32="png32:"
-			((OPTV)) ||
-			printf '%s\n' 'File has alpha and is transparent' >&2
-		fi
-	else  #no alpha, is opaque
-		ARGS="-alpha set -fuzz ${OPT_AT_PC:-0}% -transparent ${OPT_AT:-black}" PNG32="png32:"
-		((OPTV)) ||
-		printf '%s\n' 'File has alpha but is opaque' >&2
-	fi
-}
-#check if file ends with .png
-function _is_pngf
-{
-	case "$MOD_IMAGE" in
-		gpt-image*)
-			case  "$1" in
-				*.[Pp][Nn][Gg]|*.[Ww][Ee][Bb][Pp]|*.[Jj][Pp][Gg])
-					:;;
-				*) 	((OPTV)) || printf '%s\n' 'Not a PNG, WEBP, or JPG image' >&2
-					return 1;;
-			esac;
-		;;
-		*)
-			case  "$1" in
-				*.[Pp][Nn][Gg])
-					:;;
-				*) 	((OPTV)) || printf '%s\n' 'Not a PNG image' >&2
-					return 1;;
-			esac;
-		;;
-	esac
-	return 0
-}
-#convert image
-#usage: img_convf [in_file] [opt..] [out_file]
-function img_convf
-{
-	typeset extra
-	case "$MOD_IMAGE" in gpt-image*) 	extra="";;
-		dall-e*) 	extra="-extent 1:1";;
-	esac
-
-	if ((!OPTV))
-	then 	[[ $ARGS = *-transparent* ]] &&
-		printf "${BWHITE}%-12s --${NC} %s\\n" "Transparent colour" "${OPT_AT:-black}" "Fuzz" "${OPT_AT_PC:-2}%" >&2
-		sysmsgf 'Edit with ImageMagick?' '[Y/n] ' ''
-		case "$(read_charf)" in [AaNnQq]|$'\e') 	return 2;; esac
-	fi
-
-	if magick "$1" -background none -gravity center $extra "${@:2}"
-	then 	if ((!OPTV))
-		then 	set -- "${@##png32:}" ;_openf "${@:${#}}"
-			sysmsgf 'Confirm Edit?' '[Y/n] ' ''
-			case "$(read_charf)" in [AaNnQq]|$'\e') 	return 2;; esac
-		fi
-	else 	false
-	fi
-}
-#check for image alpha channel
-function _has_alphaf
-{
-	typeset alpha
-	alpha=$(magick identify -format '%A' "$1")
-	[[ $alpha = [Tt][Rr][Uu][Ee] ]] || [[ $alpha = [Bb][Ll][Ee][Nn][Dd] ]]
-}
-#check if image is opaque
-function _is_opaquef
-{
-	typeset opaque
-	opaque=$(magick identify -format '%[opaque]' "$1")
-	[[ $opaque = [Tt][Rr][Uu][Ee] ]]
-}
-#https://stackoverflow.com/questions/2581469/detect-alpha-channel-with-imagemagick
-#check if image is square
-function _is_squaref
-{
-	if (( $(magick identify -format '%[fx:(h != w)]' "$1") ))
-	then 	((OPTV)) || printf '%s\n' 'Image is not square' >&2
-		return 2
-	fi
-}
-#print image size
-function print_imgsizef
-{
-	magick identify -format "%wx%h\n" "$@"
-}
-#check file size of image
-function _chk_imgsizef
-{
-	typeset chk_fsize mb
-	case "$MOD_IMAGE" in gpt-image*) 	mb=25;;
-		dall-e*) 	mb=4;;
-	esac
-
-	if chk_fsize=$(wc -c <"$1" 2>/dev/null) ;(( (chk_fsize+500000)/1000000 >= mb))
-	then 	_warmsgf "Warning:" "Max image size is ${mb}MB [file:$((chk_fsize/1000))KB]"
-		(( (chk_fsize+500000)/1000000 < mb+1))
-	fi
-}
-#is image colour space rgb?
-function _is_rgbf
-{
-	[[ " $(magick identify -format "%r" "$@") " = *[Rr][Gg][Bb]* ]]
-}
-
-#embeds
-function embedf
-{
-	BLOCK="{
-$( ((MISTRALAI)) || echo "$OPTT_OPT $OPTP_OPT $OPTN_OPT
-\"max_tokens\": $OPTMAX," )
-\"model\": \"$MOD\", ${BLOCK_USR:+$NL}$BLOCK_USR
-\"input\": \"${*:?INPUT ERR}\"
-}"
-	promptf 2>&1
+	printf '%s' "$*" | jq --slurp --raw-input --raw-output @uri;
 }
 
 function moderationf
@@ -5719,7 +5349,7 @@ function moderationf
 \"model\": \"$MOD\",
 \"input\": \"${*:?INPUT ERR}\"${BLOCK_USR:+,$NL}$BLOCK_USR
 }"
-	_promptf
+	STREAM= _promptf
 }
 
 # Awesome-chatgpt-prompts
@@ -6706,25 +6336,13 @@ function set_googleaif
 		else 	return $?;  #E#
 		fi
 	}
-	function embedf
-	{
-		curl ${FAIL} -L "$GOOGLE_BASE_URL/models/$MOD:embedContent?key=$GOOGLE_API_KEY" \
-			-H 'Content-Type: application/json' -X POST \
-			-d "{ \"model\": \"models/embedding-001\",
-				\"content\": { \"parts\":[{
-				  \"text\": \"${1}\"}]} }";
-	}
 	function __tiktokenf
 	{
 		typeset epn block buff ret;
 		((OPTV==97)) || set -- "$(escapef "$*")";  #IPC
 
-		if [[ $MOD = *embedding* ]]
-		then 	epn="countTextTokens";
-			block="{ \"prompt\": {\"text\": \"${*}\"}}";
-		else 	epn="countTokens";
-			block="{ \"contents\": [{ \"parts\":[{ \"text\": \"${*}\"}]}]}";
-		fi
+		epn="countTokens";
+		block="{ \"contents\": [{ \"parts\":[{ \"text\": \"${*}\"}]}]}";
 		if ((${#block}>32000))  #32KB
 		then 	buff="${FILE%.*}.block.json";
 			printf '%s\n' "$block" >"$buff";
@@ -6846,9 +6464,9 @@ function set_anthropicf
 #https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/_client.py
 
 
-#parse opts  #anchor# #IPC#  #BDIJQX
+#parse opts  #anchor# #IPC#  #BDIJQX@i  <- free
 unset OPTMM OPTMARG OPENAI MAIN_LOOP HIST_LOOP RESPONSES_API; STOPS=();
-optstring="a:A:bcCdeEfFgGhHij:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789@:/,:.:-:"
+optstring="a:A:bcCdeEfFgGhHj:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789:/,:.:-:"
 while getopts "$optstring" opt
 do
 	case "$opt" in -)  #order matters: anthropic anthropic:ant
@@ -6860,10 +6478,10 @@ effort  effort:budget  effort:think  verbosity  verbosity:verb  no-verbosity \
 b:resp  b:responses \
 vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
-@:alpha  M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
+M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
 a:presence  a:pre  A:frequency-penalty  A:frequency  A:freq  best-of \
 best-of:best  c:chat  C:resume  C:resume  C:continue  d:text  e:edit \
-E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist  i:image 'k:no-colo*' \
+E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist  'k:no-colo*' \
 K:top-k  K:topk  l:list-models  L:log  m:model  m:mod  n:results  o:clipboard \
 o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
 r:restart-seq  r:restart  R:start-sequence  R:start-seq  R:start  s:stop \
@@ -6895,18 +6513,6 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 	fix_dotf OPTARG
 
 	case "$opt" in
-		@) 	OPT_AT="$OPTARG" EPN=9  #colour name/spec
-			if [[ $OPTARG = *%* ]]  #fuzz percentage
-			then 	if [[ $OPTARG = *% ]]
-				then 	OPT_AT_PC="${OPTARG##${OPTARG%%??%}}"
-					OPT_AT_PC="${OPT_AT_PC:-${OPTARG##${OPTARG%%?%}}}"
-					OPT_AT_PC="${OPT_AT_PC//[!0-9]}"
-					OPT_AT="${OPT_AT%%"$OPT_AT_PC%"}"
-				else 	OPT_AT_PC="${OPTARG%%%*}"
-					OPT_AT="${OPT_AT##*%}"
-					OPT_AT="${OPT_AT##"$OPT_AT_PC%"}"
-				fi ;OPT_AT_PC="${OPT_AT_PC##0}"
-			fi;;
 		[0-9/-]) 	OPTMM="$OPTMM$opt";;
 		M) 	OPTMM="$OPTARG";;
 		N) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" || OPTNN="$OPTARG";;
@@ -6927,7 +6533,7 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 			REASON_EFFORT=${OPTARG:?--effort/--think requires mode/tokens};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_IMAGE MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTI OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD OPT_AT_PC OPT_AT Q_TYPE A_TYPE RESTART START STOPS OPTS_QUALITY OPTI_STYLE OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE CACHEDIR OPTTMP;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_RESPONSES MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTB OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE CACHEDIR OPTTMP;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_GITHUB MOD_NOVITA MOD_XAI;
 			unset OPENAI_MODEL LOCALAI_MODEL OLLAMA_MODEL GEMINI_MODEL MISTRAL_MODEL GROQ_MODEL ANTHROPIC_MODEL GITHUB_MODEL NOVITA_MODEL XAI_MODEL DEEPSEEK_MODEL;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
@@ -6944,7 +6550,6 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 		P) 	((OPTHH)) && ((++OPTHH)) || OPTHH=2;;
 		verbosity) 	VERBOSITY=${OPTARG:-medium};;
 		no-verbosity) 	VERBOSITY=;;
-		i) 	OPTI=1 EPN=3;;
 		info) 	OPTINFO=1 OPTL=1;;
 		keep-alive)
 			if [[ $OPTARG != @(keep-alive|ka) ]]
@@ -7038,7 +6643,6 @@ done
 shift $((OPTIND -1))
 unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCONTEXT MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET CURLTIMEOUT MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD OPT_SOURCE NC  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
-typeset -l OPTS_QUALITY  #lowercase vars
 
 set -o ${READLINEOPT:-emacs};
 bind 'set enable-bracketed-paste on';  #requires "read -e -d $'\r'" hack
@@ -7091,16 +6695,16 @@ fi
 ((OPTSUFFIX)) && ((OPTC)) && { ((OPTC>1)) || { [[ -n ${RESTART+1} ]] || RESTART=; [[ -n ${START+1} ]] || START= ;}; OPTC=1; };  #-qqc and -qqcc  #weyrd combo#
 ((OPTSUFFIX>1)) && MTURN=1 OPTSUFFIX=1      #multi-turn -q insert mode
 ((OPTCTRD)) || unset OPTCTRD  #(un)set <ctrl-d> prompter flush [bash]
-[[ ${INSTRUCTION:0:512} = *[!$IFS]* ]] || unset INSTRUCTION
 
 #map models
 if [[ -n $OPTMARG ]]
-then 	((OPTI)) && MOD_IMAGE=$OPTMARG  #default models for functions
+then 	#default models for functions
 	((OPTW && !(OPTC+MTURN+OPTCMPL+OPTSUFFIX) )) && MOD_AUDIO=$OPTMARG
 	((OPTZ && !(OPTC+MTURN+OPTCMPL+OPTSUFFIX) )) && MOD_SPEECH=$OPTMARG
 	case "$MOD" in moderation|oderation) 	MOD="omni-moderation-latest";; esac;
 	case "$MOD" in *moderation*)
-		unset OPTC OPTW OPTWW OPTZ OPTI OPTII MTURN OPTRESUME OPTCMPL OPTEMBED;;
+		OPTEMBED=1;
+		unset OPTC OPTW OPTWW OPTZ MTURN OPTRESUME OPTCMPL;;
 	esac;
 else
 	if ((OLLAMA))
@@ -7137,45 +6741,8 @@ else
 		elif ((OPTZ)) && ((!MTURN))  #speech endpoint
 		then 	((GROQAI)) && MOD_SPEECH=$MOD_SPEECH_GROQ
 			MOD=$MOD_SPEECH
-		elif ((OPTI))
-		then 	MOD=$MOD_IMAGE
 		fi
 	fi
-fi
-
-#image endpoints
-if ((OPTI))
-then 	#command -v base64 >/dev/null 2>&1 || OPTI_FMT=url;
-	n=; for arg
-	do 	[[ -f $arg ]] && OPTII=1 n=$((n+1));  #img vars or edits
-	done;
-	#dall-e-3
-	((${#OPT_AT} || n>1)) && OPTII=1 OPTII_EDITS=1;  #img edits
-	case "$3" in vivid|natural) OPTI_STYLE=$3; set -- "${@:1:2}" "${@:4}";;
-		hd|HD|standard) OPTS_QUALITY=$3; set -- "${@:1:2}" "${@:4}";; esac;
-	case "$2" in vivid|natural) OPTI_STYLE=$2; set -- "${@:1:1}" "${@:3}";;
-		hd|HD|standard) OPTS_QUALITY=$2; set -- "${@:1:1}" "${@:3}";; esac;
-	case "$1" in vivid|natural) OPTI_STYLE=$1; shift;;
-		hd|HD|standard) OPTS_QUALITY=$1; shift;; esac;
-	#gpt-image
-	case "$3" in high|medium|low) OPTS_QUALITY=$3; set -- "${@:1:2}" "${@:4}";; esac;
-	case "$2" in high|medium|low) OPTS_QUALITY=$2; set -- "${@:1:1}" "${@:3}";; esac;
-	case "$1" in high|medium|low) OPTS_QUALITY=$1; shift;; esac;
-	[[ -n $OPTS ]] && set_imgsizef "$OPTS";
-	if set_imgsizef "$3"
-	then 	if (($# >3))
-		then 	set -- "${@:1:2}" "${@:4}"
-		else 	set -- "${@:1:2}"
-		fi
-	elif set_imgsizef "$2"
-	then 	if (($# >2))
-		then 	set -- "${@:1:1}" "${@:3}"
-		else 	set -- "${@:1:1}"
-		fi
-	elif set_imgsizef "$1"
-	then 	shift;
-	fi
-	unset STREAM arg n;
 fi
 
 #google integration
@@ -7245,8 +6812,7 @@ then
 	if [[ $MOD = *code* ]]
 	then 	ENDPOINTS[0]="/fim/completions"
 		((OPTSUFFIX)) && ((OPTC)) && OPTC=1;
-	elif [[ $MOD != *embed* ]]
-	then 	OPTSUFFIX= OPTCMPL= OPTC=2;
+	else 	OPTSUFFIX= OPTCMPL= OPTC=2;
 	fi; MISTRALAI=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTB NOVITAAI XAI DEEPSEEK;
 elif unset MISTRALAI;
@@ -7343,7 +6909,7 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 ((OPTMAX<MODMAX)) || ((OPTMAX=(MODMAX/2)+1))
 
 #model options
-((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN)) ||
+((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN+OPTEMBED)) ||
 MOD= MOD_REASON= MOD_THINK= set_optsf  #IPC#
 
 #markdown rendering
@@ -7355,9 +6921,9 @@ fi
 #o1 models in the API will avoid generating responses with markdown formatting
 
 #dump and append text from supported file types, and stdin
-if ((OPTX)) && ((OPTEMBED+OPTI+OPTZ+OPTTIKTOKEN)) && ((!(OPTC+OPTCMPL+OPTSUFFIX) ))
+if ((OPTX)) && ((OPTEMBED+OPTZ+OPTTIKTOKEN)) && ((!(OPTC+OPTCMPL+OPTSUFFIX) ))
 then
-	((OPTEMBED+OPTI+OPTZ)) && ((${#})) &&
+	((OPTEMBED+OPTZ)) && ((${#})) &&
 	if is_txtfilef "${@:${#}}" || is_pdff "${@:${#}}" || is_docf "${@:${#}}"
 	then
 		OPTV=4 cmdf /cat "${@:${#}}";
@@ -7398,7 +6964,7 @@ then 	if ((!OPTHH)) && ((!OPTV))
 	fi
 fi
 
-(( (OPTI+OPTEMBED) || (OPTZ && !MTURN) )) &&
+(( (OPTEMBED) || (OPTZ && !MTURN) )) &&
 for arg  #!# escape input
 do 	((init++)) || set --
 	set -- "$@" "$(escapef "$arg")"
@@ -7590,39 +7156,11 @@ elif ((OPTZ)) && ((!MTURN))  #speech synthesis
 then 	[[ -z ${ZARGS[*]} ]] || set -- "${ZARGS[@]}" "$@";
 	INSTRUCTION_SPEECH="${OPTSSARG:-$INSTRUCTION_SPEECH}";
 	_ttsf "$@"
-elif ((OPTII))     #image variations+edits
-then 	if ((${#}>1))
-	then 	sysmsgf 'Image Edits'
-	else 	sysmsgf 'Image Variations'
-	fi
-	case "$MOD_IMAGE" in
-		gpt-image*)
-			sysmsgf 'Image Size + Quality:' "${OPTS:-err} ${OPTS_QUALITY:-auto}";
-			function _is_squaref { 	: ;};;
-		*dall-e*[3-9])
-			sysmsgf 'Image Size + Quality:' "${OPTS:-err} ${OPTS_QUALITY:-standard}${OPTI_STYLE:+ / Style: $OPTI_STYLE}";;
-		*dall-e*2|*dall-e*|*)
-			sysmsgf 'Image Size:' "${OPTS:-err}";;
-	esac
-	imgvarf "$@"
-elif ((OPTI))      #image generations
-then 	sysmsgf 'Image Generations'
-	sysmsgf 'Image Model:' "$MOD_IMAGE"
-	case "$MOD_IMAGE" in
-		gpt-image*)
-			sysmsgf 'Image Size + Quality:' "${OPTS:-err} ${OPTS_QUALITY:-auto}";
-			imggen_gptf "$@";;
-		*dall-e*[3-9])
-			sysmsgf 'Image Size + Quality:' "${OPTS:-err} ${OPTS_QUALITY:-standard}${OPTI_STYLE:+ / Style: $OPTI_STYLE}";
-			imggen3f "$@";;
-		*dall-e*2|*dall-e*|*)
-			((XAI)) || sysmsgf 'Image Size:' "${OPTS:-err}";
-			imggenf "$@";;
-	esac
-elif ((OPTEMBED))  #embeds/moderation  #[minimally supported]
+elif ((OPTEMBED)) ||  #embeds/moderation  #[minimally supported]
+	[[ "$MOD" = *moderation* ]]
 then 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM;
-	case "$MOD" in *embed*|*moderation*) 	:;;
-		*) 	_warmsgf "Warning:" "Not an embedding/moderation model -- $MOD";;
+	case "$MOD" in *moderation*) 	:;;
+		*) 	_warmsgf "Warning:" "Not a moderation model -- $MOD";;
 	esac;
 	if ((CATPR)) && ((!${#}))
 	then 	_clr_ttystf; echo 'Input:' >&2;
@@ -7635,12 +7173,16 @@ then 	unset Q_TYPE A_TYPE OPTC OPTCMPL STREAM;
 		trim_rf "$REPLY" $'*([\r\b])'
 		set -- "${TRIM:-$*}"; echo >&2;
 	}
-	case "$MOD" in *embed*)
-		embedf "$@";;
-	*) 	moderationf "$@" &&
+	
+	if moderationf "$@"
+	then
 		printf '%-22s: %s\n' flagged $(lastjsonf | jq -r '.results[].flagged') &&
-		printf '%-22s: %.24f (%s)\n' $(lastjsonf | jq -r '.results[].categories|keys_unsorted[]' | while read -r; do 	lastjsonf | jq -r "\"$REPLY \" + (.results[].category_scores.\"$REPLY\"|tostring//empty) + \" \" + (.results[].categories.\"$REPLY\"|tostring//empty)"; done);;
-	esac;
+		printf '%-22s: %.24f (%s)\n' $(lastjsonf | jq -r '.results[].categories|keys_unsorted[]' | while read -r; do 	lastjsonf | jq -r "\"$REPLY \" + (.results[].category_scores.\"$REPLY\"|tostring//empty) + \" \" + (.results[].categories.\"$REPLY\"|tostring//empty)"; done);
+	else
+		#print error json
+		jq -e . -- "$FILE" >&2 || cat -- "$FILE" >&2;
+		false;
+	fi;
 else
 	CHAT_ENV=1;
 	((OPTW)) && unset OPTX; ((OPTW)) && OPTW=1; ((OPTWW)) && OPTWW=1;
@@ -7751,7 +7293,8 @@ else
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
 	if ((MTURN+OPTRESUME+OPTC))
-	then 	((${#INSTRUCTION_CHAT})) ||
+	then
+		((${#INSTRUCTION_CHAT})) || ((${INSTRUCTION+1}0)) ||
 		case "${LC_ALL:-$LANG}" in
 			pt*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_PT;;
 			es*)    INSTRUCTION_CHAT=$INSTRUCTION_CHAT_ES;;
@@ -7768,7 +7311,8 @@ else
 		#((${#WARGS[@]})) || case "${LC_ALL:-$LANG}" in [a-z][a-z][_.]*)
 		#	WARGS=(${LC_ALL:-$LANG}) WARGS=(${WARGS[0]:0:2});; esac;  #auto whisper lang
 
-		((MULTIMODAL>1)) && [[ $INSTRUCTION_CHAT = "$INSTRUCTION_CHAT_EN" ]] &&
+		#extra instruction for voice models tts
+		((OPTZ && MULTIMODAL>1)) && [[ $INSTRUCTION_CHAT = "$INSTRUCTION_CHAT_EN" ]] &&
 		  INSTRUCTION_CHAT="${INSTRUCTION_CHAT} Your voice and personality should be warm and engaging, with a lively and playful tone. If interacting in a non-English language, start by using the standard accent or dialect familiar to the user. Talk quickly.";
 
 		if [[ "${INSTRUCTION:0:512}" = *[!$IFS]* ]]
@@ -7778,10 +7322,13 @@ else
 		fi
 		if ((OPTC))
 		then 	if ((INST_TIME))
-			then 	INSTRUCTION="${INSTRUCTION-$INSTRUCTION_CHAT}";  #IPC#
+			then
+				INSTRUCTION="${INSTRUCTION-$INSTRUCTION_CHAT}";  #IPC#
 				((${#INSTRUCTION})) &&
 				  INSTRUCTION="$(date2f).${NL}${INSTRUCTION}";  #timestamp
-			else 	INSTRUCTION="${INSTRUCTION-$(date2f).${NL}${INSTRUCTION_CHAT}}";
+			else
+				((${#INSTRUCTION}+${#INSTRUCTION_CHAT})) &&
+				  INSTRUCTION="${INSTRUCTION-$(date2f).${NL}${INSTRUCTION_CHAT}}";
 			fi
 		fi
 		INSTRUCTION_OLD="$INSTRUCTION"
@@ -8185,42 +7732,47 @@ else
 				if ((OPTCMPL))
 				then 	trim_lf "$*" "+([:])";
 				else 	trim_lf "$*" "+([:$IFS])";
-				fi; var="$TRIM";
+				fi; var="$TRIM"; echo >&2;
 
 				case "${1:0:32}${2:0:16}" in
-				:::|::::)  #reset system instruction
-					((${#INSTRUCTION}+${#INSTRUCTION_OLD}+${#GINSTRUCTION})) && v=reset || v=unset;
+
+				:::|:::*)  #reset system instruction
+					((${#INSTRUCTION}+${#INSTRUCTION_OLD}+${#GINSTRUCTION}+${#INSTRUCTION_CHAT})) && v=reset || v=unset;
 
 					if ((GOOGLEAI))
 					then
 						((INSTRUCTION_RESET)) && GINSTRUCTION=${GINSTRUCTION:INSTRUCTION_RESET}
 
-						INSTRUCTION_OLD=${GINSTRUCTION:-${INSTRUCTION:-$INSTRUCTION_OLD}}
+						INSTRUCTION_OLD=${GINSTRUCTION:-${INSTRUCTION:-${INSTRUCTION_OLD:-$INSTRUCTION_CHAT}}}
 						GINSTRUCTION=${GINSTRUCTION:-${INSTRUCTION_OLD:-$GINSTRUCTION_PERM}}
 						GINSTRUCTION_PERM=${GINSTRUCTION:-$GINSTRUCTION_PERM}
 					else
 						((INSTRUCTION_RESET)) && INSTRUCTION=${INSTRUCTION:INSTRUCTION_RESET} \
 						&& ((ANTHROPICAI)) && INSTRUCTION_OLD=${INSTRUCTION_OLD:INSTRUCTION_RESET}
 
-						INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD}
+						INSTRUCTION_OLD=${INSTRUCTION:-${INSTRUCTION_OLD:-$INSTRUCTION_CHAT}}
 						INSTRUCTION=${INSTRUCTION:-$INSTRUCTION_OLD}
 
 						((ANTHROPICAI)) && INSTRUCTION=
 					fi; INSTRUCTION_RESET=;
 
+					_sysmsgf "System Prompt: $v";
 					var="${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}";
 					((${#var})) && _sysmsgf 'INSTRUCTION:' "${var:0:8192}" 2>&1 | foldf >&2;
 					((${#var}>8192)) && echo '[..]' >&2;
-					_sysmsgf "System Prompt: $v";
 					;;
+				#::)  #unset system prompts
+				#	#syntax exceptions
+				#	INSTRUCTION= GINSTRUCTION= GINSTRUCTION_PERM=;
+				#	((ANTHROPICAI)) && INSTRUCTION_OLD=;  #R#
+				#	_sysmsgf "System Prompt: unset";
+				#	;;
 				::*)  #prepend to system instruction
 					((${#var})) && ((INSTRUCTION_RESET+=${#var}+2));
-					[[ ${var:0:4} = :::*[!:${IFS}]* ]] && INSTRUCTION= GINSTRUCTION= \
-					&& ((ANTHROPICAI)) && INSTRUCTION_OLD=;
 
 					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=prepend || v=set;
 					((ANTHROPICAI)) && ((${#INSTRUCTION_OLD})) && v=prepend;
-					((${#var})) || v=unset;
+					((${#var})) || v=unset v=print;
 
 					if ((GOOGLEAI))
 					then
@@ -8234,6 +7786,7 @@ else
 						((ANTHROPICAI)) && INSTRUCTION_OLD=${var}${var:+${NL}${NL}}${INSTRUCTION_OLD} INSTRUCTION=
 					fi;
 
+					_sysmsgf "System Prompt: $v";
 					if ((${#INSTRUCTION}+${#GINSTRUCTION}))
 					then
 						var="${INSTRUCTION:-$GINSTRUCTION}";
@@ -8244,7 +7797,6 @@ else
 						_sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:0:8192}" 2>&1 | foldf >&2;
 						((${#INSTRUCTION_OLD}>8192)) && echo '[..]' >&2;
 					fi;
-					_sysmsgf "System Prompt: $v";
 					;;
 				:*|*)  #prepend to user prompt
 					if ((${#var}))
@@ -8255,7 +7807,7 @@ else
 						_sysmsgf 'User Prompt: prepend';
 					else
 						echo '(empty)' >&2;
-					fi;
+					fi; echo >&2;
 					;;
 				esac;
 				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD_DUMP= REPLY_CMD= var= v=;
@@ -8880,4 +8432,4 @@ fi
 ## set -x; shopt -s extdebug; PS4=$'\n''$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078,SC2128  ~/bin/chatgpt.sh
 
-# vim=syntax sync minlines=140
+# vim=syntax sync minlines=256

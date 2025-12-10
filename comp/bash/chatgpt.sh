@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.120
+# v0.123
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -58,8 +58,7 @@ _chatgptsh()
     'mistral-large-latest'  'codestral-latest'  'open-mixtral-8x22b'
     'llama3'  'gemini-1.5-flash-latest'  'gemini-1.5-pro-latest' )
 
-  opts="-@ --alpha
-        -Nill -M --max --max-tokens
+  opts="-Nill -M --max --max-tokens
         -N --modmax --mod-max
         -a --presence-penalty --presence --pre
         -A --frequency-penalty --frequency --freq
@@ -90,7 +89,6 @@ _chatgptsh()
         -g --stream
         -G --no-stream
         --think
-        -i --image
         -X --media
         -q -qq --insert
         --awesome --awesome-zh
@@ -138,9 +136,6 @@ _chatgptsh()
   [[ $prev = "=" ]] && prev=${PREV_PREV:-$prev}; PREV_PREV=$prev;  #--foo=bar hack
 
   case "${prev}" in
-    -@|-[!-]*@|--alpha)
-      ((${#cur})) || COMPREPLY=( '[[percent%]colour]' '"10%white"' )
-      ;;
     -[aApt]|-[!-]*[aApt]|--presence*|--pre|--frequency*|--freq|--top-p|--topp|--temperature|--temp)
       ((${#cur})) || COMPREPLY=( '[float]' )
       ;;

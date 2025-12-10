@@ -1,7 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.120
+# v0.123
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -115,7 +115,6 @@ _chatgpt.sh()
   local options ifs
 
   _arguments -s -S : \
-    {-@,--alpha}'[Mask transparent colour]:alpha -- [[percent%%]colour]' \
     '-Nill[Unset model max response]' \
     {-M,--max,--max-tokens}'[Maximum response tokens]:max response -- [integer[-integer]]' \
     {-N,--modmax,--mod-max}'[Model capacity tokens]:model capacity -- [integer]' \
@@ -145,7 +144,6 @@ _chatgpt.sh()
     {-E,-EE,--exit}'[Exit on first run]' \
     {-g,--stream}'[Stream response on]' \
     {-G,--no-stream}'[Stream response off]' \
-    {-i,--image}'[Image generation, variation or edit]' \
     {-X,--media}'[Media file]:media file:_files' \
     {-q,-qq,--insert}'[Insert text mode (two for multiturn)]' \
     {-S,--instruction}'[Instruction prompt]:instruction:__pr_list3f' \

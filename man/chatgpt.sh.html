@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.122.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.123 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,13 +171,13 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.122.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.123 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2025</p>
 </header>
 <h1 id="name">NAME</h1>
-<div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / DALL-E /
-STT / TTS</div>
+<div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT /
+TTS</div>
 <h1 id="synopsis">SYNOPSIS</h1>
 <div class="line-block">   <strong>chatgpt.sh</strong>
 [<code>-bb</code>|<code>-cc</code>|<code>-dd</code>|<code>-qq</code>]
@@ -201,28 +201,21 @@ STT / TTS</div>
    <strong>chatgpt.sh</strong> <code>-HPP</code>
 [<code>/</code><em>HIST_NAME</em>|<em>.</em>]<br />
    <strong>chatgpt.sh</strong> <code>-HPw</code></div>
-<div class="line-block">   <strong>chatgpt.sh</strong> <code>-i</code>
-[<code>opt</code>..] [<em>S</em>|<em>M</em>|<em>L</em>][<em>hd</em>]
-[<em>PROMPT</em>] #dall-e-3<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
-[<em>PROMPT</em>] #gpt-image<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
-[<em>PNG_FILE</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-i</code> [<code>opt</code>..]
-[<em>X</em>|<em>L</em>|<em>P</em>][<em>high</em>|<em>medium</em>|<em>low</em>]
-[<em>PNG_FILE</em>] [<em>MASK_FILE</em>] [<em>PROMPT</em>]</div>
+<!--
+|    **chatgpt.sh** `-i` \[`opt`..] \[_S_|_M_|_L_]\[_hd_] \[_PROMPT_]  #dall-e-3
+|    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PROMPT_]  #gpt-image
+|    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PNG_FILE_]
+|    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
+-->
 <h1 id="description">DESCRIPTION</h1>
-<p>This script acts as a wrapper for ChatGPT, DALL-E, STT (Whisper), and
-TTS endpoints from OpenAI. Various service providers such as LocalAI,
+<p>This script acts as a wrapper for ChatGPT, STT (Whisper), and TTS
+endpoints from OpenAI. Various service providers such as LocalAI,
 Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
 xAI, and DeepSeek APIs are supported.</p>
 <p>By default, the script runs in single-turn of chat completion mode,
 processing INPUT directly when no options are set.</p>
 <p>Handles single-turn and multi-turn modes, pure text and native chat
-completions, image generation and editing, speech-to-text, and
-text-to-speech models.</p>
+completions, speech-to-text, and text-to-speech models.</p>
 <p>Positional arguments are read as a single PROMPT. Some functions such
 as Whisper (STT) and TTS may handle optional positional parameters
 before the text prompt itself.</p>
@@ -279,20 +272,24 @@ cache.</p>
 <dd>
 <p>Unset response streaming.</p>
 </dd>
-<dt><strong>-i</strong>, <strong>--image</strong> [<em>PROMPT</em>]</dt>
-<dd>
-<p>Generate images given a prompt. Set <em>option -v</em> to not open
-response.</p>
-</dd>
-<dt><strong>-i</strong> [<em>PNG</em>]</dt>
-<dd>
-<p>Create variations of a given image.</p>
-</dd>
-<dt><strong>-i</strong> [<em>PNG</em>] [<em>MASK</em>]
-[<em>PROMPT</em>]</dt>
-<dd>
-<p>Edit image with mask and prompt (required).</p>
-</dd>
+</dl>
+<!--
+**-i**, **\--image**   \[_PROMPT_]
+
+: Generate images given a prompt.
+  Set _option -v_ to not open response.
+
+
+**-i**   \[_PNG_]
+
+: Create variations of a given image.
+
+
+**-i**   \[_PNG_] \[_MASK_] \[_PROMPT_]
+
+: Edit image with mask and prompt (required).
+-->
+<dl>
 <dt><strong>-q</strong>, <strong>-qq</strong>,
 <strong>--insert</strong></dt>
 <dd>
@@ -383,13 +380,14 @@ first user input.</p>
 </dd>
 </dl>
 <h2 id="model-settings">Model Settings</h2>
+<!--
+**-\@**, **\--alpha**   \[\[_VAL%_]_COLOUR_]
+
+:      Transparent colour of image mask. Def=_black_.
+
+       Fuzz intensity can be set with \[_VAL%_]. Def=_0%_.
+-->
 <dl>
-<dt><strong>-@</strong>, <strong>--alpha</strong>
-[[<em>VAL%</em>]<em>COLOUR</em>]</dt>
-<dd>
-<p>Transparent colour of image mask. Def=<em>black</em>.</p>
-<p>Fuzz intensity can be set with [<em>VAL%</em>]. Def=<em>0%</em>.</p>
-</dd>
 <dt><strong>-Nill</strong></dt>
 <dd>
 <p>Unset model max response tokens (chat cmpls only).</p>
@@ -866,36 +864,39 @@ or added with chat command “<code>/audio</code>
 <em>path/to/file.mp3</em>”.</p>
 <p>To activate the audio synthesis output mode of an audio model, make
 sure to set command line <code>option -z</code>!</p>
-<h1 id="image-generations-and-edits-dall-e">IMAGE GENERATIONS AND EDITS
-(Dall-E)</h1>
-<p><code>Option -i</code> <strong>generates images</strong> according to
-text PROMPT. If the first positional argument is an <em>IMAGE</em> file,
-then <strong>generate variations</strong> of it. If the first positional
-argument is an <em>IMAGE</em> file and the second a <em>MASK</em> file
-(with alpha channel and transparency), and a text PROMPT (required),
-then <strong>edit the</strong> <em>IMAGE</em> according to <em>MASK</em>
-and PROMPT. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
-transparency.</p>
-<p>The <strong>size of output images</strong> may be set as the first
-positional parameter in the command line:</p>
-<pre><code>gpt-image: &quot;_1024x1024_&quot; (_L_, _Large_, _Square_), &quot;_1536x1024_&quot; (_X_, _Landscape_), or &quot;_1024x1536_&quot; (_P_, _Portrait_).
+<!--
+# IMAGE GENERATIONS AND EDITS (Dall-E)
 
-dall-e-3: &quot;_1024x1024_&quot; (_L_, _Large_, _Square_), &quot;_1792x1024_&quot; (_X_, _Landscape_), or &quot;_1024x1792_&quot; (_P_, _Portrait_).
+`Option -i` **generates images** according to text PROMPT. If the first
+positional argument is an _IMAGE_ file, then **generate variations** of
+it. If the first positional argument is an _IMAGE_ file and the second
+a _MASK_ file (with alpha channel and transparency), and a text PROMPT
+(required), then **edit the** _IMAGE_ according to _MASK_ and PROMPT.
+If _MASK_ is not provided, _IMAGE_ must have transparency.
 
-dall-e-2: &quot;_256x256_&quot; (_Small_), &quot;_512x512_&quot; (_M_, _Medium_), or &quot;_1024x1024_&quot; (_L_, _Large_).</code></pre>
-<p>A parameter “<em>high</em>”, “<em>medium</em>”, “<em>low</em>”, or
-“<em>auto</em>” may also be appended to the size parameter to set image
-quality with gpt-image, such as “<em>Xhigh</em>” or
-“<em>1563x1024high</em>”. Defaults=<em>1024x1024auto</em>.</p>
-<p>The parameter “<em>hd</em>” or “<em>standard</em>” may also be set
-for image quality with dall-e-3.</p>
-<p>For dall-e-3, optionally set the generation style as either
-“<em>natural</em>” or “<em>vivid</em>” as one of the first positional
-parameters at command line invocation.</p>
-<p>Note that the user needs to verify his organisation to use
-<em>gpt-image</em> models!</p>
-<p>See <strong>IMAGES section</strong> below for more information on
-<strong>inpaint</strong> and <strong>outpaint</strong>.</p>
+The **size of output images** may be set as the first positional parameter
+in the command line:
+
+    gpt-image: "_1024x1024_" (_L_, _Large_, _Square_), "_1536x1024_" (_X_, _Landscape_), or "_1024x1536_" (_P_, _Portrait_).
+
+    dall-e-3: "_1024x1024_" (_L_, _Large_, _Square_), "_1792x1024_" (_X_, _Landscape_), or "_1024x1792_" (_P_, _Portrait_).
+
+    dall-e-2: "_256x256_" (_Small_), "_512x512_" (_M_, _Medium_), or "_1024x1024_" (_L_, _Large_).
+
+
+A parameter "_high_", "_medium_", "_low_", or "_auto_" may also be appended
+to the size parameter to set image quality with gpt-image, such as
+"_Xhigh_" or "_1563x1024high_". Defaults=_1024x1024auto_.
+
+The parameter "_hd_" or "_standard_" may also be set for image quality with dall-e-3.
+
+For dall-e-3, optionally set the generation style as either "_natural_"
+or "_vivid_" as one of the first  positional parameters at command line invocation.
+
+Note that the user needs to verify his organisation to use _gpt-image_ models!
+
+See **IMAGES section** below for more information on **inpaint** and **outpaint**.
+-->
 <h1 id="text-chat-completions">TEXT / CHAT COMPLETIONS</h1>
 <h2 id="text-completion">1. Text Completion</h2>
 <p>Given a prompt, the model will return one or more predicted
@@ -1018,27 +1019,27 @@ as as suffix command, see examples below.</li>
 <tr>
 <td style="text-align: left;"><code>-S</code></td>
 <td style="text-align: left;">[<em>PROMPT</em>]</td>
-<td>Overwrite the system prompt.</td>
+<td>Set (overwrite) or unset the system instruction.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>-S:</code></td>
 <td style="text-align: left;"><code>:</code> [<em>PROMPT</em>]</td>
-<td>Prepend to current user prompt.</td>
+<td>Prepend to current <em>user</em> prompt.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>-S::</code></td>
 <td style="text-align: left;"><code>::</code> [<em>PROMPT</em>]</td>
-<td>Prepend to system prompt.</td>
+<td>Prepend to system instruction.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>-S:::</code></td>
 <td style="text-align: left;"><code>:::</code></td>
-<td>Reset (inject) system prompt into request.</td>
+<td>Restore the previously set system instruction.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>-S.</code></td>
 <td style="text-align: left;"><code>-.</code> [<em>NAME</em>]</td>
-<td>Load and edit custom prompt.</td>
+<td>Load and edit custom instruction prompt.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>-S/</code></td>
@@ -1663,56 +1664,69 @@ with <em>davinci</em> and <em>gpt-3.5+</em> models.</p>
 <p>Please note and make sure to backup your important custom prompts!
 They are located at “<code>~/.cache/chatgptsh/</code>” with the
 extension “<em>.pr</em>”.</p>
-<h1 id="images-dall-e">IMAGES / DALL-E</h1>
-<h2 id="image-generations">1. Image Generations</h2>
-<p>An image can be created given a text prompt. A text PROMPT of the
-desired image(s) is required. The maximum length is 1000 characters.</p>
-<p>This script also supports xAI image generation model with invocation
-“<code>chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"</code>”.</p>
-<h2 id="image-variations">2. Image Variations</h2>
-<p>Variations of a given <em>IMAGE</em> can be generated. The
-<em>IMAGE</em> to use as the basis for the variations must be a valid
-PNG file, less than 4MB and square.</p>
-<h2 id="image-edits">3. Image Edits</h2>
-<p>To edit an <em>IMAGE</em>, a <em>MASK</em> file may be optionally
-provided. If <em>MASK</em> is not provided, <em>IMAGE</em> must have
-transparency, which will be used as the mask. A text prompt is
-required.</p>
-<h3 id="imagemagick">3.1 ImageMagick</h3>
-<p>If <strong>ImageMagick</strong> is available, input <em>IMAGE</em>
-and <em>MASK</em> will be checked and processed to fit dimensions and
-other requirements.</p>
-<h3 id="transparent-colour-and-fuzz">3.2 Transparent Colour and
-Fuzz</h3>
-<p>A transparent colour must be set with
-“<code>-@</code>[<em>COLOUR</em>]” to create the mask.
-Defaults=<em>black</em>.</p>
-<p>By defaults, the <em>COLOUR</em> must be exact. Use the `fuzz option’
-to match colours that are close to the target colour. This can be set
-with “<code>-@</code>[<em>VALUE%</em>]” as a percentage of the maximum
-possible intensity, for example “<code>-@</code><em>10%black</em>”.</p>
-<p>See also:</p>
-<ul>
-<li><a href="https://imagemagick.org/script/color.php"
-class="uri">https://imagemagick.org/script/color.php</a></li>
-<li><a
-href="https://imagemagick.org/script/command-line-options.php#fuzz"
-class="uri">https://imagemagick.org/script/command-line-options.php#fuzz</a></li>
-</ul>
-<h3 id="mask-file-alpha-channel">3.3 Mask File / Alpha Channel</h3>
-<p>An alpha channel is generated with <strong>ImageMagick</strong> from
-any image with the set transparent colour (defaults to <em>black</em>).
-In this way, it is easy to make a mask with any black and white image as
-a template.</p>
-<h3 id="in-paint-and-out-paint">3.4 In-Paint and Out-Paint</h3>
-<p>In-painting is achieved setting an image with a MASK and a
-prompt.</p>
-<p>Out-painting can also be achieved manually with the aid of this
-script. Paint a portion of the outer area of an image with
-<em>alpha</em>, or a defined <em>transparent</em> <em>colour</em> which
-will be used as the mask, and set the same <em>colour</em> in the script
-with <code>option -@</code>. Choose the best result amongst many results
-to continue the out-painting process step-wise.</p>
+<!--
+# IMAGES / DALL-E
+
+## 1. Image Generations
+
+An image can be created given a text prompt. A text PROMPT
+of the desired image(s) is required. The maximum length is 1000
+characters.
+
+This script also supports xAI image generation model
+with invocation "`chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"`".
+
+
+## 2. Image Variations
+
+Variations of a given _IMAGE_ can be generated. The _IMAGE_ to use as
+the basis for the variations must be a valid PNG file, less than
+4MB and square.
+
+
+## 3. Image Edits
+
+To edit an _IMAGE_, a _MASK_ file may be optionally provided. If _MASK_
+is not provided, _IMAGE_ must have transparency, which will be used
+as the mask. A text prompt is required.
+
+### 3.1 ImageMagick
+
+If **ImageMagick** is available, input _IMAGE_ and _MASK_ will be checked
+and processed to fit dimensions and other requirements.
+
+### 3.2 Transparent Colour and Fuzz
+
+A transparent colour must be set with "`-@`\[_COLOUR_]" to create the
+mask. Defaults=_black_.
+
+By defaults, the _COLOUR_ must be exact. Use the \`fuzz option' to match
+colours that are close to the target colour. This can be set with
+"`-@`\[_VALUE%_]" as a percentage of the maximum possible intensity,
+for example "`-@`_10%black_".
+
+See also:
+
+ - <https://imagemagick.org/script/color.php>
+ - <https://imagemagick.org/script/command-line-options.php#fuzz>
+
+### 3.3 Mask File / Alpha Channel
+
+An alpha channel is generated with **ImageMagick** from any image
+with the set transparent colour (defaults to _black_). In this way,
+it is easy to make a mask with any black and white image as a
+template.
+
+### 3.4 In-Paint and Out-Paint
+
+In-painting is achieved setting an image with a MASK and a prompt.
+
+Out-painting can also be achieved manually with the aid of this
+script. Paint a portion of the outer area of an image with _alpha_,
+or a defined _transparent_ _colour_ which will be used as the mask, and set the
+same _colour_ in the script with `option -@`. Choose the best result amongst
+many results to continue the out-painting process step-wise.
+-->
 <h1 id="stt-voice-in-whisper">STT / VOICE-IN / WHISPER</h1>
 <h2 id="transcriptions">Transcriptions</h2>
 <p>Transcribes audio file or voice record into the set language. Set a
@@ -1809,18 +1823,17 @@ command-line <code>option -c</code> instead.</p>
 <!-- and Whisper language. --></p>
 </dd>
 </dl>
-<p><strong>MOD_CHAT</strong>, <strong>MOD_IMAGE</strong>,
-<strong>MOD_AUDIO</strong>,</p>
-<p><strong>MOD_SPEECH</strong>, <strong>MOD_LOCALAI</strong>,
-<strong>MOD_OLLAMA</strong>,</p>
-<p><strong>MOD_MISTRAL</strong>, <strong>MOD_AUDIO_MISTRAL</strong>,
-<strong>MOD_GOOGLE</strong>,</p>
-<p><strong>MOD_GROQ</strong>, <strong>MOD_AUDIO_GROQ</strong>,
-<strong>MOD_SPEECH_GROQ</strong>,</p>
-<p><strong>MOD_ANTHROPIC</strong>, <strong>MOD_GITHUB</strong>,
-<strong>MOD_NOVITA</strong>,</p>
+<p><strong>MOD_CHAT</strong>, <strong>MOD_AUDIO</strong>,
+<strong>MOD_SPEECH</strong>,</p>
+<p><strong>MOD_LOCALAI</strong>, <strong>MOD_OLLAMA</strong>,
+<strong>MOD_MISTRAL</strong>,</p>
+<p><strong>MOD_AUDIO_MISTRAL</strong>, <strong>MOD_GOOGLE</strong>,
+<strong>MOD_GROQ</strong>,</p>
+<p><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_SPEECH_GROQ</strong>,
+<strong>MOD_ANTHROPIC</strong>,</p>
 <dl>
-<dt><strong>MOD_XAI</strong>, <strong>MOD_DEEPSEEK</strong></dt>
+<dt><strong>MOD_GITHUB</strong>, <strong>MOD_NOVITA</strong>,
+<strong>MOD_XAI</strong>, <strong>MOD_DEEPSEEK</strong></dt>
 <dd>
 <p>Set default model for each endpoint / provider.</p>
 </dd>
@@ -1850,7 +1863,7 @@ Novita, xAI, and DeepSeek APIs.</p>
 </dd>
 <dt><strong>OUTDIR</strong></dt>
 <dd>
-<p>Output directory for received image and audio.</p>
+<p>Output directory for received audio and files.</p>
 </dd>
 </dl>
 <p><strong>RESTART</strong></p>
@@ -2018,16 +2031,14 @@ class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
 <h1 id="optional-packages">OPTIONAL PACKAGES</h1>
 <p>Optional packages for specific features.</p>
 <ul>
-<li><code>Base64</code> - Image endpoint, vision models</li>
+<li><code>Base64</code> - Image input in vision models</li>
 <li><code>Python</code> - Modules tiktoken, markdown, bs4</li>
-<li><code>ImageMagick</code>/<code>fbida</code> - Image edits and
-variations</li>
 <li><code>SoX</code>/<code>Arecord</code>/<code>FFmpeg</code> - Record
 input (STT, Whisper)</li>
 <li><code>mpv</code>/<code>SoX</code>/<code>Vlc</code>/<code>FFplay</code>/<code>afplay</code>
 - Play TTS output</li>
 <li><code>xdg-open</code>/<code>open</code>/<code>xsel</code>/<code>xclip</code>/<code>pbcopy</code>
-- Open images, set clipboard</li>
+- Open files, set clipboard</li>
 <li><code>W3M</code>/<code>Lynx</code>/<code>ELinks</code>/<code>Links</code>
 - Dump URL text</li>
 <li><code>bat</code>/<code>Pygmentize</code>/<code>Glow</code>/<code>mdcat</code>/<code>mdless</code>
@@ -2040,6 +2051,7 @@ input (STT, Whisper)</li>
 - File picker</li>
 <li><code>yt-dlp</code> - Dump YouTube captions</li>
 </ul>
+<!-- - `ImageMagick`/`fbida` - Image edits and variations -->
 <h1 id="caveats">CAVEATS</h1>
 <p>The script objective is to implement some of the features of OpenAI
 API version 1. As text is the only universal interface, voice and image
@@ -2050,6 +2062,8 @@ options will be covered.</p>
 “MCP Servers”, nor “video generation / editing” capabilities.</p>
 <p>Support for “Responses API” is limited and experimental at this
 point.</p>
+<p>Image generations, variations, and editing endpoints was dropped in
+December-2005, script version v124.</p>
 <h1 id="bugs">BUGS</h1>
 <p>Reasoning (thinking) and answers from certain API services may not
 have a distinct separation of output due to JSON processing
