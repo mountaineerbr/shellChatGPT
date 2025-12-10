@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.123  dec/2025  by mountaineerbr  GPL+3
+# v0.123.1  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -7292,7 +7292,7 @@ else
 
 	#model instruction
 	INSTRUCTION_OLD="$INSTRUCTION"
-	if ((MTURN+OPTRESUME+OPTC))
+	if ((MTURN+OPTRESUME+OPTC+STURN))
 	then
 		((${#INSTRUCTION_CHAT})) || ((${INSTRUCTION+1}0)) ||
 		case "${LC_ALL:-$LANG}" in
@@ -7320,7 +7320,7 @@ else
 			trim_lf "$INSTRUCTION" "$SPC:$SPC"
 			INSTRUCTION="$TRIM"
 		fi
-		if ((OPTC))
+		if ((OPTC+STURN))
 		then 	if ((INST_TIME))
 			then
 				INSTRUCTION="${INSTRUCTION-$INSTRUCTION_CHAT}";  #IPC#

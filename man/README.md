@@ -1415,7 +1415,7 @@ nor “video generation / editing” capabilities.
 Support for “Responses API” is limited and experimental at this point.
 
 Image generations, variations, and editing endpoints was dropped in
-December-2005, script version v124.
+December-2005, script version v123.
 
 # BUGS
 
