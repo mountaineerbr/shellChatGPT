@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.123.4  dec/2025  by mountaineerbr  GPL+3
+# v0.123.5  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -238,8 +238,7 @@ Synopsis
 
 
 Description
-	Wraps ChatGPT, STT, and TTS endpoints from various
-	providers.
+	Wraps ChatGPT, STT, and TTS endpoints from various providers.
 
 	Defaults to single-turn native chat completions. Handles multi-turn
 	chat, text completions, speech-to-text, and text-to-speech models.
