@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.123.3  dec/2025  by mountaineerbr  GPL+3
+# v0.123.4  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -7029,9 +7029,9 @@ then  #temporary cache, --tmp
 	set_tmpf || exit;
 	_cmdmsgf 'Temp Dir:' "${CACHEDIR/"$HOME"/\~}";
 else
-	#((${#TERMUX_VERSION})) && 
-	  [[ ! -d $OUTDIR ]] && _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
-	[[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR" ||
+	[[ -d $OUTDIR ]] || mkdir -pv -- "$OUTDIR" ||
+	    _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
+	[[ -d "$CACHEDIR" ]] || mkdir -p -- "$CACHEDIR" ||
 	{ _warmsgf 'Err:' "Cannot create cache directory -- \`${CACHEDIR/"$HOME"/"~"}'"; exit 1; }
 fi
 
