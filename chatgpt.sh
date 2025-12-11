@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.123.2  dec/2025  by mountaineerbr  GPL+3
+# v0.123.3  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -2445,7 +2445,7 @@ function cmdf
 			else 	break_sessionf;
 			fi;
 			[[ -n ${INSTRUCTION_OLD:-$INSTRUCTION} ]] && {
-			  ((OPTV==100)) || _sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:-$INSTRUCTION}" 2>&1 | foldf >&2
+			  ((OPTV==100)) || _sysmsgf 'INSTRUCTION:' "\`${INSTRUCTION_OLD:-$INSTRUCTION}'" 2>&1 | foldf >&2
 			  ((GOOGLEAI)) && GINSTRUCTION=${INSTRUCTION_OLD:-${INSTRUCTION:-$GINSTRUCTION}} GINSTRUCTION_PERM=${GINSTRUCTION:-$GINSTRUCTION_PERM} INSTRUCTION= ||
 			  INSTRUCTION=${INSTRUCTION_OLD:-$INSTRUCTION};
 			}; xskip=1;
@@ -7343,7 +7343,7 @@ else
 	then 	unset INSTRUCTION
 	fi
 	if [[ $INSTRUCTION = *[!:$IFS]* ]]
-	then 	_sysmsgf 'INSTRUCTION:' "$INSTRUCTION" 2>&1 | foldf >&2;
+	then 	_sysmsgf 'INSTRUCTION:' "\`$INSTRUCTION'" 2>&1 | foldf >&2;
 		((GOOGLEAI)) && GINSTRUCTION=$INSTRUCTION INSTRUCTION=;
 	fi
 
@@ -7758,8 +7758,7 @@ else
 
 					_sysmsgf "System Prompt: $v";
 					var="${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}";
-					((${#var})) && _sysmsgf 'INSTRUCTION:' "${var:0:8192}" 2>&1 | foldf >&2;
-					((${#var}>8192)) && echo '[..]' >&2;
+					((${#var})) && _sysmsgf 'INSTRUCTION:' "\`${var:0:8192}$( ((${#var}>8192)) && echo '[..]' )'" 2>&1 | foldf >&2;
 					;;
 				#::)  #unset system prompts
 				#	#syntax exceptions
@@ -7790,12 +7789,10 @@ else
 					if ((${#INSTRUCTION}+${#GINSTRUCTION}))
 					then
 						var="${INSTRUCTION:-$GINSTRUCTION}";
-						_sysmsgf 'INSTRUCTION:' "${var:0:8192}" 2>&1 | foldf >&2;
-						((${#var}>8192)) && echo '[..]' >&2;
+						_sysmsgf 'INSTRUCTION:' "\`${var:0:8192}$( ((${#var}>8192)) && echo '[..]' )'" 2>&1 | foldf >&2;
 					elif ((ANTHROPICAI && ${#INSTRUCTION_OLD}))
 					then
-						_sysmsgf 'INSTRUCTION:' "${INSTRUCTION_OLD:0:8192}" 2>&1 | foldf >&2;
-						((${#INSTRUCTION_OLD}>8192)) && echo '[..]' >&2;
+						_sysmsgf 'INSTRUCTION:' "\`${INSTRUCTION_OLD:0:8192}$( ((${#INSTRUCTION_OLD}>8192)) && echo '[..]' )'" 2>&1 | foldf >&2;
 					fi;
 					;;
 				:*|*)  #prepend to user prompt
