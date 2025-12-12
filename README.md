@@ -164,29 +164,23 @@ If no suffix is provided, it works as plain text completions.
 
 ## PROJECT STATUS: MAINTENANCE MODE
 
-This project is now in maintenance mode. It is considered feature-complete for my personal use cases.
+This project is now in maintenance mode. It is considered feature‑complete for my routine and personal use-cases.
 
-This means:
-*   **Bug Fixes:** I will address critical bugs that affect core functionality.
-*   **No New Features:** Active development of new features has been discontinued. This includes, but is not limited to:
-    *   New reasoning modes like `--effort` or `--think`.
-    *   Logic for auto-detecting model capacity (`--modmax`) and workarounds for new models.
-    *   Updating default models to the latest versions for each service provider.
-    *   New TTS voices or audio formats.
-    *   Fixing or improving documentation.
+- **Bug Fixes:** Only critical bugs affecting core functionality will be addressed.
+- **No New Features:** Development of new features has ceased. This includes (but is not limited to) _reasoning modes_ (`--think`, `--effort`), _auto‑detection_ of model capabilities (`--vision`, `--audio`).
+- **Defaults:** No updates to default model names for each service provider, new TTS voice name completions or checks.
+- **Documentation:** We plan to leave strong documentation of the software.
 
 
-Users may find the script works with newer models, but will be responsible for their own configuration of parameters.
+The script may continue to work with newer models, but users are responsible for configuring parameters appropriately.
 
-For example, some models may not accept **Instructions** or **frequency** / **presence** **penalties**,
-which can be unset or set to null at the script command line incantation, as well as configuring the script
-through environment variables, or the configuration file.
+Script and model settings can be adjusted or set to null using command‑line options, environment variables, or the configuration file.
 
-Other parameters may need setting to specific values when working with newer models,
-such as the parameter **temperature**, which some models only accept the value of _1.0_,
-as well as **model capacity** and **response maximum tokens** integer values.
+For example, some models may not accept instructions (command line `-S ""` to unset), _frequency_ / _presence_ _penalties_ (`-A ""`, `-a ""`), or other options.
 
-See the [Roadmap section](#roadmap) and [Limitations section](#%EF%B8%8F-limitations)
+Other parameters, such as _temperature_ (`-t 1.0`), token limits (_maximum response tokens:_ `-M 8000`; _model capacity:_ `-N 1000000`), etc., may need to be set to values supported by the new model.
+
+Refer to the [Roadmap section](#roadmap) and [Limitations section](#%EF%B8%8F-limitations)
 for the original objectives of our project.
 
 For more actively developed alternatives, see the projects listed in the
@@ -1623,7 +1617,8 @@ on bug fixes and stability.
 - We may only partially support the _image generation_, _image variations_ and _image editing_
 specific OpenAI endpoints.
 
-- Update: Dropped support for _image generation_, _variations_ and _editing_ endpoints (_Dec-2025_).
+- Update: Dropped support for _image generation_, _variations_ and _editing_ endpoints
+([v122.5 Dec-2025](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/22f7c89b1dc012e16c796e45ac5c0a3aef9e7e3e)).
 
 - Text completions endpoint is planned to be deprecated when there are
 no models compatible with this endpoint anymore.

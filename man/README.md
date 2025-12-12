@@ -1415,7 +1415,12 @@ nor “video generation / editing” capabilities.
 Support for “Responses API” is limited and experimental at this point.
 
 Image generations, variations, and editing endpoints was dropped in
-December-2005, script version v123.
+December-2005 with script version v123.
+
+<!--
+  chatgpt.sh v122.5  Dec-2025
+    https://gitlab.com/fenixdragao/shellchatgpt/-/tree/22f7c89b1dc012e16c796e45ac5c0a3aef9e7e3e
+     -->
 
 # BUGS
 
