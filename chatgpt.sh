@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.123.5  dec/2025  by mountaineerbr  GPL+3
+# v0.124  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -45,7 +45,7 @@ MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-playai-tts}"
 # Groq TTS voice
 OPTZ_VOICE_GROQ=Aaliyah-PlayAI  #Adelaide-PlayAI, Angelo-PlayAI, Arista-PlayAI, etc
 # Anthropic model
-MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-3-7-sonnet-latest}}"
+MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-sonnet-4-5}}"
 # GitHub Azure model
 MOD_GITHUB="${MOD_GITHUB:-${GITHUB_MODEL:-gpt-4.1}}"  #GH_MODEL
 # Novita AI model
@@ -110,7 +110,7 @@ OPTFOLD=1
 #  Chat mode of text cmpls sets "\nQ: " and "\nA:"
 # Reasoning effort
 #REASON_EFFORT=
-#OpenAI: effort -- none, minimal, low, medium, high
+#OpenAI: effort -- none, minimal, low, medium, high, xhigh
 #Anthropic: reasoning budget -- tokens
 #Gemini: thinking budget -- tokens
 # Model verbosity  (OpenAI)
@@ -482,8 +482,8 @@ Command List
       -w      !rec     [ARGS]   Toggle voice-in chat mode (STT, Whisper).
       -z      !tts     [ARGS]   Toggle TTS chat mode (speech out).
      !blk     !block   [ARGS]   Set and add options to JSON request.
-    !effort   -        [MODE]   Mode: high, medium, low, minimal, none (OpenAI).
-    !think    -         [NUM]   Budget: tokens (Anthropic/Google).
+    !effort   -        [MODE]   Mode: xhigh, high, medium, low, minimal, none.
+    !think    -         [NUM]   Budget: token value (Anthropic/Google).
      !ka      !keep-alive [NUM] Set duration of model load in memory
     !verb     !verbosity [MODE] Model verbosity (high, medium, or low).
    !vision    !audio            Toggle model multimodality type.
@@ -643,7 +643,7 @@ Options
 		Frequency penalty (cmpls/chat, -2.0 - 2.0).
 	--best-of   [NUM]
 		Best of results, must be greater than opt -n (cmpls). Def=1.
-	--effort  [ high | medium | low | minimal | none ]    (OpenAI)
+	--effort  [ xhigh | high | medium | low | minimal | none ]    (OpenAI)
 	--think   [ token_num ]              (Anthropic/Google)
 		Amount of effort in reasoning models.
 	--format  [ mp3 | wav | flac | opus | aac | pcm16 | mulaw | ogg ]
@@ -962,7 +962,8 @@ function model_capf
 		grok-2-1212|grok-2*|gemma-3-27b*|gemma-*)
 			MODMAX=131072;;
 		claude*-[3-9]*|claude*-2.1*|o[1-9]*|codex-mini*|codex*)
-			MODMAX=200000;;  #204800
+			MODMAX=200000;  #204800
+			((ANTHROPICAI)) && [[ $model = claude-sonnet-4* ]] && MODMAX=1000000;;  #T#
 		claude*-2.0*|claude-instant*)
 			MODMAX=100000;;
 		*openchat-7b|*mythomax-l2-13b|*airoboros-l2-70b|*lzlv_70b|*nous-hermes-llama2-13b|\
@@ -1361,8 +1362,9 @@ function prompt_prettyf
 	"((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then (if (${STREAM:-0}>0) then .[] else . end) else . end) end |
 	  ( ((.delta.content)//(.delta.reasoning)//(.delta.reasoning_content)//(.delta.text)//(.delta.thinking)//(.delta.audio.transcript)
 	    //.text//.response//.completion//.reasoning//( (.content // []) | .[]? | (.text // .thinking) )
-	    //(.message.reasoning)//(.message.content${ANTHROPICAI:+skip})
+	    //(if (.message.content${ANTHROPICAI:+skip}?) then (if (.message.reasoning_content?) then ((.message.reasoning_content,\"</think>\\n\"),.message.content) else .message.content end) else null end)
 	    //(if (.message.reasoning_content?) then (.message.reasoning_content,\"</think>\\n\") else null end)
+	    //(.message.reasoning)
 	    //(if (.reasoning|.summary?) then (((.reasoning.summary | if type == \"array\" then [(.[]?|.text)] | join(\"\\n\\n\") else . end)) + \"\\n</summary>\\n\\n\") else null end)
 	    //(.candidates[]?|.content | if ((${MOD_THINK:+1}0>0) and (.parts?|.[1]?|.text?)) then (.parts[0].text?,\"\\n\\nANSWER:\\n\",.parts[1].text?) else (.parts[]?|.text?) end)
 	    //(.message.audio.transcript)
@@ -1402,7 +1404,14 @@ function prompt_pf
 		#missing: thinking and audio transcriptions (responses api)
 	else
 		set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then (if (${STREAM:-0}>0) then .[] else . end) else . end) end |
-		(.delta.content)//(.delta.reasoning)//(.delta.reasoning_content)//(.delta.text)//(.delta.audio.transcript)//.text//.response//.completion//.reasoning//( (.content // []) | .[]? | (.text//.thinking))//.message.reasoning//(.message.content${ANTHROPICAI:+skip})//(.delta.thinking)//(.message.reasoning_content)//(.candidates[]?|.content.parts[]?|.text?)//(.message.audio.transcript)//(.data?))//empty" "$@";
+		(.delta.content)//(.delta.reasoning)//(.delta.reasoning_content)
+		//(.delta.text)//(.delta.thinking)//(.delta.audio.transcript)
+		//.text//.response//.completion//.reasoning
+		//( (.content // []) | .[]? | (.text//.thinking))
+		//(if (.message.content${ANTHROPICAI:+skip}?) then (if (.message.reasoning_content?) then ((.message.reasoning_content,\"</think>\\n\"),.message.content) else .message.content end) else null end)
+		//(.message.reasoning_content)//(.message.reasoning)
+		//(.candidates[]?|.content.parts[]?|.text?)
+		//(.message.audio.transcript)//(.data?))//empty" "$@";
 	fi
 
 	jq "${opt[@]}" "$@" && _p_suffixf || ! _warmsgf 'Err';
@@ -1490,6 +1499,11 @@ function prompt_audiof
 
 function list_modelsf
 {
+	if ((XAI)) && ((${#1}))
+	then 	typeset ENDPOINTS;
+		ENDPOINTS[11]="/language-models";
+	fi;
+
 	curl -\# ${FAIL} -L "${BASE_URL}${ENDPOINTS[11]}${1:+/}${1}" \
 		-H "Authorization: Bearer $OPENAI_API_KEY" -o "$FILE" &&
 
@@ -1621,7 +1635,7 @@ function set_histf
 			start_tiktokenf
 			INDEX=32 trim_lf "$stringc" ":"
 			((EPN==6||EPN==12)) || TRIM="\\n$TRIM"
-			token=$(__tiktokenf "$TRIM" )
+			token=$(OPTV=97 __tiktokenf "$TRIM" )
 			((token+=TKN_ADJ))
 		fi # every message follows <|start|>{role/name}\n{content}<|end|>\n (gpt-3.5-turbo-0301)
 		#trail nls are rm in (text) chat modes, so actual request prompt token count may be *less*
@@ -1831,17 +1845,19 @@ function __tiktokenf
 # divide_by  ^:less tokens  v:more tokens
 function _tiktokenf
 {
-	typeset str tkn var by wc
-	var="$1" by="$2"
+	typeset str tkn wc
 
 	# 1 TOKEN ~= 4 CHARS IN ENGLISH
-	#str="${1// }" str="${str//[$'\t\n']/xxxx}" str="${str//\\[ntrvf]/xxxx}" tkn=$((${#str}/${by:-4}))
+	#str="${1// }" str="${str//[$'\t\n']/xxxx}"
+	#str="${str//\\[ntrvf]/xxxx}" tkn=$((${#str}/4))
 
 	# 1 TOKEN ~= ¾ WORDS
-	var=$(sed 's/\\[ntrvf]/ x /g' <<<"$var")  #escaped special chars
-	var=$(sed 's/[^[:alnum:] '$'\t''\n]/ x/g' <<<"$var")
-	wc=$(wc -w <<<"$var")
-	tkn=$(( (wc * 4) / ${by:-3}))
+	wc=$(
+	  sed 's/\\[ntrvf]/ x /g' <<<"$1" |
+	  sed 's/[^[:alnum:] '$'\t''\n]/ x/g' |
+	  wc -w
+	)
+	tkn=$(( (wc * 4) / 3 ))
 
 	printf '%d\n' "${tkn:-0}" ;((tkn>0))
 }
@@ -2178,7 +2194,7 @@ CONF_DIALOG="\Zr# RUNTIME OPTIONS #\ZR
     This field's meaning \ZbCHANGES\ZB based on the API provider:
     - For \ZbAnthropic\ZB:  Set an \Zbinteger\ZB as reasoning budget.
     - For \ZbGoogle\ZB:  Set a positive \Zbinteger\ZB; \Zb0\ZB to turn off; \Zb-1\ZB for dynamic thinking.
-    - For \ZbOpenAI\ZB:  Set effort as \Zbnone\ZB, \Zbminimal\ZB, \Zblow\ZB, \Zbmedium\ZB, or \Zbhigh\ZB.
+    - For \ZbOpenAI\ZB:  Set effort as \Zbnone\ZB, \Zbminimal\ZB, \Zblow\ZB, \Zbmedium\ZB, \Zbhigh\ZB, or \Zbxhigh\ZB.
 
   * \ZbMultimodal\ZB:
     This option accepts three values:
@@ -2349,7 +2365,7 @@ function cmdf
 			((++OPTMAX_NILL)) ;((OPTMAX_NILL%=2));
 			((OPTMAX_NILL)) || unset OPTMAX_NILL;
 			((!OPTMAX_NILL && OPTMAX<1)) && OPTMAX=${OPTMAX_DEF:-4096}  #M#
-			cmdmsgf 'Response' "$( ((OPTMAX_NILL)) && echo "inf" || echo "$OPTMAX") tkns"
+			cmdmsgf 'Response' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") tkns"
 			;;
 		-.[0-9]*|-[0-9]*.*|.*[0-9]*|[0-9]*.*|[/!].*[0-9]*|[/!][0-9]*.*|--.*[0-9]*|--[0-9]*.*)
 			set -- "${*##*([$IFS/!-])}";
@@ -2368,7 +2384,7 @@ function cmdf
 				;;
 			esac;
 			((OPTMAX<MODMAX)) || ((OPTMAX=(MODMAX/2)+1));
-			cmdmsgf 'Response / Capacity' "$( ((OPTMAX_NILL)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
+			cmdmsgf 'Response / Capacity' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
 			;;
 		-a*|presence*|pre*)
 			[[ $1 = *-[0-1] ]] && OPTA= && set --;
@@ -2605,7 +2621,7 @@ function cmdf
 			fi
 			send_tiktokenf '/END_TIKTOKEN/'
 			cmdmsgf 'Model Name' "$MOD$( ((MULTIMODAL)) && printf ' / %s' 'multimodal')"
-			cmdmsgf 'Response / Capacity:' "$( ((OPTMAX_NILL)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
+			cmdmsgf 'Response / Capacity:' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
 			;;
 		markdown*|md*)
 			((OPTMD)) || (OPTMD=1 cmdf //"${args[@]}");
@@ -3064,7 +3080,7 @@ function cmdf
 			api-path      "${BASE_URL}${ENDPOINTS[EPN]}" \
 			model-name    "${MOD:-?}${modmodal}${REASON_EFFORT:+ / $REASON_EFFORT}${VERBOSITY:+ / $VERBOSITY}" \
 			model-cap     "${MODMAX:-?}" \
-			response-max  "$( ((OPTMAX_NILL)) && echo "inf" || echo "${OPTMAX:-?}")" \
+			response-max  "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "${OPTMAX:-?}")" \
 			${REASON_EFFORT:+reason-effort    "$REASON_EFFORT"} \
 			context-prev  "${MAX_PREV:-${TKN_PREV:-?}}  ($( ((HIST_LOOP/2>MAIN_LOOP)) && echo $((HIST_LOOP/2)) || echo ${MAIN_LOOP:-0} ) turns)" \
 			token-rate    "${TKN_RATE[2]:-?} tkns/sec  (${TKN_RATE[0]:-?} tkns, ${TKN_RATE[1]:-?} secs)" \
@@ -4568,7 +4584,7 @@ function set_optsf
 		[[ "${REASON_EFFORT}" = *[a-zA-Z]* ]] && REASON_EFFORT=16000;
 		((MOD_THINK)) || {
 		    ((!${REASON_EFFORT:+1}0)) || {
-			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && ((!OPTMAX_NILL)) && {
+			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
 				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
 				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
 			}
@@ -4623,11 +4639,11 @@ function set_optsf
 			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 		}
 		case "$MOD" in
-			*-high|*-medium|*-low|*-minimal|*-none) 	REASON_EFFORT=${MOD##*-} MOD=${MOD%-*};;
+			*-xhigh|*-high|*-medium|*-low|*-minimal|*-none) 	REASON_EFFORT=${MOD##*-} MOD=${MOD%-*};;
 		esac;
 		case "$REASON_EFFORT" in
-			high|medium|low|minimal|none|'') 	:;;
-			?*) 	_warmsgf 'Warning:' "reason_effort must be high, medium, low, minimal, or none -- $REASON_EFFORT";;
+			xhigh|high|medium|low|minimal|none|'') 	:;;
+			?*) 	_warmsgf 'Warning:' "reason_effort must be xhigh, high, medium, low, minimal, or none -- $REASON_EFFORT";;
 		esac;
 		;;
 		grok-[34]*mini*|grok-[4-9]*|grok-4-0709)
@@ -4665,7 +4681,7 @@ function set_optsf
 		fi;
 	else 	if [[ $REASON_EFFORT != *[a-z]* ]]
 		then 	_warmsgf "Err:" "reasoning effort -- $REASON_EFFORT";
-			_warmsgf 'Note:' "reasoning effort must be [ none | minimal | low | medium | high ]!";
+			_warmsgf 'Note:' "reasoning effort must be [ none | minimal | low | medium | high | xhigh ]!";
 			REASON_EFFORT=;
 		fi;
 	fi;
@@ -6353,14 +6369,14 @@ function set_googleaif
 			-H 'Content-Type: application/json' -X POST \
 			-d "$block" | jq -er '.totalTokens//.tokenCount//empty';  #debug: --fail-with-body
 		ret=$?; printf '%s\b' ' ' >&2;
-		((!ret)) || _tiktokenf "$*";
+		((!ret)) || _tiktokenf "$*";  #S#
 	}
 	function tiktokenf
 	{
 		if [[ -t 0 ]]
 		then 	((!${#1})) || __tiktokenf "$*";
 		else 	__tiktokenf "$(cat)";
-		fi
+		fi  #S#
 	}
 	function response_tknf
 	{
@@ -6412,7 +6428,7 @@ function set_googleaif
 #anthropic api
 function set_anthropicf
 {
-	: ${ANTHROPIC_API_KEY:?Required}
+	: "${ANTHROPIC_API_KEY:?Required}"
 	((${#OPENAI_API_KEY})) || OPENAI_API_KEY=$PLACEHOLDER;
 	((${#ANTHROPIC_BASE_URL})) || ANTHROPIC_BASE_URL=${OPENAI_BASE_URL:-$ANTHROPIC_BASE_URL_DEF};
 	ENDPOINTS[0]="/complete" ENDPOINTS[6]="/messages" OPTA= OPTAA= ;
@@ -6423,8 +6439,16 @@ function set_anthropicf
 
 	function __promptf
 	{
-		[[ $MOD =  claude-3-5-sonnet-20240620 ]] &&  #8192 output tokens is in beta
-		  set -- "$@" --header "anthropic-beta: max-tokens-3-5-sonnet-2024-07-15";
+		typeset var
+
+		# 8192 output tokens
+		[[ $MOD =  *claude-3-5-sonnet* ]] && var=",max-tokens-3-5-sonnet-2024-07-15";
+		[[ $MOD =  *claude-3-7-sonnet* ]] && var=",output-128k-2025-02-19";
+		# 1M token context window for Claude Sonnet 4 and Sonnet 4.5
+		[[ $MOD =  *claude-sonnet-4* ]] && var=",context-1m-2025-08-07";  #T#
+
+		((${#var})) && set -- "$@" --header "anthropic-beta: ${var:1}";
+
 
 		if curl "$@" ${FAIL} -L "${ANTHROPIC_BASE_URL}${ENDPOINTS[EPN]}" \
 			--header "x-api-key: $ANTHROPIC_API_KEY" \
@@ -6435,32 +6459,160 @@ function set_anthropicf
 		else 	return $?;  #E#
 		fi
 	}
+	function __tiktokenf
+	{
+		typeset block buff ret;
+		((OPTV==97)) || set -- "$(escapef "$*")";  #IPC
+
+		block="{ \"messages\": [ { \"content\": \"${*}\", \"role\": \"user\" } ], \"model\": \"${MOD:-err}\" }";
+
+		if ((${#block}>32000))  #32KB
+		then 	buff="${FILE%.*}.block.json";
+			printf '%s\n' "$block" >"$buff";
+			block="@${buff}";
+		fi
+		printf '%s\b' '•' >&2;
+		((!${#1})) ||
+		curl -fsS --max-time 10 -L "${ANTHROPIC_BASE_URL}/messages/count_tokens" \
+		    -H "X-Api-Key: $ANTHROPIC_API_KEY" \
+		    -H "anthropic-version: 2023-06-01" \
+		    -H 'Content-Type: application/json' \
+		    -d "$block" | jq -er '.input_tokens//empty';
+		ret=$?; printf '%s\b' ' ' >&2;
+		((!ret)) || _tiktokenf "$*";  #S#
+		#-H "anthropic-beta: token-counting-2024-11-01" \
+	}
+	function tiktokenf
+	{
+		if [[ -t 0 ]]
+		then 	((!${#1})) || __tiktokenf "$*";
+		else 	__tiktokenf "$(cat)";
+		fi  #S#
+	}
 	function response_tknf
 	{
-		jq -r '(.usage.output_tokens)//"0",
-			(.usage.input_tokens)//(.message.usage.input_tokens)//"0", "0"' "$@";
+		if ((STREAM))
+		then
+			jq -s -r 'map(select(.type == "message_delta")) | last |
+			(.usage.input_tokens)//(.message.usage.input_tokens)//"0",
+			(.usage.output_tokens)//"0",
+			"0"' "$@";
+
+			#jq -n -r '[inputs | select(.type == "message_delta")] | last |
+			#(.usage.input_tokens)//(.message.usage.input_tokens)//"0",
+			#(.usage.output_tokens)//"0",
+			#"0"' "$@";
+		else
+			jq -r '(.usage.input_tokens)//(.message.usage.input_tokens)//"0",
+			(.usage.output_tokens)//"0", "0"' "$@";
+		fi
 	}
 	function _list_modelsf
 	{
-		printf '%s\n' claude-2.0 claude-2.1 claude-3-5-haiku-latest \
-		claude-3-5-sonnet-latest claude-3-7-sonnet-latest claude-3-haiku-20240307 \
-		claude-3-opus-latest claude-3-sonnet-20240229 claude-4-opus-20250514 \
-		claude-4-sonnet-20250514 claude-instant-1.2 claude-opus-4-0 claude-sonnet-4-0
+		set -- "https://raw.githubusercontent.com/anthropics/anthropic-sdk-python/main/src/anthropic/types";
+
+		{ curl -\# ${FAIL} -L "${1}/model.py" ||
+		  curl -\# ${FAIL} -L "${1}/model_param.py";
+		} | grep -oe '"[a-z0-9:.-]*"' | tr -d '"' |
+		  sort | uniq | tee -- "$FILEMODEL";
 	}
 	function list_modelsf
 	{
-		set -- "https://raw.githubusercontent.com/anthropics/anthropic-sdk-python/main/src/anthropic/types";
-		{
-		  { curl -\# ${FAIL} -L "${1}/model.py" ||
-		    curl -\# ${FAIL} -L "${1}/model_param.py" ;} |
-		      grep -oe '"[a-z0-9:.-]*"' | tr -d '"';
-		  _list_modelsf;
-		} | sort | uniq;
+		if ((OPTL>1))
+		then
+			_list_modelsf;
+		elif ((${#1}))
+		then
+			curl -\# "${ANTHROPIC_BASE_URL}/models/${1}" \
+			-H "X-Api-Key: $ANTHROPIC_API_KEY" \
+			-H "anthropic-version: 2023-06-01" \
+			| jq . \
+			|| _list_modelsf;
+		else
+			curl -\# "${ANTHROPIC_BASE_URL}/models" \
+			-H "X-Api-Key: $ANTHROPIC_API_KEY" \
+			-H "anthropic-version: 2023-06-01" \
+			| jq -r '.data[].id' | tee -- "$FILEMODEL" \
+			|| _list_modelsf;
+		fi || ! _warmsgf 'Err';
 	}
 }
-#there is no model listing endpoint
 #rely on the `usage` property in the response for exact token counts
 #https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/_client.py
+
+#xai's grok integration
+function set_xaif
+{
+	: "${XAI_API_KEY:?Required}"
+	OPENAI_API_KEY=${XAI_API_KEY:?Required};
+	BASE_URL=${XAI_BASE_URL:-${OPENAI_BASE_URL:-$XAI_BASE_URL_DEF}};
+
+	function __tiktokenf
+	{
+		typeset block buff ret;
+		((OPTV==97)) || set -- "$(escapef "$*")";  #IPC
+
+		block="{ \"text\": \"${*}\", \"model\": \"${MOD:-err}\" }";
+
+		if ((${#block}>32000))  #32KB
+		then 	buff="${FILE%.*}.block.json";
+			printf '%s\n' "$block" >"$buff";
+			block="@${buff}";
+		fi
+		printf '%s\b' '↻' >&2;
+		((!${#1})) ||
+		curl -fsS --max-time 10 -L "${BASE_URL}/tokenize-text" \
+		    -H "X-Api-Key: $OPENAI_API_KEY" \
+		    -H 'Content-Type: application/json' \
+		    -d "$block" | jq -er '.token_ids | length';
+		ret=$?; printf '%s\b' ' ' >&2;
+		((!ret)) || _tiktokenf "$*";  #S#
+	}
+	function tiktokenf
+	{
+		if [[ -t 0 ]]
+		then 	((!${#1})) || __tiktokenf "$*";
+		else 	__tiktokenf "$(cat)";
+		fi  #S#
+	}
+}
+
+#github models integration
+function set_githubaif
+{
+	: "${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}"
+	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}  #GITHUB_PAT
+	BASE_URL=${GITHUB_BASE_URL:-${OPENAI_BASE_URL:-$GITHUB_BASE_URL_DEF}};
+
+	function list_modelsf
+	{
+		if ((OPTL>1)) && [[ $* = *[!$IFS]* ]]
+		then
+			curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
+			jq -r  ".[] | select(.name == \"$*\")";
+		elif ((OPTL>1))
+		then
+			curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
+			jq -r '.[].name' | tee -- "$FILEMODEL";
+		elif [[ $* = *[!$IFS]* ]]
+		then
+			curl -L -\# -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+			-H "X-GitHub-Api-Version: 2022-11-28" https://models.github.ai/catalog/models |
+			jq -r "if [.[] | select(.id == \"$*\")] | length > 0
+				then .[] | select(.id == \"$*\")
+				else .[] | select(.id | contains(\"$*\"))
+				end";
+		else
+			sysmsgf 'Note:' 'Specify model name without provider';
+			curl -L -\# -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+			-H "X-GitHub-Api-Version: 2022-11-28" https://models.github.ai/catalog/models |
+			jq -r '.[].id' | tee -- "$FILEMODEL";
+		fi
+		#https://docs.github.com/en/rest/models/catalog?apiVersion=2022-11-28#list-all-models
+		#https://github.com/marketplace/info
+	};
+}
+#-H "X-GitHub-Api-Version: 2022-11-28"
 
 
 #parse opts  #anchor# #IPC#  #BDIJQX@i  <- free
@@ -6744,20 +6896,21 @@ else
 	fi
 fi
 
+
 #google integration
-if ((GOOGLEAI)) ||
-	[[ "${GOOGLE_BASE_URL:-$OPENAI_BASE_URL}" = *googleapis.com* ]]
+if ((GOOGLEAI))
 then 	set_googleaif;
+	GOOGLEAI=1;
 	unset OPTTIK OLLAMA MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else 	unset GOOGLEAI;
 fi
 
 #groq integration
-if ((GROQAI)) ||
-	[[ "${GROQ_BASE_URL:-$OPENAI_BASE_URL}" = *api.groq.com* ]]
+if ((GROQAI))
 then
 	BASE_URL=${GROQ_BASE_URL:-${OPENAI_BASE_URL:-$GROQ_BASE_URL_DEF}};
 	OPENAI_API_KEY=${GROQ_API_KEY:?Required}
+	GROQAI=1;
 	((OPTC==1 || OPTCMPL)) && OPTC=2;
 	ENDPOINTS[0]=${ENDPOINTS[6]};
 	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
@@ -6765,19 +6918,17 @@ else 	unset GROQAI;
 fi  #https://console.groq.com/docs/api-reference
 
 #grok integration
-if ((XAI)) ||
-	[[ "${XAI_BASE_URL:-$OPENAI_BASE_URL}" = *api.x.ai* ]]
-then
-	BASE_URL=${XAI_BASE_URL:-${OPENAI_BASE_URL:-$XAI_BASE_URL_DEF}};
-	OPENAI_API_KEY=${XAI_API_KEY:?Required};
+if ((XAI))
+then 	set_xaif;
+	XAI=1;
 	unset OLLAMA GOOGLEAI MISTRALAI ANTHROPICAI GITHUBAI NOVITAAI GROQAI DEEPSEEK;
 else 	unset XAI;
 fi  #https://docs.x.ai/api
 
 #anthropic integration
-if ((ANTHROPICAI)) ||
-	[[ "${ANTHROPIC_BASE_URL:-$OPENAI_BASE_URL}" = *api.anthropic.com* ]]
+if ((ANTHROPICAI))
 then 	set_anthropicf;
+	ANTHROPICAI=1;
 	unset OLLAMA GOOGLEAI MISTRALAI GROQAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else 	unset ANTHROPICAI;
 fi
@@ -6786,6 +6937,7 @@ fi
 if ((OLLAMA)) ||
 	[[ "${OPENAI_BASE_URL}" = *localhost:11434* ]]
 then 	set_ollamaf;
+	OLLAMA=1;
 	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK;
 else  	unset OLLAMA;
 fi
@@ -6798,12 +6950,13 @@ then
 	[[ ${OPENAI_BASE_URL} = *[!$IFS]* ]] || OPENAI_BASE_URL=;
 	((${#OPENAI_BASE_URL})) || OPENAI_BASE_URL=$LOCALAI_BASE_URL_DEF;
 	set_localaif;
+	LOCALAI=1 OPENAI=1;
+	unset GOOGLEAI MISTRALAI GROQAI ANTHROPICAI GITHUBAI NOVITAAI XAI DEEPSEEK OLLAMA;
 else 	unset OPENAI_URL_PATH;
 fi
 
 #mistral ai api
-if ((MISTRALAI)) ||
-	[[ "${MISTRAL_BASE_URL:-$OPENAI_BASE_URL}" = *api.mistral.ai* ]]
+if ((MISTRALAI))
 then
 	OPENAI_API_KEY=${MISTRAL_API_KEY:?Required};
 	BASE_URL=${MISTRAL_BASE_URL:-${OPENAI_BASE_URL:-$MISTRAL_BASE_URL_DEF}};
@@ -6812,58 +6965,27 @@ then
 	then 	ENDPOINTS[0]="/fim/completions"
 		((OPTSUFFIX)) && ((OPTC)) && OPTC=1;
 	else 	OPTSUFFIX= OPTCMPL= OPTC=2;
-	fi; MISTRALAI=1;
+	fi;
+	MISTRALAI=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI GITHUBAI OPTB NOVITAAI XAI DEEPSEEK;
 elif unset MISTRALAI;
 #github azure api
-	((GITHUBAI)) ||
-	[[ "${GITHUB_BASE_URL:-$OPENAI_BASE_URL}" = *ai.azure.com* ]]
+	((GITHUBAI))
 then
-	OPENAI_API_KEY=${GITHUB_API_KEY:-${GITHUB_TOKEN:?Required}}  #GITHUB_PAT
-	BASE_URL=${GITHUB_BASE_URL:-${OPENAI_BASE_URL:-$GITHUB_BASE_URL_DEF}};
-
-	function list_modelsf
-	{
-		if ((OPTL>1)) && [[ $* = *[!$IFS]* ]]
-		then
-			curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
-			jq -r  ".[] | select(.name == \"$*\")";
-		elif ((OPTL>1))
-		then
-			curl -L -\# "${BASE_URL}/models" -H "Authorization: Bearer $GITHUB_TOKEN" |
-			jq -r '.[].name' | tee -- "$FILEMODEL";
-		elif [[ $* = *[!$IFS]* ]]
-		then
-			curl -L -\# -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
-			-H "X-GitHub-Api-Version: 2022-11-28" https://models.github.ai/catalog/models |
-			jq -r "if [.[] | select(.id == \"$*\")] | length > 0
-				then .[] | select(.id == \"$*\")
-				else .[] | select(.id | contains(\"$*\"))
-				end";
-		else
-			sysmsgf 'Note:' 'Specify model name without provider';
-			curl -L -\# -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
-			-H "X-GitHub-Api-Version: 2022-11-28" https://models.github.ai/catalog/models |
-			jq -r '.[].id' | tee -- "$FILEMODEL";
-		fi
-		#https://docs.github.com/en/rest/models/catalog?apiVersion=2022-11-28#list-all-models
-		#https://github.com/marketplace/info
-	};
+	set_githubaif;
 	GITHUBAI=1 OPTC=2;  #chat completions only
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI DEEPSEEK;
-	#-H "X-GitHub-Api-Version: 2022-11-28"
 elif unset GITHUBAI;
 #deepseek
-	((DEEPSEEK)) ||
-	[[ "${DEEPSEEK_BASE_URL:-$OPENAI_BASE_URL}" = *deepseek.com* ]]
+	((DEEPSEEK))
 then
 	OPENAI_API_KEY=${DEEPSEEK_API_KEY:?Required};
-	BASE_URL=${DEEPSEEK_BASE_URL:-$DEEPSEEK_BASE_URL_DEF};
+	BASE_URL=${DEEPSEEK_BASE_URL:-${OPENAI_BASE_URL:-$DEEPSEEK_BASE_URL_DEF}};
 
 	function list_modelsf
 	{
 		curl -L -\# "https://api.deepseek.com/models" -H "Authorization: Bearer $DEEPSEEK_API_KEY" |
-		jq -r '.data[].id' | tee -- "$FILEMODEL";
+		jq -r '.data[].id' | tee -- "$FILEMODEL" || ! _warmsgf 'Err';
 	}
 	DEEPSEEK=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI NOVITAAI XAI;
@@ -6871,8 +6993,7 @@ then
 
 elif unset DEEPSEEK;
 #novita ai
-	((NOVITAAI)) ||
-	[[ "${NOVITA_BASE_URL:-$OPENAI_BASE_URL}" = *api.novita.ai* ]]
+	((NOVITAAI))
 then
 	OPENAI_API_KEY=${NOVITA_API_KEY:?Required};
 	BASE_URL=${NOVITA_BASE_URL:-${OPENAI_BASE_URL:-$NOVITA_BASE_URL_DEF}};
@@ -6882,7 +7003,7 @@ else
 	unset NOVITAAI;
 fi
 
-((ANTHROPICAI+GROQAI+GOOGLEAI+LOCALAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK)) || OPENAI=1;
+((ANTHROPICAI+GROQAI+GOOGLEAI+OLLAMA+MISTRALAI+GITHUBAI+NOVITAAI+XAI+DEEPSEEK)) || OPENAI=1;
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"
 
@@ -6957,7 +7078,7 @@ fi; REPLY= RET=;
 if ((!(OPTI+OPTL+OPTW+OPTZ+OPTZZ+OPTTIKTOKEN+OPTFF) || (OPTC+OPTCMPL+OPTSUFFIX && OPTW+OPTZ) )) &&
 	[[ "$MOD" != *moderation* ]]
 then 	if ((!OPTHH)) && ((!OPTV))
-	then 	sysmsgf "Response / Capacity:" "$( ((OPTMAX_NILL)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
+	then 	sysmsgf "Response / Capacity:" "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
 	elif ((OPTHH>1))
 	then 	sysmsgf 'Language Model:' "$MOD"
 	fi
@@ -7391,9 +7512,11 @@ else
 	
 	((OPTRESUME)) && BREAK_SET= && fix_breakf "$FILECHAT";
 
-	if ((${#})) && ((!(OPTE+OPTX) )) && [[ ! -e $1 && ! -e ${@:${#}} ]]
-	then 	token_prevf "${INSTRUCTION}${INSTRUCTION:+ }${*}"
-		sysmsgf "Inst+Prompt:" "~$TKN_PREV tokens"
+	#preview of token count and print user feedback
+	if ((${#1}+${#2})) && ((!(OPTE+OPTX) )) && [[ ! -e $1 && ! -e ${@:${#}} ]]
+	then
+		token_prevf "${INSTRUCTION:-${GINSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}}${INSTRUCTION:+ }${*:-$REPLY}";
+		sysmsgf "Prompt:" "~${TKN_PREV} tokens";
 	fi
 	((ANTHROPICAI)) && ((EPN==6||EPN==12)) && INSTRUCTION=;  #mind anthropic
 
@@ -7897,14 +8020,15 @@ else
 
 		((MTURN+OPTRESUME)) &&
 		if ((EPN==6||EPN==12));
-		then 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${*}";  #mind anthropic
-		else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*}";
+		then 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${*:-$REPLY}";  #mind anthropic
+		else 	set_histf "${INSTRUCTION:-$GINSTRUCTION}${Q_TYPE}${*:-$REPLY}";
 		fi
 		((TRAP_EDIT)) && continue;
 
-		((MAIN_LOOP||TOTAL_OLD)) || {
+		((MAIN_LOOP||TOTAL_OLD)) || ((!(MTURN+OPTRESUME) )) || {
 			TOTAL_OLD=$(__tiktokenf "${INSTRUCTION:-${GINSTRUCTION:-${ANTHROPICAI:+$INSTRUCTION_OLD}}}")
-			((TRAP_EDIT)) && continue ;}
+			((TRAP_EDIT)) && continue;
+		}
 
 		if ((OPTC)) || [[ -n "${RESTART}" ]]
 		then 	rest="${RESTART-$Q_TYPE}"
@@ -8110,8 +8234,6 @@ $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 \"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
 }"
-	#1M token context window for claude-sonnet-4-20250514:
-	#include betas=["context-1m-2025-08-07"] in API requests.
 		fi
 
 		((OPTC||(STURN && (EPN==6||EPN==12) ) )) && echo >&2;
@@ -8183,9 +8305,8 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				) )  #[0]input_tkn  [1]output_tkn  [2]reason_tkn  [3]time  [4]cmpl_time  [5]tkn_rate
 				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$(
-					((GOOGLEAI)) && OPTV=97;
 				  	((EPN==6||EPN==12)) && A_TYPE=;
-				  	__tiktokenf "${A_TYPE}${ans}" );
+				  	OPTV=97 __tiktokenf "${A_TYPE}${ans}" );
 				  ((tkn_ans)) && ((tkn_ans+=TKN_ADJ)); ((MAX_PREV+=tkn_ans));
 				  TOTAL_OLD=; tkn=();
 				};
@@ -8258,9 +8379,8 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			if ((OPTB>1))  #best_of disables streaming response
 			then 	start_tiktokenf
 				tkn[1]=$(
-					((GOOGLEAI)) && OPTV=97;
 					((EPN==6||EPN==12)) && A_TYPE=;
-					__tiktokenf "${A_TYPE}${ans}");
+					OPTV=97 __tiktokenf "${A_TYPE}${ans}");
 			fi
 
 			ans="${A_TYPE##$SPC1}${ans}"
@@ -8275,10 +8395,10 @@ $OPTB_OPT $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			fi
 
 			((MAX_PREV>0)) || MAX_PREV=;  #make sure to adjust arithmetics
-			((TOTAL_OLD>0)) || TOTAL_OLD=${MAX_PREV:-${tkn[0]}};
+			((TOTAL_OLD>0)) || TOTAL_OLD=${MAX_PREV:-${tkn[0]:-$TKN_PREV}};
 			((OPTAWE)) ||  #awesome prompts are set as instruction
 			push_tohistf "$(escapef "${Q_TYPE##$SPC1}${REC_OUT}")" "$(( (tkn[0]-TOTAL_OLD)>0 ? (tkn[0]-TOTAL_OLD) : 0 ))" "${tkn[3]}"
-			push_tohistf "$ans" "$((${tkn[1]:-${tkn_ans:-0}}-tkn[2]))" "${tkn[3]}" || OPTC= OPTRESUME= OPTCMPL= MTURN=;
+			push_tohistf "$ans" "$(( (${tkn[1]:-${tkn_ans:-0}}-tkn[2])>0 ?(${tkn[1]:-${tkn_ans:-0}}-tkn[2]) : (${tkn[1]:-${tkn_ans:-0}}) ))" "${tkn[3]}" || OPTC= OPTRESUME= OPTCMPL= MTURN=;
 
 			((TOTAL_OLD=tkn[0]+tkn[1]-tkn[2])) && MAX_PREV=$TOTAL_OLD
 			HIST_TIME= BREAK_SET=;
@@ -8428,4 +8548,4 @@ fi
 ## set -x; shopt -s extdebug; PS4=$'\n''$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078,SC2128  ~/bin/chatgpt.sh
 
-# vim=syntax sync minlines=256
+# vim=syntax sync minlines=180

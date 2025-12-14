@@ -178,7 +178,7 @@ Script and model settings can be adjusted or set to null using command‑line op
 
 For example, some models may not accept instructions (command line `-S ""` to unset), _frequency_ / _presence_ _penalties_ (`-A ""`, `-a ""`), or other options.
 
-Other parameters, such as _temperature_ (`-t 1.0`), token limits (_maximum response tokens:_ `-M 8000`; _model capacity:_ `-N 1000000`), etc., may need to be set to values supported by the new model.
+Other parameters, such as _temperature_ (`-t 1.0`), token limits (_maximum response tokens:_ `-M 6000`; _model capacity:_ `-N 1000000`), etc., may need to be set to values supported by the new model.
 
 Refer to the [Roadmap section](#roadmap) and [Limitations section](#%EF%B8%8F-limitations)
 for the original objectives of our project.

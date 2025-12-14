@@ -205,7 +205,8 @@ Frequency penalty (cmpls/chat, -2.0 - 2.0).
 **--best-of** \[*NUM*\]  
 Best of results, must be greater than `option -n` (cmpls). Def=*1*.
 
-**--effort** \[*high*\|*medium*\|*low*\|*minimal*\|*none*\] (OpenAI)
+**--effort** \[*xhigh*\|*high*\|*medium*\|*low*\|*minimal*\|*none*\]
+(OpenAI)
 
 **--think** \[*token_num*\] (Anthropic / Google)  
 Amount of effort in reasoning models.
@@ -830,8 +831,8 @@ parameters and manage sessions.
 | `-w` | `!rec` \[*ARGS*\] | Toggle voice-in STT. Optionally, set arguments. |
 | `-z` | `!tts` \[*ARGS*\] | Toggle TTS chat mode (speech out). |
 | `!blk` | `!block` \[*ARGS*\] | Set and add custom options to JSON request. |
-| `!effort` | \- \[*MODE*\] | Effort: high, medium, low, minimal, or none (OpenAI). |
-| `!think` | \- \[*NUM*\] | Budget: tokens (Anthropic). |
+| `!effort` | \- \[*MODE*\] | Effort: xhigh, high, medium, low, minimal, or none (OpenAI). |
+| `!think` | \- \[*NUM*\] | Budget: token value (Anthropic). |
 | `!ka` | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
 | `!verb` | `!verbosity` \[*MODE*\] | Model verbosity level (high, medium, or low). |
 | `!vision` | `!audio`, `!multimodal` | Toggle multimodality type. |
