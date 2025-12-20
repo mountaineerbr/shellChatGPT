@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.125.3  dec/2025  by mountaineerbr  GPL+3
+# v0.125.4  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -441,7 +441,7 @@ Command List
      !!i     !!info             Monthly usage stats (OpenAI).
       !j      !jump             Jump to request, append response primer.
      !!j     !!jump             Jump to request, no response priming.
-     !cat     -                 Cat prompter (one-shot, ctrl-d).
+     !cat     -                 Cat prompter (one-shot, ctrl-d). ‡
      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL.
      !clot   !!clot             Flood TTY with patterns (visual separator).
      !dialog  -                 Toggle the \`dialog' interface.
@@ -7800,8 +7800,9 @@ else
 					((EDIT)) || REPLY=""  #!#
 					if ((CATPR)) && [[ ${REPLY:0:128} != *[!$IFS]* ]]
 					then
+						((CATPR==2)) && ((${#REPLY}+${#PREPEND})) && _cmdmsgf 'Cat Prompter' "append";
 						buff=$(cat </dev/tty);
-						((${#buff})) && REPLY="${REPLY}${buff}" buff=;
+						((${#buff})) && REPLY="${REPLY}"${REPLY:+$'\n'}"${buff}" buff=;
 					else
 						readf ${REPLY:+-i "$REPLY"} REPLY </dev/tty;
 						#(($?==1)) && ((!${#REPLY})) && break 2;  #exit on ctrl-d
@@ -7858,13 +7859,20 @@ else
 					*[$IFS][/!]g) var=g;;
 					*[$IFS][/!][/!]g[g:]) var=/g:;;
 					*[$IFS][/!][/!]g) var=/g;;
+					*[$IFS][/!]cat:) var=cat:;;
+					*[$IFS][/!]cat) var=cat;;
 					*) 	false;; esac;
 				then
 					trim_rf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|time|date|\#|[/!]g|g|[/!]g[g:]|g[g:])";
 
-					#improved end-of-prompt ground command
-					if [[ /$var: = */g[g:]* ]]
+					if [[ $var = cat* ]]
 					then
+						[[ $var = cat: ]] && EDIT=1 || PSKIP=1 JUMP=1;
+						((CATPR==1)) || _cmdmsgf 'Cat Prompter' "one-shot ${REPLY:+append}";
+						buff=$(cat </dev/tty);
+						((${#buff})) && REPLY="${REPLY:0:${#REPLY}-${#var}-1}"${REPLY:+$'\n'}"${buff}" buff=;
+					elif [[ /$var: = */g[g:]* ]]
+					then  #improved end-of-prompt ground command
 						buff=$TRIM;
 						printf '\nQuery String:\n?\b\a' >&2;
 						readf query </dev/tty;

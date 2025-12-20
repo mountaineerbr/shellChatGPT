@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.125 | General Commands Manual
+% CHATGPT.SH(1) v0.125.4 | General Commands Manual
 % mountaineerbr
 % December 2025
 
@@ -949,7 +949,7 @@ to change parameters and manage sessions.
       `!!i`        `!!info`                          Monthly usage stats (OpenAI).
        `!j`        `!jump`                           Jump to request, append start seq primer (text cmpls).
       `!!j`        `!!jump`                          Jump to request, no response priming.
-     `!cat`         \-                               Cat prompter as one-shot, \<_CTRL-D_> flush.
+     `!cat`         \-                               Cat prompter as one-shot, \<_CTRL-D_> flush. _‡_
      `!cat`        `!cat:` \[_TXT_|_URL_|_PDF_]      Cat _text_, _PDF_ file, or dump _URL_.
     `!clot`        `!!clot`                          Flood the TTY with patterns, as visual separator.
   `!dialog`         \-                               Toggle the "dialog" interface.
