@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.123 | General Commands Manual
+% CHATGPT.SH(1) v0.125 | General Commands Manual
 % mountaineerbr
-% November 2025
+% December 2025
 
 
 # NAME
@@ -33,8 +33,8 @@
 
 This script acts as a wrapper for ChatGPT, STT (Whisper), and TTS
 endpoints from OpenAI. Various service providers such as LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
-xAI, and DeepSeek APIs are supported.
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models,
+OpenRouter, xAI, and DeepSeek APIs are supported.
 
 By default, the script runs in single-turn of chat completion mode,
 processing INPUT directly when no options are set.
@@ -254,9 +254,11 @@ before the text prompt itself.
 : Frequency penalty (cmpls/chat, -2.0 - 2.0).
 
 
+<!--
 **\--best-of**   \[_NUM_]
 
 : Best of results, must be greater than `option -n` (cmpls). Def=_1_.
+-->
 
 
 **\--effort**  \[_xhigh_|_high_|_medium_|_low_|_minimal_|_none_]  (OpenAI)
@@ -434,9 +436,9 @@ before the text prompt itself.
 : Mistral AI integration (chat).
 
 
-**\--novita**  (**legacy**)
+**\--openrouter**
 
-: Novita AI integration (cmpls/chat).
+: OpenRouter API integration (cmpls/chat).
 
 
 **\--openai**
@@ -643,9 +645,9 @@ chat `options -cc`, unless otherwise explicitly set by the user.
 
 On chat mode, if no INSTRUCTION is set, minimal instruction is given,
 and some options auto set, such as increasing temp and presence penalty,
-in order to un-lobotomise the bot. With cheap and fast models of
+in order to un-lobotomise the bot. <!-- With cheap and fast models of
 text cmpls, such as Curie, the \`best_of' option may be worth
-setting (to 2 or 3).
+setting (to 2 or 3). -->
 
 Prompt engineering is an art on itself. Study carefully how to
 craft the best prompts to get the most out of text, code and
@@ -993,7 +995,6 @@ to change parameters and manage sessions.
       `-a`         `!pre`        \[_VAL_]      Presence penalty.
       `-A`         `!freq`       \[_VAL_]      Frequency penalty.
       `-b`         `!responses`  \[_MOD_]      Responses API request (experimental). 
-    `best`         `!best-of`    \[_NUM_]      Best-of n results.
       `-j`         `!seed`       \[_NUM_]      Seed number (integer).
       `-K`         `!topk`       \[_NUM_]      Top_k.
       `-m`         `!mod`        \[_MOD_]      Model by name, empty to pick from list.
@@ -1033,6 +1034,9 @@ to change parameters and manage sessions.
     `!tmp`         `!!tmp`                                   Fork session to a temporary cache.
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
 
+<!--
+    `best`         `!best-of`    \[_NUM_]      Best-of n results.
+    -->
 
 | _:_ Commands with **colons** add their output to the current prompt buffer.
 
@@ -1331,6 +1335,7 @@ if the server URL is different from the defaults.
 Note that model management (downloading and setting up) must
 follow the Ollama project guidelines and own methods.
 
+<!--
 For Google Gemini, set environment variable **$GOOGLE_API_KEY**, and
 run the script with the command line `option --google`.
 
@@ -1343,18 +1348,37 @@ with command line `option --anthropic`.
 
 For GitHub Models, `$GITHUB_TOKEN` and invoke the script
 with `option --github`.
+-->
 
+<!--
 For Novita AI integration, set the environment variable `$NOVITA_API_KEY` and
 use the `--novita` option (**legacy**).
+-->
 
+
+<!--
 Likewise, for xAI Grok, set environment `$XAI_API_KEY` with its API key.
 
 And for DeepSeek API, set environment `$DEEPSEEK_API_KEY` with its API key.
 
 Run the script with `option --xai` and also with `option -cc` (chat completions.).
+-->
 
-Some models also work with native text completions. For that,
-set command-line `option -c` instead.
+Likewise, for other supported service providers, use command line
+options, or for unknown providers,
+use environmental variables for configuiration.
+
+Many service providers can be wrapped by this script. See
+our repository documentation with the example on
+how to set up **Novita AI API** integration.
+
+Some service providers and models may also work with pure text completions,
+which is turned on  with command-line `option -c` instead.
+
+
+Prompt caching is manually enabled for Anthropic API and models,
+<!-- This feature may be eventually enabled for Google Gemini models, -->
+see **BUGS section**.
 
 
 # ENVIRONMENT
@@ -1414,7 +1438,7 @@ set command-line `option -c` instead.
 
 **MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**, **MOD_ANTHROPIC**,
 
-**MOD_GITHUB**, **MOD_NOVITA**, **MOD_XAI**, **MOD_DEEPSEEK**
+**MOD_GITHUB**, **MOD_OPENROUTER**, **MOD_XAI**, **MOD_DEEPSEEK**
 
 :    Set default model for each endpoint / provider.
 
@@ -1429,7 +1453,7 @@ set command-line `option -c` instead.
 **PROVIDER_BASE_URL**
 
 :    Base URLs for each service provider:
-     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, _NOVITA_, _XAI_, and _DEEPSEEK_.
+     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, _OPENROUTER_, _XAI_, and _DEEPSEEK_.
 
 
 **OPENAI_API_KEY**
@@ -1438,7 +1462,7 @@ set command-line `option -c` instead.
 
 **GITHUB_TOKEN**
 
-:    Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models, Novita, xAI, and DeepSeek APIs.
+:    Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models, OpenRouter, xAI, and DeepSeek APIs.
 
 
 **OUTDIR**
@@ -1624,7 +1648,7 @@ or "_Q_" in user confirmation prompts.
 Stdin text is appended to any existing command line PROMPT.
 
 Input sequences "_\\n_" and "_\\t_" are only treated specially
-(as escaped new lines and tabs) in restart, start and stop sequences!
+(as escaped new lines and tabs) in restart, start and stop sequences.
 
 The moderation endpoint can be accessed by setting the model name
 to _omni-moderation-latest_ (or _text-moderation-latest_).
@@ -1683,6 +1707,11 @@ Image generations, variations, and editing endpoints was dropped in December-200
 
 
 # BUGS
+
+Prompt caching may render (havoc) seemigly higher token counts
+recorded in the local session history database due to cached tokens,
+e.g. xAI reasoning models. Service providers may actually inject
+(though not bill) certain amounts of instruction-like tokens automatically.
 
 Reasoning (thinking) and answers from certain API services may not have a
 distinct separation of output due to JSON processing constraints.

@@ -89,8 +89,9 @@ If no suffix is provided, it works as plain text completions.
     - 17.6.1 [Anthropic Web Search](#anthropic-web-search)
   - 17.7 [GitHub Models](#github-models)
   - 17.8 [Novita AI](#novita-ai)
-  - 17.9 [xAI](#xai)
-  - 17.10 [DeepSeek](#deepseek)
+  - 17.9 [OpenRouter API](#openrouter-api)
+  - 17.10 [xAI](#xai)
+  - 17.11 [DeepSeek](#deepseek)
 - 18. [Arch Linux Users](#arch-linux-users)
 - 19. [Termux Users](#termux-users)
   - 19.1 [Dependencies](#dependencies-termux)
@@ -1267,11 +1268,15 @@ Create a new API key or use an existing one to set
 the environmental variable `$ANTHROPIC_API_KEY`.
 Run the script with `option --anthropic` or `--ant`.
 
-Check the **Claude-3** models! Run the script as:
+Check the **Claude-4** models! Run the script as:
 
 ```
-chatgpt.sh --anthropic -cc -m claude-3-5-sonnet-20240620
+chatgpt.sh --anthropic -cc -m claude-opus-4-5
+
 ```
+
+
+**Prompt caching** is implemented in order to save a few bucks.
 
 
 The script also works on **text completions** with models such as
@@ -1326,8 +1331,12 @@ See also the [GitHub Model Catalog - Getting Started](https://techcommunity.micr
 
 ### Novita AI
 
+
+<!-- This service provider _feature is currently_ **legacy**. -->
+
 Novita AI offers a range of LLM models at exceptional value.
 
+<!--
 Create an API key as per the
 [Quick Start Guide](https://novita.ai/docs/get-started/quickstart.html)
 and export your key as `$NOVITA_API_KEY` to your environment.
@@ -1338,11 +1347,14 @@ Check the [model list web page](https://novita.ai/model-api/product/llm-api)
 and the [price of each model](https://novita.ai/model-api/pricing).
 
 To list all available models, run `chatgpt.sh --novita -l`. Optionally set a model name with `option -l` to dump model details.
+-->
 
 Some models work with the `/completions` endpoint, while others
-work with the `/chat/completions` endpoint, so the script _does not set the endpoint automatically_! Check model details and web pages to understand their capabilities, and then either run the script with `option -c` (**text completions**) or `options -cc` (**chat completions**).
+work with the `/chat/completions` endpoint.
 
-This service provider _feature is currently_ **legacy**.
+Our script _does not set the endpoint automatically_!
+
+Check model details and web pages to understand their capabilities, and then either run the script with `option -c` (**text completions**) or `options -cc` (**chat completions**).
 
 ---
 
@@ -1359,6 +1371,17 @@ chatgpt.sh -cc -m meta-llama/llama-3.3-70b-instruct
 
 We are grateful to Novita AI for their support and collaboration. For more
 information, visit [Novita AI](https://novita.ai/).
+
+
+### OpenRouter API
+
+To enable OpenRouter API integration, call the script with
+`chatgpt.sh --openrouter -cc` at the command line.
+
+List models with `chatgpt.sh --openrouter -l`.
+
+When using OpenRouter to access Claude models, prompt  caching is implemented
+to save a few bucks.
 
 
 ### xAI
@@ -1737,23 +1760,24 @@ They were studied during development of this script and used as referential code
 1. [Claude Code](https://github.com/anthropics/claude-code)
 2. [Gemini CLI](https://github.com/google-gemini/gemini-cli)
 3. [OpenAI Codex CLI](https://github.com/openai/codex)
-4. [sigoden's aichat](https://github.com/sigoden/aichat)
-5. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
-6. [andrew's tgpt](https://github.com/aandrew-me/tgpt)
-7. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
-8. [ErikBjare's gptme](https://github.com/ErikBjare/gptme)
-9. [SimonW's LLM](https://github.com/simonw/llm)
-10. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
-11. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
-12. [mudler's LocalAI](https://github.com/mudler/LocalAI)
-13. [Ollama](https://github.com/ollama/ollama/)
-14. [Google Gemini](https://gemini.google.com/)
-15. [Groq](https://console.groq.com/docs/api-reference)
-16. [Antropic AI](https://docs.anthropic.com/)
-17. [Novita AI](https://novita.ai/)
-18. [xAI](https://docs.x.ai/docs/quickstart)
-19. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-20. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+4. [Gauthier's Aider](https://github.com/Aider-AI/aider)
+5. [sigoden's aichat](https://github.com/sigoden/aichat)
+6. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
+7. [andrew's tgpt](https://github.com/aandrew-me/tgpt)
+8. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
+9. [ErikBjare's gptme](https://github.com/ErikBjare/gptme)
+10. [SimonW's LLM](https://github.com/simonw/llm)
+11. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
+12. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
+13. [mudler's LocalAI](https://github.com/mudler/LocalAI)
+14. [Ollama](https://github.com/ollama/ollama/)
+15. [Google Gemini](https://gemini.google.com/)
+16. [Groq](https://console.groq.com/docs/api-reference)
+17. [Antropic AI](https://docs.anthropic.com/)
+18. [Novita AI](https://novita.ai/)
+19. [xAI](https://docs.x.ai/docs/quickstart)
+20. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+21. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
 <!-- 17. [Kardolu's chatgpt-cli](https://github.com/kardolus/chatgpt-cli) -->
 <!-- https://github.com/sst/opencode -->
 

@@ -1,7 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.124
+# v0.125
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -121,7 +121,6 @@ _chatgpt.sh()
     {-a,--presence-penalty,--presence,--pre}'[Presence penalty]:presence-penalty -- [float]' \
     {-A,--frequency-penalty,--frequency,--freq}'[Frequency penalty]:frequency-penalty -- [float]' \
     {-b,--responses,--resp}'[Use Responses API]' \
-    {--best-of,--best}'[Best-of]:best-of -- [integer]' \
     {-j,--seed}'[Seed number]:seed -- [integer]' \
     {-K,--top-k,--topk}'[Top_k value]:top_k -- [integer]' \
     {--ka,--keep-alive}'[Keep-alive seconds]:keep-alive -- [integer]' \
@@ -183,7 +182,7 @@ _chatgpt.sh()
     {--github,--git}'[GitHub Models integration]' \
     {--xai,--grok}'[xAI integration]' \
     {--deepseek,--deep}'[DeepSeek integration]' \
-    {--novita,--nov}'[Novita AI integration]' \
+    {--openrouter,--open}'[OpenRouter API integration]' \
     '--openai[Reset defaults to OpenAI]' \
     {--time,--date}'[Instruction timestamp]' \
     {--no-time,--no-date}'[Unset instruction timestamp]' \

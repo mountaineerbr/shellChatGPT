@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.123 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.125 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.123 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.125 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">November 2025</p>
+<p class="date">December 2025</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT /
@@ -210,8 +210,8 @@ TTS</div>
 <h1 id="description">DESCRIPTION</h1>
 <p>This script acts as a wrapper for ChatGPT, STT (Whisper), and TTS
 endpoints from OpenAI. Various service providers such as LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models, Novita,
-xAI, and DeepSeek APIs are supported.</p>
+Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models,
+OpenRouter, xAI, and DeepSeek APIs are supported.</p>
 <p>By default, the script runs in single-turn of chat completion mode,
 processing INPUT directly when no options are set.</p>
 <p>Handles single-turn and multi-turn modes, pure text and native chat
@@ -416,12 +416,12 @@ Fallback=<em>8000</em>.</p>
 <dd>
 <p>Frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
 </dd>
-<dt><strong>--best-of</strong> [<em>NUM</em>]</dt>
-<dd>
-<p>Best of results, must be greater than <code>option -n</code> (cmpls).
-Def=<em>1</em>.</p>
-</dd>
 </dl>
+<!--
+**\--best-of**   \[_NUM_]
+
+: Best of results, must be greater than `option -n` (cmpls). Def=_1_.
+-->
 <p><strong>--effort</strong>
 [<em>xhigh</em>|<em>high</em>|<em>medium</em>|<em>low</em>|<em>minimal</em>|<em>none</em>]
 (OpenAI)</p>
@@ -586,9 +586,9 @@ respectively.</p>
 <dd>
 <p>Mistral AI integration (chat).</p>
 </dd>
-<dt><strong>--novita</strong> (<strong>legacy</strong>)</dt>
+<dt><strong>--openrouter</strong></dt>
 <dd>
-<p>Novita AI integration (cmpls/chat).</p>
+<p>OpenRouter API integration (cmpls/chat).</p>
 </dd>
 <dt><strong>--openai</strong></dt>
 <dd>
@@ -764,9 +764,9 @@ given with chat <code>options -cc</code>, unless otherwise explicitly
 set by the user.</p>
 <p>On chat mode, if no INSTRUCTION is set, minimal instruction is given,
 and some options auto set, such as increasing temp and presence penalty,
-in order to un-lobotomise the bot. With cheap and fast models of text
-cmpls, such as Curie, the `best_of’ option may be worth setting (to 2 or
-3).</p>
+in order to un-lobotomise the bot. <!-- With cheap and fast models of
+text cmpls, such as Curie, the \`best_of' option may be worth
+setting (to 2 or 3). --></p>
 <p>Prompt engineering is an art on itself. Study carefully how to craft
 the best prompts to get the most out of text, code and chat cmpls
 models.</p>
@@ -1317,11 +1317,6 @@ flush.</td>
 <td>Responses API request (experimental).</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>best</code></td>
-<td style="text-align: left;"><code>!best-of</code> [<em>NUM</em>]</td>
-<td>Best-of n results.</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code>-j</code></td>
 <td style="text-align: left;"><code>!seed</code> [<em>NUM</em>]</td>
 <td>Seed number (integer).</td>
@@ -1512,6 +1507,9 @@ entries.</td>
 </tr>
 </tbody>
 </table>
+<!--
+    `best`         `!best-of`    \[_NUM_]      Best-of n results.
+    -->
 <div class="line-block"><em>:</em> Commands with <strong>colons</strong>
 add their output to the current prompt buffer.</div>
 <div class="line-block"><em>‡</em> <strong>Double daggers</strong>
@@ -1760,27 +1758,43 @@ set <strong>$OLLAMA_BASE_URL</strong> if the server URL is different
 from the defaults.</p>
 <p>Note that model management (downloading and setting up) must follow
 the Ollama project guidelines and own methods.</p>
-<p>For Google Gemini, set environment variable
-<strong>$GOOGLE_API_KEY</strong>, and run the script with the command
-line <code>option --google</code>.</p>
-<p>For Groq, set the environmental variable <code>$GROQ_API_KEY</code>.
-Run the script with <code>option --groq</code>. Transcription (Whisper)
-endpoint available.</p>
-<p>For Anthropic, set envar <code>$ANTHROPIC_API_KEY</code> and run the
-script with command line <code>option --anthropic</code>.</p>
-<p>For GitHub Models, <code>$GITHUB_TOKEN</code> and invoke the script
-with <code>option --github</code>.</p>
-<p>For Novita AI integration, set the environment variable
-<code>$NOVITA_API_KEY</code> and use the <code>--novita</code> option
-(<strong>legacy</strong>).</p>
-<p>Likewise, for xAI Grok, set environment <code>$XAI_API_KEY</code>
-with its API key.</p>
-<p>And for DeepSeek API, set environment <code>$DEEPSEEK_API_KEY</code>
-with its API key.</p>
-<p>Run the script with <code>option --xai</code> and also with
-<code>option -cc</code> (chat completions.).</p>
-<p>Some models also work with native text completions. For that, set
-command-line <code>option -c</code> instead.</p>
+<!--
+For Google Gemini, set environment variable **$GOOGLE_API_KEY**, and
+run the script with the command line `option --google`.
+
+For Groq, set the environmental variable `$GROQ_API_KEY`.
+Run the script with `option --groq`.
+Transcription (Whisper) endpoint available.
+
+For Anthropic, set envar `$ANTHROPIC_API_KEY` and run the script
+with command line `option --anthropic`.
+
+For GitHub Models, `$GITHUB_TOKEN` and invoke the script
+with `option --github`.
+-->
+<!--
+For Novita AI integration, set the environment variable `$NOVITA_API_KEY` and
+use the `--novita` option (**legacy**).
+-->
+<!--
+Likewise, for xAI Grok, set environment `$XAI_API_KEY` with its API key.
+
+And for DeepSeek API, set environment `$DEEPSEEK_API_KEY` with its API key.
+
+Run the script with `option --xai` and also with `option -cc` (chat completions.).
+-->
+<p>Likewise, for other supported service providers, use command line
+options, or for unknown providers, use environmental variables for
+configuiration.</p>
+<p>Many service providers can be wrapped by this script. See our
+repository documentation with the example on how to set up
+<strong>Novita AI API</strong> integration.</p>
+<p>Some service providers and models may also work with pure text
+completions, which is turned on with command-line <code>option -c</code>
+instead.</p>
+<p>Prompt caching is manually enabled for Anthropic API and models,
+<!-- This feature may be eventually enabled for Google Gemini models, -->
+see <strong>BUGS section</strong>.</p>
 <h1 id="environment">ENVIRONMENT</h1>
 <p><strong>BLOCK_USR</strong></p>
 <dl>
@@ -1832,7 +1846,7 @@ command-line <code>option -c</code> instead.</p>
 <p><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_SPEECH_GROQ</strong>,
 <strong>MOD_ANTHROPIC</strong>,</p>
 <dl>
-<dt><strong>MOD_GITHUB</strong>, <strong>MOD_NOVITA</strong>,
+<dt><strong>MOD_GITHUB</strong>, <strong>MOD_OPENROUTER</strong>,
 <strong>MOD_XAI</strong>, <strong>MOD_DEEPSEEK</strong></dt>
 <dd>
 <p>Set default model for each endpoint / provider.</p>
@@ -1849,7 +1863,7 @@ parameter with the full url path to disable endpoint auto selection.</p>
 <dd>
 <p>Base URLs for each service provider: <em>LOCALAI</em>,
 <em>OLLAMA</em>, <em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>,
-<em>GROQ</em>, <em>GITHUB</em>, <em>NOVITA</em>, <em>XAI</em>, and
+<em>GROQ</em>, <em>GITHUB</em>, <em>OPENROUTER</em>, <em>XAI</em>, and
 <em>DEEPSEEK</em>.</p>
 </dd>
 </dl>
@@ -1859,7 +1873,7 @@ parameter with the full url path to disable endpoint auto selection.</p>
 <dt><strong>GITHUB_TOKEN</strong></dt>
 <dd>
 <p>Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models,
-Novita, xAI, and DeepSeek APIs.</p>
+OpenRouter, xAI, and DeepSeek APIs.</p>
 </dd>
 <dt><strong>OUTDIR</strong></dt>
 <dd>
@@ -2013,7 +2027,7 @@ interrupt the call.</p>
 <p>Stdin text is appended to any existing command line PROMPT.</p>
 <p>Input sequences “<em>\n</em>” and “<em>\t</em>” are only treated
 specially (as escaped new lines and tabs) in restart, start and stop
-sequences!</p>
+sequences.</p>
 <p>The moderation endpoint can be accessed by setting the model name to
 <em>omni-moderation-latest</em> (or
 <em>text-moderation-latest</em>).</p>
@@ -2069,6 +2083,10 @@ December-2005 with script version v123.</p>
     https://gitlab.com/fenixdragao/shellchatgpt/-/tree/22f7c89b1dc012e16c796e45ac5c0a3aef9e7e3e
      -->
 <h1 id="bugs">BUGS</h1>
+<p>Prompt caching may render (havoc) seemigly higher token counts
+recorded in the local session history database due to cached tokens,
+e.g. xAI reasoning models. Service providers may actually inject (though
+not bill) certain amounts of instruction-like tokens automatically.</p>
 <p>Reasoning (thinking) and answers from certain API services may not
 have a distinct separation of output due to JSON processing
 constraints.</p>

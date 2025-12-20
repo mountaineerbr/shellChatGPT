@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.124
+# v0.125
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -63,7 +63,6 @@ _chatgptsh()
         -a --presence-penalty --presence --pre
         -A --frequency-penalty --frequency --freq
         -b --responses --resp
-        --best-of --best
         -j --seed
         -K --top-k --topk
         --keep-alive --ka
@@ -100,7 +99,7 @@ _chatgptsh()
         -F -FF
         --fold --wrap --no-fold --no-wrap
         --google --goo --groq --anthropic --ant --github --git --openai
-        --xai --grok --deepseek --deep --novita --nov
+        --xai --grok --deepseek --deep --openrouter --open
         -h --help
         -H --hist -HH -P -PP --print
         -k --no-colour --no-color
@@ -139,7 +138,7 @@ _chatgptsh()
     -[aApt]|-[!-]*[aApt]|--presence*|--pre|--frequency*|--freq|--top-p|--topp|--temperature|--temp)
       ((${#cur})) || COMPREPLY=( '[float]' )
       ;;
-    -[NbBKn]|-[!-]*[NbBKn]|--modmax*|--best-of*|--best|--top-k|--topk|--keep-alive|--ka|--results|--seed)
+    -[NbBKn]|-[!-]*[NbBKn]|--modmax*|--top-k|--topk|--keep-alive|--ka|--results|--seed)
       ((${#cur})) || COMPREPLY=( '[integer]' )
       ;;
     -M|-[!-]*M|--max|--max-tokens)
