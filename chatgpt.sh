@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.125.6  dec/2025  by mountaineerbr  GPL+3
+# v0.125.7  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -7801,7 +7801,7 @@ else
 					((EDIT)) || REPLY=""  #!#
 					if ((CATPR))
 					then
-						((CATPR==2)) && ((${#REPLY}+${#PREPEND})) && _cmdmsgf 'Cat Prompter' "append";
+						((CATPR==2)) && ((${#REPLY}+${#PREPEND})) && _cmdmsgf 'Cat Prompter' "$( ((CATPR>1)) && echo "one-shot ")append";
 						_printbf ">>" >&2;
 						buff=$(cat </dev/tty);
 						((${#buff})) && REPLY="${REPLY}"${REPLY:+$'\n'}"${buff}" buff=;
@@ -7861,13 +7861,19 @@ else
 					*[$IFS][/!]g) var=g;;
 					*[$IFS][/!][/!]g[g:]) var=/g:;;
 					*[$IFS][/!][/!]g) var=/g;;
-					*[$IFS][/!]cat|*[$IFS][/!]cat:) var=cat;;
+                                        *[$IFS][/!]cat:) var=cat:;;
+                                        *[$IFS][/!]cat) var=cat;;
 					*) 	false;; esac;
 				then
 					trim_rf "$REPLY" "${SPC}[/!]@(photo|pick|p|save|time|date|\#|[/!]g|g|[/!]g[g:]|g[g:])";
 
-					if [[ $var = cat* ]]
-					then
+					if [[ $var = cat: ]]
+					then  #cat prompter edit
+						EDIT=1; ((CATPR==1)) || _cmdmsgf 'Cat Prompter' "one-shot ${REPLY:+append}";
+						buff=$(cat </dev/tty);
+						((${#buff})) && REPLY="${REPLY:0:${#REPLY}-${#var}-1}"${REPLY:+$'\n'}"${buff}" buff=;
+					elif [[ $var = cat ]]
+					then  #cat prompter default
 						EDIT=1; ((CATPR)) || CATPR=2;
 						REPLY="${REPLY:0:${#REPLY}-${#var}-1}";
 					elif [[ /$var: = *[/!]g[g:]* ]]
