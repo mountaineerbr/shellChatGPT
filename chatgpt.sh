@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.125.2  dec/2025  by mountaineerbr  GPL+3
+# v0.125.3  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -7800,9 +7800,8 @@ else
 					((EDIT)) || REPLY=""  #!#
 					if ((CATPR)) && [[ ${REPLY:0:128} != *[!$IFS]* ]]
 					then
-						((EDIT && ${#REPLY})) && buff=$REPLY;
-						REPLY=$(cat </dev/tty);
-						((EDIT && ${#buff})) && REPLY="${buff}${REPLY}" buff=;
+						buff=$(cat </dev/tty);
+						((${#buff})) && REPLY="${REPLY}${buff}" buff=;
 					else
 						readf ${REPLY:+-i "$REPLY"} REPLY </dev/tty;
 						#(($?==1)) && ((!${#REPLY})) && break 2;  #exit on ctrl-d
