@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.125.5  dec/2025  by mountaineerbr  GPL+3
+# v0.125.6  dec/2025  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1260,7 +1260,6 @@ function new_prompt_confirmf
 	case \ $*\  in 	*\ ed\ *) extra=", te[x]t editor";; esac;
 	case \ $*\  in 	*\ whisper\ *) 	((OPTW)) && extra="${extra}, [W]hsp_append, [w]hsp_off, w[h]sp_retry";; esac;
 	case \ $*\  in 	*\ abort\ *) extra="${extra}, [a]bort";; esac;
-	((CATPR+OPTCTRD && !OPTX)) && extra="${extra}, [ESC]readline";
 
 	_sysmsgf 'Confirm?' "[Y]es, [n]o, [e]dit, [r]edo${extra}, or [/]cmd " ''
 	REPLY=$(read_charf); _clr_lineupf $((8+1+39+${#extra}))  #!#
@@ -1268,9 +1267,8 @@ function new_prompt_confirmf
 		[Q]) 	return 202;;  #exit
 		[aq]) 	return 201;;  #abort
 		[Rr]) 	return 200;;  #redo
-		$'\e') CATPR= OPTCTRD=;
+		[Ee]|$'\e') ((CATPR)) && CATPR=;
 			return 199;;  #edit in readline
-		[Ee])   return 199;;  #edit
 		[VvXx]) return 198;;  #text editor
 		[CcU]) 	return 192;;  #cat prompter
 		[uMm]) 	return 197;;  #readline multiline
