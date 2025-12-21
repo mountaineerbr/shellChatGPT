@@ -262,9 +262,17 @@ Chat Completion Mode
 	Option -C resumes last history session. To exit on first response,
 	set option -E.
 
-	Many service providers can be wrapped by this script with manual
-	configuration such as OpenRouter; for example see \`Novita AI'
-	mention in our repository documentation.
+
+Responses API
+	Responses API is a superset of Chat Completions API. Set command
+	line option -b, or set -bb for multi-turn chat. Toggle this mode
+	with chat command \`/responses' or \`-b'. Limited support.
+
+
+Service Providers
+	Other service providers can be wrapped by this script. Manually set
+	and export environment variable \`\$OPENAI_BASE_URL'. See examples
+	under section \`Service Providers' in the project repository docs.
 
 
 Text Completion Mode (legacy)
@@ -279,12 +287,6 @@ Text Completion Mode (legacy)
 Insert Mode (FIM)
 	Set option -qq for multi turn insert mode, and add tag \`[insert]'
 	to the prompt at the location to be filled in (instruct	models).
-
-
-Responses API
-	Responses API is a superset of Chat Completions API. Set command
-	line option -b, or set -bb for multi-turn chat. Toggle this mode
-	with chat command \`/responses' or \`-b'. Limited support.
 
 
 Instruction Prompts

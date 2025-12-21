@@ -1351,7 +1351,7 @@ with `option --github`.
 -->
 
 <!--
-For Novita AI integration, set the environment variable `$NOVITA_API_KEY` and
+For Novita API integration, set the environment variable `$NOVITA_API_KEY` and
 use the `--novita` option (**legacy**).
 -->
 
@@ -1368,9 +1368,13 @@ Likewise, for other supported service providers, use command line
 options, or for unknown providers,
 use environmental variables for configuiration.
 
-Many service providers can be wrapped by this script. See
-our repository documentation with the example on
-how to set up **Novita AI API** integration.
+Many service providers can be wrapped by this script.
+
+Basically, set end export **$OPENAI_BASE_URL** to a target
+OpenAI-v1-compatible API host URL before executing the script.
+
+See section on service providers in our repository documentation,
+and an example on how to set up **Novita API integration**.
 
 Some service providers and models may also work with pure text completions,
 which is turned on  with command-line `option -c` instead.

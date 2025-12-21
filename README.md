@@ -171,7 +171,7 @@ addressing bugs, rather than new features in 2026. <!-- In fact, we may **remove
  It is considered _mostly feature‑complete_ for my personal use-cases.
 
 Check the [Troubleshoot section](#troubleshoot) for information on how to
-to work with newer models and [different API providers](#base-url-configuration).
+to work with newer models and [different API providers](#service-providers).
 
 Refer to the [Roadmap section](#roadmap) and [Limitations section](#%EF%B8%8F-limitations)
 for the original objectives of our project.
@@ -966,7 +966,7 @@ Free service providers
 - [Groq](#groq)
 
 
-Paid providers
+Paid service providers
 
 - **OpenAI**
 - [Mistral AI](#mistral-ai)
@@ -974,6 +974,9 @@ Paid providers
 - [Grok xAI](#xai)
 - [DeepSeek](#deepseek)
 - [OpenRouter API](#openrouter-api)
+
+
+**Tip:** **Other providers** may be [set up manually](#base-url-configuration).
 
 
 ### LocalAI
