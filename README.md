@@ -1596,6 +1596,8 @@ See also:
 
   - [Shell Troubleshoot](#shell-troubleshoot)
   - [Termux Troubleshoot](#termux-troubleshoot)
+  - [API Provider Setup](#service-providers)
+  - [API Base URL configuration](#base-url-configuration)
 
 
 For software alternatives that may better suit your needs, see the projects listed in the
