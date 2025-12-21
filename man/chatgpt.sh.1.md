@@ -436,7 +436,7 @@ before the text prompt itself.
 : Mistral AI integration (chat).
 
 
-**\--openrouter**
+**\--openrouter**, **\--open**
 
 : OpenRouter API integration (cmpls/chat).
 
@@ -451,7 +451,7 @@ before the text prompt itself.
 : Ollama server integration (cmpls/chat).
 
 
-**\--xai**
+**\--xai**, **\--grok**
 
 : xAI Grok integration (cmpls/chat).
 

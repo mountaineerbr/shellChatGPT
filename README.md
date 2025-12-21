@@ -41,7 +41,7 @@ If no suffix is provided, it works as plain text completions.
   <summary>★ Click to expand! ★</summary>
 
 - 1. [Features](#-features)
-- 2. [Project Status](#project-status-maintenance-mode)
+- 2. [Project Status](#project-status)
 - 3. [Getting Started](#-getting-started)
   - 3.1 [Required Packages](#-required-packages)
   - 3.2 [Optional Packages](#optional-packages)
@@ -67,44 +67,45 @@ If no suffix is provided, it works as plain text completions.
 - 11. [Shell Completion](#shell-completion)
   - 11.1 [Bash](#bash)
   - 11.2 [Zsh](#zsh)
-  - 11.3 [Troubleshoot](#troubleshoot-shell)
-- 12. [Notes and Tips](#-notes-and-tips)
-- 16. [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
-- 17. [Service Providers](#service-providers)
-  - 17.1 [LocalAI](#localai)
-    - 17.1.1 [LocalAI Server](#localai-server)
-    - 17.1.2 [Tips](#tips)
-    - 17.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
-    - 17.1.4 [Installing Models](#installing-models)
-    - 17.1.5 [Host API Configuration](#base-url-configuration)
-    - 17.1.6 [OpenAI Web Search](#openai-web-search)
-  - 17.2 [Ollama](#ollama)
-  - 17.3 [Google AI](#google-ai)
-    - 17.3.1 [Google AI](#google-search)
-  - 17.4 [Mistral AI](#mistral-ai)
-  - 17.5 [Groq](#groq)
-    - 17.5.1 [Groq Whisper](#groq-whisper-stt)
-    - 17.5.2 [Groq TTS](#groq-tts)
-  - 17.6 [Anthropic](#anthropic)
-    - 17.6.1 [Anthropic Web Search](#anthropic-web-search)
-  - 17.7 [GitHub Models](#github-models)
-  - 17.8 [Novita AI](#novita-ai)
-  - 17.9 [OpenRouter API](#openrouter-api)
-  - 17.10 [xAI](#xai)
-  - 17.11 [DeepSeek](#deepseek)
-- 18. [Arch Linux Users](#arch-linux-users)
-- 19. [Termux Users](#termux-users)
-  - 19.1 [Dependencies](#dependencies-termux)
-  - 19.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
-  - 19.3 [Tiktoken](#tiktoken)
-  - 19.4 [Troubleshoot](#troubleshoot-termux)
-- 20. [Project Objectives](#--project-objectives)
-- 21. [Roadmap](#roadmap)
-- 22. [Limitations](#%EF%B8%8F-limitations)
-- 23. [Bug report](#bug-report)
-- 24. [Help Pages](#-help-pages)
-- 25. [Contributors](#-contributors)
-- 26. [Acknowledgements](#acknowledgements)
+  - 11.3 [Shell Troubleshoot](#shell-troubleshoot)
+- 12. [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
+- 13. [Service Providers](#service-providers)
+  - 13.1 [LocalAI](#localai)
+    - 13.1.1 [LocalAI Server](#localai-server)
+    - 13.1.2 [LocalAI Tips](#localai-tips)
+    - 13.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
+    - 13.1.4 [Installing Models](#installing-models)
+    - 13.1.5 [Host API Configuration](#base-url-configuration)
+    - 13.1.6 [OpenAI Web Search](#openai-web-search)
+  - 13.2 [Ollama](#ollama)
+  - 13.3 [Google AI](#google-ai)
+    - 13.3.1 [Google AI](#google-search)
+  - 13.4 [Mistral AI](#mistral-ai)
+  - 13.5 [Groq](#groq)
+    - 13.5.1 [Groq Whisper](#groq-whisper-stt)
+    - 13.5.2 [Groq TTS](#groq-tts)
+  - 13.6 [Anthropic](#anthropic)
+    - 13.6.1 [Anthropic Web Search](#anthropic-web-search)
+  - 13.7 [GitHub Models](#github-models)
+  - 13.8 [Novita AI](#novita-ai)
+  - 13.9 [OpenRouter API](#openrouter-api)
+  - 13.10 [xAI](#xai)
+  - 13.11 [DeepSeek](#deepseek)
+- 14. [Arch Linux Users](#arch-linux-users)
+- 15. [Termux Users](#termux-users)
+  - 15.1 [Dependencies](#dependencies-termux)
+  - 15.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
+  - 15.3 [Tiktoken](#tiktoken)
+  - 15.4 [Termux Troubleshoot](#termux-troubleshoot)
+- 16  [Troubleshoot](#troubleshoot)
+- 17. [Notes and Tips](#-notes-and-tips)
+- 18. [Project Objectives](#--project-objectives)
+- 19. [Roadmap](#roadmap)
+- 20. [Limitations](#%EF%B8%8F-limitations)
+- 21. [Bug report](#bug-report)
+- 22. [Help Pages](#-help-pages)
+- 23. [Contributors](#-contributors)
+- 24. [Acknowledgements](#acknowledgements)
 
 <!-- - 9. [Local Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
 <!--
@@ -163,6 +164,19 @@ If no suffix is provided, it works as plain text completions.
 -->
 
 
+## Project Status
+
+Development is ongoing, with an emphasis on improving stability and
+addressing bugs, rather than new features in 2026. <!-- In fact, we may **remove some features**. -->
+ It is considered _mostly feature‑complete_ for my personal use-cases.
+
+Check the [Troubleshoot section](#troubleshoot) for information on how to
+to work with newer models and [different API providers](#base-url-configuration).
+
+Refer to the [Roadmap section](#roadmap) and [Limitations section](#%EF%B8%8F-limitations)
+for the original objectives of our project.
+
+<!--
 ## PROJECT STATUS: MAINTENANCE MODE
 
 This project is now in maintenance mode. It is considered feature‑complete for my routine and personal use-cases.
@@ -171,21 +185,7 @@ This project is now in maintenance mode. It is considered feature‑complete for
 - **No New Features:** Development of new features has ceased. This includes (but is not limited to) _reasoning modes_ (`--think`, `--effort`), _auto‑detection_ of model capabilities (`--vision`, `--audio`).
 - **Defaults:** No updates to default model names for each service provider, new TTS voice name completions or checks.
 - **Documentation:** We plan to leave strong documentation of the software.
-
-
-The script may continue to work with newer models, but users are responsible for configuring parameters appropriately.
-
-Script and model settings can be adjusted or set to null using command‑line options, environment variables, or the configuration file.
-
-For example, some models may not accept instructions (command line `-S ""` to unset), _frequency_ / _presence_ _penalties_ (`-A ""`, `-a ""`), or other options.
-
-Other parameters, such as _temperature_ (`-t 1.0`), token limits (_maximum response tokens:_ `-M 6000`; _model capacity:_ `-N 1000000`), etc., may need to be set to values supported by the new model.
-
-Refer to the [Roadmap section](#roadmap) and [Limitations section](#%EF%B8%8F-limitations)
-for the original objectives of our project.
-
-For more actively developed alternatives, see the projects listed in the
-[Acknowledgements section](#acknowledgements).
+-->
 
 
 ## ✨ Getting Started
@@ -830,61 +830,11 @@ Make sure `compinit` is run **after setting `$fpath`**!
 Visit the [zsh-completion repository](https://github.com/zsh-users/zsh-completions).
 
 
-### Troubleshoot Shell
+### Shell Troubleshoot
 
 Bash and Zsh completions should be active in new terminal sessions.
 If not, ensure your `~/.bashrc` and `~/.zshrc` source
 the completion files correctly.
-
-
-## 💡  Notes and Tips
-
-- The YouTube feature will get YouTube video heading title and its transcripts information only (when available).
-
-- The PDF support feature extracts PDF text ([_no images_](https://docs.anthropic.com/en/docs/build-with-claude/pdf-support#how-pdf-support-works)) and appends it to the user request.
-
-- Run chat commands with either _operator_ `!` or `/`.
-
-- Edit live history entries with command `!hist` (comment out entries or context injection).
-
-<!-- (_discontinued_)
-- Add operator forward slash `/` to the end of prompt to trigger **preview mode**. -->
-
-- One can **regenerate a response** by typing in a new prompt a single slash `/`,
-or `//` to have last prompt edited before the new request.
-
-<!--
-- There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh),
-  but it will not be updated.
--->
-<!--
-- Generally, my evaluation on models prefers using `davinci` or
-`text-davinci-003` for less instruction intensive tasks, such as
-brainstorming. The newer models, `gpt-3.5-turbo-instruct`, may be
-better at following instructions, is cheap and much faster, but seems
-more censored.
-
-- On chat completions, the _launch version_ of the models seem to
-be more creative and better at tasks at general, than
-newer iterations of the same models. So, that is why we default to
-`gpt-3.5-turbo-0301`, and, recommend the model `gpt-4-0314`.
-
-
-https://www.refuel.ai/blog-posts/gpt-3-5-turbo-model-comparison
-https://www.reddit.com/r/ChatGPT/comments/14u51ug/difference_between_gpt432k_and_gpt432k0314/
-https://www.reddit.com/r/ChatGPT/comments/14km5xy/anybody_else_notice_that_gpt40314_was_replaced_by/
-https://www.reddit.com/r/ChatGPT/comments/156drme/gpt40314_is_better_than_gpt40613_at_generating/
-https://stackoverflow.com/questions/75810740/openai-gpt-4-api-what-is-the-difference-between-gpt-4-and-gpt-4-0314-or-gpt-4-0
-
-
-- The original base models `davinci` and `curie`,
-and to some extent, their forks `text-davinci-003` and `text-curie-001`,
-generate very interesting responses (good for
-[brainstorming](https://github.com/mountaineerbr/shellChatGPT/discussions/16#discussioncomment-5811670]))!
-
-- Write your customised instruction as plain text file and set that file
-name as the instruction prompt.
--->
 
 
 <!--
@@ -1003,11 +953,27 @@ or ask it in comments to optimise the following code, for example.
 
 ## Service Providers
 
-Other than [Ollama](#ollama) and [LocalAI](#localai) local servers,
-the free service providers are
-[GitHub Models](#github-models),
-[Google Vertex](#google-ai), and 
-[Groq](#groq).
+Local LLM Software
+
+- [Ollama](#ollama)
+- [LocalAI](#localai)
+
+
+Free service providers
+
+- [GitHub Models](#github-models)
+- [Gemini Google Vertex](#google-ai)
+- [Groq](#groq)
+
+
+Paid providers
+
+- **OpenAI**
+- [Mistral AI](#mistral-ai)
+- [Anthropic](#anthropic)
+- [Grok xAI](#xai)
+- [DeepSeek](#deepseek)
+- [OpenRouter API](#openrouter-api)
 
 
 ### LocalAI
@@ -1038,7 +1004,7 @@ a model and set it up.
 -->
 
 
-#### Tips
+#### LocalAI Tips
 
 *1.* Download a binary of `localai` for your system from [Mudler's release GitHub repo](https://github.com/mudler/LocalAI/releases).
 
@@ -1552,7 +1518,7 @@ Under Termux, make sure to have your system updated and installed with
     pip install tiktoken
 
 
-### Troubleshoot Termux
+### Termux Troubleshoot
 
 In order to set Termux access to recording the microphone and playing audio
 (with `sox` and `ffmpeg`), follow the instructions below.
@@ -1605,6 +1571,80 @@ After installing Zsh in Termux, create a symlink with:
 ````
 ln -s /data/data/com.termux/files/usr/bin/zsh /data/data/com.termux/files/usr/bin/ksh
 ````
+-->
+
+
+## Troubleshoot
+
+The script may work with newer models, alternative models and APIs,
+but users are responsible for configuring parameters appropriately.
+
+Script and model settings can be adjusted or set to null using command‑line
+options, environment variables, or the configuration file.
+
+For example, some models may not accept instructions (command line `-S ""` to unset),
+_frequency_ / _presence_ _penalties_ (`-A ""`, `-a ""`), or other options.
+
+Other parameters, such as _temperature_ (`-t 1.0`), token limits
+(_maximum response tokens:_ `-M 6000`; _model capacity:_ `-N 1000000`),
+etc., may need to be set to values supported by the new model.
+
+Also see 
+  - 11.3 [Shell Troubleshoot](#shell-troubleshoot)
+  - 11.3 [Termux Troubleshoot](#termux-troubleshoot)
+
+
+For software alternatives that may better suit your needs, see the projects listed in the
+[Acknowledgements section](#acknowledgements) below.
+
+
+## 💡  Notes and Tips
+
+- The YouTube feature will get YouTube video heading title and its transcripts information only (when available).
+
+- The PDF support feature extracts PDF text ([_no images_](https://docs.anthropic.com/en/docs/build-with-claude/pdf-support#how-pdf-support-works)) and appends it to the user request.
+
+- Run chat commands with either _operator_ `!` or `/`.
+
+- Edit live history entries with command `!hist` (comment out entries or context injection).
+
+<!-- (_discontinued_)
+- Add operator forward slash `/` to the end of prompt to trigger **preview mode**. -->
+
+- One can **regenerate a response** by typing in a new prompt a single slash `/`,
+or `//` to have last prompt edited before the new request.
+
+<!--
+- There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh),
+  but it will not be updated.
+-->
+<!--
+- Generally, my evaluation on models prefers using `davinci` or
+`text-davinci-003` for less instruction intensive tasks, such as
+brainstorming. The newer models, `gpt-3.5-turbo-instruct`, may be
+better at following instructions, is cheap and much faster, but seems
+more censored.
+
+- On chat completions, the _launch version_ of the models seem to
+be more creative and better at tasks at general, than
+newer iterations of the same models. So, that is why we default to
+`gpt-3.5-turbo-0301`, and, recommend the model `gpt-4-0314`.
+
+
+https://www.refuel.ai/blog-posts/gpt-3-5-turbo-model-comparison
+https://www.reddit.com/r/ChatGPT/comments/14u51ug/difference_between_gpt432k_and_gpt432k0314/
+https://www.reddit.com/r/ChatGPT/comments/14km5xy/anybody_else_notice_that_gpt40314_was_replaced_by/
+https://www.reddit.com/r/ChatGPT/comments/156drme/gpt40314_is_better_than_gpt40613_at_generating/
+https://stackoverflow.com/questions/75810740/openai-gpt-4-api-what-is-the-difference-between-gpt-4-and-gpt-4-0314-or-gpt-4-0
+
+
+- The original base models `davinci` and `curie`,
+and to some extent, their forks `text-davinci-003` and `text-curie-001`,
+generate very interesting responses (good for
+[brainstorming](https://github.com/mountaineerbr/shellChatGPT/discussions/16#discussioncomment-5811670]))!
+
+- Write your customised instruction as plain text file and set that file
+name as the instruction prompt.
 -->
 
 

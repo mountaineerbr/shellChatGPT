@@ -342,7 +342,7 @@ Service Providers
 
     Mistral AI integration (chat).
 
---openrouter
+--openrouter, --open
 
     OpenRouter API integration (cmpls/chat).
 
@@ -354,7 +354,7 @@ Service Providers
 
     Ollama server integration (cmpls/chat).
 
---xai
+--xai, --grok
 
     xAI Grok integration (cmpls/chat).
 

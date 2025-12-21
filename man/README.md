@@ -324,7 +324,7 @@ LocalAI integration (cmpls/chat).
 **--mistral**  
 Mistral AI integration (chat).
 
-**--openrouter**  
+**--openrouter**, **--open**  
 OpenRouter API integration (cmpls/chat).
 
 **--openai**  
@@ -333,7 +333,7 @@ Reset service integrations.
 **-O**, **--ollama**  
 Ollama server integration (cmpls/chat).
 
-**--xai**  
+**--xai**, **--grok**  
 xAI Grok integration (cmpls/chat).
 
 ## Miscellaneous Settings
