@@ -1592,9 +1592,10 @@ Other parameters, such as _temperature_ (`-t 1.0`), token limits
 (_maximum response tokens:_ `-M 6000`; _model capacity:_ `-N 1000000`),
 etc., may need to be set to values supported by the new model.
 
-Also see 
-  - 11.3 [Shell Troubleshoot](#shell-troubleshoot)
-  - 11.3 [Termux Troubleshoot](#termux-troubleshoot)
+See also:
+
+  - [Shell Troubleshoot](#shell-troubleshoot)
+  - [Termux Troubleshoot](#termux-troubleshoot)
 
 
 For software alternatives that may better suit your needs, see the projects listed in the
