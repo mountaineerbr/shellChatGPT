@@ -124,7 +124,7 @@ If no suffix is provided, it works as plain text completions.
 
 ## 🚀 Features
 
-- Text and chat completions.
+- Native chat completions, plain text completions, and responses api (text).
 - [Vision](#vision-models-gpt-4-vision), **reasoning** and [**audio models**](#audio-models)
 - **Voice-in** (Whisper) plus **voice out** (TTS) [_chatting mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
 - **Text editor interface**, _Bash readline_, and _multiline/cat_ modes
@@ -267,10 +267,6 @@ and make it executable:
 - Make a variation of an image, set -i and an image path for upload.
 -->
 
-### 🔥 Usage Examples 🔥
-
-![Chat cmpls with prompt confirmation](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_verb.gif)
-
 
 ## Script Operating Modes
 
@@ -283,8 +279,8 @@ The `chatgpt.sh` script can be run in various modes by setting
 |--------|--------------------------------------------------------------------------------------|
 | `-b`   | [Responses API](#responses-api) / single-turn                                        |
 | `-bb`  | [Responses API](#responses-api) / multi-turn                                         |
-| `-c`   | [Text Chat Completions](#chat-mode-of-text-completions) / multi-turn                 |
-| `-cc`  | [Chat Completions (Native)](#--native-chat-completions) / multi-turn                 |
+| `-c`   | [Chat Completions (Native)](#--native-chat-completions) / multi-turn                 |
+| `-cd`  | [Text Chat Completions](#chat-mode-of-text-completions) / multi-turn                 |
 | `-d`   | Text Completions / single-turn                                                       |
 | `-dd`  | Text Completions / multi-turn                                                        |
 | `-q`   | [Text Completions Insert Mode](#insert-mode-of-text-completions) (FIM) / single-turn |
@@ -293,10 +289,10 @@ The `chatgpt.sh` script can be run in various modes by setting
 
 | Option  | Description  (all multi-turn)                                                   |
 |---------|---------------------------------------------------------------------------------|
-| `-cw`   | Text Chat Completions + voice-in                                                |
-| `-cwz`  | Text Chat Completions + voice-in + voice-out                                    |
-| `-ccw`  | Chat Completions + voice-in                                                     |
-| `-ccwz` | [Chat Completions + voice-in + voice-out](#voice-in-and-out--chat-completions)  |
+| `-cw`   | Chat Completions + voice-in                                                     |
+| `-cwz`  | [Chat Completions + voice-in + voice-out](#voice-in-and-out--chat-completions)  |
+| `-cdw`  | Text Chat Completions + voice-in                                                |
+| `-cdwz` | Text Chat Completions + voice-in + voice-out                                    |
 
 <!--
 | `-bbw`  | Responses API + voice-in                                                        |
@@ -312,29 +308,35 @@ The `chatgpt.sh` script can be run in various modes by setting
 
 <!-- | `-i`   | [Image generation and editing](#%EF%B8%8F-image-generations)        | -->
 
+
+## 🔥 Usage Examples 🔥
+
+![Chat cmpls with prompt confirmation](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_cpls_verb.gif)
+
+
 ## 💬  Native Chat Completions
 
-With command line `options -cc`, some properties are set automatically to create a chat bot.
+With command line `option -c`, some properties are set automatically to create a chat bot.
 Start a new session in chat mode, and set a different temperature:
 
-    chatgpt.sh -cc -t0.7
+    chatgpt.sh -c -t0.7
 
 
 Change the **maximum response length** to 4k tokens:
 
-    chatgpt.sh -cc -4000
+    chatgpt.sh -c -4000
 
-    chatgpt.sh -cc -M 4000
+    chatgpt.sh -c -M 4000
 
 
 And change **model token capacity** to 200k tokens:
 
-    chatgpt.sh -cc -N 200000
+    chatgpt.sh -c -N 200000
 
 
 Create **Marv, the sarcastic bot**:
 
-    chatgpt.sh -512 -cc --frequency-penalty=0.7 --temp=0.8 --top_p=0.4 --restart-seq='\nYou: ' --start-seq='\nMarv:' --stop='You:' --stop='Marv:' -S'Marv is a factual chatbot that reluctantly answers questions with sarcastic responses.'
+    chatgpt.sh -512 -c --frequency-penalty=0.7 --temp=0.8 --top_p=0.4 --restart-seq='\nYou: ' --start-seq='\nMarv:' --stop='You:' --stop='Marv:' -S'Marv is a factual chatbot that reluctantly answers questions with sarcastic responses.'
 
 <!--
 {"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "What's the capital of France?"}, {"role": "assistant", "content": "Paris, as if everyone doesn't know that already."}]}
@@ -350,13 +352,13 @@ Load the *custom-made unix* **instruction file** ("unix.pr") for a new session.
 The command line syntaxes below are all aliases:
 
 
-    chatgpt.sh -cc .unix
+    chatgpt.sh -c .unix
 
-    chatgpt.sh -cc.unix
+    chatgpt.sh -c.unix
 
-    chatgpt.sh -cc -.unix
+    chatgpt.sh -c -.unix
 
-    chatgpt.sh -cc -S .unix
+    chatgpt.sh -c -S .unix
 
 **NOTE:**  In this case, the custom prompt will be loaded, and the history will be recorded in the corresponding "_unix.tsv_" file at the cache directory.
 
@@ -365,36 +367,36 @@ set the first positional argument in the command line with the operator forward 
 and the name of the history file (this executes the `/session` command).
 
 
-    chatgpt.sh -cc /test
+    chatgpt.sh -c /test
 
-    chatgpt.sh -cc /stest
+    chatgpt.sh -c /stest
 
-    chatgpt.sh -cc "/session test"
+    chatgpt.sh -c "/session test"
 
 
 <!--
 The command below starts a chat session, loads the "unix" instruction, and changes to the defaults "chatgpt.tsv" history.
 
 
-    chatgpt.sh -cc.unix /current
+    chatgpt.sh -c.unix /current
 
-    chatgpt.sh -cc -S ".unix" /session current
+    chatgpt.sh -c -S ".unix" /session current
 -->
 
 
 There is a **shortcut to load an older session** from the default (or current)
 history file. This opens a basic interactive interface.
 
-    chatgpt.sh -cc .
+    chatgpt.sh -c .
 
 <!--
-    chatgpt.sh -cc /sub
+    chatgpt.sh -c /sub
 
-    chatgpt.sh -cc /.
+    chatgpt.sh -c /.
 
-    chatgpt.sh -cc /fork.
+    chatgpt.sh -c /fork.
 
-    chatgpt.sh -cc "/fork current"
+    chatgpt.sh -c "/fork current"
 -->
 
 Technically, this copies an old session from the target history file to the tail of it, so we can resume the session.
@@ -435,7 +437,7 @@ Print out last session, optionally set the history name:
     chatgpt.sh -P /test
 
 
-<!-- Mind that `option -P` heads `-ccdrR`! -->
+<!-- Mind that `option -P` heads `-cdrR`! -->
 
 <!-- The same as `chatgpt.sh -HH` -->
 
@@ -465,10 +467,10 @@ Alternatively, set the image paths / URLs at the end of the prompt:
 
 
 <!--
-    chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
+    chatgpt.sh -c -m gpt-4-vision-preview '!img path/to/image.jpg'
     -->
 
-    chatgpt.sh -cc -m gpt-4-vision-preview
+    chatgpt.sh -c -m gpt-4-vision-preview
 
     [...]
     Q: !img  https://i.imgur.com/wpXKyRo.jpeg
@@ -488,7 +490,7 @@ of the prompt. The file is then read and the text content appended
 to the user prompt.
 This is a basic text feature that works with any model.
 
-    chatgpt.sh -cc
+    chatgpt.sh -c
 
     [...]
     Q: What is this page: https://example.com
@@ -532,11 +534,14 @@ in some functions.
 
 🗣️ Chat completion with speech in and out (STT plus TTS):
 
-    chatgpt.sh -ccwz
+    chatgpt.sh -cwz       #native chat completions
+    
+    chatgpt.sh -cdwz      #text chat completions
+
 
 Chat in Portuguese with voice-in and set _onyx_ as the TTS voice-out:
 
-    chatgpt.sh -ccwz -- pt -- onyx
+    chatgpt.sh -cwz -- pt -- onyx
 
 
 **Chat mode** provides a conversational experience,
@@ -546,9 +551,9 @@ For a more automated execution, set `option -v`,
 or `-vv` for hands-free experience (_live chat_ with silence detection),
 such as:
 
-    chatgpt.sh -cc -w -z -v
+    chatgpt.sh -c -w -z -v
 
-    chatgpt.sh -cc -w -z -vv
+    chatgpt.sh -c -w -z -vv
 
 
 ### Audio Models
@@ -563,7 +568,7 @@ or added with chat command `/audio  path/to/file.mp3`.
 
 To activate the audio output mode of an audio model, do set command line `option -z` to make sure the speech synthesis function is enabled!
 
-    chatgpt.sh -cc -w -z -vv -m "gpt-4o-audio-preview"
+    chatgpt.sh -c -w -z -vv -m "gpt-4o-audio-preview"
 
 
 Mind that this _does not_ implement the _realtime models_.
@@ -571,11 +576,11 @@ Mind that this _does not_ implement the _realtime models_.
 
 ## Chat Mode of Text Completions
 
-When text completions is set for chatting with `option -c`,
+When text completions is set for chatting with `options -cd` or `--text-chat`,
 some properties are configured automatically to instruct the bot.
 
 
-    chatgpt.sh -c "Hello there! What is your name?"
+    chatgpt.sh -cd "Hello there! What is your name?"
 
 
 <!-- **TIP**: Set _-vv_ to have auto sleep for reading time of last response,
@@ -635,7 +640,7 @@ with `code` models and is really good!
 ## Responses API
 
 Responses API is a superset of Chat Completions API. Set command
-line `option -b` (with `-cc`), or set `options -bb` for multiturn.
+line `option -b` (with `-c`), or set `options -bb` for multiturn.
 
 To activate it during multiturn chat, set `/responses [model]`,
 where _model_ is the name of a model which works with the Responses API.
@@ -682,7 +687,7 @@ Type in any of the following markdown software as argument to the option:
 
 ## ⚙️ Prompts
 
-Unless the chat `option -c` or `-cc` are set, _no instruction_ is
+Unless the chat `options -c`, `-cd`, or `-bc` are set, _no instruction_ is
 given to the language model. On chat mode, if no instruction is set,
 minimal instruction is given, and some options set, such as increasing
 temperature and presence penalty, in order to un-lobotomise the bot.
@@ -714,9 +719,9 @@ Translations are available for the languages: `en`, `pt`, `es`, `it`,
 
 To run the script with the Hindi prompt, for example, the user may execute:
 
-    chatgpt.sh -cc .hi
+    chatgpt.sh -c .hi
 
-    LANG=hi_IN.UTF-8 chatgpt.sh -cc
+    LANG=hi_IN.UTF-8 chatgpt.sh -c
 
 
 Note: custom prompts with colliding names such as "hi"
@@ -727,26 +732,26 @@ have precedence over this feature.
 
 Set a one-shot instruction prompt with `option -S`:
 
-    chatgpt.sh -cc -S 'You are a PhD psychologist student.' 
+    chatgpt.sh -c -S 'You are a PhD psychologist student.' 
 
-    chatgpt.sh -ccS'You are a professional software programmer.'
+    chatgpt.sh -cS'You are a professional software programmer.'
 
 
 To create or load a prompt template file, set the first positional argument
 as `.prompt_name` or `,prompt_name`.
 In the second case, load the prompt and single-shot edit it.
 
-    chatgpt.sh -cc .psychologist 
+    chatgpt.sh -c .psychologist 
 
-    chatgpt.sh -cc ,software_programmer
+    chatgpt.sh -c ,software_programmer
 
 
 Alternatively, set `option -S` with the operator and the name of
 the prompt as an argument:
 
-    chatgpt.sh -cc -S .psychologist 
+    chatgpt.sh -c -S .psychologist 
 
-    chatgpt.sh -cc -S,software_programmer
+    chatgpt.sh -c -S,software_programmer
 
 
 This will load the custom prompt or create it if it does not yet exist.
@@ -763,11 +768,11 @@ Set a prompt from [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt
 or [awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh),
 (use with davinci and gpt-3.5+ models):
 
-    chatgpt.sh -cc -S /linux_terminal
+    chatgpt.sh -c -S /linux_terminal
 
-    chatgpt.sh -cc -S /Relationship_Coach 
+    chatgpt.sh -c -S /Relationship_Coach 
 
-    chatgpt.sh -cc -S '%担任雅思写作考官'
+    chatgpt.sh -c -S '%担任雅思写作考官'
 
 
 <!--
@@ -1034,17 +1039,17 @@ a model and set it up.
 
 Finally, when running `chatgpt.sh`, set the model name:
 
-    chatgpt.sh --localai -cc -m luna-ai-llama2
+    chatgpt.sh --localai -c -m luna-ai-llama2
 
 
 Setting some stop sequences may be needed to prevent the
 model from generating text past context:
 
-    chatgpt.sh --localai -cc -m luna-ai-llama2  -s'### User:'  -s'### Response:'
+    chatgpt.sh --localai -c -m luna-ai-llama2  -s'### User:'  -s'### Response:'
 
 
 Optionally set restart and start sequences for text completions
-endpoint (`option -c`), such as `-s'\n### User: '  -s'\n### Response:'`
+endpoint (`option -cd`), such as `-s'\n### User: '  -s'\n### Response:'`
 (do mind setting newlines *\n and whitespaces* correctly).
 
 And that's it!
@@ -1094,7 +1099,7 @@ The environment variable `$OPENAI_BASE_URL` is read at invocation.
 
     export OPENAI_BASE_URL="http://127.0.0.1:8080/v1"
 
-    chatgpt.sh -c -m luna-ai-llama2
+    chatgpt.sh -cd -m luna-ai-llama2
 
 
 To set it a in a more permanent fashion, edit the script
@@ -1155,7 +1160,7 @@ the server.
 After having Ollama server running, set `option -O` (`--ollama`),
 and the name of the model in `chatgpt.sh`:
 
-    chatgpt.sh -cc -O -m llama2
+    chatgpt.sh -c -O -m llama2
 
 
 If Ollama server URL is not the default `http://localhost:11434`,
@@ -1174,7 +1179,7 @@ use Gemini and vision models. Users have a free bandwidth of 60 requests per min
 Set the environment variable `$GOOGLE_API_KEY` and run the script
 with `option --google`, such as:
 
-    chatgpt.sh --google -cc -m gemini-pro-vision
+    chatgpt.sh --google -c -m gemini-pro-vision
 
 
 *OBS*: Google Gemini vision models _are not_ enabled for multiturn at the API side, so we hack it.
@@ -1190,7 +1195,7 @@ or set `$BLOCK_CMD` envar.
 ```
 export BLOCK_CMD='"tools": [ { "google_search": {} } ]'
 
-chatgpt.sh --goo -cc -m gemini-2.5-flash-preview-05-20
+chatgpt.sh --goo -c -m gemini-2.5-flash-preview-05-20
 ```
 
 Check more web search parameters at [Google AI API docs](https://ai.google.dev/gemini-api/docs/grounding?lang=rest).
@@ -1240,7 +1245,7 @@ Run the script with `option --anthropic` or `--ant`.
 Check the **Claude-4** models! Run the script as:
 
 ```
-chatgpt.sh --anthropic -cc -m claude-opus-4-5
+chatgpt.sh --anthropic -c -m claude-opus-4-5
 
 ```
 
@@ -1254,7 +1259,7 @@ The script also works on **text completions** with models such as
 Try:
 
 ```
-chatgpt.sh --ant -c -m claude-2.1
+chatgpt.sh --ant -cd -m claude-2.1
 ```
 
 
@@ -1270,7 +1275,7 @@ export BLOCK_USR='"tools": [{
   "max_uses": 5
 }]'
 
-chatgpt.sh --ant -cc -m claude-opus-4-0
+chatgpt.sh --ant -c -m claude-opus-4-0
 ```
 
 Check more web search parameters at [Anthropic API docs](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking).
@@ -1290,7 +1295,7 @@ or list the available models and their original names with `chatgpt.sh --github 
 
 
 ```
-chatgpt.sh --github -cc -m Phi-3-small-8k-instruct
+chatgpt.sh --github -c -m Phi-3-small-8k-instruct
 ```
 
 <!--
@@ -1323,7 +1328,9 @@ work with the `/chat/completions` endpoint.
 
 Our script _does not set the endpoint automatically_!
 
-Check model details and web pages to understand their capabilities, and then either run the script with `option -c` (**text completions**) or `options -cc` (**chat completions**).
+Check model details and web pages to understand their capabilities, and then
+either run the script with `option -c` (**chat completions**), or
+`options -cd` (**text completions**).
 
 ---
 
@@ -1335,7 +1342,7 @@ set Novita AI integration manually instead:
 export OPENAI_API_KEY=novita-api-key
 export OPENAI_BASE_URL="https://api.novita.ai/v3/openai"
 
-chatgpt.sh -cc -m meta-llama/llama-3.3-70b-instruct
+chatgpt.sh -c -m meta-llama/llama-3.3-70b-instruct
 ```
 
 We are grateful to Novita AI for their support and collaboration. For more
@@ -1345,7 +1352,7 @@ information, visit [Novita AI](https://novita.ai/).
 ### OpenRouter API
 
 To enable OpenRouter API integration, call the script with
-`chatgpt.sh --openrouter -cc` at the command line.
+`chatgpt.sh --openrouter -c` at the command line.
 
 List models with `chatgpt.sh --openrouter -l`.
 
@@ -1358,15 +1365,21 @@ to save a few bucks.
 Visit [xAI Grok](https://docs.x.ai/docs/quickstart#creating-api-key)
 to generate an API key (environment `$XAI_API_KEY`).
 
-Run the script with `option --xai` and also with `option -cc` (chat completions.).
+Run the script with `option --xai` and also with `option -c` (chat completions.).
 
 Some models also work with native text completions. For that,
-set command-line `option -c` instead.
+set command-line `options -cd` instead.
+
+
+#### xAI Live Search
+
+The xAI live search feature has been discontinued server-side.
+
+Use the in-house solution for simple search text dumps to
+ground the prompt, chat command `/g [search_ string]`.
 
 
 <!--
-#### xAI Live Search
-
 To enable live search in the API, use chat command `/g [prompt]`
 or `//g [prompt]`,
 or to keep live search enabled for all prompts, set `$BLOCK_USR`
@@ -1397,7 +1410,7 @@ Visit [DeepSeek Webpage](https://platform.deepseek.com/api_keys) to get
 an API key and set envar `$DEEPSEEK_API_KEY`.
 
 Run the script with `option --deepseek`.
-It works with chat completions  (`option -cc`) and text completions (`option -c`) modes.
+It works with chat completions  (`option -c`) and text completions (`options -cd`) modes.
 
 
 <!--
@@ -1597,7 +1610,7 @@ See also:
   - [Shell Troubleshoot](#shell-troubleshoot)
   - [Termux Troubleshoot](#termux-troubleshoot)
   - [API Provider Setup](#service-providers)
-  - [API Base URL configuration](#base-url-configuration)
+  - [API Base URL Configuration](#base-url-configuration)
 
 
 For software alternatives that may better suit your needs, see the projects listed in the
@@ -1606,21 +1619,26 @@ For software alternatives that may better suit your needs, see the projects list
 
 ## 💡  Notes and Tips
 
+- Native chat completions is the **default** mode of script `option -c` since version 127.
+  To activate the legacy plain text completions chat mode, set `options -cd`.
+
 - The YouTube feature will get YouTube video heading title and its transcripts information only (when available).
 
 - The PDF support feature extracts PDF text ([_no images_](https://docs.anthropic.com/en/docs/build-with-claude/pdf-support#how-pdf-support-works)) and appends it to the user request.
 
 - Run chat commands with either _operator_ `!` or `/`.
 
+- One can **regenerate a response** by typing in a new prompt a single slash `/`,
+or `//` to have last prompt edited before the new request.
+
 - Edit live history entries with command `!hist` (comment out entries or context injection).
+
 
 <!-- (_discontinued_)
 - Add operator forward slash `/` to the end of prompt to trigger **preview mode**. -->
 
-- One can **regenerate a response** by typing in a new prompt a single slash `/`,
-or `//` to have last prompt edited before the new request.
-
 <!--
+
 - There is a [Zsh point release branch](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/zsh),
   but it will not be updated.
 -->
@@ -1686,8 +1704,8 @@ on bug fixes and stability.
 - We may only partially support the _image generation_, _image variations_ and _image editing_
 specific OpenAI endpoints.
 
-- Update: Dropped support for _image generation_, _variations_ and _editing_ endpoints
-([v122.5 Dec-2025](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/22f7c89b1dc012e16c796e45ac5c0a3aef9e7e3e)).
+  - Update: Dropped support for _image generation_, _variations_ and _editing_ endpoints
+    ([v122.5 Dec-2025](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/22f7c89b1dc012e16c796e45ac5c0a3aef9e7e3e)).
 
 - Text completions endpoint is planned to be deprecated when there are
 no models compatible with this endpoint anymore.

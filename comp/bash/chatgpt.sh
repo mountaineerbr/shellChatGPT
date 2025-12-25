@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.125
+# v0.127
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -79,7 +79,8 @@ _chatgptsh()
         -. -, -,,
         -t --temperature --temp
         --time --date --no-time --no-date
-        -c --chat -cc
+        -c --chat
+	-cd --text-chat
         -C --continue --resume
         -d --text
         --effort --budget
@@ -222,7 +223,7 @@ _chatgptsh()
         -[1-9]*|-[!-][0-9]*)  #max response tokens (e.g. -4000)
           COMPREPLY=( "${cur}" "${cur}1" "${cur}2" "${cur}3" "${cur}4" "${cur}5" "${cur}6" "${cur}7" "${cur}8" "${cur}9" "${cur}0" )
           ;;
-        -|-[!-]*)  #agglutinated short options (e.g. -vcc)
+        -|-[!-]*)  #agglutinated short options (e.g. -vcd)
           COMPREPLY=( $(compgen -W "$(sed -e 's/--[^ ]*//g' <<<"${opts}")" -- "${cur}") )  #sed -e "s/-/${cur}/g"
           ((${#COMPREPLY[@]})) || COMPREPLY=( "${cur}" )
           ;;
@@ -230,7 +231,7 @@ _chatgptsh()
           COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
           ;;
         '')  #first suggestion when no input + list files
-          ((${#COMP_WORDS[@]}==2)) && COMPREPLY=( '-cc' )
+          ((${#COMP_WORDS[@]}==2)) && COMPREPLY=( '-c' )
           ((${#COMP_WORDS[@]}<5)) && COMPREPLY=( '/[session_name]' '.[prompt_name]' "${COMPREPLY[@]}" )
           ;&
         *)  #filetype filter

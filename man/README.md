@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: December 2025
-title: CHATGPT.SH(1) v0.126 \| General Commands Manual
+date: January 2026
+title: CHATGPT.SH(1) v0.127 \| General Commands Manual
 ---
 
 # NAME
@@ -11,7 +11,7 @@ title: CHATGPT.SH(1) v0.126 \| General Commands Manual
 
 # SYNOPSIS
 
-   **chatgpt.sh** \[`-bb`\|`-cc`\|`-dd`\|`-qq`\] \[`opt`..\]
+   **chatgpt.sh** \[`-bb`\|`-c`\|`-cd`\|`-dd`\|`-qq`\] \[`opt`..\]
 \[*PROMPT*\|*TEXT_FILE*\|*PDF_FILE*\]  
    **chatgpt.sh** `-w` \[`opt`..\] \[*AUDIO_FILE*\|*.*\] \[*LANG*\]
 \[*PROMPT*\]  
@@ -19,7 +19,7 @@ title: CHATGPT.SH(1) v0.126 \| General Commands Manual
 \[*PROMPT-EN*\]  
    **chatgpt.sh** `-z` \[`opt`..\] \[*OUTFILE*\|*FORMAT*\|*-*\]
 \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
-   **chatgpt.sh** `-bccWwz` \[`opt`..\] -- \[*PROMPT*\] --
+   **chatgpt.sh** `-bcdWwz` \[`opt`..\] -- \[*PROMPT*\] --
 \[*stt_arg*..\] -- \[*tts_arg*..\]
 
    **chatgpt.sh** `-l` \[*MODEL*\]  
@@ -37,33 +37,33 @@ title: CHATGPT.SH(1) v0.126 \| General Commands Manual
 
 # DESCRIPTION
 
-This script acts as a wrapper for ChatGPT, STT (Whisper), and TTS
-endpoints from OpenAI. Various service providers such as LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models,
-OpenRouter, xAI, and DeepSeek APIs are supported.
+Wraps ChatGPT, STT, and TTS endpoints from various providers.
 
-By default, the script runs in single-turn of chat completion mode,
-processing INPUT directly when no options are set.
+Defaults to single-turn native chat completions. Handles multi-turn
+chat, text completions, speech-to-text, and text-to-speech models.
 
-Handles single-turn and multi-turn modes, pure text and native chat
-completions, speech-to-text, and text-to-speech models.
+Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints are
+available to use as stand-alone functions or set to work with multi-turn
+chat modes.
 
-Positional arguments are read as a single PROMPT. Some functions such as
-Whisper (STT) and TTS may handle optional positional parameters before
-the text prompt itself.
+Positional arguments are read as a single text PROMPT. Text files and
+stdin are appended to the prompt from the command line.
+
+Users can craft model instructions and reuse them, as well as manage and
+print out chat sessions.
 
 # OPTIONS
 
 ## Interface Modes
 
 **-b**, **--responses**  
-Responses API calls (may be used with `options -cc`). Limited support.
-Set a valid model with “**--model** \[*name*\]”.
+Responses API calls (may be used with `option -c` or as `-bb`). Set a
+valid model with “**--model** \[*name*\]”.
 
-**-c**, **--chat**  
+**-c**, **-cc**, **--chat**  
 Chat mode in text completions (used with `options -wzvv`).
 
-**-cc**  
+**-cd**, **--text-chat**  
 Chat mode in chat completions (used with `options -wzvv`).
 
 **-C**, **--continue**, **--resume**  
@@ -81,7 +81,7 @@ Edit first input from stdin or file (cmpls/chat).
 With `options -eex`, edit last text editor buffer from cache.
 
 **-E**, **-EE**, **--exit**  
-Exit on first run (even with options -cc).
+Exit on first run (even with options -bcd).
 
 **-g**, **--stream** (*defaults*)  
 Response streaming.
@@ -137,7 +137,7 @@ Set twice to print tokens, thrice to available encodings.
 
 Set the model or encoding with `option -m`.
 
-It heeds `options -ccm`.
+It heeds `options -bcdm`.
 
 **-w**, **--transcribe** \[*AUD*\] \[*LANG*\] \[*PROMPT*\]  
 Transcribe audio file speech into text. LANG is optional. A prompt that
@@ -226,7 +226,7 @@ Top_k value (local-ai, ollama, google).
 How long the model will stay loaded into memory (Ollama).
 
 **-m**, **--model** \[*MODEL*\]  
-Language *MODEL* name. Def=*gpt-5*/*gpt-3.5-turbo-instruct*.
+Language *MODEL* name. Def=*gpt-5.1*/*gpt-3.5-turbo-instruct*.
 
 Set *MODEL* name as “*.*” to pick from the list.
 
@@ -280,7 +280,7 @@ A history file name can be optionally set as argument.
 Print out last history session.
 
 Set twice to print commented out history entries, inclusive. Heeds
-`options -bccdrR`.
+`options -bcdrR`.
 
 These are aliases to **-HH** and **-HHH**, respectively.
 
@@ -372,9 +372,9 @@ Copy response to clipboard.
 **-v**, **-vv** <!-- verbose -->  
 Less interface verbosity.
 
-Sleep after response in voice chat (`-vvbccw`).
+Sleep after response in voice chat (`-vvbcdw`).
 
-With `options -bccwv`, sleep after response. With `options -bccwzvv`,
+With `options -bcdwv`, sleep after response. With `options -bcdwzvv`,
 stop recording voice input on silence detection and play TTS response
 right away.
 
@@ -397,26 +397,35 @@ Print JSON data of the last responses.
 
 # CHAT COMPLETION MODE
 
-Set `option -c` to start a multi-turn chat mode via **text completions**
-with history support. This option works with instruct models, defaults
-to *gpt-3.5-turbo-instruct* if none set.
+Invoke `option -c`, `--chat` to initiate interactive multi-turn sessions
+via **native chat completions** with persistent history. This mode
+defaults to the *gpt-5.1* model.
 
-Set `options -cc` to start the chat mode via **native chat
-completions**. This mode defaults to the *gpt-5* model, which is
-optimised to follow instructions.
-<!-- Try _chatgpt-4o-latest_ for a model optimised for chatting. -->
+Models compatible with **pure text completions** (instruct models), set
+`options -cd` or `--text-chat` at the command line. If no model is
+specified, it defaults to *gpt-3.5-turbo-instruct*.
 
-On `options -bb`, the Responses API endpoint is set preferentially.
+In chat mode, certain internal parameters are automatically tuned to
+un-lobotomise the bot for better reasoning.
 
-In chat mode, some options are automatically set to un-lobotomise the
-bot.
+When using different providers, ensure that `options -c`, `-cd`, or
+`-bc` are used according to the specific model’s capabilities; these
+options target different API endpoints.
 
-While using other providers, mind that `options -c`, `-cc`, and `-bb`
-set different endpoints! These options must be set according to the
-model capabilities!
+Set `option -C` to **resume** a previous history session. Set
+`option -E` to **force-exit** after the first response, even when
+multi-turn mode is enabled.
 
-Set `option -C` to **resume** (continue from) last history session, and
-set `option -E` to exit on the first response (even in multi turn mode).
+# RESPONSES API
+
+The Responses API is a superset of the Chat Completions API. It offers
+extended functionality but currently has limited support.
+
+Access the responses endpoint via `option -b`, `--responses` for
+single-turn incantation, or `options -bb` or `-bc` for multi-turn mode.
+
+To hot-swap to this API during an active session, use the internal
+command `/responses [model]`, aliased to `/resp` or even `-b`.
 
 # TEXT COMPLETION MODE <!-- legacy -->
 
@@ -424,7 +433,7 @@ set `option -E` to exit on the first response (even in multi turn mode).
 no history support. This does not set further options automatically,
 such as instruction or temperature.
 
-To run the script in text completion in multi-turn mode and history
+To run the script in text completions in multi-turn mode and history
 support, set command line `options -dd`.
 
 Set text completion models such as *gpt-3.5-turbo-instruct*.
@@ -438,17 +447,6 @@ preceding the flag, and ends completion with the succeeding text after
 the flag.
 
 Insert mode works with \`instruct’ and Mistral \`code’ models.
-
-# RESPONSES API
-
-Responses API is a superset of Chat Completions API. Set command line
-`option -b` (with `-cc`), or set `options -bb` for multi-turn.
-
-To activate it during multi-turn chat, set `/responses [model]`, where
-*model* is the name of a model which works with the Responses API.
-Aliased to `/resp [model]` and `-b [model]`. This can be toggled.
-
-Limited support.
 
 # INSTRUCTION PROMPTS
 
@@ -471,7 +469,7 @@ respectively-named history file.
 
 Alternatively, set the first positional argument with the operator and
 the prompt name after any command line options, such as
-“`chatgpt;sh -cc .[_prompt_name_]`”. This loads the prompt file unless
+“`chatgpt;sh -c .[_prompt_name_]`”. This loads the prompt file unless
 instruction was set with command line options.
 
 To prepend the current date and time to the instruction prompt, set
@@ -488,7 +486,7 @@ tone and accent of the rendered voice output with a robust
 ## Prompt Engineering and Design
 
 Minimal **INSTRUCTION** to behave like a chatbot is given with chat
-`options -cc`, unless otherwise explicitly set by the user.
+`options -c`, unless otherwise explicitly set by the user.
 
 On chat mode, if no INSTRUCTION is set, minimal instruction is given,
 and some options auto set, such as increasing temp and presence penalty,
@@ -569,7 +567,7 @@ argument.
 Set these options twice to have phrasal-level timestamps, options -ww
 and -WW. Set thrice for word-level timestamps.
 
-Combine `options -wW` **with** `options -bcc` to start **chat with voice
+Combine `options -wW` **with** `options -bcd` to start **chat with voice
 input** (Whisper) support. Additionally, set `option -z` to enable
 **text-to-speech** (TTS) models and voice out.
 
@@ -630,7 +628,7 @@ or "_vivid_" as one of the first  positional parameters at command line invocati
 
 # TEXT / CHAT COMPLETIONS
 
-## 1. Text Completion
+## 1. Text Completions
 
 Given a prompt, the model will return one or more predicted completions.
 For example, given a partial input, the language model will try
@@ -639,7 +637,7 @@ completing it until probable “`<|endoftext|>`”, or other stop sequences
 
 **Restart** and **start sequences** may be optionally set. Restart and
 start sequences are not set automatically if the chat mode of text
-completions is not activated with `option -c`.
+completions is not activated with `option -cd`.
 
 Readline is set to work with **multiline input** and pasting from the
 clipboard. Alternatively, set `option -u` to enable pressing
@@ -654,16 +652,16 @@ Language model **SKILLS** can be activated with specific prompts, see
 
 ## 2. Interactive Conversations
 
-### 2.1 Text Completions Chat
+### 2.1 Native Chat Completions
 
-Set `option -c` to start chat mode of text completions. It keeps a
+Set the `option -c` to start chat completions mode. More recent models
+are also the best option for many non-chat use cases.
+
+### 2.2 Text Completions Chat
+
+Set `option -cd` to start chat mode of text completions. It keeps a
 history file, and keeps new questions in context. This works with a
 variety of models. Set `option -E` to exit on response.
-
-### 2.2 Native Chat Completions
-
-Set the double `option -cc` to start chat completions mode. More recent
-models are also the best option for many non-chat use cases.
 
 ### 2.3 Q & A Format
 
@@ -691,7 +689,7 @@ instruction when the model’s context has been truncated.
 
 ### 2.4 Voice input (STT), and voice output (TTS)
 
-The `options -bccwz` may be combined to have voice recording input and
+The `options -bcdwz` may be combined to have voice recording input and
 synthesised voice output, specially nice with chat modes. When setting
 `flag -w` or `flag -z`, the first positional parameters are read as STT
 or TTS arguments. When setting both `flags -wz`, add a double hyphen to
@@ -700,19 +698,19 @@ set first STT, and then TTS arguments.
 Set chat mode, plus voice-in transcription language code and text
 prompt, and the TTS voice-out option argument:
 
-    chatgpt.sh -bccwz  en 'transcription prompt'  --  nova
+    chatgpt.sh -bcwz  en 'transcription prompt'  --  nova
 
 ### 2.5 Vision and Multimodal Models
 
 To send an *image* or *url* to **vision models**, either set the image
 with the “`!img`” command with one or more *filepaths* / *urls*.
 
-    chatgpt.sh -cc -m gpt-4-vision-preview '!img path/to/image.jpg'
+    chatgpt.sh -c -m gpt-4-vision-preview '!img path/to/image.jpg'
 
 Alternatively, set the *image paths* / *urls* at the end of the text
 prompt interactively:
 
-    chatgpt.sh -cc -m gpt-4-vision-preview
+    chatgpt.sh -c -m gpt-4-vision-preview
 
     [...]
     Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpeg
@@ -725,7 +723,7 @@ The user may add a *filepath* or *URL* to the end of the prompt. The
 file is then read and the text content added to the user prompt. This is
 a basic text feature that works with any model.
 
-    chatgpt.sh -cc
+    chatgpt.sh -c
 
     [...]
     Q: What is this page: https://example.com
@@ -776,6 +774,7 @@ parameters and manage sessions.
 | `!!i` | `!!info` | Monthly usage stats (OpenAI). |
 | `!j` | `!jump` | Jump to request, append start seq primer (text cmpls). |
 | `!!j` | `!!jump` | Jump to request, no response priming. |
+| `!cache` | \- | Toggle prompt caching (**Anthropic only**). |
 | `!cat` | \- | Cat prompter as one-shot, \<*CTRL-D*\> flush. *‡* |
 | `!cat` | `!cat:` \[*TXT*\|*URL*\|*PDF*\] | Cat *text*, *PDF* file, or dump *URL*. |
 | `!clot` | `!!clot` | Flood the TTY with patterns, as visual separator. |
@@ -943,7 +942,7 @@ history file.
 
 On invocation, when the first positional argument to the script follows
 the syntax “`/`\[*HIST_NAME*\]”, the command “`/session`” is assumed
-(with `options -bccCdPP`).
+(with `options -bcddCPP`).
 
 ## Resuming and Copying Sessions
 
@@ -985,6 +984,10 @@ To edit chat context at run time, the history file may be modified with
 the “`/hist`” command (also good for context injection).
 
 Delete history entries or comment them out with “\#”.
+
+Note that the user must edit the actual json-escaped strings in the
+history file, which a burdensome strategy, but hopefully acceptable for
+small modifications of history context in a live session.
 
 <!--
 # CODE COMPLETIONS _(discontinued)_
@@ -1153,7 +1156,7 @@ See section on service providers in our repository documentation, and an
 example on how to set up **Novita API integration**.
 
 Some service providers and models may also work with pure text
-completions, which is turned on with command-line `option -c` instead.
+completions, which is turned on with command-line `option -cd` instead.
 
 Prompt caching is manually enabled for Anthropic API and models,
 <!-- This feature may be eventually enabled for Google Gemini models, -->
@@ -1290,15 +1293,22 @@ export BLOCK_USR='"tools": [{
 
 ## xAI Live Search
 
-    export BLOCK_USR='"search_parameters": {
-      "mode": "auto",
-      "max_search_results": 10
-    }'
+The xAI live search feature has been discontinued server-side.
 
-    chatgpt.sh --xai -cc -m grok-3-latest 
+Use the in-house solution for simple search text dumps to ground the
+prompt. See chat command `/g [search_ string]`.
 
-Check more search parameters at the xAI API documentation:
+<!--
+```
+export BLOCK_USR='"search_parameters": {
+  "mode": "auto",
+  "max_search_results": 10
+}'
+&#10;chatgpt.sh --xai -cc -m grok-3-latest 
+```
+&#10;Check more search parameters at the xAI API documentation:
 <https://docs.x.ai/docs/guides/live-search>.
+-->
 
 ## Anthropic Web Search
 
@@ -1308,7 +1318,7 @@ Check more search parameters at the xAI API documentation:
       "max_uses": 5
     }]'
 
-    chatgpt.sh --ant -cc -m claude-opus-4-0
+    chatgpt.sh --ant -c -m claude-opus-4-0
 
 Check more web search parameters at Anthropic API docs:
 <https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking>.
@@ -1317,7 +1327,7 @@ Check more web search parameters at Anthropic API docs:
 
     export BLOCK_CMD='"tools": [ { "google_search": {} } ]'
 
-    chatgpt.sh --goo -cc -m gemini-2.5-flash-preview-05-20
+    chatgpt.sh --goo -c -m gemini-2.5-flash-preview-05-20
 
 Check more web search parameters at Google AI API docs:
 <https://ai.google.dev/gemini-api/docs/grounding?lang=rest>.
@@ -1399,6 +1409,12 @@ For complete model and settings information, refer to OpenAI API docs at
 See the online man page and `chatgpt.sh` usage examples at:
 <https://gitlab.com/fenixdragao/shellchatgpt>.
 
+<!--
+Native chat completions is the **default** mode of script `option -c`
+since version 127.
+To activate the legacy plain text completions chat mode, set `options -cd`.
+  -->
+
 # REQUIRED PACKAGES
 
 - `Bash` shell
@@ -1451,8 +1467,16 @@ in the local session history database due to cached tokens, e.g. xAI
 reasoning models. Service providers may actually inject (though not
 bill) certain amounts of instruction-like tokens automatically.
 
-Reasoning (thinking) and answers from certain API services may not have
-a distinct separation of output due to JSON processing constraints.
+With reasoning model sessions, if chat context size and recorded token
+count do not match, try running the script with command line `option -y`
+to invoke the tiktoken function during context generation. Be aware that
+using online tiktoken services may introduce delays in history
+generation. This is due to how and if the models respond with reasoning
+text or not.
+
+Reasoning (thinking) text and response text from certain API services
+may not have clear display separation due to JSON processing
+constraints.
 
 Bash “read command” may not correctly display input buffers larger than
 the TTY screen size during editing. However, input buffers remain

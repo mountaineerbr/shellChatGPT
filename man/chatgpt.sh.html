@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.126 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.127 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,16 +171,16 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.126 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.127 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">December 2025</p>
+<p class="date">January 2026</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT /
 TTS</div>
 <h1 id="synopsis">SYNOPSIS</h1>
 <div class="line-block">   <strong>chatgpt.sh</strong>
-[<code>-bb</code>|<code>-cc</code>|<code>-dd</code>|<code>-qq</code>]
+[<code>-bb</code>|<code>-c</code>|<code>-cd</code>|<code>-dd</code>|<code>-qq</code>]
 [<code>opt</code>..]
 [<em>PROMPT</em>|<em>TEXT_FILE</em>|<em>PDF_FILE</em>]<br />
    <strong>chatgpt.sh</strong> <code>-w</code> [<code>opt</code>..]
@@ -190,7 +190,7 @@ TTS</div>
    <strong>chatgpt.sh</strong> <code>-z</code> [<code>opt</code>..]
 [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
 [<em>SPEED</em>] [<em>PROMPT</em>]<br />
-   <strong>chatgpt.sh</strong> <code>-bccWwz</code> [<code>opt</code>..]
+   <strong>chatgpt.sh</strong> <code>-bcdWwz</code> [<code>opt</code>..]
 -- [<em>PROMPT</em>] -- [<em>stt_arg</em>..] --
 [<em>tts_arg</em>..]</div>
 <div class="line-block">   <strong>chatgpt.sh</strong> <code>-l</code>
@@ -208,32 +208,32 @@ TTS</div>
 |    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
 -->
 <h1 id="description">DESCRIPTION</h1>
-<p>This script acts as a wrapper for ChatGPT, STT (Whisper), and TTS
-endpoints from OpenAI. Various service providers such as LocalAI,
-Ollama, Anthropic, Mistral AI, GoogleAI, Groq AI, GitHub Models,
-OpenRouter, xAI, and DeepSeek APIs are supported.</p>
-<p>By default, the script runs in single-turn of chat completion mode,
-processing INPUT directly when no options are set.</p>
-<p>Handles single-turn and multi-turn modes, pure text and native chat
-completions, speech-to-text, and text-to-speech models.</p>
-<p>Positional arguments are read as a single PROMPT. Some functions such
-as Whisper (STT) and TTS may handle optional positional parameters
-before the text prompt itself.</p>
+<p>Wraps ChatGPT, STT, and TTS endpoints from various providers.</p>
+<p>Defaults to single-turn native chat completions. Handles multi-turn
+chat, text completions, speech-to-text, and text-to-speech models.</p>
+<p>Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints are
+available to use as stand-alone functions or set to work with multi-turn
+chat modes.</p>
+<p>Positional arguments are read as a single text PROMPT. Text files and
+stdin are appended to the prompt from the command line.</p>
+<p>Users can craft model instructions and reuse them, as well as manage
+and print out chat sessions.</p>
 <h1 id="options">OPTIONS</h1>
 <h2 id="interface-modes">Interface Modes</h2>
 <dl>
 <dt><strong>-b</strong>, <strong>--responses</strong></dt>
 <dd>
-<p>Responses API calls (may be used with <code>options -cc</code>).
-Limited support. Set a valid model with “<strong>--model</strong>
+<p>Responses API calls (may be used with <code>option -c</code> or as
+<code>-bb</code>). Set a valid model with “<strong>--model</strong>
 [<em>name</em>]”.</p>
 </dd>
-<dt><strong>-c</strong>, <strong>--chat</strong></dt>
+<dt><strong>-c</strong>, <strong>-cc</strong>,
+<strong>--chat</strong></dt>
 <dd>
 <p>Chat mode in text completions (used with
 <code>options -wzvv</code>).</p>
 </dd>
-<dt><strong>-cc</strong></dt>
+<dt><strong>-cd</strong>, <strong>--text-chat</strong></dt>
 <dd>
 <p>Chat mode in chat completions (used with
 <code>options -wzvv</code>).</p>
@@ -261,7 +261,7 @@ cache.</p>
 <dt><strong>-E</strong>, <strong>-EE</strong>,
 <strong>--exit</strong></dt>
 <dd>
-<p>Exit on first run (even with options -cc).</p>
+<p>Exit on first run (even with options -bcd).</p>
 </dd>
 <dt><strong>-g</strong>, <strong>--stream</strong>
 (<em>defaults</em>)</dt>
@@ -333,7 +333,7 @@ cache.</p>
 <p>Count input tokens with python Tiktoken (ignores special tokens).</p>
 <p>Set twice to print tokens, thrice to available encodings.</p>
 <p>Set the model or encoding with <code>option -m</code>.</p>
-<p>It heeds <code>options -ccm</code>.</p>
+<p>It heeds <code>options -bcdm</code>.</p>
 </dd>
 <dt><strong>-w</strong>, <strong>--transcribe</strong> [<em>AUD</em>]
 [<em>LANG</em>] [<em>PROMPT</em>]</dt>
@@ -452,7 +452,7 @@ Google)</dt>
 <dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
 <dd>
 <p>Language <em>MODEL</em> name.
-Def=<em>gpt-5</em>/<em>gpt-3.5-turbo-instruct</em>.</p>
+Def=<em>gpt-5.1</em>/<em>gpt-3.5-turbo-instruct</em>.</p>
 <p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
 </dd>
 <dt><strong>--multimodal</strong>, <strong>--vision</strong>,
@@ -529,7 +529,7 @@ Def=<em>echo</em>, <em>Aaliyah-PlayAI</em>.</p>
 <dd>
 <p>Print out last history session.</p>
 <p>Set twice to print commented out history entries, inclusive. Heeds
-<code>options -bccdrR</code>.</p>
+<code>options -bcdrR</code>.</p>
 <p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
 respectively.</p>
 </dd>
@@ -654,9 +654,9 @@ respectively.</p>
 <dt><strong>-v</strong>, <strong>-vv</strong> <!-- verbose --></dt>
 <dd>
 <p>Less interface verbosity.</p>
-<p>Sleep after response in voice chat (<code>-vvbccw</code>).</p>
-<p>With <code>options -bccwv</code>, sleep after response. With
-<code>options -bccwzvv</code>, stop recording voice input on silence
+<p>Sleep after response in voice chat (<code>-vvbcdw</code>).</p>
+<p>With <code>options -bcdwv</code>, sleep after response. With
+<code>options -bcdwzvv</code>, stop recording voice input on silence
 detection and play TTS response right away.</p>
 <p>May be set multiple times.</p>
 </dd>
@@ -684,29 +684,37 @@ detection and play TTS response right away.</p>
 </dd>
 </dl>
 <h1 id="chat-completion-mode">CHAT COMPLETION MODE</h1>
-<p>Set <code>option -c</code> to start a multi-turn chat mode via
-<strong>text completions</strong> with history support. This option
-works with instruct models, defaults to <em>gpt-3.5-turbo-instruct</em>
-if none set.</p>
-<p>Set <code>options -cc</code> to start the chat mode via
-<strong>native chat completions</strong>. This mode defaults to the
-<em>gpt-5</em> model, which is optimised to follow instructions.
-<!-- Try _chatgpt-4o-latest_ for a model optimised for chatting. --></p>
-<p>On <code>options -bb</code>, the Responses API endpoint is set
-preferentially.</p>
-<p>In chat mode, some options are automatically set to un-lobotomise the
-bot.</p>
-<p>While using other providers, mind that <code>options -c</code>,
-<code>-cc</code>, and <code>-bb</code> set different endpoints! These
-options must be set according to the model capabilities!</p>
-<p>Set <code>option -C</code> to <strong>resume</strong> (continue from)
-last history session, and set <code>option -E</code> to exit on the
-first response (even in multi turn mode).</p>
+<p>Invoke <code>option -c</code>, <code>--chat</code> to initiate
+interactive multi-turn sessions via <strong>native chat
+completions</strong> with persistent history. This mode defaults to the
+<em>gpt-5.1</em> model.</p>
+<p>Models compatible with <strong>pure text completions</strong>
+(instruct models), set <code>options -cd</code> or
+<code>--text-chat</code> at the command line. If no model is specified,
+it defaults to <em>gpt-3.5-turbo-instruct</em>.</p>
+<p>In chat mode, certain internal parameters are automatically tuned to
+un-lobotomise the bot for better reasoning.</p>
+<p>When using different providers, ensure that <code>options -c</code>,
+<code>-cd</code>, or <code>-bc</code> are used according to the specific
+model’s capabilities; these options target different API endpoints.</p>
+<p>Set <code>option -C</code> to <strong>resume</strong> a previous
+history session. Set <code>option -E</code> to
+<strong>force-exit</strong> after the first response, even when
+multi-turn mode is enabled.</p>
+<h1 id="responses-api">RESPONSES API</h1>
+<p>The Responses API is a superset of the Chat Completions API. It
+offers extended functionality but currently has limited support.</p>
+<p>Access the responses endpoint via <code>option -b</code>,
+<code>--responses</code> for single-turn incantation, or
+<code>options -bb</code> or <code>-bc</code> for multi-turn mode.</p>
+<p>To hot-swap to this API during an active session, use the internal
+command <code>/responses [model]</code>, aliased to <code>/resp</code>
+or even <code>-b</code>.</p>
 <h1 id="text-completion-mode">TEXT COMPLETION MODE <!-- legacy --></h1>
 <p><code>Option -d</code> starts a single-turn session in <strong>plain
 text completions</strong>, no history support. This does not set further
 options automatically, such as instruction or temperature.</p>
-<p>To run the script in text completion in multi-turn mode and history
+<p>To run the script in text completions in multi-turn mode and history
 support, set command line <code>options -dd</code>.</p>
 <p>Set text completion models such as
 <em>gpt-3.5-turbo-instruct</em>.</p>
@@ -718,16 +726,6 @@ single-turn and <code>option -qq</code> for multi-turn. The flag
 Insert mode works completing between the end of the text preceding the
 flag, and ends completion with the succeeding text after the flag.</p>
 <p>Insert mode works with `instruct’ and Mistral `code’ models.</p>
-<h1 id="responses-api">RESPONSES API</h1>
-<p>Responses API is a superset of Chat Completions API. Set command line
-<code>option -b</code> (with <code>-cc</code>), or set
-<code>options -bb</code> for multi-turn.</p>
-<p>To activate it during multi-turn chat, set
-<code>/responses [model]</code>, where <em>model</em> is the name of a
-model which works with the Responses API. Aliased to
-<code>/resp [model]</code> and <code>-b [model]</code>. This can be
-toggled.</p>
-<p>Limited support.</p>
 <h1 id="instruction-prompts">INSTRUCTION PROMPTS</h1>
 <p>The SYSTEM INSTRUCTION prompt may be set with <code>option -S</code>
 or via envars <code>$INSTRUCTION</code> and
@@ -746,7 +744,7 @@ actually edit the template file itself!</p>
 respectively-named history file.</p>
 <p>Alternatively, set the first positional argument with the operator
 and the prompt name after any command line options, such as
-“<code>chatgpt;sh -cc .[_prompt_name_]</code>”. This loads the prompt
+“<code>chatgpt;sh -c .[_prompt_name_]</code>”. This loads the prompt
 file unless instruction was set with command line options.</p>
 <p>To prepend the current date and time to the instruction prompt, set
 command line <code>option --time</code>.</p>
@@ -760,8 +758,8 @@ robust `INSTRUCTION’ as usual.</p>
 <h2 id="prompt-engineering-and-design">Prompt Engineering and
 Design</h2>
 <p>Minimal <strong>INSTRUCTION</strong> to behave like a chatbot is
-given with chat <code>options -cc</code>, unless otherwise explicitly
-set by the user.</p>
+given with chat <code>options -c</code>, unless otherwise explicitly set
+by the user.</p>
 <p>On chat mode, if no INSTRUCTION is set, minimal instruction is given,
 and some options auto set, such as increasing temp and presence penalty,
 in order to un-lobotomise the bot. <!-- With cheap and fast models of
@@ -832,7 +830,7 @@ the model as the second positional argument.</p>
 <p>Set these options twice to have phrasal-level timestamps, options -ww
 and -WW. Set thrice for word-level timestamps.</p>
 <p>Combine <code>options -wW</code> <strong>with</strong>
-<code>options -bcc</code> to start <strong>chat with voice
+<code>options -bcd</code> to start <strong>chat with voice
 input</strong> (Whisper) support. Additionally, set
 <code>option -z</code> to enable <strong>text-to-speech</strong> (TTS)
 models and voice out.</p>
@@ -898,7 +896,7 @@ Note that the user needs to verify his organisation to use _gpt-image_ models!
 See **IMAGES section** below for more information on **inpaint** and **outpaint**.
 -->
 <h1 id="text-chat-completions">TEXT / CHAT COMPLETIONS</h1>
-<h2 id="text-completion">1. Text Completion</h2>
+<h2 id="text-completions">1. Text Completions</h2>
 <p>Given a prompt, the model will return one or more predicted
 completions. For example, given a partial input, the language model will
 try completing it until probable “<code>&lt;|endoftext|&gt;</code>”, or
@@ -907,7 +905,7 @@ other stop sequences (stops may be set with
 <p><strong>Restart</strong> and <strong>start sequences</strong> may be
 optionally set. Restart and start sequences are not set automatically if
 the chat mode of text completions is not activated with
-<code>option -c</code>.</p>
+<code>option -cd</code>.</p>
 <p>Readline is set to work with <strong>multiline input</strong> and
 pasting from the clipboard. Alternatively, set <code>option -u</code> to
 enable pressing &lt;<em>CTRL-D</em>&gt; to flush input! Or set
@@ -920,15 +918,14 @@ pasted or typed, even without setting <code>options -uU</code>
 prompts, see <a href="https://platform.openai.com/examples"
 class="uri">https://platform.openai.com/examples</a>.</p>
 <h2 id="interactive-conversations">2. Interactive Conversations</h2>
-<h3 id="text-completions-chat">2.1 Text Completions Chat</h3>
-<p>Set <code>option -c</code> to start chat mode of text completions. It
-keeps a history file, and keeps new questions in context. This works
+<h3 id="native-chat-completions">2.1 Native Chat Completions</h3>
+<p>Set the <code>option -c</code> to start chat completions mode. More
+recent models are also the best option for many non-chat use cases.</p>
+<h3 id="text-completions-chat">2.2 Text Completions Chat</h3>
+<p>Set <code>option -cd</code> to start chat mode of text completions.
+It keeps a history file, and keeps new questions in context. This works
 with a variety of models. Set <code>option -E</code> to exit on
 response.</p>
-<h3 id="native-chat-completions">2.2 Native Chat Completions</h3>
-<p>Set the double <code>option -cc</code> to start chat completions
-mode. More recent models are also the best option for many non-chat use
-cases.</p>
 <h3 id="q-a-format">2.3 Q &amp; A Format</h3>
 <p>The defaults chat format is “<strong>Q &amp; A</strong>”. The
 <strong>restart sequence</strong> “<em>\nQ: </em>” and the <strong>start
@@ -953,7 +950,7 @@ instruction prompt into the current request. This is useful to reinforce
 the instruction when the model’s context has been truncated.</p>
 <h3 id="voice-input-stt-and-voice-output-tts">2.4 Voice input (STT), and
 voice output (TTS)</h3>
-<p>The <code>options -bccwz</code> may be combined to have voice
+<p>The <code>options -bcdwz</code> may be combined to have voice
 recording input and synthesised voice output, specially nice with chat
 modes. When setting <code>flag -w</code> or <code>flag -z</code>, the
 first positional parameters are read as STT or TTS arguments. When
@@ -961,16 +958,16 @@ setting both <code>flags -wz</code>, add a double hyphen to set first
 STT, and then TTS arguments.</p>
 <p>Set chat mode, plus voice-in transcription language code and text
 prompt, and the TTS voice-out option argument:</p>
-<pre><code>chatgpt.sh -bccwz  en &#39;transcription prompt&#39;  --  nova</code></pre>
+<pre><code>chatgpt.sh -bcwz  en &#39;transcription prompt&#39;  --  nova</code></pre>
 <h3 id="vision-and-multimodal-models">2.5 Vision and Multimodal
 Models</h3>
 <p>To send an <em>image</em> or <em>url</em> to <strong>vision
 models</strong>, either set the image with the “<code>!img</code>”
 command with one or more <em>filepaths</em> / <em>urls</em>.</p>
-<pre><code>chatgpt.sh -cc -m gpt-4-vision-preview &#39;!img path/to/image.jpg&#39;</code></pre>
+<pre><code>chatgpt.sh -c -m gpt-4-vision-preview &#39;!img path/to/image.jpg&#39;</code></pre>
 <p>Alternatively, set the <em>image paths</em> / <em>urls</em> at the
 end of the text prompt interactively:</p>
-<pre><code>chatgpt.sh -cc -m gpt-4-vision-preview
+<pre><code>chatgpt.sh -c -m gpt-4-vision-preview
 
 [...]
 Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpeg</code></pre>
@@ -980,7 +977,7 @@ Dumps</h3>
 <p>The user may add a <em>filepath</em> or <em>URL</em> to the end of
 the prompt. The file is then read and the text content added to the user
 prompt. This is a basic text feature that works with any model.</p>
-<pre><code>chatgpt.sh -cc
+<pre><code>chatgpt.sh -c
 
 [...]
 Q: What is this page: https://example.com
@@ -1096,6 +1093,11 @@ as as suffix command, see examples below.</li>
 <td style="text-align: left;"><code>!!j</code></td>
 <td style="text-align: left;"><code>!!jump</code></td>
 <td>Jump to request, no response priming.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>!cache</code></td>
+<td style="text-align: left;">-</td>
+<td>Toggle prompt caching (<strong>Anthropic only</strong>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>!cat</code></td>
@@ -1579,7 +1581,7 @@ awesome prompts.</p>
 <p>On invocation, when the first positional argument to the script
 follows the syntax “<code>/</code>[<em>HIST_NAME</em>]”, the command
 “<code>/session</code>” is assumed (with
-<code>options -bccCdPP</code>).</p>
+<code>options -bcddCPP</code>).</p>
 <h2 id="resuming-and-copying-sessions">Resuming and Copying
 Sessions</h2>
 <p>To continue from an old session type in a dot “<code>.</code>” or
@@ -1614,6 +1616,9 @@ the correct session from the history file. -->
 with the “<code>/hist</code>” command (also good for context
 injection).</p>
 <p>Delete history entries or comment them out with “#”.</p>
+<p>Note that the user must edit the actual json-escaped strings in the
+history file, which a burdensome strategy, but hopefully acceptable for
+small modifications of history context in a live session.</p>
 <!--
 # CODE COMPLETIONS _(discontinued)_
 
@@ -1794,8 +1799,8 @@ script.</p>
 <p>See section on service providers in our repository documentation, and
 an example on how to set up <strong>Novita API integration</strong>.</p>
 <p>Some service providers and models may also work with pure text
-completions, which is turned on with command-line <code>option -c</code>
-instead.</p>
+completions, which is turned on with command-line
+<code>option -cd</code> instead.</p>
 <p>Prompt caching is manually enabled for Anthropic API and models,
 <!-- This feature may be eventually enabled for Google Gemini models, -->
 see <strong>BUGS section</strong>.</p>
@@ -1947,15 +1952,22 @@ Check more search parameters at the OpenAI API documentation:
 <https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat>.
 -->
 <h2 id="xai-live-search">xAI Live Search</h2>
-<pre><code>export BLOCK_USR=&#39;&quot;search_parameters&quot;: {
-  &quot;mode&quot;: &quot;auto&quot;,
-  &quot;max_search_results&quot;: 10
-}&#39;
+<p>The xAI live search feature has been discontinued server-side.</p>
+<p>Use the in-house solution for simple search text dumps to ground the
+prompt. See chat command <code>/g [search_ string]</code>.</p>
+<!--
+```
+export BLOCK_USR='"search_parameters": {
+  "mode": "auto",
+  "max_search_results": 10
+}'
 
-chatgpt.sh --xai -cc -m grok-3-latest </code></pre>
-<p>Check more search parameters at the xAI API documentation: <a
-href="https://docs.x.ai/docs/guides/live-search"
-class="uri">https://docs.x.ai/docs/guides/live-search</a>.</p>
+chatgpt.sh --xai -cc -m grok-3-latest 
+```
+
+Check more search parameters at the xAI API documentation:
+<https://docs.x.ai/docs/guides/live-search>.
+-->
 <h2 id="anthropic-web-search">Anthropic Web Search</h2>
 <pre><code>export BLOCK_USR=&#39;&quot;tools&quot;: [{
   &quot;type&quot;: &quot;web_search_20250305&quot;,
@@ -1963,14 +1975,14 @@ class="uri">https://docs.x.ai/docs/guides/live-search</a>.</p>
   &quot;max_uses&quot;: 5
 }]&#39;
 
-chatgpt.sh --ant -cc -m claude-opus-4-0</code></pre>
+chatgpt.sh --ant -c -m claude-opus-4-0</code></pre>
 <p>Check more web search parameters at Anthropic API docs: <a
 href="https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking"
 class="uri">https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking</a>.</p>
 <h2 id="google-search">Google Search</h2>
 <pre><code>export BLOCK_CMD=&#39;&quot;tools&quot;: [ { &quot;google_search&quot;: {} } ]&#39;
 
-chatgpt.sh --goo -cc -m gemini-2.5-flash-preview-05-20</code></pre>
+chatgpt.sh --goo -c -m gemini-2.5-flash-preview-05-20</code></pre>
 <p>Check more web search parameters at Google AI API docs: <a
 href="https://ai.google.dev/gemini-api/docs/grounding?lang=rest"
 class="uri">https://ai.google.dev/gemini-api/docs/grounding?lang=rest</a>.</p>
@@ -2041,6 +2053,11 @@ class="uri">https://platform.openai.com/docs/</a>.</p>
 <p>See the online man page and <code>chatgpt.sh</code> usage examples
 at: <a href="https://gitlab.com/fenixdragao/shellchatgpt"
 class="uri">https://gitlab.com/fenixdragao/shellchatgpt</a>.</p>
+<!--
+Native chat completions is the **default** mode of script `option -c`
+since version 127.
+To activate the legacy plain text completions chat mode, set `options -cd`.
+  -->
 <h1 id="required-packages">REQUIRED PACKAGES</h1>
 <ul>
 <li><code>Bash</code> shell</li>
@@ -2091,8 +2108,14 @@ December-2005 with script version v123.</p>
 recorded in the local session history database due to cached tokens,
 e.g. xAI reasoning models. Service providers may actually inject (though
 not bill) certain amounts of instruction-like tokens automatically.</p>
-<p>Reasoning (thinking) and answers from certain API services may not
-have a distinct separation of output due to JSON processing
+<p>With reasoning model sessions, if chat context size and recorded
+token count do not match, try running the script with command line
+<code>option -y</code> to invoke the tiktoken function during context
+generation. Be aware that using online tiktoken services may introduce
+delays in history generation. This is due to how and if the models
+respond with reasoning text or not.</p>
+<p>Reasoning (thinking) text and response text from certain API services
+may not have clear display separation due to JSON processing
 constraints.</p>
 <p>Bash “read command” may not correctly display input buffers larger
 than the TTY screen size during editing. However, input buffers remain

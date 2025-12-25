@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.126  dec/2025  by mountaineerbr  GPL+3
+# v0.127  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -169,7 +169,7 @@ function set_pathsf {
 FILE="${CACHEDIR%/}/chatgpt.json"
 FILESTREAM="${CACHEDIR%/}/chatgpt_stream.json"
 FILECHAT="${FILECHAT:-${CACHEDIR%/}/chatgpt.tsv}"
-FILEWHISPER="${FILECHAT%/*}/whisper.json"
+FILEWHISPER="${CACHEDIR%/}/whisper.json"
 FILEWHISPERLOG="${OUTDIR%/*}/whisper_log.txt"
 FILETXT="${CACHEDIR%/}/chatgpt.txt"
 FILEOUT="${OUTDIR%/}/dalle_out.png"
@@ -227,11 +227,11 @@ HELP="Name
 
 
 Synopsis
-	${0##*/} [-bb|-cc|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
+	${0##*/} [-bb|-c|-cd|-dd|-qq] [opt..] [PROMPT|TEXT_FILE|PDF_FILE]
 	${0##*/} -w [opt..] [AUDIO_FILE|.] [LANG] [PROMPT]
 	${0##*/} -W [opt..] [AUDIO_FILE|.] [PROMPT-EN]
 	${0##*/} -z [OUTFILE|FORMAT|-] [VOICE] [SPEED] [PROMPT]
-	${0##*/} -bccWwz [opt..] -- [PROMPT] -- [stt_arg..] -- [tts_arg..]
+	${0##*/} -bcdWwz [opt..] -- [PROMPT] -- [stt_arg..] -- [tts_arg..]
 
 	${0##*/} -l [MODEL]
 	${0##*/} -TTT [-v] [-m[MODEL|ENCODING]] [INPUT|TEXT_FILE|PDF_FILE]
@@ -245,16 +245,23 @@ Description
 	Defaults to single-turn native chat completions. Handles multi-turn
 	chat, text completions, speech-to-text, and text-to-speech models.
 
-	Positional arguments are read as a single PROMPT. Some functions
-	such as Whisper (STT) and TTS may handle optional positional
-	parameters before the prompt itself.
+	Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints
+	are available to use as stand-alone functions or set to work with
+	multi-turn chat modes.
+
+	Positional arguments are read as a single text PROMPT. Text files
+	and stdin are appended to the prompt from the command line.
+
+	Users can craft model instructions and reuse them, as well as
+	manage and print out chat sessions.
 
 
 Chat Completion Mode
-	Set option -c to start multi-turn chat mode via text completions
-	(instruct models) or -cc for native chat completions (gpt-3.5+
-	models) with interactive history support. Option -b sets the
-	Responses API endpoint.
+	Native chat completions in multi-turn mode and interactive history
+	support can be set option -c or --chat.
+
+	For multi-turn chat mode via text completions (instruct models),
+	set option -cd or --text-chat.
 
 	In chat mode, some options are automatically set to un-lobotomise
 	the bot.
@@ -264,15 +271,11 @@ Chat Completion Mode
 
 
 Responses API
-	Responses API is a superset of Chat Completions API. Set command
-	line option -b, or set -bb for multi-turn chat. Toggle this mode
-	with chat command \`/responses' or \`-b'. Limited support.
+	The responses endpoint can be accessed with option -b or --responses
+	for single-turn mode, and with -bb for multi-turn mode.
 
-
-Service Providers
-	Other service providers can be wrapped by this script. Manually set
-	and export environment variable \`\$OPENAI_BASE_URL'. See examples
-	under section \`Service Providers' in the project repository docs.
+	The responses API is a superset of Chat Completions API. Currently,
+	we offer limited support for this endpoint.
 
 
 Text Completion Mode (legacy)
@@ -282,6 +285,9 @@ Text Completion Mode (legacy)
 
 	Text completions in multi-turn mode with history support is set
 	with options -dd. Use models as gpt-3.5-turbo-instruct.
+
+	When set as options -cd, or --text-chat, it initiates chat mode
+	of pure text completions.
 
 
 Insert Mode (FIM)
@@ -301,7 +307,7 @@ Instruction Prompts
 	\`-S .[prompt_name]' or \`-S ,[prompt_name]'.
 
 	Alternatively, set the first positional argument with the operator
-	dot \`.' and the prompt name, such as \`${0##*/} -cc .[prompt]'.
+	dot \`.' and the prompt name, such as \`${0##*/} -c .[prompt]'.
 
 	To prepend the current date and time to the instruction prompt,
 	set command line option \`--time'.
@@ -332,6 +338,12 @@ Text-To-Voice (TTS)
 	Groq PlayAI also supports \`mulaw' and \`ogg', and specific voices.
 
 	Set options -zv to not play received output.
+
+
+Service Providers
+	Other service providers can be wrapped by this script. Manually set
+	and export environment variable \`\$OPENAI_BASE_URL'. See examples
+	under section \`Service Providers' in the project repository docs.
 
 
 Environment
@@ -443,10 +455,11 @@ Command List
      !!i     !!info             Monthly usage stats (OpenAI).
       !j      !jump             Jump to request, append response primer.
      !!j     !!jump             Jump to request, no response priming.
+    !cache    -                 Toggle prompt caching (Anthropic only).
      !cat     -                 Cat prompter (one-shot, ctrl-d). ‡
      !cat     !cat: [TXT|URL|PDF] Cat text or PDF file, dump URL.
      !clot   !!clot             Flood TTY with patterns (visual separator).
-     !dialog  -                 Toggle the \`dialog' interface.
+    !dialog   -                 Toggle the \`dialog' interface.
      !img     !media [FILE|URL] Add image, media, or URL to prompt.
      !md      !markdown [SOFTW] Toggle markdown support in response.
     !!md     !!markdown [SOFTW] Render last response in markdown.
@@ -499,7 +512,7 @@ Command List
     !think    -         [NUM]   Budget: token value (Anthropic/Google).
      !ka      !keep-alive [NUM] Set duration of model load in memory
     !verb     !verbosity [MODE] Model verbosity (high, medium, or low).
-   !vision    !audio            Toggle model multimodality type.
+    !vision   !audio            Toggle model multimodality type.
    --- Session Management -------------------------------------------
       -C      -                 Continue current session, see !break.
       -H      !hist     [NUM]   Edit raw history file in editor or
@@ -537,7 +550,7 @@ Command List
       Session Commands
       On script invocation, when the first positional argument starts with
       the command operator \`/', the command \`/session [HIST_NAME]' is
-      assumed. This changes to or creates a history file (with -bccCdPP).
+      assumed. This changes to or creates a history file (with -bcdCPP).
 
       To change to a specific history file, run \`/session [HIST_NAME]',
       or simply \`/[HIST_NAME]' at script invocation.
@@ -581,8 +594,8 @@ Options
 	-o, --clipboard
 		Copy response to clipboard.
 	-v, -vv
-		Less interface verbosity. With -bccwv, sleep after response.
-		With -bccwzvv, stop recording voice input on silence and
+		Less interface verbosity. With -bcdwv, sleep after response.
+		With -bcdwzvv, stop recording voice input on silence and
 		play TTS response right away. May be set multiple times.
 	-V  	Dump raw request block to stderr (debug).
 	--version
@@ -629,7 +642,7 @@ Options
 		A hist file name can be optionally set as argument.
 	-P, -PP, --print  [/HIST_NAME]    (aliases to -HH and -HHH)
 		Print out last history session. Set twice to print
-		commented out entries, too. Heeds -bccdrR.
+		commented out entries, too. Heeds -bcdrR.
 	--tmp 	Temporary cache (defaults to \`\$CACHEDIR' or \`\$TMPDIR').
 
 	Input Modes
@@ -699,11 +712,12 @@ Options
 
 	Interface Modes
 	-b, --responses
-		Responses API calls (may be used with -cc). Limited
+		Responses API calls (may be used with -c). Limited
 		support. See --model.
-	-c, --chat
-		Chat mode in text completions (used with -wzvv).
-	-cc 	Chat mode in chat completions (used with -wzvv).
+	-c, -cc, --chat
+		Chat mode in native chat completions (used with -wzvv).
+	-cd, --text-chat
+		Chat mode in pure text completions (used with -wzvv).
 	-C, --continue, --resume
 		Continue from (resume) last session (cmpls/chat).
 	-d, --text
@@ -713,7 +727,7 @@ Options
 		Edit the first input before request. (cmpls/chat).
 		With options -eex, edit the last text editor buffer.
 	-E, -EE, --exit
-		Exit on first run (even with -bcc).
+		Exit on first run (even with -bcd).
 	-g, --stream  (defaults)
 		Response streaming.
 	-G, --no-stream
@@ -735,7 +749,7 @@ Options
 	-T, -TT, -TTT, --tiktoken
 		Count input tokens with Tiktoken. Set twice to print
 		tokens, thrice to available encodings. Set the model
-		or encoding with option -m. It heeds options -bccm.
+		or encoding with option -m. It heeds options -bcdm.
 	-w, --transcribe  [AUD] [LANG] [PROMPT]
 		Transcribe audio file into text (transcription models, STT).
 		LANG is optional. A prompt that matches the audio language
@@ -762,6 +776,7 @@ ENDPOINTS=(
 	/models                    #11
 	/responses                 #12
 	/organization              #13
+	/videos                    #14
 )
 #https://platform.openai.com/docs/{deprecations/,models/,model-index-for-researchers/}
 #https://help.openai.com/en/articles/{6779149,6643408}
@@ -1639,8 +1654,9 @@ function set_histf
 	while _spinf
 		IFS=$'\t' read -r time token string
 	do
-		[[ ${time}${token} = *([$IFS])\#* ]] && { ((OPTHH>2)) && com=1 || continue ;}
-		[[ ${time}${token} = *[Bb][Rr][Ee][Aa][Kk]* ]] && break
+		[[ ${time:0:128}${token:0:128} = *([$' \t'])\#* ]] && { ((OPTHH>2)) && com=1 || continue ;}
+		[[ ${time:(${#time}>128?${#time}-128:0)}${token:(${#token}>128?${#token}-128:0)} = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] && break;
+
 		((${#time}+${#token}+${#string})) || continue;
 		if ((!${#string}))
 		then 	((${#token})) && string=$token token=$time time=
@@ -1688,6 +1704,7 @@ function set_histf
 			role_last=$role role= rest= nl=
 			case "${string:0:32}" in
 				:*) 	role=system;
+					((EPN==12)) && role=developer;
 					((MOD_REASON)) && ((OPENAI)) && role=developer;
 					((OPTC)) && rest="$S_TYPE" nl="\\n"  #system message
 					;;
@@ -1777,13 +1794,19 @@ function grep_usr_lastlinef
 #usage: push_tohistf [string] [tokens] [time]
 function push_tohistf
 {
-	typeset string token time
+	typeset string token time l n
+
 	string=$1; ((${#string})) || ((OPTCMPL)) || return; CKSUM_OLD=;
+	while read -r l; do 	((n++)) && break; done <<<$string;  #is single-line?
+	((n>1)) && string=$(tr $'\n' ' ' <<<$string);  #concatenate multiple lines
+
 	token=$2; ((token>0)) || {
-		start_tiktokenf;    ((OPTTIK)) && _printbf '(tiktoken)';
-		token=$(OPTV=97 __tiktokenf "${string}");
-		((token+=TKN_ADJ)); ((OPTTIK)) && _printbf '          '; };
+	  start_tiktokenf;    ((OPTTIK)) && _printbf '(tiktoken)';
+	  token=$(OPTV=97 __tiktokenf "${string}");
+	  ((token+=TKN_ADJ)); ((OPTTIK)) && _printbf '          '; };
+
 	time=${3:-$(datef)}; [[ $time = 1970* ]] && time=$(datef);
+
 	printf '%s%.22s\t%d\t"%s"\n' "$INT_RES" "${time:-$3}" "${token:-$2}" "${string:-${Q_TYPE##$SPC1}}" >> "$FILECHAT"
 }
 
@@ -1796,22 +1819,6 @@ function date2f
 {
 	printf "%(${TIME_RFC5322_FMT})T\\n" -1 || date +"${TIME_RFC5322_FMT}";
 }
-
-##record preview query input and response to hist file
-##usage: prev_tohistf [input]
-#function prev_tohistf
-#{
-#	typeset input answer
-#	input="$*"
-#	((BREAK_SET)) && { _break_sessionf; BREAK_SET= ;}
-#	if ((STREAM))
-#	then 	answer=$(escapef "$(prompt_pf -r -j "$FILE")")
-#	else 	answer=$(prompt_pf "$FILE")
-#		((${#answer}>1)) && answer=${answer:1:${#answer}-2}  #del lead and trail ""
-#	fi
-#	push_tohistf "$input" '' '#1970-01-01'  #(dummy dates)
-#	push_tohistf "$answer" '' '#1970-01-01'  #(as comments)
-#}
 
 #calculate token preview
 #usage: token_prevf [string]
@@ -2447,6 +2454,16 @@ function cmdf
 			OPTC=2 EPN=6 OPTCMPL= STURN= ;
 			cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
+		cache)
+			# Anthropic cache control
+			if ((ANTHROPICAI_CACHE_CONTROL_DISABLE>0))
+			then 	ANTHROPICAI_CACHE_CONTROL_DISABLE=0;
+				var="enabled";
+			else 	ANTHROPICAI_CACHE_CONTROL_DISABLE=1;
+				var="disabled";
+			fi;
+			_cmdmsgf "Anthropic: Prompt Cache" "$var";
+			;;
 		[/!]clot)
 			OPTK=1 cmdf /clot;
 			return;
@@ -2513,7 +2530,7 @@ function cmdf
 				then 	REASON_EFFORT=;
 				elif ((ANTHROPICAI+GOOGLEAI))
 				then 	REASON_EFFORT=16000;
-				else 	REASON_EFFORT="medium";
+				else 	REASON_EFFORT="high";
 				fi
 			else 	REASON_EFFORT="${*}";
 			fi;
@@ -3134,7 +3151,7 @@ function cmdf
 			  var=$(wc -- "$CHATGPTRC");
 			  _edf "$CHATGPTRC";
 			  [[ "$(wc -- "$CHATGPTRC")" = "$var" ]] ||
-			    _warmsgf 'Notice:' 'restart required for changes to take effect';
+			    _warmsgf 'Note:' 'restart required for changes to take effect';
 			else
 			  _warmsgf 'Err:' "config file not found -- ${CHATGPTRC/"${HOME}"/\~}";
 			fi
@@ -3832,8 +3849,12 @@ function edf
 			if ((${#instruction}))
 			then 	if ((GOOGLEAI))
 				then 	GINSTRUCTION="$instruction" INSTRUCTION=;
+					INSTRUCTION_OLD="$instruction";
+				elif ((ANTHROPICAI))
+				then 	INSTRUCTION_OLD="$instruction" INSTRUCTION=;
 				else 	INSTRUCTION="$instruction";
-				fi; INSTRUCTION_OLD="$instruction"
+					INSTRUCTION_OLD="$instruction";
+				fi;
 			fi
  			((HIST_LOOP==1)) && OPTX= cmdf /break
 		    }
@@ -3912,7 +3933,7 @@ function _break_sessionf
 	[[ -f "$FILECHAT" ]] || return; typeset tail;
 
 	tail=$(tail -n 16 -- "$FILECHAT") || return;
-	((${#tail}>2048)) && tail=${tail:${#tail} -2048};
+	((${#tail}>128)) && tail=${tail:${#tail}-128};
 
 	[[ BREAK${tail} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]] \
 	|| printf '%s%s\n' "$1" 'SESSION BREAK' >> "$FILECHAT";
@@ -3926,7 +3947,11 @@ function break_sessionf
 #fix: remove session break
 function fix_breakf
 {
-	[[ $(tail -n 1 "$1" 2>/dev/null) = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] &&
+	typeset tail
+	tail=$(tail -n 1 "$1" 2>/dev/null)
+	((${#tail}>128)) && tail=${tail:${#tail}-128};
+
+	[[ ${tail} = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]] &&
 	  sed -i -e '$d' "$1" && _sysmsgf 'Session Break Removed';
 }
 
@@ -4621,7 +4646,35 @@ function check_optrangef
 	fi ;return ${ret:-0}
 }
 
+#save config and set config for reasoning models
+function save_reasoning_autosetf
+{
+	[[ -n $OPTA$OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency and presence penalties';
+	OPTT_REASON=${OPTT:-$OPTT_REASON} OPTT=;
+	OPTA_REASON=${OPTA:-$OPTA_REASON} OPTA=;
+	OPTAA_REASON=${OPTAA:-$OPTAA_REASON} OPTAA=;
+	((MULTIMODAL)) || MULTIMODAL=1;
+	#either: MOD_REASON=1 MOD_THINK=1;
+}
+function undo_reasoning_autosetf
+{
+	#undo (most) reasoning model auto settings
+	((MOD_REASON+MOD_THINK)) && {
+		REASON_EFFORT=;
+		MOD_REASON= MOD_THINK=;
+		OPTT=${OPTT_REASON:-$OPTT};
+		OPTA=${OPTA_REASON:-$OPTA};
+		OPTAA=${OPTAA_REASON:-$OPTAA};
+		OPTMAX=${OPTMAX_REASON:-$OPTMAX};
+	}
+}
+
 #check and set settings
+# this function is meant to check but throw any hard errors,
+# nor enforce setting reason effort or thinking budget;
+# most checks are expected to run once at script start up;
+# changing models or setting effort configuration on after start-up
+# may skip some checks and warnings.
 function set_optsf
 {
 	typeset s n p stop
@@ -4629,73 +4682,101 @@ function set_optsf
 	typeset -l model;
 	model=${MOD##*/} model=${model##ft:};
 
-	#auto settings for reasoning models
+	#misc model and reasoning auto settings
 	case "$model" in
 		#exceptions (non-reasoning)
 		llama-3.2*-vision-preview|llava-v1.5-7b-4096-preview)  #groq vision
+
+			undo_reasoning_autosetf;
 			INSTRUCTION_CHAT= INSTRUCTION=;
 			REASON_EFFORT= MOD_REASON= MOD_THINK=;
 		;;
-		gpt*-search*preview*)
+		gpt*-search*preview*|o[1-4]*-preview*)
+
+			undo_reasoning_autosetf;
 			OPTA= OPTAA= OPTT=;
 			REASON_EFFORT= MOD_REASON= MOD_THINK=;
 		;;
-		#misc (non-reasoning)
-		gemini-[2-9].5*-flash*|gemini-[3-9]*-flash*|\
-		gpt-[5-9]*-chat*|chatgpt-[1-9]*|\
-		grok-[3-9]*-non-reasoning*)
+		*non-reasoning*|*non-thinking*|\
+		gpt-[5-9]*-chat*|chatgpt-[1-9]*|gpt*-nano*)  #V#
 
-		#undo any reasoning model set auto settings
-		((MOD_REASON)) && {
-			OPTA=${OPTA_REASON:-$OPTA} OPTAA=${OPTAA_REASON:-$OPTAA} OPTT=${OPTT_REASON:-$OPTT};
-			OPTMAX=${OPTMAX_REASON:-$OPTMAX} MOD_REASON= REASON_EFFORT=;
-		}  #V#
-		((MOD_THINK)) && {
-			OPTMAX=${OPTMAX_REASON:-$OPTMAX} OPTT=${OPTT_REASON:-$OPTT};
-			MOD_THINK=;
-		}  #V#
-		case "$model" in
-			grok-[3-9]*)  OPTA= OPTAA=;
-			;;
-		esac
+			undo_reasoning_autosetf;
 			REASON_EFFORT= MOD_REASON= MOD_THINK=;
+
+			case "$model" in
+				grok-[4-9]*)
+					STOPS=();
+					OPTSTOP= OPTA= OPTAA=;
+					;;
+			esac;
 		;;
+		#try to catch reasoning models
+		claude-opus-[4-9]*|claude-haiku-[4-9]*|claude-sonnet-[4-9]*|\
 		claude-3-[7-9]*|claude-[4-9]*|claude*-[4-9]*)
 
-		[[ "${REASON_EFFORT}" = *[a-zA-Z]* ]] && REASON_EFFORT=16000;
-		((MOD_THINK)) || {
-		    ((!${REASON_EFFORT:+1}0)) || {
-			(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
-				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
-				OPTMAX_REASON=$OPTMAX OPTMAX=25000;
+			((MOD_THINK)) || {
+				case "$REASON_EFFORT" in
+					'') 	:;;
+					*[!0-9-]*) 	_warmsgf 'Warning:' "Thinking budget_tokens must be an integer -- $REASON_EFFORT";
+							REASON_EFFORT=16000;;
+					#*[1-9]*)   REASON_EFFORT=${REASON_EFFORT:-16000};;
+				esac;
+				#Anthropic's effort parameter works alongside the thinking token budget
+				#when extended thinking is enabled. It defaults to high.
+
+				((${REASON_EFFORT:+1}0)) &&
+				(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
+					_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
+					OPTMAX_REASON=${OPTMAX:-$OPTMAX_REASON} OPTMAX=25000;
+				}
+
+				save_reasoning_autosetf;
+				MOD_REASON= MOD_THINK=1;
+				#api enforces at least 1024 thinking tokens, or nought
+				((REASON_EFFORT)) && ((REASON_EFFORT<2048)) && REASON_EFFORT=2048;
 			}
-			case "$REASON_EFFORT" in
-				*[a-zA-Z]*) 	_warmsgf 'Warning:' "Thinking budget_tokens must be an integer -- $REASON_EFFORT";;
-				*|'') 	REASON_EFFORT=${REASON_EFFORT:-16000};;
-			esac;
-			((REASON_EFFORT<2048)) && REASON_EFFORT=2048;
-		    }
-		    OPTT_REASON=$OPTT OPTT=;
-		    MOD_THINK=1; ((MULTIMODAL)) || MULTIMODAL=1;
-		}
 		;;
-		gemini-[2-9]*-thinking*)
-		((MOD_THINK)) || {
-			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
-				_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
-				OPTMAX=8000;
-			}
-			MOD_THINK=1; ((MULTIMODAL)) || MULTIMODAL=1;
-			#32k input, 8k output limits; Text and image in, Text out only
-			#For .thought parameter, set "v1alpha version"
-			#stream the thinking, use generate_content_stream method
-			#https://ai.google.dev/gemini-api/docs/thinking-mode
-		}
-		;;
+		gemini-[2-9]*-thinking*|\
 		gemini-[2-9].5*|gemini-[3-9]*)
-			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
-				_warmsgf 'Warning:' 'Gemini models require large numbers of output tokens';
-				OPTMAX=8000;
+
+			case "$model" in
+				*gemini-[3-9]*)
+
+				case "$model" in
+					*[:-]high|*[:-]medium|*[:-]low|*[:-]minimal|*[:-]none)
+						REASON_EFFORT=${MOD##*[:-]} MOD=${MOD%[:-]*};;
+				esac;;
+			esac;
+
+			((MOD_THINK)) || {
+				case "$REASON_EFFORT" in
+					high|medium|low|minimal|none|'') 	:;;
+					*[!0-9-]*) 	_warmsgf 'Warning:' "reasoning_level must be high, medium, low, or minimal -- $REASON_EFFORT";;
+				esac;
+				#Gemini thinking levels:
+				#gemini-3-pro: low, high
+				#gemini-3-flash: minimal, low, medium, high
+				#gemini-2 series uses budget tokens.
+				#
+				#dynamic thinking: -1  (defaults)
+				#thinking budget range:  0 / 128 / 512  to  24576 / 32768
+				#https://ai.google.dev/gemini-api/docs/thinking#rest_1
+				#
+				#32k input, 8k output limits; Text and image in, Text out only
+				#For .thought parameter, set "v1alpha version"
+				#stream the thinking, use generate_content_stream method
+				#https://ai.google.dev/gemini-api/docs/thinking-mode
+
+				#((${REASON_EFFORT:+1}0)) &&
+				((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
+					#_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
+					_warmsgf 'Warning:' 'Gemini models require large numbers of output tokens';
+					OPTMAX_REASON=${OPTMAX:-$OPTMAX_REASON} OPTMAX=8000;
+				}
+
+				OPTA= OPTAA= \
+				save_reasoning_autosetf;
+				MOD_REASON= MOD_THINK=1;
 			}
 		;;
 		chatgpt*-[4-9].[0-9]o*|chatgpt*-[4-9]o*|codex*|codex-mini*|\
@@ -4703,73 +4784,109 @@ function set_optsf
 		gpt-[4-9]o*|gpt-[5-9]*|gpt-oss*|*gpt*-search*|o[1-9]*|o[1-9]-mini*|\
 		o1-mini-2024-09-12|o1-preview*|phi-[4-9]*-reasoning*|qwen[3-9]*|\
 		grok-3-mini*|grok-3*|grok-[4-9]*|grok-[4-9]*-fast-reasoning|grok-[4-9]*-mini-reasoning|\
-		qwen[3-9]*-thinking*)  #U#
+		qwen[3-9]*-thinking*)
 
-		((MOD_REASON)) || {
-			((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
-			  _warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
-			  OPTMAX_REASON=$OPTMAX OPTMAX=25000;
+			case "$model" in
+				*[:-]xhigh|*[:-]high|*[:-]medium|*[:-]low|*[:-]minimal|*[:-]none)
+					REASON_EFFORT=${MOD##*[:-]} MOD=${MOD%[:-]*};;
+			esac;
+
+			((MOD_REASON)) || {
+				case "$REASON_EFFORT" in
+					xhigh|high|medium|low|minimal|none|'') 	:;;
+					*[!0-9-]*) 	_warmsgf 'Warning:' "Reasoning effort must be xhigh, high, medium, low, minimal, or none -- $REASON_EFFORT";;
+				esac;
+
+				((${REASON_EFFORT:+1}0)) &&
+				((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
+				  _warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
+				  OPTMAX_REASON=${OPTMAX:-$OPTMAX_REASON} OPTMAX=25000;
+				}
+
+				save_reasoning_autosetf;
+				MOD_THINK= MOD_REASON=1;
+				#https://platform.openai.com/docs/guides/reasoning#beta-limitations
 			}
 
 			case "$model" in
-			*non-reasoning*|*non-thinking*)  :;
-			;;
-			o1-mini*|o1-preview*|o[3-9]*)
+				o1-mini*|o1-preview*|o[3-9]*|gpt-[4-9]o*|gpt*-oss*)
 
-				((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'System / developer instructions reset';
-				INSTRUCTION_OLD=$INSTRUCTION INSTRUCTION_CHAT= INSTRUCTION=;
-			;;
-			grok-[34]*mini*|grok-[4-9]*|grok-4-0709|\
-			grok-3-mini*|grok-3*|grok-[4-9]*|grok-[4-9]*-fast-reasoning|grok-[4-9]*-mini-reasoning|*-reasoning*)
+					((${#INSTRUCTION_CHAT}+${#INSTRUCTION})) && _warmsgf 'Warning:' 'System / Developer instructions reset';
+					INSTRUCTION_OLD=$INSTRUCTION INSTRUCTION_CHAT= INSTRUCTION=;
+				;;
+				grok-[4-9]*|grok-[34]*mini*|grok-4-0709|grok-3-mini*|\
+				grok-[4-9]*-fast-reasoning|grok-[4-9]*-mini-reasoning|grok*-reasoning*)
 
-				OPTSTOP=; STOPS=();
+				STOPS=();
+				OPTSTOP= OPTA= OPTAA=;
+
 				#Reasoning is supported by models later than grok-3-mini and
 				#grok-3-mini-fast. The Grok 3 models grok-3 and grok-3-fast
 				#do not support reasoning.
 				#presencePenalty, frequencyPenalty and stop parameters are
 				#not supported by reasoning models.
-			;;
-			esac
-
-			[[ -n $OPTA || -n $OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency and presence penalties';
-			OPTA_REASON=$OPTA OPTAA_REASON=$OPTAA OPTA= OPTAA=;
-			OPTT_REASON=$OPTT OPTT=;
-			MOD_REASON=1; ((MULTIMODAL)) || MULTIMODAL=1;
-			#https://platform.openai.com/docs/guides/reasoning#beta-limitations
-		}
-		case "$model" in
-			*[:-]xhigh|*[:-]high|*[:-]medium|*[:-]low|*[:-]minimal|*[:-]none)
-				REASON_EFFORT=${MOD##*[:-]} MOD=${MOD%[:-]*};;
-		esac;
-		case "$REASON_EFFORT" in
-			xhigh|high|medium|low|minimal|none|'') 	:;;
-			?*) 	_warmsgf 'Warning:' "reason_effort must be xhigh, high, medium, low, minimal, or none -- $REASON_EFFORT";;
-		esac;
+				;;
+			esac;
 		;;
-		*)  #any remaining non-reasoning models
-		#undo (most) reasoning model auto settings
-		((MOD_REASON)) && {
-			OPTA=${OPTA_REASON:-$OPTA} OPTAA=${OPTAA_REASON:-$OPTAA} OPTT=${OPTT_REASON:-$OPTT};
-			OPTMAX=${OPTMAX_REASON:-$OPTMAX} MOD_REASON= REASON_EFFORT=;
-		}  #V#
-		((MOD_THINK)) && {
-			OPTMAX=${OPTMAX_REASON:-$OPTMAX} OPTT=${OPTT_REASON:-$OPTT};
-			MOD_THINK=;
-		}  #V#
+		*)  #any remaining non-reasoning and unknown models
+
+			if undo_reasoning_autosetf
+			then
+				REASON_EFFORT= MOD_REASON= MOD_THINK=;
+			elif ((${REASON_EFFORT:+1}0)) && ((!(MOD_REASON+MOD_THINK) ))
+			then
+				save_reasoning_autosetf;
+				MOD_THINK= MOD_REASON=1;
+			fi
 		;;
 	esac
 
+	# Which parameters are supported in reasoning models?  #table 3
+	#            | temp | freq_p | pres_p | stops | instruct | note
+	# OpenAI     |  n   | (n)    | (n)    |  y    |   (y)    | stops: working on all;
+	# xAI Grok   |  y   |  n     |  n     |  n    |    y     |
+	# Anthropic  |  n   |  n     |  n     |  y    |    y     |
+	# GoogleAI   |  y   |  y     |  y     |  y    |    y     |
+	# DeepSeek   |  y   |  y     |  y     |  y    |    y     | openai-compatible api
+	# MistralAI  |      |  n     |  n     |       |          |
+	#
+	# note: parameters are model and, more broadly, provider-dependent.
+	# note: responses api may differ from chat completions api.
+	#
+	#gpt-5.2 support when reasoning_effort is none, gpt-5-chat allows more parameters.
+	#gpt-5-nano does not work with temperature or presence_penalty or frequency_penalty from what I can tell.
+	#
+	#Anthropic
+	#Thinking isn't compatible with temperature or top_k modifications as well as forced tool use.
+	#When thinking is enabled, you can set top_p to values between 1 and 0.95.
+	#
+	#Gemini 3's reasoning capabilities are optimized for the default setting.
+	#Changing the temperature (setting it below 1.0) may lead to unexpected behavior.
+	#When using 2.5 Flash, you can disable thinking by setting the thinking budget to zero.
+	#
+	#https://docs.x.ai/docs/guides/reasoning
+	#https://platform.openai.com/docs/guides/latest-model#gpt-5-2-parameter-compatibility
+	#https://platform.openai.com/docs/guides/predicted-outputs#limitations
+	#https://community.openai.com/t/developer-role-not-accepted-for-o1-o1-mini-o3-mini/1110750/7
+	#https://community.openai.com/t/temperature-in-gpt-5-models/1337133/31
+	#https://platform.claude.com/docs/en/build-with-claude/extended-thinking#feature-compatibility
+	#https://api-docs.deepseek.com/api/create-chat-completion
+	#https://ai.google.dev/api/generate-content#generationconfig
+	#https://ai.google.dev/gemini-api/docs/gemini-3
+
+
 	((${REASON_EFFORT:+1}0)) &&
-	if ((ANTHROPICAI+GOOGLEAI))
-	then 	if [[ $REASON_EFFORT != *[0-9]* ]]
-		then 	_warmsgf "Err:" "${ANTHROPICAI:+AnthropicAI}${GOOGLEAI:+GoogleAI}: ${ANTHROPICAI:+reasoning}${GOOGLEAI:+thinking} budget -- $REASON_EFFORT";
+	if ((ANTHROPICAI)) || { ((GOOGLEAI)) && [[ $model = *gemini-[12]* ]] ;}
+	then
+		if [[ $REASON_EFFORT != *[0-9]* ]]
+		then 	_warmsgf "Warning:" "${ANTHROPICAI:+AnthropicAI}${GOOGLEAI:+GoogleAI}: ${ANTHROPICAI:+reasoning}${GOOGLEAI:+thinking} budget -- $REASON_EFFORT";
 			_warmsgf 'Note:' "${ANTHROPICAI:+reasoning}${GOOGLEAI:+thinking} budget must be an integer!";
-			REASON_EFFORT=;
 		fi;
-	else 	if [[ $REASON_EFFORT != *[a-z]* ]]
-		then 	_warmsgf "Err:" "reasoning effort -- $REASON_EFFORT";
+	else
+		((ANTHROPICAI+GOOGLEAI)) ||
+		if [[ $REASON_EFFORT != *[a-z]* ]]
+		then 	_warmsgf "Warning:" "reasoning effort -- $REASON_EFFORT";
 			_warmsgf 'Note:' "reasoning effort must be [ none | minimal | low | medium | high | xhigh ]!";
-			REASON_EFFORT=;
 		fi;
 	fi;
 
@@ -4784,14 +4901,6 @@ function set_optsf
 	((!OPTMAX_NILL && OPTMAX<1)) && OPTMAX=${OPTMAX_DEF:-4096}  #M#
 	((WHISPER_GROQ>0 && WHISPER_MISTRAL>0)) && WHISPER_GROQ=1 WHISPER_MISTRAL=;
 
-	((GITHUBAI)) && [[ $OPTA$OPTAA = *[1-9]* ]] &&
-	case "$model" in
-		Mistral-*|AI21-Jamba*)
-		_warmsgf 'Warning:' 'model may not support frequency_ and/or presence_penalty';
-		OPTA= OPTAA=;
-		;;
-	esac;
-
 	((OPTW+OPTZ && !CHAT_ENV)) || {
 	  check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
 	  check_optrangef "$OPTAA"  -2.0 2.0 'Frequency-penalty'
@@ -4802,7 +4911,7 @@ function set_optsf
 	}
 	check_optrangef "$OPTT"  0.0 $( ((MISTRALAI+ANTHROPICAI)) && echo 1.0 || echo 2.0) 'Temperature'  #whisper 0.0 - 1.0
 	#change temp or top_p but not both
-	[[ "$OPTSEED" = *[!0-9]* ]] &&
+	[[ "$OPTSEED" = *[!0-9.-]* ]] &&
 	  printf "${RED}Warning: Unexpected %s${NC}${BRED} -- %s  ${NC}${YELLOW}(integer)${NC}\\n" "seed" "$OPTSEED" >&2;
 
 	((OPTN<2)) && unset OPTN_OPT || ((MISTRALAI+GROQAI+ANTHROPICAI)) || OPTN_OPT="\"n\": ${OPTN:-1},";
@@ -5457,6 +5566,9 @@ function awesomef
 	typeset REPLY act_keys act_keys_n options glob act zh a l n
 	[[ "$INSTRUCTION" = %* ]] && FILEAWE="${FILEAWE%%.csv}-zh.csv" zh=1
 
+	trap "trap '-' INT RETURN; FILECHAT=\"$FILECHAT\"; unset OPTAWE INSTRUCTION; _clr_dialogf; return 201 || exit 201" INT;
+	trap "trap '-' INT RETURN" RETURN;
+
 	trim_lf "$INSTRUCTION" "[/%]";
 	trim_lrf "$TRIM" "*( )";
 	set -- "${TRIM// /_}";
@@ -5543,7 +5655,7 @@ function awesomef
 	    	INSTRUCTION="$TRIM"
 	    };
 	}
-	case "$INSTRUCTION" in ''|prompt|act)
+	case "$INSTRUCTION" in ''|prompt|act|abort)
 		_warmsgf 'Err:' 'awesome-chatgpt-prompts fail'
 		unset OPTAWE INSTRUCTION;return 1
 	esac;
@@ -5553,6 +5665,10 @@ function awesomef
 function custom_prf
 {
 	typeset file filechat name template list msg new skip title ret
+
+	trap "trap '-' INT RETURN; FILECHAT=\"$FILECHAT\" INSTRUCTION=; _clr_dialogf; return 201 || exit 201" INT;
+	trap "trap '-' INT RETURN" RETURN;
+
 	filechat="$FILECHAT"
 	FILECHAT="${FILECHAT%%.[Tt][SsXx][VvTt]}.pr"
 	case "$INSTRUCTION" in  #lax syntax  -S.prompt.
@@ -6073,9 +6189,9 @@ function session_sub_printf
 
 	while ((skip)) || IFS= read -r
 	do 	_spinf; skip= ;
-		if [[ ${REPLY} = *([$IFS])\#* ]] && ((OPTHH<3))
+		if [[ ${REPLY:0:128} = *([$' \t'])\#* ]] && ((OPTHH<3))
 		then 	continue
-		elif [[ ${REPLY} = *[Bb][Rr][Ee][Aa][Kk]*([$IFS]) ]]
+		elif [[ ${REPLY:(${#REPLY}>128?${#REPLY}-128:0)} = *[Bb][Rr][Ee][Aa][Kk]*([$' \t']) ]]
 		then
 for ((m=1;m<2;++m))
 do 	_spinf 	#grep session with user regex
@@ -6183,6 +6299,10 @@ function sessionf
 {
 	typeset name file optsession arg break regex msg title
 	typeset -a args
+
+	trap "trap '-' INT RETURN; _clr_dialogf; return 201 || exit 201" INT;
+	trap "trap '-' INT RETURN" RETURN;
+
 	name="${*}"; ((${#name}<1024)) || return
 	trim_lrf "${name}" "*([$IFS])"
 	name="$TRIM"
@@ -6620,13 +6740,13 @@ function set_anthropicf
 			[[ ! -t 1 ]] || printf "${BWHITE}%s:${NC} %d\\n" "models" "$(wc -l <"$FILEMODEL")" >&2 ;}
 		elif ((${#1}))
 		then
-			curl -\# "${ANTHROPIC_BASE_URL}/models/${1}" \
+			curl -\# ${FAIL} -L "${ANTHROPIC_BASE_URL}/models/${1}" \
 			-H "X-Api-Key: $ANTHROPIC_API_KEY" \
 			-H "anthropic-version: 2023-06-01" \
 			| jq . \
 			|| _list_modelsf;
 		else
-			curl -\# "${ANTHROPIC_BASE_URL}/models" \
+			curl -\# ${FAIL} -L "${ANTHROPIC_BASE_URL}/models" \
 			-H "X-Api-Key: $ANTHROPIC_API_KEY" \
 			-H "anthropic-version: 2023-06-01" \
 			| jq -r '.data[].id' | tee -- "$FILEMODEL" \
@@ -6741,7 +6861,7 @@ vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
 a:presence  a:pre  A:frequency-penalty  A:frequency  A:freq \
-c:chat  C:resume  C:resume  C:continue  d:text  e:edit \
+c:chat  C:resume  C:resume  C:continue  text-chat  d:text  e:edit \
 E:exit  f:no-conf  g:stream  G:no-stream  h:help  H:hist  'k:no-colo*' \
 K:top-k  K:topk  l:list-models  L:log  m:model  m:mod  n:results  o:clipboard \
 o:clip  O:ollama  P:print  p:top-p  p:topp  q:insert  r:restart-sequence \
@@ -6788,6 +6908,7 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 			EPN=12 RESPONSES_API=1;;
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
+		text-chat) OPTC=1 OPTCMPL=1;;
 		d) 	((OPTCMPL)) && OPTCMPL=1 || OPTCMPL=-1;;  #-1: single-turn, 1: multi-turn
 		effort) case "$OPTARG" in -[!0-9]*) 	OPTARG= ;; esac;
 			REASON_EFFORT=${OPTARG:?--effort/--think requires mode/tokens};;
@@ -6901,7 +7022,7 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCONTEXT MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET MOD_REASON MOD_THINK STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD NC  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCONTEXT MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET MOD_REASON MOD_THINK OPTT_REASON OPTA_REASON OPTAA_REASON OPTMAX_REASON STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD NC  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 
 set -o ${READLINEOPT:-emacs};
@@ -6932,6 +7053,14 @@ def byellow: null; \
 def bpurple: null; \
 def reset:   null;"
 
+# Signal resolvers
+# As the codebase grew organically, signal transduction holds
+# refactoring unwarranted for entire feature sets (but documentation).
+
+##((OPTCMPL<0)) && ((OPTC==1)) && ((!OPTEXIT)) && OPTEXIT=1;  #-dc text chat single-turn; -ddc, -dcc multi-turn
+((OPTC==1)) && OPTC=2;  #option -c now defaults to native chat completions!  2025-12-21
+((OPTCMPL)) && ((OPTC)) && OPTCMPL= OPTC=1;  #opt -c old, chat mode of text completions
+
 if ((OPTCMPL<0))
 then 	OPTCMPL=;  #single-turn text completions -d option
 	#bug: input whitespace trimming is not blocked with single -d!
@@ -6941,19 +7070,21 @@ then 	OPTCMPL=;  #single-turn text completions -d option
 elif ((!(OPTCMPL+OPTC+OPTZZ+OPTL+OPTTIKTOKEN+OPTFF+OPTSUFFIX) ))
 then 	OPTT=${OPTT-0.8} STURN=1;  #single-turn chat completions demo
 fi
+
 ((OPTL+OPTZZ)) && unset OPTX
 ((OPTZ && OPTW)) && unset OPTX
 ((OPTCLIP)) && set_clipcmdf
 ((OPTW+OPTWW)) && ((!(OPTL+OPTFF+OPTHH+OPTZZ+OPTTIKTOKEN) )) && set_reccmdf
 ((OPTZ)) && set_playcmdf
 ((OPTC)) || OPTT="${OPTT-0}"  #!#temp *should* be set
-((OPTCMPL)) && unset OPTC  #opt -d
+((OPTCMPL)) && unset OPTC  #opt -d pure text completions, no auto-set instructions
 ((!OPTC)) && ((OPTRESUME>1)) && OPTCMPL=${OPTCMPL:-$OPTRESUME}  #1# txt cmpls cont
 ((OPTCMPL)) && ((!OPTRESUME)) && OPTCMPL=2  #2# txt cmpls new
 ((OPTC+OPTCMPL || OPTRESUME>1)) && MTURN=1  #multi-turn, interactive
 ((OPTSUFFIX)) && ((OPTC)) && { ((OPTC>1)) || { [[ -n ${RESTART+1} ]] || RESTART=; [[ -n ${START+1} ]] || START= ;}; OPTC=1; };  #-qqc and -qqcc  #weyrd combo#
 ((OPTSUFFIX>1)) && MTURN=1 OPTSUFFIX=1      #multi-turn -q insert mode
 ((OPTCTRD)) || unset OPTCTRD  #(un)set <ctrl-d> prompter flush [bash]
+
 
 #map models
 if [[ -n $OPTMARG ]]
@@ -7092,10 +7223,13 @@ then
 
 	function list_modelsf
 	{
-		curl -L -\# "https://api.deepseek.com/models" -H "Authorization: Bearer $DEEPSEEK_API_KEY" |
+		curl -\# ${FAIL} -L "https://api.deepseek.com/models" -H "Authorization: Bearer $DEEPSEEK_API_KEY" |
 		jq -r '.data[].id' | tee -- "$FILEMODEL" || ! _warmsgf 'Err' || return;
 		[[ ! -t 1 ]] || printf "${BWHITE}%s:${NC} %d\\n" "models" "$(wc -l <"$FILEMODEL")" >&2;
 	}
+	#note: deepseek ships a token counter (zip though):
+	#https://api-docs.deepseek.com/quick_start/token_usage
+
 	DEEPSEEK=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI OPENROUTER XAI;
 	#Unsupported：temperature、top_p、presence_penalty、frequency_penalty、logprobs (err)、top_logprobs  (err).
@@ -7150,8 +7284,8 @@ set_maxtknf "${OPTMM:-$OPTMAX}"
 ((OPTMAX<MODMAX)) || ((OPTMAX=(MODMAX/2)+1))
 
 #model options
-((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN+OPTEMBED)) ||
-MOD= MOD_REASON= MOD_THINK= set_optsf  #IPC#
+((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN+OPTEMBED+OPTINFO)) ||
+MOD= MOD_REASON= MOD_THINK= REASON_EFFORT= set_optsf  #IPC#
 
 #markdown rendering
 if ((OPTMD+${#MD_CMD}))
@@ -7480,8 +7614,9 @@ else
 		OPTT="${OPTT-0.8}";  #!#
 
 		#presencePenalty may be incompatible with some models!
-		((MOD_REASON+ANTHROPICAI+LOCALAI+OLLAMA+OPENROUTER+GROQAI)) ||  #xai+deepseek?
+		((MOD_REASON+MOD_THINK+ANTHROPICAI+LOCALAI+OLLAMA+XAI+GROQAI)) ||  #openrouter,github
 		{ ((${INSTRUCTION+1}0)) && ((!${#INSTRUCTION})) ;} || OPTA="${OPTA-0.6}";
+		#_j: frequency_penalty=0.05, presence_penalty=0.1
 
 		#stop sequences
 		((ANTHROPICAI && EPN!=0)) ||  #anthropic skip
@@ -7599,9 +7734,13 @@ else
 	#session and chat cmds
 	if [[ $1 = /?* ]] && [[ ! -f "$1" && ! -d "$1" ]]
 	then 	case "$1" in
-			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp) )
-				OPTV=100 sessionf "$1" "${@:2:1}" && set -- "${@:3}";;
-			*) 	OPTV=100 sessionf "$1" && set -- "${@:2}";;
+			/?| //? | /?(/)@(session|list|ls|fork|sub|grep|copy|cp|[cfs]) )
+				OPTV=100 sessionf "$1" "${@:2:1}" && set -- "${@:3}";
+				(($?==201)) && set -- "${@:3}"; #abort
+				;;
+			*) 	OPTV=100 sessionf "$1" && set -- "${@:2}";
+				(($?==201)) && set -- "${@:2}";
+				;;
 		esac
 	fi
 
@@ -8211,11 +8350,14 @@ else
 		then 	#chat cmpls
 			if [[ ${*} = *([$IFS]):* ]]
 			then 	role=system;
+				((EPN==12)) && role=developer;
 				((!MOD_REASON)) || ((!OPENAI)) || role=developer;
 			else 	role=user;
 			fi
 
-			((MOD_REASON && OPENAI)) && var=developer || var=system;
+			var=system;
+			((EPN==12)) && var=developer;
+			((MOD_REASON && OPENAI)) && var=developer;
 			var=$(unset MEDIA MEDIA_CMD; fmt_ccf "$(escapef "$INSTRUCTION")" "${var}";) && var="${var}${INSTRUCTION:+,${NL}}";
 
 			#mind anthropic
@@ -8272,23 +8414,15 @@ $(
 
   ((${VERBOSITY:+1}0)) && echo "\"text\": { \"format\": { \"type\": \"text\" }, \"verbosity\": \"${VERBOSITY:-medium}\" },"
 
-  case "${MOD##*[/]}" in
-	chatgpt*-[4-9].[0-9]o*|chatgpt*-[4-9]o*|codex*|codex-mini*|\
-	cohere-command-[ar]*|*deep-research*|deepseek-r*|deepseek-reasoner*|\
-	gpt-[4-9]o*|gpt-[5-9]*|gpt-oss*|*gpt*-search*|o[1-9]*|o[1-9]-mini*|\
-	o1-mini-2024-09-12|o1-preview*|phi-[4-9]*-reasoning*|qwen[3-9]*|\
-	grok-3-mini*|grok-3*|grok-[4-9]*|grok-[4-9]*-fast-reasoning|grok-[4-9]*-mini-reasoning|\
-	qwen[3-9]*-thinking*)  #U#
+  if ((${REASON_EFFORT:+1}0))
+  then
+    echo "\"reasoning\": { \"effort\": \"${REASON_EFFORT:-high}\"$( ((OPENAI)) && echo ", \"summary\": \"auto\"" ) },";
+  fi  #summary: auto, concise, or detailed
 
-        if ((${REASON_EFFORT:+1}0))
-	then
-		echo "\"reasoning\": { \"effort\": \"${REASON_EFFORT:-medium}\"$( ((OPENAI)) && echo ", \"summary\": \"auto\"" ) },";
-	fi  #summary: auto, concise, or detailed
-	;;
-  esac
-
+  #((${#INSTRUCTION}+${#INSTRUCTION_OLD})) &&  #we set this in the messages array (as sys/dev)
   #echo "\"instructions\": \"$(escapef "${INSTRUCTION:-$INSTRUCTION_OLD}")\","
   #https://platform.openai.com/docs/guides/text#message-roles-and-instruction-following
+  #https://platform.openai.com/docs/guides/deep-research#prompting-deep-research-models
 )
 $BLOCK
 $STREAM_OPT $OPTT_OPT $OPTP_OPT
@@ -8300,7 +8434,13 @@ $STREAM_OPT $OPTT_OPT $OPTP_OPT
 		elif ((GOOGLEAI))
 		then
     			var="  $( ((OPTMAX_NILL)) || echo "\"maxOutputTokens\": ${OPTMAX}," )
-  $( ((${REASON_EFFORT:+1}0)) && echo "\"thinkingConfig\": { \"thinkingBudget\": ${REASON_EFFORT:-1024} },")
+  $(
+    ((${REASON_EFFORT:+1}0)) || exit;
+    if [[ ${REASON_EFFORT} = *[!0-9-]* ]]
+    then  echo "\"thinkingConfig\": { \"thinkingLevel\": \"${REASON_EFFORT:-high}\", \"includeThoughts\": true },";
+    else  echo "\"thinkingConfig\": { \"thinkingBudget\": ${REASON_EFFORT:--1}, \"includeThoughts\": true },";
+    fi
+  )
   ${OPTSTOP/stop/stopSequences} ${OPTP_OPT/_p/P}
   ${OPTKK_OPT/_k/K} ${OPTT_OPT}
   ${BLOCK_USR}"
@@ -8363,12 +8503,8 @@ $(
   #compat fine: localai, deepseek, groq, grok
   #unaffected: ollama, googleai
 
-  case "${MOD##*[/]}" in
-  	o[1-9]*-preview*)  REASON_EFFORT=;;
-        #*)  ((ANTHROPICAI)) || REASON_EFFORT=;;
-  esac
-
-  if ((MISTRALAI)) && ((${REASON_EFFORT:+1}0))
+  ((${REASON_EFFORT:+1}0)) &&
+  if ((MISTRALAI))
   then
   	if ((MISTRALAI_REASONING_CONTROL_DISABLE<0))
 	then   echo "\"prompt_mode\": null,";
@@ -8381,19 +8517,17 @@ $(
 	#ideally, Mistral API and Anthropic API (extended thinking)
 	#would use their own reasoning system prompts
 	#had we disabled ours in the request block.
-  elif ((ANTHROPICAI)) && ((${REASON_EFFORT:+1}0))
+  elif ((ANTHROPICAI))
   then
-  	case "${MOD##*[/]}" in claude-3-[5-9]-sonnet*|claude*-[4-9]*)
-  		echo "\"thinking\": {
+  	echo "\"thinking\": {
   \"type\": \"enabled\",
   \"budget_tokens\": ${REASON_EFFORT:-16000}
     },"
 	#effort parameter works alongside the thinking token budget when extended thinking is enabled
-	#var="\"output_config\": { \"effort\": \"medium\" }";
-  	esac
-  elif ((${REASON_EFFORT:+1}0))  #OpenAI
-  then
-  	echo "\"reasoning_effort\": \"${REASON_EFFORT:-medium}\","
+	#var="\"output_config\": { \"effort\": \"high\" }";
+  else
+  	#OpenAI
+  	echo "\"reasoning_effort\": \"${REASON_EFFORT:-high}\","
   fi
 
   if ((${VERBOSITY:+1}0))
@@ -8489,8 +8623,8 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 
 		#record to hist file
 		if 	if ((STREAM))
-			then 	ans=$(prompt_pf -r -j "$FILE"; echo x) ans=${ans:0:${#ans}-1}
-				ans=$(escapef "$ans")
+			then 	ans=$(prompt_pf -r -j "$FILE"; echo x)
+				ans=$(escapef "${ans:0:${#ans}-1}")
 				((OLLAMA+LOCALAI)) ||  #OpenAI, MistralAI, and Groq
 				tkn=( $(
 				  if ((GROQAI))
@@ -8520,8 +8654,8 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 					) )
 				ans= buff= n= var=; ((OPTN)) || var=1;
 				for ((n=0;n<OPTN+var;n++))  #multiple responses
-				do 	buff=$(INDEX=$n prompt_pf "$FILE")
-					((${#buff}>1)) && buff=${buff:1:${#buff}-2}  #del lead and trail ""
+				do 	buff=$(INDEX=$n prompt_pf -r "$FILE"; echo x)
+					buff=$(escapef "${buff:0:${#buff}-1}")
 					ans="${ans}"${ans:+${buff:+\\n---\\n}}"${buff}" var=
 				done
 			fi
@@ -8576,25 +8710,30 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				#only included in output_tokens
 			elif ((OPENAII))
 			then 	:;
+				((EPN==12)) && ((tkn[2]*=-1));  #summary reasoning
 				# [[ $MOD = gpt-[4-9]o* ]] && tkn[2]=0;
 				# [[ $MOD = o[1-9]*     ]] && tkn[2]=0;
 				# [[ $MOD = gpt*-oss*   ]] && tkn[2]=0;
 				#no full reasoning, but we request its summary
 			elif ((GOOGLEAI))
 			then
-				((!tkn[2])) || tkn[2]=0;
+				((tkn[2]*=-1));
+				#((!tkn[2])) || tkn[2]=0;
 
 				#independent thoughts_token_count.
+				#
 				#do not deduce thinking tokens from total
 				#when thinking text is NOT available,
 				# + not included in output_tokens,
 				# + counted separately from output_tokens.
+				#
+				# BUT we ask for thoughts!
 			else
 				#((OPENROUTER)) || ((GROQAI)) || ((GITHUBAI)) || ((OLLAMA)) || ((LOCALAI))
 
 				case "${MOD##*[/]}" in
 					#deduce reasoning from output tokens
-					*non-reasoning*|*non-thinking*)
+					*non-reasoning*|*non-thinking*|chatgpt-*|gpt-[5-9]*-chat*|gpt*-nano*)  #V#
 					    :;
 					;;
 					#add reasoning to output tokens
@@ -8614,20 +8753,20 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				esac
 			fi
 
-		# Deduce reasoning tokens from output tokens?
+		# Deduce reasoning tokens from output tokens?  #table 1
 		# DEDUCE: leave tkn[2] set, when reasoning invisible
 		#         but counted as output tokens, or when reasoning
 		#         visible and counted apart from output tokens.
 		# DO NOT: unset tkn[2], when reasoning visible and
 		#         counted as output tokens.
 		#
-		#            | deduce | dont   | note
-		# OpenAI     |   x    |   s    | reasoning not visible, but we request summary
-		# xAI        |        |   x    | reasoning not visible, ouput_tokens dont include reasoning_tokens
-		# MistralAI  |        |   x    | thinking visible (magistral), only included in output_tokens
-		# Anthropic  |   x    |   s    | thinking not visible, except for claude-3-7-sonnet, but we request summary claude-opus-4+, only in output_tokens
-		# GoogleAI   |        |   x    | thinking not visible, only in thoughts_token_count
-		# DeepSeek   |        |   x    | thinking visible, thinking count is also included in completion_tokens
+		#            | deduce | dont   | include | note
+		# OpenAI     |   x    |   s    |         | reasoning not visible, but we request summary (responses api only)
+		# xAI        |        |   x    |         | reasoning not visible, ouput_tokens dont include reasoning_tokens
+		# MistralAI  |        |   x    |         | thinking visible (magistral), only included in output_tokens
+		# Anthropic  |   x    |   s    |         | thinking not visible, except for claude-3-7-sonnet, but we request summary claude-opus-4+, only in output_tokens
+		# GoogleAI   |        |   x    |   s     | thinking not visible, only in thoughts_token_count, but we ask for thoughts
+		# DeepSeek   |        |   x    |         | thinking visible, thinking count is also included in completion_tokens
 		# OpenRouter, GitHub, GroqAI, Ollama, LocalAI are upstream-dependent.
 		#
 		# we dont process json in a way that checks if response has or not reasoning content!
@@ -8651,7 +8790,7 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				((OPTCMPL)) || ! _warmsgf 'Err';
 
 				#check for GitHub Models capacity-type error
-				if ((GITHUBAI)) && ((JUMP+BAD_RES==0)) &&
+				if ((GITHUBAI)) && ((JUMP+BAD_RES==0)) && ((MAIN_LOOP||OPTRESUME||!BREAK_SET))
 					var=$(jq -e '.error|.message//.details' "$file" 2>/dev/null | sed -n -e 's/^.*Max size: //p') &&
 					var=${var//[!0-9]} && ((${#var}>3)) &&
 					((var)) && ((var<MODMAX))
@@ -8718,7 +8857,7 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 
 
 		# Deduce or include cached_tokens in input_tokens?
-		# Are cached_tokens included in input_tokens?
+		# Are cached_tokens included in input_tokens?  #table 2
 		#
 		#            | deduce | neutral | include | note
 		# OpenAI     |        |   x     |         | cached_tokens as subset of prompt_tokens
@@ -8762,15 +8901,17 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			HIST_TIME= BREAK_SET=;
 		elif ((MTURN))
 		then
+			[[ -t 1 ]] && {
+				_printbf '[wait]' >&2;
+				((OPTX)) && read_charf -t 6 >/dev/null;
+				((!OPTX)) && ((${#REPLY}>4096)) && read_charf -t 4 >/dev/null;
+				_printbf '      ' >&2;
+			};
+
 			((OPTW)) && RESUBW=1 TRAP_WEDIT=1;
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
 			BAD_RES=1 SKIP=1 EDIT=1 CKSUM_OLD=;
 			unset PSKIP JUMP REGEN REPLY_CMD INT_RES MEDIA  MEDIA_IND  MEDIA_CMD_IND SUFFIX OPTE BLOCK_CMD OPTAWE;
-
-			_printbf '[wait]' >&2;
-			((OPTX)) && read_charf -t 6 >/dev/null;
-			((!OPTX)) && ((${#REPLY}>8000||${#1}>8800)) && read_charf -t 4 >/dev/null;
-			_printbf '      ' >&2;
 			set --; continue;
 		fi;
 		((MEDIA_IND_LAST = ${#MEDIA_IND[@]} + ${#MEDIA_CMD_IND[@]}));
@@ -8911,4 +9052,4 @@ fi
 ## set -x; shopt -s extdebug; PS4=$'\n''$EPOCHREALTIME:$LINENO: ';  # Debug performance by line
 ## shellcheck -S warning -e SC2034,SC1007,SC2207,SC2199,SC2145,SC2027,SC1007,SC2254,SC2046,SC2124,SC2209,SC1090,SC2164,SC2053,SC1075,SC2068,SC2206,SC1078,SC2128,SC2221,SC2222  ~/bin/chatgpt.sh
 
-# vim=syntax sync minlines=180
+# vim: set syntax=sh sync minlines=180

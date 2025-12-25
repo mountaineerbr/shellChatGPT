@@ -1,7 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.125
+# v0.127
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -134,7 +134,8 @@ _chatgpt.sh()
     {-R,--start,--start-seq,--start-sequence}'[Start sequence]:start-sequence:(sequence \\nA\:)' \
     {-s,--stop}'[Stop sequences]:stop-sequence:(sequence \\nQ\:\  \\nA\:)' \
     {-t,--temperature,--temp}'[Temperature]:temperature -- [float]' \
-    {-c,-cc,--chat}'[Text or native chat completions]' \
+    {-cd,--text-chat}'[Pure text chat completions]' \
+    {-c,--chat}'[Native chat completions]' \
     {-C,--continue,--resume}'[Continue from last session]' \
     {-d,--text}'[Text completions]' \
     {--effort,--budget}'[Reasoning effort]:effort:(none minimal low medium high xhigh)' \
