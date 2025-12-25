@@ -80,7 +80,7 @@ _chatgptsh()
         -t --temperature --temp
         --time --date --no-time --no-date
         -c --chat
-	-cd --text-chat
+        -cd --text-chat
         -C --continue --resume
         -d --text
         --effort --budget
@@ -206,8 +206,8 @@ _chatgptsh()
         -[.,]*|-[!-]*[.,]*|\
         [.,] | [.,][.,] | [.,][!/.,]* | [.,][.,][!/]*)  #first positional argument
           ifs=$IFS IFS=$'\t\n'
-	  var=${cur%[.,][a-zA-Z0-9]*}
-	  var=${cur:0:${#var}+1}
+          var=${cur%[.,][a-zA-Z0-9]*}
+          var=${cur:0:${#var}+1}
           COMPREPLY=( $(compgen -W "$(__pr_listf "${var}") .[prompt_name]" -- "${cur}") )
           IFS=$ifs
           ;;

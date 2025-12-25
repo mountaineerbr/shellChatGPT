@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.127  jan/2026  by mountaineerbr  GPL+3
+# v0.127.1  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -6019,7 +6019,7 @@ function session_globf
 	if ((${#} >1)) && [[ "$glob" != *[$IFS]* ]]
 	then 	_clr_ttystf;
 		if test_dialogf
-		then 	options=( $(_dialog_optf $([[ $FILECHAT = *chatgpt.tsv ]] || echo default) 'current' 'new' "${@%%.${sglob}}") )
+		then 	options=( $(_dialog_optf $([[ "tsv" = $sglob ]] && echo 'default') 'current' 'new' "${@%%.${sglob}}") )
 			file=$(
 			  dialog --backtitle "Selection Menu" --title "$([[ $ext = *[Tt][Ss][Vv] ]] && echo History File || echo Prompt) Selection" \
 			    --menu "Choose one of the following:" 0 40 0 \
@@ -6028,7 +6028,7 @@ function session_globf
 			_clr_dialogf;
 		else
 			printf '# Pick file [.%s]:\n' "${ext}" >&2
-			select file in $([[ $FILECHAT = *chatgpt.tsv ]] || echo default) 'current' 'new' 'abort' "${@%%.${sglob}}"
+			select file in $([[ "tsv" = $sglob ]] && echo 'default') 'current' 'new' 'abort' "${@%%.${sglob}}"
 			do 	break
 			done </dev/tty
 		fi
@@ -6038,7 +6038,11 @@ function session_globf
 
 	case "$file" in
 		[Cc]urrent|.|'')
-			file="${FILECHAT##*/}"
+			if [[ "tsv" = $sglob ]] || [[ -f ${FILECHAT##*/} ]]
+			then 	file="${FILECHAT##*/}";
+			else 	printf '%s' "$file";
+				return;
+			fi;
 			;;
 		[Dd]efault|[Dd]ef)
 			file="chatgpt.tsv";
@@ -6056,6 +6060,7 @@ function session_globf
 	esac
 
 	file="${CACHEDIR%%/}/${file:-${*:${#}}}"
+	file="${file%%.[Tt][Ss][Vv]}" file="${file%%.[Pp][Rr]}"
 	file="${file%%.${sglob}}.${ext}"
 	[[ -f $file || $ok -gt 0 ]] && printf '%s' "${file}"
 }
