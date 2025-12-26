@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.127.1  jan/2026  by mountaineerbr  GPL+3
+# v0.127.2  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -2831,6 +2831,12 @@ function cmdf
 			cmdmsgf 'Stop Sequences' "[$(unset s v; for s in "${STOPS[@]}"; do v=${v}\"$(escapef "$s")\",; done; printf '%s' "${v%%,}")]"
 			;;
 		-?(S)*([$' \t'])[.,]*)
+			is_txturl "$*" >/dev/null && {
+				trim_lf "$*" "-?(S)*([$' \t,'])"
+				SKIP_SH_HIST=1 cmdf -:"$TRIM";
+				SKIP_SH_HIST=;
+				return;  #is text file/url
+			}
 			trim_lf "$*" "-?(S)*([$' \t.,'])"
 			set -- "$TRIM"
 			PSKIP= XSKIP= SKIP=1 EDIT=1
@@ -2844,6 +2850,12 @@ function cmdf
 			INSTRUCTION=$var
 			;;
 		-?(S)*([$' \t'])[/%]*)
+			is_txturl "$*" >/dev/null && {
+				trim_lf "$*" "-?(S)*([$' \t%'])"
+				SKIP_SH_HIST=1 cmdf -:"$TRIM";
+				SKIP_SH_HIST=;
+				return;
+			}
 			trim_lf "$*" "-?(S)*([$' \t'])"
 			set -- "$TRIM"
 			PSKIP= XSKIP= SKIP=1 EDIT=1
@@ -4960,6 +4972,33 @@ function set_optsf
 function restart_compf { ((${#1}+${#RESTART})) && RESTART=$(escapef "$(unescapef "${1:-$RESTART}")") RESTART_OLD="$RESTART" ;}
 function start_compf { ((${#1}+${#START})) && START=$(escapef "$(unescapef "${1:-$START}")") START_OLD="$START" ;}
 
+#load text, pdf, doc file or url text
+function exp_txturl
+{
+	typeset REPLY_CMD_DUMP REPLY_CMD REPLY RET WSKIP XSKIP PSKIP SKIP del var
+
+	if ((${#1})) && var=$(is_txturl "$1")  #C#
+	then
+		del=$var;
+		[[ ${1:${#1}-${#var}} = "$var" ]] ||
+		  [[ $var != /* ]] || del=${var/"$HOME"/\~\/};
+
+		SKIP_SH_HIST=1 OPTV=4 cmdf /cat "$var";
+
+		((RET==201)) ||
+		if ((${#REPLY})) && ((!RET || (RET>180 && RET<220) ))
+		then
+		  ((RET==200)) || [[ "${1:0:128}" = "${REPLY:0:128}" ]] ||
+		    printf '%s' "${1:0:${#1}-${#del}}${NL}${NL}${REPLY}";
+		  case "$RET" in
+		    202) echo '[bye]' >&2; echo 'err' >&2; return 202;;
+		    201|200|199|198|[1-9]*) return 201;;  #abort
+		  esac
+		fi;
+	else 	false;
+	fi;
+}
+
 function record_confirmf
 {
 	typeset var
@@ -5742,8 +5781,8 @@ function custom_prf
 	case "$file" in
 		[Dd]efault|[Dd]ef)
 			if [[ ${FILECHAT} = */* ]]
-			then 	file="${FILECHAT%/*}/chatgpt.tsv";
-			else 	file="chatgpt.tsv";
+			then 	file="${FILECHAT%/*}/chatgpt.pr";
+			else 	file="chatgpt.pr";
 			fi;
 			name="chatgpt";;
 		[Cc]urrent|.) 	file="${FILECHAT}";;
@@ -5998,8 +6037,8 @@ function session_globf
 		[Dd]efault|[Dd]ef)
 			typeset FILECHAT="${FILECHAT:-$1}";
 			if [[ ${FILECHAT} = */* ]]
-			then 	printf '%s' "${FILECHAT%/*}/chatgpt.tsv";
-			else 	printf '%s' "chatgpt.tsv";
+			then 	printf '%s' "${FILECHAT%/*}/chatgpt.${ext:-tsv}";
+			else 	printf '%s' "chatgpt.${ext:-tsv}";
 			fi;
 			return;;
 		*) [[ ! -f "$1" ]] || return;;
@@ -6045,7 +6084,7 @@ function session_globf
 			fi;
 			;;
 		[Dd]efault|[Dd]ef)
-			file="chatgpt.tsv";
+			file="chatgpt.${ext:-tsv}";
 			;;
 		[Nn]ew) session_name_choosef "${name}"
 			return
@@ -6079,8 +6118,8 @@ function session_name_choosef
 		[Dd]efault|[Dd]ef|\
 		*[Dd]efault.${sglob}|*[Dd]ef.${sglob})
 			if [[ ${FILECHAT} = */* ]]
-			then 	fname="${FILECHAT%/*}/chatgpt.tsv";
-			else 	fname="chatgpt.tsv";
+			then 	fname="${FILECHAT%/*}/chatgpt.${ext:-tsv}";
+			else 	fname="chatgpt.${ext:-tsv}";
 			fi;
 			set -- "$fname":
 			;;
@@ -6146,8 +6185,8 @@ function session_name_choosef
 			[Dd]efault|[Dd]ef|\
 			*[Dd]efault.${sglob}|*[Dd]ef.${sglob})
 				if [[ ${FILECHAT} = */* ]]
-				then 	fname="${FILECHAT%/*}/chatgpt.tsv";
-				else 	fname="chatgpt.tsv";
+				then 	fname="${FILECHAT%/*}/chatgpt.${ext:-tsv}";
+				else 	fname="chatgpt.${ext:-tsv}";
 				fi;
 				;;
 			[Aa]bort|[Cc]ancel|[Ee]xit|[Qq]uit|\
@@ -6992,11 +7031,8 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 		s) 	STOPS=("$OPTARG" "${STOPS[@]}");;
 		awesome-zh) INSTRUCTION=%$INSTRUCTION;;
 		awesome) INSTRUCTION=/$INSTRUCTION;;
-		S|.|,) 	if [[ $opt == S ]] && [[ -f "$OPTARG" ]]
-			then 	INSTRUCTION="${opt##S}$(<"$OPTARG")"
-			else 	INSTRUCTION="${opt##S}$OPTARG"
-			fi; OPTSSARG="$OPTARG";
-			;;
+		S|.|,)  INSTRUCTION="${opt##S}$OPTARG";
+			OPTSSARG="$OPTARG";;
 		tmp) 	((OPTTMP++));;
 		time|date) 	INST_TIME=1;;
 		no-time|no-date) 	INST_TIME=-1;;
@@ -7565,7 +7601,9 @@ else
 	case "${1:0:32}${2:0:32}" in
 		[.,][[:alnum:]]*|[.,][.,][[:alnum:]]*)
 		((${#INSTRUCTION})) || INSTRUCTION="$1" && shift;;
+		#any dotfiles in pos args should have been loaded at this point
 	esac;
+	[[ -f $INSTRUCTION ]] ||
 	case "${INSTRUCTION:0:32}" in
 		[/%]*)
 			OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
@@ -7578,7 +7616,8 @@ else
 				printf '\nAwesome INSTRUCTION set!\a\nPress <enter> to request or append user prompt: ' >&2
 				var=$(read_charf)
 				case "$var" in 	?) SKIP=1 EDIT=1 OPTAWE= REPLY=$var;; 	*) JUMP=1;; esac; unset var;
-			fi; [[ ${INSTRUCTION:0:512} = *[!$IFS]* ]] || unset INSTRUCTION;
+			fi;
+			[[ ${INSTRUCTION:0:512} = *[!$IFS]* ]] || unset INSTRUCTION;
 			;;
 		[.,]*)
 			if ((OPTV))
@@ -7662,6 +7701,9 @@ else
 	  ((OPTC && !${#START})) && [[ -n ${START+1} ]] && _warmsgf 'Start Sequence:' 'Set but null' ;}
 
 	#model instruction
+	#load any text, pdf, or doc files or online text urls
+	((${#INSTRUCTION})) && buff=$(exp_txturl "$INSTRUCTION") && INSTRUCTION=${buff:-$INSTRUCTION} buff=;
+
 	INSTRUCTION_OLD="$INSTRUCTION"
 	if ((MTURN+OPTRESUME+OPTC+xSTURNx))
 	then
@@ -8193,6 +8235,7 @@ else
 				#	_sysmsgf "System Prompt: unset";
 				#	;;
 				::*)  #prepend to system instruction
+					((${#var})) && buff=$(exp_txturl "$var") && var=${buff:-$var} buff=;
 					((${#var})) && ((INSTRUCTION_RESET+=${#var}+2));
 
 					((${#INSTRUCTION}+${#GINSTRUCTION})) && v=prepend || v=set;
@@ -8222,6 +8265,8 @@ else
 					fi;
 					;;
 				:*|*)  #prepend to user prompt
+					((${#var})) && buff=$(exp_txturl "$var") && var=${buff:-$var} buff=;
+
 					if ((${#var}))
 					then 	if ((OPTCMPL))
 						then 	PREPEND="${PREPEND}${var}";
@@ -8233,7 +8278,7 @@ else
 					fi; echo >&2;
 					;;
 				esac;
-				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD_DUMP= REPLY_CMD= var= v=;
+				EDIT= PSKIP= SKIP= REPLY= REPLY_OLD= REPLY_CMD_DUMP= REPLY_CMD= buff= var= v=;
 				set --; continue;
 				;;
 			esac;

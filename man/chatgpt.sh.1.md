@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.127 | General Commands Manual
+% CHATGPT.SH(1) v0.127.2 | General Commands Manual
 % mountaineerbr
 % January 2026
 
@@ -608,7 +608,8 @@ The SYSTEM INSTRUCTION prompt may be set with `option -S` or via
 envars `$INSTRUCTION` and `$INSTRUCTION_CHAT`.
 
 `Option -S` sets an INSTRUCTION prompt (the initial prompt) for text cmpls,
-and chat cmpls. A text file path may be supplied as the single argument.
+and chat cmpls. A text file, PDF, DOC path, or URL may be supplied as the single argument
+or as the last element in a text prompt.
 Also see **CUSTOM / AWESOME PROMPTS** section below.
 
 To create and reuse a custom prompt, set the prompt name as a command
@@ -892,8 +893,12 @@ Make sure file paths containing spaces are backslash-escaped!
 
 ### 2.6 Text, PDF, Doc, and URL Dumps
 
-The user may add a _filepath_ or _URL_ to the end of the prompt.
-The file is then read and the text content added to the user prompt.
+The user may add a _filepath_ or _URL_ to the end of the text prompt
+in a multi-turn chat environment.
+
+This format is also supported when passed as an argument to **option -S**.
+
+The file is then read and the text content added to the prompt.
 This is a basic text feature that works with any model.
 
 

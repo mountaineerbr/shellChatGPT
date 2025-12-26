@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.127 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.127.2 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.127 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.127.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2026</p>
 </header>
@@ -731,9 +731,10 @@ flag, and ends completion with the succeeding text after the flag.</p>
 or via envars <code>$INSTRUCTION</code> and
 <code>$INSTRUCTION_CHAT</code>.</p>
 <p><code>Option -S</code> sets an INSTRUCTION prompt (the initial
-prompt) for text cmpls, and chat cmpls. A text file path may be supplied
-as the single argument. Also see <strong>CUSTOM / AWESOME
-PROMPTS</strong> section below.</p>
+prompt) for text cmpls, and chat cmpls. A text file, PDF, DOC path, or
+URL may be supplied as the single argument or as the last element in a
+text prompt. Also see <strong>CUSTOM / AWESOME PROMPTS</strong> section
+below.</p>
 <p>To create and reuse a custom prompt, set the prompt name as a command
 line option, such as “<code>-S .[_prompt_name_]</code>” or
 “<code>-S ,[_prompt_name_]</code>”.</p>
@@ -975,8 +976,11 @@ Q: In this first user prompt, what can you see?  https://i.imgur.com/wpXKyRo.jpe
 <h3 id="text-pdf-doc-and-url-dumps">2.6 Text, PDF, Doc, and URL
 Dumps</h3>
 <p>The user may add a <em>filepath</em> or <em>URL</em> to the end of
-the prompt. The file is then read and the text content added to the user
-prompt. This is a basic text feature that works with any model.</p>
+the text prompt in a multi-turn chat environment.</p>
+<p>This format is also supported when passed as an argument to
+<strong>option -S</strong>.</p>
+<p>The file is then read and the text content added to the prompt. This
+is a basic text feature that works with any model.</p>
 <pre><code>chatgpt.sh -c
 
 [...]
