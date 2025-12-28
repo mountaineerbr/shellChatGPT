@@ -887,6 +887,8 @@ Some options can be disabled and excluded from the request by setting a
 
   “`!presence` *-1*”, “`-a` *-1*”, “`-t`*-1*”
 
+------------------------------------------------------------------------
+
 ## Response Regeneration
 
 To **regenerate response**, type in the command “`!regen`” or a single
