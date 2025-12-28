@@ -1047,8 +1047,8 @@ to change parameters and manage sessions.
 
 | _‡_ **Double daggers** indicates suffix-commands, invoked at the end of the user prompt and preceded by space.
 
----
 
+---
 
 Examples
 
@@ -1058,15 +1058,11 @@ Examples
 
 |   "\[_PROMPT_] `/sh`", "_Translate this to French_ `/sh`"
 
----
-
 
 Some options can be disabled and excluded from the request by setting
 a "_-1_" as argument (bypass with "_-1.0_")
 
 |   "`!presence` _-1_",  "`-a` _-1_", "`-t`_-1_"
-
----
 
 
 ## Response Regeneration

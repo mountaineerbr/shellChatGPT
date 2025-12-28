@@ -882,14 +882,10 @@ Examples
 
   “\[*PROMPT*\] `/sh`”, “*Translate this to French* `/sh`”
 
-------------------------------------------------------------------------
-
 Some options can be disabled and excluded from the request by setting a
 “*-1*” as argument (bypass with “*-1.0*”)
 
   “`!presence` *-1*”, “`-a` *-1*”, “`-t`*-1*”
-
-------------------------------------------------------------------------
 
 ## Response Regeneration
 
