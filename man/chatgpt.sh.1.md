@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.127.2 | General Commands Manual
+% CHATGPT.SH(1) v0.127.3 | General Commands Manual
 % mountaineerbr
 % January 2026
 
@@ -1023,7 +1023,7 @@ to change parameters and manage sessions.
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
       `-C`          \-                                       Continue current history session (see `!break`).
       `-H`         `!hist`       \[_NUM_]                    Edit history in editor or print the last _n_ history entries.
-      `-P`         `-HH`, `!print`                           Print session history.
+      `-P`         `-HH`, `!print`                           Print session history (see also `!last`).
       `-L`         `!log`       \[_FILEPATH_]                Save to log file.
       `!c`         `!copy`  \[_SRC_HIST_] \[_DEST_HIST_]     Copy session from source to destination.
       `!f`         `!fork`      \[_DEST_HIST_]               Fork current session and continue from destination.
