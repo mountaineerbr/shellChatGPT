@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.127.3  jan/2026  by mountaineerbr  GPL+3
+# v0.127.4  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1395,7 +1395,8 @@ function prompt_prettyf
 
 	jq -r ${STREAM:+-j --unbuffered} \
 	"((.choices?|.[1].index)//null) as \$sep | if ((.choices?)//null) != null then .choices[] else (if (${GOOGLEAI:+1}0>0) then (if (${STREAM:-0}>0) then .[] else . end) else . end) end | ( (
-	    (if (.delta.content | .[]? | has(\"thinking\")) then ( (.delta.content[].thinking | .[]? | .text)//\"\") else null end)
+	    (.delta.reasoning_details|.[]?|.text)
+	    //(if (.delta.content | .[]? | has(\"thinking\")) then ( (.delta.content[].thinking | .[]? | .text)//\"\") else null end)
 	    //(.delta.content${xMISTRALAI:+skip})//(.delta.reasoning)//(.delta.reasoning_content)//(.delta.text)//(.delta.thinking)//(.delta.audio.transcript)
 	    //.text//.response//.completion//.reasoning
 	    //( (.content // []) | .[]? | (.text // .thinking) )
@@ -1442,7 +1443,8 @@ function prompt_pf
 		#missing: thinking and audio transcriptions (responses api)
 	else
 		set -- "(if ((.choices?)//null) != null then (.choices[$INDEX]) else (if (${GOOGLEAI:+1}0>0) then (if (${STREAM:-0}>0) then .[] else . end) else . end) end |
-	        (if (.delta.content | .[]? | has(\"thinking\")) then ( (.delta.content[].thinking | .[]? | .text)//\"\") else null end)
+		(.delta.reasoning_details|.[]?|.text)
+		//(if (.delta.content | .[]? | has(\"thinking\")) then ( (.delta.content[].thinking | .[]? | .text)//\"\") else null end)
 		//(.delta.content${xMISTRALAI:+skip})//(.delta.reasoning)//(.delta.reasoning_content)
 		//(.delta.text)//(.delta.thinking)//(.delta.audio.transcript)
 		//.text//.response//.completion//.reasoning
@@ -8824,7 +8826,11 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				fi;
 
 				_warmsgf "(response empty)";
-				((${#REPLY}<COLUMNS*LINES)) || read_charf -t 3 >/dev/null 2>&1;
+				[[ -t 1 ]] && ((${#REPLY}>COLUMNS*LINES)) && {
+					_printbf '\wait\' >&2;
+					read_charf -t 2 >/dev/null 2>&1;
+					_printbf '      ' >&2;
+				};  #U#
 				unset file;
 			fi;
 
@@ -8929,7 +8935,7 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				((OPTX)) && read_charf -t 6 >/dev/null;
 				((!OPTX)) && ((${#REPLY}>COLUMNS*LINES)) && read_charf -t 4 >/dev/null;
 				_printbf '      ' >&2;
-			};
+			};  #U#
 
 			((OPTW)) && RESUBW=1 TRAP_WEDIT=1;
 			((${#REPLY_CMD})) && REPLY=$REPLY_CMD;
