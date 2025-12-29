@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.130  jan/2026  by mountaineerbr  GPL+3
+# v0.130.1  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -303,7 +303,8 @@ Instruction Prompts
 	the text of the file is loaded as the INSTRUCTION.
 
 	To create and reuse a custom prompt, set the prompt name you wish
-	as the option argument preceded by dot or comma, such as
+	as the option argument preceded by a dot (silent load), a single
+	comma (one-shot edit), or a double comma (template edit), such as
 	\`-S .[prompt_name]' or \`-S ,[prompt_name]'.
 
 	Alternatively, set the first positional argument with the operator
@@ -738,10 +739,10 @@ Options
 	-S .[PROMPT_NAME],  -.[PROMPT_NAME]
 	-S ,[PROMPT_NAME],  -,[PROMPT_NAME]
 		Load, search for, or create custom prompt.
-		Set \`.[prompt]' to load prompt silently.
-		Set \`,[prompt]' to single-shot edit prompt.
-		Set \`,,[prompt]' to edit the prompt template.
-		Set \`.?' to list all prompt template files.
+		Set -S\`.[prompt]' to load prompt silently.
+		Set -S\`,[prompt]' to single-shot edit prompt.
+		Set -S\`,,[prompt]' to edit the prompt template.
+		Set -S\`.?' to list all prompt template files.
 	-S, --awesome  /[AWESOME_PROMPT_NAME]
 	-S, --awesome-zh  %[AWESOME_PROMPT_NAME_ZH]
 		Set or search an awesome-chatgpt-prompt(-zh).

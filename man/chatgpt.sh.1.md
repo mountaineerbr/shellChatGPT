@@ -1220,23 +1220,41 @@ Alternatively, use _gpt-4+ models_ and the right instructions.
 -->
 
 
-# CUSTOM / AWESOME PROMPTS
+# CUSTOM PROMPTS
 
-When the argument to `option -S` starts with a full stop, such as
-"`-S` `.`_my_prompt_", load, search for, or create _my_prompt_ prompt file.
-If two full stops are prepended to the prompt name, load it silently.
-If a comma is used instead, such as "`-S` `,`_my_prompt_", edit
-the prompt file, and then load it.
+When the argument to `option -S` or the first positional argument starts with
+a full stop, such as "`-S.`_my_prompt_", load, search for, or create the 
+_that prompt file_.
+
+If a comma is prepended to the prompt name, such as "-S`,`_my_prompt_", load the
+file and edit it one-shot for the current session. If a double comma is used 
+instead, such as "`-S,,`_my_prompt_", permanently edit the prompt template 
+file and then load it. Use "-S `.?`" to list all available custom prompts.
+
+These operators also set corresponding history files automatically.
+
+Do backup your important custom prompts!
+They are usually located at "`~/.cache/chatgptsh/*.pr`".
+
+
+# AWESOME PROMPTS
+
+When the argument to `option -S` starts with a forward slash or a percent sign,
+such as "`-S` `/`_linux_terminal_", search for an **awesome-chatgpt-prompt**
+(English) or **awesome-chatgpt-prompt-zh** (Chinese). 
+
+Set "`//`" or "`%%`" as the argument to refresh the local prompt cache. These 
+are best used with _davinci_ and _gpt-3.5_ or newer models.
+```
+
+
+
+# AWESOME PROMPTS
 
 When the argument to `option -S` starts with a backslash or a percent sign,
 such as "`-S` `/`_linux_terminal_", search for an **awesome-chatgpt-prompt(-zh)**
 (by Fatih KA and PlexPt). Set "`//`" or "`%%`" to refresh local cache.
 Use with _davinci_ and _gpt-3.5+_ models.
-
-These options also set corresponding history files automatically.
-
-Please note and make sure to backup your important custom prompts!
-They are located at "`~/.cache/chatgptsh/`" with the extension "_.pr_".
 
 
 <!--
