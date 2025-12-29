@@ -1180,7 +1180,7 @@ modified with the "`/hist`" command (also good for context injection).
 Delete history entries or comment them out with "#".
 
 Note that the user must edit the actual json-escaped strings in the
-history file, which a burdensome strategy, but hopefully acceptable
+history file, which is a burdensome strategy, but acceptable
 for small modifications of history context in a live session.
 
 
