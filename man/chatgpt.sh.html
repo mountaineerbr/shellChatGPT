@@ -2139,9 +2139,9 @@ user has changed his terminal tabstop setting. Reset it with command
 the script configuration file.</p>
 <p>This script deviates from XDG standards; it expects the configuration
 file to be located at <code>~/.chatgpt.sh</code>, and utilises a single
-cache directory for both ephemeral data and extended data (including
-persistent files like prompt <code>.pr</code> and <code>.tsv</code>
-history files, which users are expected to backup).</p>
+cache directory for both ephemeral data and extended data, including
+more persistent files like prompt <code>.pr</code> and session history
+<code>.tsv</code> files (which users are expected to backup).</p>
 <p>If folding does not work well at all, try exporting envar
 <code>$COLUMNS</code> before script execution.</p>
 <p>Bash truncates input on “\000” (null).</p>
