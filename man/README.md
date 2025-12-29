@@ -1043,19 +1043,18 @@ Do backup your important custom prompts! They are usually located at
 # AWESOME PROMPTS
 
 When the argument to `option -S` starts with a forward slash or a
-percent sign, such as “`-S` `/`*linux_terminal*”, search for an
-**awesome-chatgpt-prompt** (English) or **awesome-chatgpt-prompt-zh**
-(Chinese).
+percent sign, such as “`-S/`*linux_terminal*”, search for an
+**awesome-chatgpt-prompt** (English/Fatih KAv) or
+**awesome-chatgpt-prompt-zh** (Chinese/PlexPt).
 
 Set “`//`” or “`%%`” as the argument to refresh the local prompt cache.
-These are best used with *davinci* and *gpt-3.5* or newer models.
 
-# AWESOME PROMPTS
-
-When the argument to `option -S` starts with a backslash or a percent
-sign, such as “`-S` `/`*linux_terminal*”, search for an
-**awesome-chatgpt-prompt(-zh)** (by Fatih KA and PlexPt). Set “`//`” or
-“`%%`” to refresh local cache. Use with *davinci* and *gpt-3.5+* models.
+<!--
+When the argument to `option -S` starts with a backslash or a percent sign,
+such as "`-S` `/`_linux_terminal_", search for an **awesome-chatgpt-prompt(-zh)**
+(by Fatih KA and PlexPt). Set "`//`" or "`%%`" to refresh local cache.
+Use with _davinci_ and _gpt-3.5+_ models.
+-->
 
 <!--
 # IMAGES / DALL-E

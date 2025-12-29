@@ -1240,19 +1240,17 @@ They are usually located at "`~/.cache/chatgptsh/*.pr`".
 # AWESOME PROMPTS
 
 When the argument to `option -S` starts with a forward slash or a percent sign,
-such as "`-S` `/`_linux_terminal_", search for an **awesome-chatgpt-prompt**
-(English) or **awesome-chatgpt-prompt-zh** (Chinese). 
+such as "`-S/`_linux_terminal_", search for an **awesome-chatgpt-prompt**
+(English/Fatih KAv) or **awesome-chatgpt-prompt-zh** (Chinese/PlexPt). 
 
-Set "`//`" or "`%%`" as the argument to refresh the local prompt cache. These 
-are best used with _davinci_ and _gpt-3.5_ or newer models.
+Set "`//`" or "`%%`" as the argument to refresh the local prompt cache.
 
-
-# AWESOME PROMPTS
-
+<!--
 When the argument to `option -S` starts with a backslash or a percent sign,
 such as "`-S` `/`_linux_terminal_", search for an **awesome-chatgpt-prompt(-zh)**
 (by Fatih KA and PlexPt). Set "`//`" or "`%%`" to refresh local cache.
 Use with _davinci_ and _gpt-3.5+_ models.
+-->
 
 
 <!--
