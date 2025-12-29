@@ -1505,7 +1505,7 @@ This script deviates from XDG standards; it expects the configuration
 file to be located at `~/.chatgpt.sh`, and utilises a single cache
 directory for both ephemeral data and extended data, including more
 persistent files like prompt `.pr` and session history `.tsv` files
-(which users are expected to backup).
+(which users are expected to backup and manage themselves =).
 
 If folding does not work well at all, try exporting envar `$COLUMNS`
 before script execution.
