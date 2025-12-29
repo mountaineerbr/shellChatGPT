@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2026
-title: CHATGPT.SH(1) v0.127.3 \| General Commands Manual
+title: CHATGPT.SH(1) v0.128 \| General Commands Manual
 ---
 
 # NAME
@@ -368,6 +368,9 @@ Disable markdown rendering.
 
 **-o**, **--clipboard**  
 Copy response to clipboard.
+
+**--source**  
+Source this script functions and shell configuration (debug).
 
 **-v**, **-vv** <!-- verbose -->  
 Less interface verbosity.

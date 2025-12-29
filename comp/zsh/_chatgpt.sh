@@ -1,7 +1,7 @@
 #compdef chatgpt.sh
 
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.127
+# v0.128
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -172,7 +172,7 @@ _chatgpt.sh()
     {-k,--no-colour,--no-color}'[Disable color output]' \
     {-l,--list-models}'[List models]:model name (optional)' \
     {-L,--log}'[Log file]:log filepath:_files' \
-    '--source[Source file]:source file:_files' \
+    '--source[Source this script (debug)]:source file:_files' \
     '--tmp[Use temporary directory]' \
     {-O,--ollama}'[Ollama integration]' \
     {--localai,--local-ai,--local}'[LocalAI integration]' \

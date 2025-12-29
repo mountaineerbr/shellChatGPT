@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.127.3 | General Commands Manual
+% CHATGPT.SH(1) v0.128 | General Commands Manual
 % mountaineerbr
 % January 2026
 
@@ -506,6 +506,11 @@ print out chat sessions.
 **-o**, **\--clipboard**
 
 : Copy response to clipboard.
+
+
+**\--source**
+
+: Source this script functions and shell configuration (debug).
 
 
 **-v**, **-vv**  <!-- verbose -->
