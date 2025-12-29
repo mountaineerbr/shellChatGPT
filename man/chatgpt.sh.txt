@@ -986,7 +986,8 @@ When the argument to option -S starts with a forward slash or a percent
 sign, such as “-S/linux_terminal”, search for an awesome-chatgpt-prompt
 (English/Fatih KAv) or awesome-chatgpt-prompt-zh (Chinese/PlexPt).
 
-Set “//” or “%%” as the argument to refresh the local prompt cache.
+Set “-S //” or “-S %%” as the argument to refresh the local prompt
+cache.
 
 STT / VOICE-IN / WHISPER
 

@@ -1229,7 +1229,7 @@ _that prompt file_.
 If a comma is prepended to the prompt name, such as "-S`,`_my_prompt_", load the
 file and edit it one-shot for the current session. If a double comma is used 
 instead, such as "`-S,,`_my_prompt_", permanently edit the prompt template 
-file and then load it. Use "-S `.?`" to list all available custom prompts.
+file and then load it. Use "`-S .?`" to list all available custom prompts.
 
 These operators also set corresponding history files automatically.
 
@@ -1243,7 +1243,7 @@ When the argument to `option -S` starts with a forward slash or a percent sign,
 such as "`-S/`_linux_terminal_", search for an **awesome-chatgpt-prompt**
 (English/Fatih KAv) or **awesome-chatgpt-prompt-zh** (Chinese/PlexPt). 
 
-Set "`//`" or "`%%`" as the argument to refresh the local prompt cache.
+Set "`-S //`" or "`-S %%`" as the argument to refresh the local prompt cache.
 
 <!--
 When the argument to `option -S` starts with a backslash or a percent sign,
