@@ -1245,8 +1245,6 @@ such as "`-S` `/`_linux_terminal_", search for an **awesome-chatgpt-prompt**
 
 Set "`//`" or "`%%`" as the argument to refresh the local prompt cache. These 
 are best used with _davinci_ and _gpt-3.5_ or newer models.
-```
-
 
 
 # AWESOME PROMPTS

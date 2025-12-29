@@ -1682,18 +1682,14 @@ slash or a percent sign, such as “<code>-S</code>
 <p>Set “<code>//</code>” or “<code>%%</code>” as the argument to refresh
 the local prompt cache. These are best used with <em>davinci</em> and
 <em>gpt-3.5</em> or newer models.</p>
-<pre><code>
-
-
-# AWESOME PROMPTS
-
-When the argument to `option -S` starts with a backslash or a percent sign,
-such as &quot;`-S` `/`_linux_terminal_&quot;, search for an **awesome-chatgpt-prompt(-zh)**
-(by Fatih KA and PlexPt). Set &quot;`//`&quot; or &quot;`%%`&quot; to refresh local cache.
-Use with _davinci_ and _gpt-3.5+_ models.
-
-
-&lt;!--
+<h1 id="awesome-prompts-1">AWESOME PROMPTS</h1>
+<p>When the argument to <code>option -S</code> starts with a backslash
+or a percent sign, such as “<code>-S</code>
+<code>/</code><em>linux_terminal</em>”, search for an
+<strong>awesome-chatgpt-prompt(-zh)</strong> (by Fatih KA and PlexPt).
+Set “<code>//</code>” or “<code>%%</code>” to refresh local cache. Use
+with <em>davinci</em> and <em>gpt-3.5+</em> models.</p>
+<!--
 # IMAGES / DALL-E
 
 ## 1. Image Generations
@@ -1703,7 +1699,7 @@ of the desired image(s) is required. The maximum length is 1000
 characters.
 
 This script also supports xAI image generation model
-with invocation &quot;`chatgpt.sh --xai -i -m grok-2-image-1212 &quot;[prompt]&quot;`&quot;.
+with invocation "`chatgpt.sh --xai -i -m grok-2-image-1212 "[prompt]"`".
 
 
 ## 2. Image Variations
@@ -1726,18 +1722,18 @@ and processed to fit dimensions and other requirements.
 
 ### 3.2 Transparent Colour and Fuzz
 
-A transparent colour must be set with &quot;`-@`\[_COLOUR_]&quot; to create the
+A transparent colour must be set with "`-@`\[_COLOUR_]" to create the
 mask. Defaults=_black_.
 
-By defaults, the _COLOUR_ must be exact. Use the \`fuzz option&#39; to match
+By defaults, the _COLOUR_ must be exact. Use the \`fuzz option' to match
 colours that are close to the target colour. This can be set with
-&quot;`-@`\[_VALUE%_]&quot; as a percentage of the maximum possible intensity,
-for example &quot;`-@`_10%black_&quot;.
+"`-@`\[_VALUE%_]" as a percentage of the maximum possible intensity,
+for example "`-@`_10%black_".
 
 See also:
 
- - &lt;https://imagemagick.org/script/color.php&gt;
- - &lt;https://imagemagick.org/script/command-line-options.php#fuzz&gt;
+ - <https://imagemagick.org/script/color.php>
+ - <https://imagemagick.org/script/command-line-options.php#fuzz>
 
 ### 3.3 Mask File / Alpha Channel
 
@@ -1755,53 +1751,41 @@ script. Paint a portion of the outer area of an image with _alpha_,
 or a defined _transparent_ _colour_ which will be used as the mask, and set the
 same _colour_ in the script with `option -@`. Choose the best result amongst
 many results to continue the out-painting process step-wise.
---&gt;
-
-
-# STT / VOICE-IN / WHISPER
-
-## Transcriptions
-
-Transcribes audio file or voice record into the set language.
-Set a _two-letter_ _ISO-639-1_ language code (_en_, _es_, _ja_, or _zh_) as
-the positional argument following the input audio file. A prompt
-may also be set as last positional parameter to help guide the
-model. This prompt should match the audio language.
-
-If the last positional argument is &quot;.&quot; or &quot;last&quot; exactly, it will
-resubmit the last recorded audio input file from cache.
-
-Note that if the audio language is different from the set language code,
-output will be on the language code (translation).
-
-
-## Translations
-
-Translates audio into **English**. An optional text to guide
-the model&#39;s style or continue a previous audio segment is optional
-as last positional argument. This prompt should be in English.
-
-Setting **temperature** has an effect, the higher the more random.
-
-
-# PROVIDER INTEGRATIONS
-
-For LocalAI integration, run the script with `option --localai`,
-or set environment **$OPENAI_BASE_URL** with the server Base URL.
-
-For Mistral AI set environment variable **\$MISTRAL_API_KEY**,
-and run the script with `option --mistral` or set **$OPENAI_BASE_URL**
-to &quot;https://api.mistral.ai/&quot;.
-Prefer setting command line `option --mistral` for complete integration.
-&lt;!-- also see: \$MISTRAL_BASE_URL --&gt;
-
-For Ollama, set `option -O` (`--ollama`), and set **$OLLAMA_BASE_URL**
-if the server URL is different from the defaults.
-
-Note that model management (downloading and setting up) must
-follow the Ollama project guidelines and own methods.
-
-&lt;!--
+-->
+<h1 id="stt-voice-in-whisper">STT / VOICE-IN / WHISPER</h1>
+<h2 id="transcriptions">Transcriptions</h2>
+<p>Transcribes audio file or voice record into the set language. Set a
+<em>two-letter</em> <em>ISO-639-1</em> language code (<em>en</em>,
+<em>es</em>, <em>ja</em>, or <em>zh</em>) as the positional argument
+following the input audio file. A prompt may also be set as last
+positional parameter to help guide the model. This prompt should match
+the audio language.</p>
+<p>If the last positional argument is “.” or “last” exactly, it will
+resubmit the last recorded audio input file from cache.</p>
+<p>Note that if the audio language is different from the set language
+code, output will be on the language code (translation).</p>
+<h2 id="translations">Translations</h2>
+<p>Translates audio into <strong>English</strong>. An optional text to
+guide the model’s style or continue a previous audio segment is optional
+as last positional argument. This prompt should be in English.</p>
+<p>Setting <strong>temperature</strong> has an effect, the higher the
+more random.</p>
+<h1 id="provider-integrations">PROVIDER INTEGRATIONS</h1>
+<p>For LocalAI integration, run the script with
+<code>option --localai</code>, or set environment
+<strong>$OPENAI_BASE_URL</strong> with the server Base URL.</p>
+<p>For Mistral AI set environment variable
+<strong>$MISTRAL_API_KEY</strong>, and run the script with
+<code>option --mistral</code> or set <strong>$OPENAI_BASE_URL</strong>
+to “https://api.mistral.ai/”. Prefer setting command line
+<code>option --mistral</code> for complete integration.
+<!-- also see: \$MISTRAL_BASE_URL --></p>
+<p>For Ollama, set <code>option -O</code> (<code>--ollama</code>), and
+set <strong>$OLLAMA_BASE_URL</strong> if the server URL is different
+from the defaults.</p>
+<p>Note that model management (downloading and setting up) must follow
+the Ollama project guidelines and own methods.</p>
+<!--
 For Google Gemini, set environment variable **$GOOGLE_API_KEY**, and
 run the script with the command line `option --google`.
 
@@ -1814,233 +1798,212 @@ with command line `option --anthropic`.
 
 For GitHub Models, `$GITHUB_TOKEN` and invoke the script
 with `option --github`.
---&gt;
-
-&lt;!--
+-->
+<!--
 For Novita API integration, set the environment variable `$NOVITA_API_KEY` and
 use the `--novita` option (**legacy**).
---&gt;
-
-
-&lt;!--
+-->
+<!--
 Likewise, for xAI Grok, set environment `$XAI_API_KEY` with its API key.
 
 And for DeepSeek API, set environment `$DEEPSEEK_API_KEY` with its API key.
 
 Run the script with `option --xai` and also with `option -cc` (chat completions.).
---&gt;
-
-Likewise, for other supported service providers, use command line
-options, or for unknown providers,
-use environmental variables for configuiration.
-
-Many service providers can be wrapped by this script.
-
-Basically, set end export **$OPENAI_BASE_URL** to a target
-OpenAI-v1-compatible API host URL before executing the script.
-
-See section on service providers in our repository documentation,
-and an example on how to set up **Novita API integration**.
-
-Some service providers and models may also work with pure text completions,
-which is turned on  with command-line `option -cd` instead.
-
-
-Prompt caching is manually enabled for Anthropic API and models,
-&lt;!-- This feature may be eventually enabled for Google Gemini models, --&gt;
-see **BUGS section**.
-
-
-# ENVIRONMENT
-
-**BLOCK_USR**
-
-**BLOCK_USR_TTS**
-
-:    Extra options for the request JSON block
-      (e.g. &quot;_\&quot;seed\&quot;: 33, \&quot;dimensions\&quot;: 1024_&quot;).
-
-
-**CACHEDIR**
-
-:    Script cache directory base.
-
-
-**CHATGPTRC**
-
-:    Path to the user _configuration file_.
-
-     Defaults=\&quot;_~/.chatgpt.conf_\&quot;
-
-
-**FILECHAT**
-
-:    Path to a history / session TSV file (script-formatted).
-
-
-**INSTRUCTION**
-
-:    Initial initial instruction message.
-
-
-**INSTRUCTION_CHAT**
-
-:    Initial initial instruction or system message in chat mode.
-
-
-**INSTRUCTION_SPEECH**
-
-:    TTS transcription model instruction (gpt-4o-tts models).
-
-
-**LC_ALL**
-
-**LANG**
-
-:   Default instruction language in chat mode. &lt;!-- and Whisper language. --&gt;
-
-
-**MOD_CHAT**, **MOD_AUDIO**, **MOD_SPEECH**,
-
-**MOD_LOCALAI**, **MOD_OLLAMA**, **MOD_MISTRAL**,
-
-**MOD_AUDIO_MISTRAL**, **MOD_GOOGLE**, **MOD_GROQ**,
-
-**MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**, **MOD_ANTHROPIC**,
-
-**MOD_GITHUB**, **MOD_OPENROUTER**, **MOD_XAI**, **MOD_DEEPSEEK**
-
-:    Set default model for each endpoint / provider.
-
-
-**OPENAI_BASE_URL**
-
-**OPENAI_URL_PATH**
-
-:    Main Base URL setting. Alternatively, provide a _URL_PATH_ parameter with the full url path to disable endpoint auto selection.
-
-
-**PROVIDER_BASE_URL**
-
-:    Base URLs for each service provider:
-     _LOCALAI_, _OLLAMA_, _MISTRAL_, _GOOGLE_, _ANTHROPIC_, _GROQ_, _GITHUB_, _OPENROUTER_, _XAI_, and _DEEPSEEK_.
-
-
-**OPENAI_API_KEY**
-
-**PROVIDER_API_KEY**
-
-**GITHUB_TOKEN**
-
-:    Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models, OpenRouter, xAI, and DeepSeek APIs.
-
-
-**OUTDIR**
-
-:    Output directory for received audio and files.
-
-
-**RESTART**
-
-**START**
-
-:    Restart and start sequences. May be set to _null_.
-
-     Restart=&quot;_\\nQ:\ _&quot; Start=\&quot;_\\nA:_\&quot;  (chat mode)
-
-
-**VISUAL**
-
-**EDITOR**
-
-:    Text editor for external prompt editing.
-
-     Defaults=\&quot;_vim_\&quot;
-
-
-**CLIP_CMD**
-
-:    Clipboard set command, e.g. &quot;_xsel_ _-b_&quot;, &quot;_pbcopy_&quot;.
-
-
-**PLAY_CMD**
-
-:    Audio player command, e.g. &quot;_mpv --no-video --vo=null_&quot;.
-
-
-**REC_CMD**
-
-:    Audio recorder command, e.g. &quot;_sox -d_&quot;.
-
-
-# Web Search
-
-## Simple Search Dump
-
-To ground a user prompt with search results, run chat command &quot;`/g [prompt]`&quot;.
-
-Default search provider is Google. To select a different search provider,
-run &quot;`//g [prompt]`&quot; and choose amongst _Google_, _DuckDuckGo_, or _Brave_.
-
-Running &quot;`//g [prompt]`&quot; will always use the in-house solution instead of
-any service provider specific web search tool.
-
-A cli-browser is required, such as **w3m**, **elinks, **links**,
-or **lynx**.
-
-
-## OpenAI Web Search
-
-Use the in-house solution above, or select models with &quot;search&quot; in the name,
-such as &quot;gpt-4o-search-preview&quot;.
-
-&lt;!--
+-->
+<p>Likewise, for other supported service providers, use command line
+options, or for unknown providers, use environmental variables for
+configuiration.</p>
+<p>Many service providers can be wrapped by this script.</p>
+<p>Basically, set end export <strong>$OPENAI_BASE_URL</strong> to a
+target OpenAI-v1-compatible API host URL before executing the
+script.</p>
+<p>See section on service providers in our repository documentation, and
+an example on how to set up <strong>Novita API integration</strong>.</p>
+<p>Some service providers and models may also work with pure text
+completions, which is turned on with command-line
+<code>option -cd</code> instead.</p>
+<p>Prompt caching is manually enabled for Anthropic API and models,
+<!-- This feature may be eventually enabled for Google Gemini models, -->
+see <strong>BUGS section</strong>.</p>
+<h1 id="environment">ENVIRONMENT</h1>
+<p><strong>BLOCK_USR</strong></p>
+<dl>
+<dt><strong>BLOCK_USR_TTS</strong></dt>
+<dd>
+<p>Extra options for the request JSON block (e.g. “<em>"seed": 33,
+"dimensions": 1024</em>”).</p>
+</dd>
+<dt><strong>CACHEDIR</strong></dt>
+<dd>
+<p>Script cache directory base.</p>
+</dd>
+<dt><strong>CHATGPTRC</strong></dt>
+<dd>
+<p>Path to the user <em>configuration file</em>.</p>
+<p>Defaults="<em>~/.chatgpt.conf</em>"</p>
+</dd>
+<dt><strong>FILECHAT</strong></dt>
+<dd>
+<p>Path to a history / session TSV file (script-formatted).</p>
+</dd>
+<dt><strong>INSTRUCTION</strong></dt>
+<dd>
+<p>Initial initial instruction message.</p>
+</dd>
+<dt><strong>INSTRUCTION_CHAT</strong></dt>
+<dd>
+<p>Initial initial instruction or system message in chat mode.</p>
+</dd>
+<dt><strong>INSTRUCTION_SPEECH</strong></dt>
+<dd>
+<p>TTS transcription model instruction (gpt-4o-tts models).</p>
+</dd>
+</dl>
+<p><strong>LC_ALL</strong></p>
+<dl>
+<dt><strong>LANG</strong></dt>
+<dd>
+<p>Default instruction language in chat mode.
+<!-- and Whisper language. --></p>
+</dd>
+</dl>
+<p><strong>MOD_CHAT</strong>, <strong>MOD_AUDIO</strong>,
+<strong>MOD_SPEECH</strong>,</p>
+<p><strong>MOD_LOCALAI</strong>, <strong>MOD_OLLAMA</strong>,
+<strong>MOD_MISTRAL</strong>,</p>
+<p><strong>MOD_AUDIO_MISTRAL</strong>, <strong>MOD_GOOGLE</strong>,
+<strong>MOD_GROQ</strong>,</p>
+<p><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_SPEECH_GROQ</strong>,
+<strong>MOD_ANTHROPIC</strong>,</p>
+<dl>
+<dt><strong>MOD_GITHUB</strong>, <strong>MOD_OPENROUTER</strong>,
+<strong>MOD_XAI</strong>, <strong>MOD_DEEPSEEK</strong></dt>
+<dd>
+<p>Set default model for each endpoint / provider.</p>
+</dd>
+</dl>
+<p><strong>OPENAI_BASE_URL</strong></p>
+<dl>
+<dt><strong>OPENAI_URL_PATH</strong></dt>
+<dd>
+<p>Main Base URL setting. Alternatively, provide a <em>URL_PATH</em>
+parameter with the full url path to disable endpoint auto selection.</p>
+</dd>
+<dt><strong>PROVIDER_BASE_URL</strong></dt>
+<dd>
+<p>Base URLs for each service provider: <em>LOCALAI</em>,
+<em>OLLAMA</em>, <em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>,
+<em>GROQ</em>, <em>GITHUB</em>, <em>OPENROUTER</em>, <em>XAI</em>, and
+<em>DEEPSEEK</em>.</p>
+</dd>
+</dl>
+<p><strong>OPENAI_API_KEY</strong></p>
+<p><strong>PROVIDER_API_KEY</strong></p>
+<dl>
+<dt><strong>GITHUB_TOKEN</strong></dt>
+<dd>
+<p>Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models,
+OpenRouter, xAI, and DeepSeek APIs.</p>
+</dd>
+<dt><strong>OUTDIR</strong></dt>
+<dd>
+<p>Output directory for received audio and files.</p>
+</dd>
+</dl>
+<p><strong>RESTART</strong></p>
+<dl>
+<dt><strong>START</strong></dt>
+<dd>
+<p>Restart and start sequences. May be set to <em>null</em>.</p>
+<p>Restart=“<em>\nQ: </em>” Start="<em>\nA:</em>" (chat mode)</p>
+</dd>
+</dl>
+<p><strong>VISUAL</strong></p>
+<dl>
+<dt><strong>EDITOR</strong></dt>
+<dd>
+<p>Text editor for external prompt editing.</p>
+<p>Defaults="<em>vim</em>"</p>
+</dd>
+<dt><strong>CLIP_CMD</strong></dt>
+<dd>
+<p>Clipboard set command, e.g. “<em>xsel</em> <em>-b</em>”,
+“<em>pbcopy</em>”.</p>
+</dd>
+<dt><strong>PLAY_CMD</strong></dt>
+<dd>
+<p>Audio player command, e.g. “<em>mpv –no-video –vo=null</em>”.</p>
+</dd>
+<dt><strong>REC_CMD</strong></dt>
+<dd>
+<p>Audio recorder command, e.g. “<em>sox -d</em>”.</p>
+</dd>
+</dl>
+<h1 id="web-search">Web Search</h1>
+<h2 id="simple-search-dump">Simple Search Dump</h2>
+<p>To ground a user prompt with search results, run chat command
+“<code>/g [prompt]</code>”.</p>
+<p>Default search provider is Google. To select a different search
+provider, run “<code>//g [prompt]</code>” and choose amongst
+<em>Google</em>, <em>DuckDuckGo</em>, or <em>Brave</em>.</p>
+<p>Running “<code>//g [prompt]</code>” will always use the in-house
+solution instead of any service provider specific web search tool.</p>
+<p>A cli-browser is required, such as <strong>w3m</strong>,
+<strong>elinks, </strong>links<strong>, or </strong>lynx**.</p>
+<h2 id="openai-web-search">OpenAI Web Search</h2>
+<p>Use the in-house solution above, or select models with “search” in
+the name, such as “gpt-4o-search-preview”.</p>
+<!--
 To enable live search in the API, run chat command `/g [prompt]` or
 `//g [prompt]` (to use the fallback mechanism) as usual;
 or to keep live search enabled for all prompts, set `$BLOCK_USR`
 environment variable before running the script such as:
-</code></pre>
-<p>export BLOCK_USR=‘“tools”: [{ “type”: “web_search_preview”,
-“search_context_size”: “medium” }]’</p>
-<p>chatgpt.sh -cc -m gpt-4.1-2025-04-14</p>
-<pre><code>
+
+```
+export BLOCK_USR='"tools": [{
+  "type": "web_search_preview",
+  "search_context_size": "medium"
+}]'
+
+chatgpt.sh -cc -m gpt-4.1-2025-04-14
+```
+
 Check more search parameters at the OpenAI API documentation:
-&lt;https://platform.openai.com/docs/guides/tools-web-search?api-mode=responses&gt;.
-&lt;https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat&gt;.
---&gt;
+<https://platform.openai.com/docs/guides/tools-web-search?api-mode=responses>.
+<https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat>.
+-->
+<h2 id="xai-live-search">xAI Live Search</h2>
+<p>The xAI live search feature has been discontinued server-side.</p>
+<p>Use the in-house solution for simple search text dumps to ground the
+prompt. See chat command <code>/g [search_ string]</code>.</p>
+<!--
+```
+export BLOCK_USR='"search_parameters": {
+  "mode": "auto",
+  "max_search_results": 10
+}'
 
+chatgpt.sh --xai -cc -m grok-3-latest 
+```
 
-## xAI Live Search
-
-The xAI live search feature has been discontinued server-side.
-
-Use the in-house solution for simple search text dumps to
-ground the prompt. See chat command `/g [search_ string]`.
-
-&lt;!--</code></pre>
-<p>export BLOCK_USR=‘“search_parameters”: { “mode”: “auto”,
-“max_search_results”: 10 }’</p>
-<p>chatgpt.sh –xai -cc -m grok-3-latest</p>
-<pre><code>
 Check more search parameters at the xAI API documentation:
-&lt;https://docs.x.ai/docs/guides/live-search&gt;.
---&gt;
+<https://docs.x.ai/docs/guides/live-search>.
+-->
+<h2 id="anthropic-web-search">Anthropic Web Search</h2>
+<pre><code>export BLOCK_USR=&#39;&quot;tools&quot;: [{
+  &quot;type&quot;: &quot;web_search_20250305&quot;,
+  &quot;name&quot;: &quot;web_search&quot;,
+  &quot;max_uses&quot;: 5
+}]&#39;
 
+chatgpt.sh --ant -c -m claude-opus-4-0</code></pre>
+<p>Check more web search parameters at Anthropic API docs: <a
+href="https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking"
+class="uri">https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking</a>.</p>
+<h2 id="google-search">Google Search</h2>
+<pre><code>export BLOCK_CMD=&#39;&quot;tools&quot;: [ { &quot;google_search&quot;: {} } ]&#39;
 
-## Anthropic Web Search
-</code></pre>
-<p>export BLOCK_USR=‘“tools”: [{ “type”: “web_search_20250305”, “name”:
-“web_search”, “max_uses”: 5 }]’</p>
-<p>chatgpt.sh –ant -c -m claude-opus-4-0</p>
-<pre><code>
-Check more web search parameters at Anthropic API docs:
-&lt;https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking&gt;.
-
-
-## Google Search
-</code></pre>
-<p>export BLOCK_CMD=‘“tools”: [ { “google_search”: {} } ]’</p>
-<p>chatgpt.sh –goo -c -m gemini-2.5-flash-preview-05-20 ```</p>
+chatgpt.sh --goo -c -m gemini-2.5-flash-preview-05-20</code></pre>
 <p>Check more web search parameters at Google AI API docs: <a
 href="https://ai.google.dev/gemini-api/docs/grounding?lang=rest"
 class="uri">https://ai.google.dev/gemini-api/docs/grounding?lang=rest</a>.</p>
