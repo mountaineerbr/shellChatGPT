@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.130.3  jan/2026  by mountaineerbr  GPL+3
+# v0.131  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -5616,8 +5616,8 @@ function awesomef
 	grep -q -e $'\r$' -- "$FILEAWE" && del=$'\r';
 	# RFC4180:
 	#  "aaa","b CRLF
-        #  b, b","ccc" CRLF
-        #  zzz,yyy,xxx
+	#  b, b","ccc" CRLF
+	#  zzz,yyy,xxx
 	#https://datatracker.ietf.org/doc/html/rfc4180#section-2
 
 	#map prompts to indexes and get user selection
