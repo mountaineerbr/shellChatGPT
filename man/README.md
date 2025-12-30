@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2026
-title: CHATGPT.SH(1) v0.128 \| General Commands Manual
+title: CHATGPT.SH(1) v0.131 \| General Commands Manual
 ---
 
 # NAME
@@ -993,8 +993,8 @@ the “`/hist`” command (also good for context injection).
 Delete history entries or comment them out with “\#”.
 
 Note that the user must edit the actual json-escaped strings in the
-history file, which is a burdensome strategy, but acceptable for small
-modifications of history context in a live session.
+history file, whilst this is a burdensome strategy, it is acceptable for
+small modifications of history context in a live session.
 
 <!--
 # CODE COMPLETIONS _(discontinued)_

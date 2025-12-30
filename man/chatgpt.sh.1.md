@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.128 | General Commands Manual
+% CHATGPT.SH(1) v0.131 | General Commands Manual
 % mountaineerbr
 % January 2026
 
@@ -1180,7 +1180,7 @@ modified with the "`/hist`" command (also good for context injection).
 Delete history entries or comment them out with "#".
 
 Note that the user must edit the actual json-escaped strings in the
-history file, which is a burdensome strategy, but acceptable
+history file, whilst this is a burdensome strategy, it is acceptable
 for small modifications of history context in a live session.
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.130.2  jan/2026  by mountaineerbr  GPL+3
+# v0.130.3  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -4226,10 +4226,17 @@ HELP_DIALOG='\n- \ZbMove:\ZB Use \ZbTAB\ZB, \ZbSHIFT+TAB\ZB, or \ZbARROW KEYS\ZB
 #print entries with 1-9 indexes or '.' for dialog
 function _dialog_optf
 {
-	typeset i
+	typeset i v m
+	m=8192;
+	
+	printf 'loading options\r' >&2;
 	for ((i=0;i<${#};i++))
-	do  printf "%q %s " "${@: i+1: 1}" "$( ((i<9)) && echo $((i + 1)) || echo .)";
+	do
+	    ((i<9)) && v=$((i + 1)) || v=.;
+	    printf "%s\n%s\n" "${@: i+1: 1}" "$v";
+	    ((i<m)) || { 	printf "err: _dialog_optf() -- loop limit (%d) exceeded\\n" "$m" >&2; return ;}
 	done
+	printf '               \r' >&2;
 }
 
 #check for pure text completions conditions, or insert mode with null suffix
@@ -5577,7 +5584,8 @@ function moderationf
 # Awesome-chatgpt-prompts
 function awesomef
 {
-	typeset REPLY act_keys act_keys_n options glob act zh a l n
+	typeset REPLY key key_old prompt options glob act del zh a l n
+	typeset -a act_keys prompts
 	[[ "$INSTRUCTION" = %* ]] && FILEAWE="${FILEAWE%%.csv}-zh.csv" zh=1
 
 	trap "trap '-' INT RETURN; FILECHAT=\"$FILECHAT\"; unset OPTAWE INSTRUCTION; _clr_dialogf; return 201 || exit 201" INT;
@@ -5589,7 +5597,7 @@ function awesomef
 	FILECHAT="${FILECHAT%/*}/awesome.tsv"
 	_cmdmsgf 'Awesome Prompts' "$1"
 
-	if [[ ! -s $FILEAWE ]] || [[ $1 = [/%]* ]]  #second slash
+	if [[ ! -s $FILEAWE ]] || [[ ${1:0:8} = [/%]* ]]  #second slash
 	then 	set -- "${1##[/%]}"
 		if 	if ((zh))
 			then 	! { curl -\# -L ${FAIL} "$AWEURLZH" \
@@ -5602,23 +5610,62 @@ function awesomef
 		fi
 	fi;
 
+	#new file format since commit 4260165 2025-12-13
+	#header: act,prompt,for_devs,type,contributor CRLF
+	#for_devs: developer-oriented prompts; type: text or structured
+	grep -q -e $'\r$' -- "$FILEAWE" && del=$'\r';
+	# RFC4180:
+	#  "aaa","b CRLF
+        #  b, b","ccc" CRLF
+        #  zzz,yyy,xxx
+	#https://datatracker.ietf.org/doc/html/rfc4180#section-2
+
 	#map prompts to indexes and get user selection
-	act_keys=$(sed -e '1d; s/,.*//; s/^"//; s/"[[:space:]]*$//; s/""/\\"/g; s/[][()`*_]//g; s/ /_/g' "$FILEAWE")
-	act_keys_n=$(wc -l <<<"$act_keys")
+	while IFS=, read -r -d ${del:-$'\n'} key prompt
+	do
+		printf 'loading -- %-32s \r' "${key:1:32}" >&2;  #*#
+		
+		if [[ ${key:0:128} != *[!$'  \r\t\n']* ]]
+		then 	continue;
+		elif [[ ${key:1:1} = ["'\""] ]]  #awesome-zh skips these
+		then  #fix key names
+			key_old=$key;
+			key=$(sed -n -e 's/^"//; s/""/"/g; s/",".*//p' <<<"${key},${prompt}");
+			((!${#key})) && key=$key_old ||
+			prompt=${prompt:${#key}-${#key_old}+4};
+		elif [[ ${key:0:1} = ["'\""] ]]
+		then  #remove leading and trailing double quotes
+			key=${key:1:${#key}-2};
+		fi
+		if [[ ${key:0:1} = $'\n' ]]
+		then 	act_keys+=( "${key:1}" )
+		else 	act_keys+=( "$key" )
+		fi
+		prompts+=( "$prompt" )
+	done < <(sed '1d' -- "$FILEAWE")
+		printf '           %-32s \r' "" >&2;  #clear stderr  #*#
+
 	case "$1" in
+		[.,][.,]list*|[.,][.,]ls*|\
+		[.,]list*|[.,]ls*|\
 		list*|ls*|+([./%*?-]))  #list awesome keys
-			{ 	pr -T -t -n:3 -W $COLUMNS -$(( (COLUMNS/80)+1)) || cat ;} <<<"$act_keys" >&2;
+			printf '%s\n' "${act_keys[@]}" |
+			{ 	pr -T -t -n:3 -W $COLUMNS -$(( (COLUMNS/80)+1)) || cat ;} >&2;
 			return 210;;
 	esac
 
-	((${#1}==1)) && glob='^';
+	((${#1}==1)) && glob="^[\"' ]*";
 	if test_dialogf
 	then
+		typeset IFS=$'\n'; 
 		if ((${#1})) &&
-		options=( $(_dialog_optf $(grep -i -e "${glob}${1//[ _-]/[ _-]}" <<<"${act_keys}" | sort) ) )
+		options=( $(_dialog_optf $(printf '%s\n' "${act_keys[@]}" | grep -i -e "${glob}${1//[ _-]/[ _-]}" | sort) ) )
 			((!${#options[@]}))
-		then  options=( $(_dialog_optf $(printf '%s\n' ${act_keys:-err} | sort) ) )
+		then
+			options=( $(_dialog_optf $(printf '%s\n' "${act_keys[@]:-err}" | sort) ) )
 		fi
+		IFS=$' \t\n'; 
+
 		REPLY=$(
 		  dialog --backtitle "Awesome Picker" --title "Select an Act" \
 		    --menu "The following acts are available:" 0 40 0 \
@@ -5626,35 +5673,50 @@ function awesomef
 		) || typeset NO_DIALOG=1;
 		_clr_dialogf;
 
-		for act in ${act_keys}
-		do  ((++n))
+		n=0;
+		for act in "${act_keys[@]}"
+		do  ((++n));
+		    printf 'matching: %d -- %-32s \r' "$n" "${act:0:32}" >&2;  #*#
 		    case "$REPLY" in "$act")  act=${n:-1}; break;; esac;
+		    act=;
 		done
+		    printf '                 %-32s \r' "" >&2;  #clear stderr  #*#
 	else
-	echo >&2;
-	set -- "${1:-%#}";
-	while ! { 	((act && act <= act_keys_n)) ;}
-	do 	if ! act=$(grep -n -i -e "${glob}${1//[ _-]/[ _-]}" <<<"${act_keys}")
-		then 	_clr_ttystf;
-			select act in ${act_keys}
-			do 	break
-			done </dev/tty; act="$REPLY";
-		elif act="$(cut -f1 -d: <<<"$act")"
-			[[ ${act} = *$'\n'?* ]]
-		then 	while read l;
-			do 	((++n));
-				for a in ${act};
-				do 	((n==a)) && printf '%d) %s\n' "$n" "$l" >&2;
+		echo >&2;
+		set -- "${1:-%#}";
+		while [[ $act = *[!0-9]* ]] || ! ((act && act <= ${#act_keys[@]}))
+		do
+			if ! act=$(printf '%s\n' "${act_keys[@]}" | grep -n -i -e "${glob}${1//[ _-]/[ _-]}")
+			then 	_clr_ttystf;
+				select act in "${act_keys[@]}"
+				do 	break
+				done </dev/tty; act="$REPLY";
+			elif act="$(cut -f1 -d: <<<"$act")"
+				[[ ${act} = *$'\n'?* ]]
+			then
+				n=0; echo >&2;
+				for l in "${act_keys[@]}"
+				do 	((++n));
+					for a in ${act};
+					do 	((n==a)) && printf '%d) %s\n' "$n" "$l" >&2;
+					done;
 				done;
-			done <<<"${act_keys}";
-			printf '\n#? <enter> ' >&2
-			_clr_ttystf; read -r -e -d $'\r' act </dev/tty;
-			printf '\n\n' >&2;
-		fi ;set -- "$act"; glob= n= a= l=;
-	done
+				printf '#? <enter> ' >&2
+				_clr_ttystf;
+				read -r -e -d $'\r' act </dev/tty;
+				printf '\n\n' >&2;
+			fi;
+			set -- "$act";
+			glob= n= a= l=;
+		done
 	fi
+	[[ -z $act ]] && return 201;
+	[[ $act = *[a-zA-Z]* ]] && return 201;
+	((act>0)) && ((--act));
 
-	INSTRUCTION=$(sed -n -e 's/^[^,]*,//; s/^"//; s/"[[:space:]]*$//; s/",[Ff][Aa][Ll][Ss][Ee][[:space:]]*$//; s/",[Tt][Rr][Uu][Ee][[:space:]]*$//; s/\\n$//; s/""/"/g' -e "$((act+1))p" "$FILEAWE")
+	_warmsgf "Act[$((act+1))]:" "${act_keys[act]}";
+	INSTRUCTION=$(sed -e 's/^"//; s/"[[:space:]]*$//; s/"*,[Ff][Aa][Ll][Ss][Ee],.*$//; s/"*,[Tt][Rr][Uu][Ee],.*$//; s/\\n$//; s/""*/"/g;' <<<"${prompts[act]}");
+
 	((CMD_CHAT)) || {
 	    _clr_ttystf;
 	    if ((OPTX))  #edit chosen awesome prompt
@@ -5692,7 +5754,7 @@ function custom_prf
 
 	#options
 	case "${INSTRUCTION:0:32}"  in
-		+([.,])@(list|\?)|[.,]+([.,/*?-]))
+		+([.,])@(list|ls|\?)|[.,]+([.,/*?-]))
 			INSTRUCTION= list=1
 			_cmdmsgf 'Prompt File' 'LIST'
 			;;
@@ -6033,7 +6095,9 @@ function session_globf
 	if ((${#} >1)) && [[ "$glob" != *[$IFS]* ]]
 	then 	_clr_ttystf;
 		if test_dialogf
-		then 	options=( $(_dialog_optf $([[ "tsv" = $sglob ]] && echo 'default') 'current' 'new' "${@%%.${sglob}}") )
+		then 	typeset IFS=$'\n';
+			options=( $(_dialog_optf $([[ "tsv" = $sglob ]] && echo 'default') 'current' 'new' "${@%%.${sglob}}") )
+			IFS=$' \t\n'; 
 			file=$(
 			  dialog --backtitle "Selection Menu" --title "$([[ $ext = *[Tt][Ss][Vv] ]] && echo History File || echo Prompt) Selection" \
 			    --menu "Choose one of the following:" 0 40 0 \
@@ -7582,7 +7646,7 @@ else
 	case "${INSTRUCTION:0:32}" in
 		[/%]*)
 			OPTAWE=1 ;((OPTC)) || OPTC=1 OPTCMPL=
-			awesomef || case $? in 	210|202|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
+			awesomef || case $? in 	210|202|201|1) exit 1;; 	*) unset INSTRUCTION;; esac;  #err
 			_sysmsgf $'\nHist   File:' "${FILECHAT}"
 			if ((OPTRESUME==1))
 			then 	unset OPTAWE
