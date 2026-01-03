@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.132  jan/2026  by mountaineerbr  GPL+3
+# v0.132.1  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -5371,16 +5371,16 @@ function _ttsf
 		_set_ttsf "$1" && shift
 	fi
 
-	((OPTZ_MAX)) && max=$OPTZ_MAX ||
 	case "${MOD_SPEECH##*[/]}" in
 		orpheus-*)
 			((GROQAI)) && {
-				[[ $OPTZ_FMT != wav ]] && OPTZ_FMT=wav;
+				[[ $OPTZ_FMT != wav ]] && OPTZ_FMT="wav";
 				max=1200;  #free account limit
 			};;
 		tts-1*) 	max=4096;;
 		*) 	max=40960;;
 	esac;
+	((OPTZ_MAX)) && max=$OPTZ_MAX;
 
 	[[ $FOUT = "-" ]] || FOUT=$(set_fnamef "${FILEOUT_TTS%.*}.${OPTZ_FMT}");
 	((${#} >1)) && set -- "$*";
