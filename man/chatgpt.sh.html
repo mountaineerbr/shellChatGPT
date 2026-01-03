@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.131 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.132 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,7 +171,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.131 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.132 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">January 2026</p>
 </header>
@@ -510,10 +510,10 @@ Def=<em>0</em>.</p>
 <p>Model response verbosity level (OpenAI).</p>
 </dd>
 <dt><strong>--voice</strong>
-[<em>alloy</em>|<em>fable</em>|<em>onyx</em>|<em>nova</em>|<em>shimmer</em>|<em>ash</em>|<em>ballad</em>|<em>coral</em>|<em>sage</em>|<em>verse</em>|<em>Adelaide-PlayAI</em>|<em>Angelo-PlayAI</em>|<em>Arista-PlayAI..</em>]</dt>
+[<em>alloy</em>|<em>fable</em>|<em>onyx</em>|<em>nova</em>|<em>shimmer</em>|<em>ash</em>|<em>ballad</em>|<em>coral</em>|<em>sage</em>|<em>verse</em>|<em>daniel</em>|<em>autumn</em>|<em>diana</em>|<em>hannah</em>|<em>austin</em>|<em>troy</em>]</dt>
 <dd>
-<p>TTS voice name. OpenAI or PlayAI (Groq) voice names.
-Def=<em>echo</em>, <em>Aaliyah-PlayAI</em>.</p>
+<p>TTS voice name. OpenAI or GroqAI voice names. Def=<em>echo</em>,
+<em>daniel</em>.</p>
 </dd>
 </dl>
 <h2 id="session-and-history-files">Session and History Files</h2>
@@ -849,10 +849,9 @@ a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>wav</em>”,
 “<em>flac</em>”, “<em>opus</em>”, “<em>aac</em>”, or “<em>pcm16</em>”);
 or set “<em>-</em>” for stdout.</p>
-<p>Do mind that PlayAI (supported by Groq AI) has different output
-formats such as “<em>mulaw</em>” and “<em>ogg</em>”, as well as
-different voice names such as Aaliyah-PlayAI, Adelaide-PlayAI,
-Angelo-PlayAI, etc.</p>
+<p>Do mind that GroqAI’s Orpheus has the specific output format
+“<em>wav</em>”, as well as different voice names such as daniel, autumn,
+diana, etc.</p>
 <p>Set <code>options -zv</code> to <em>not</em> play received
 output.</p>
 <h1 id="multimodal-audio-models">MULTIMODAL AUDIO MODELS</h1>

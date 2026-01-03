@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.128
+# v0.132
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -174,7 +174,7 @@ _chatgptsh()
       ((${#cur})) || COMPREPLY=( 'low' 'medium' 'high' )
       ;;
     --voice)
-      COMPREPLY=( alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Basil-PlayAI Calum-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Mamaw-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI )
+      COMPREPLY=( alloy echo fable onyx nova shimmer  ash ballad coral sage verse  daniel autumn diana hannah austin troy )
       ;;
     -[.,]|-[.,][.,]|\
     -[!S.,-][.,]|-[!S.,-][.,][.,]|\

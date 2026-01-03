@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.131 | General Commands Manual
+% CHATGPT.SH(1) v0.132 | General Commands Manual
 % mountaineerbr
 % January 2026
 
@@ -351,9 +351,9 @@ print out chat sessions.
 : Model response verbosity level (OpenAI).
 
 
-**\--voice**  [_alloy_|_fable_|_onyx_|_nova_|_shimmer_|_ash_|_ballad_|_coral_|_sage_|_verse_|_Adelaide-PlayAI_|_Angelo-PlayAI_|_Arista-PlayAI.._]
+**\--voice**  [_alloy_|_fable_|_onyx_|_nova_|_shimmer_|_ash_|_ballad_|_coral_|_sage_|_verse_|_daniel_|_autumn_|_diana_|_hannah_|_austin_|_troy_]
 
-: TTS voice name. OpenAI or PlayAI (Groq) voice names. Def=_echo_, _Aaliyah-PlayAI_.
+: TTS voice name. OpenAI or GroqAI voice names. Def=_echo_, _daniel_.
 
 
 ## Session and History Files
@@ -744,9 +744,8 @@ _voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or
 the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_wav_", "_flac_",
 "_opus_", "_aac_", or "_pcm16_"); or set "_-_" for stdout.
 
-Do mind that PlayAI (supported by Groq AI) has different
-output formats such as "_mulaw_" and "_ogg_", as well as different
-voice names such as Aaliyah-PlayAI, Adelaide-PlayAI, Angelo-PlayAI, etc.
+Do mind that GroqAI's Orpheus has the specific output format "_wav_",
+as well as different voice names such as daniel, autumn, diana, etc.
 
 Set `options -zv` to _not_ play received output.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.131  jan/2026  by mountaineerbr  GPL+3
+# v0.132  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -38,13 +38,13 @@ MOD_AUDIO_MISTRAL="${MOD_AUDIO_MISTRAL:-voxtral-mini-latest}"
 # Groq models
 MOD_GROQ="${MOD_GROQ:-${GROQ_MODEL:-llama-3.3-70b-versatile}}"
 MOD_AUDIO_GROQ="${MOD_AUDIO_GROQ:-whisper-large-v3}"
-MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-playai-tts}"
+MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-canopylabs/orpheus-v1-english}"
 # Prefer Groq Whisper (chat mode)
 #WHISPER_GROQ=0
 # Prefer Groq TTS (chat mode)
 #SPEECH_GROQ=0
 # Groq TTS voice
-OPTZ_VOICE_GROQ=Aaliyah-PlayAI  #Adelaide-PlayAI, Angelo-PlayAI, Arista-PlayAI, etc
+OPTZ_VOICE_GROQ="daniel"  #autumn diana hannah austin troy
 # Anthropic model
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-sonnet-4-5}}"
 # GitHub Azure model
@@ -90,6 +90,8 @@ OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 #OPTZ_SPEED=   #0.25 - 4.0
 # TTS out file format
 OPTZ_FMT=mp3   #mp3, wav, flac, opus, aac, pcm16
+# TTS max input chars
+#OPTZ_MAX=4096
 # Recorder command, e.g. "sox -d"
 #REC_CMD=""
 # Media player command, e.g. "cvlc"
@@ -336,9 +338,11 @@ Text-To-Voice (TTS)
 	such as \`./new_audio.mp3' (\`mp3', \`wav', \`flac', \`opus', \`aac',
 	or \`pcm16'); or set \`-' for stdout.
 
-	Groq PlayAI also supports \`mulaw' and \`ogg', and specific voices.
+	Groq's Orpheus outputs only in \`wav' and supports specific voices,
+	default=daniel.
 
-	Set options -zv to not play received output.
+	Pass options -zv to not play received output in the stand-alone
+	TTS-only mode (no chat mode).
 
 
 Service Providers
@@ -708,8 +712,9 @@ Options
 		Model response verbosity level (OpenAI).
 	--voice   [ alloy | fable | onyx | nova | shimmer ]
 		  [ ash | ballad | coral | sage | verse ]
-		  [ Adelaide-PlayAI | Angelo-PlayAI | Arista-PlayAI.. ]
-		TTS voice name (OpenAI, Groq). Def=echo, Aaliyah-PlayAI.
+		  Groq's Orpheus:
+		  [ autumn | diana | hannah | austin | troy ]
+		TTS voice name (OpenAI, Groq). Def=echo, daniel.
 
 	Interface Modes
 	-b, --responses
@@ -5366,9 +5371,18 @@ function _ttsf
 		_set_ttsf "$1" && shift
 	fi
 
-	[[ $FOUT = "-" ]] || FOUT=$(set_fnamef "${FILEOUT_TTS%.*}.${OPTZ_FMT}");
+	((OPTZ_MAX)) && max=$OPTZ_MAX ||
+	case "${MOD_SPEECH##*[/]}" in
+		orpheus-*)
+			((GROQAI)) && {
+				[[ $OPTZ_FMT != wav ]] && OPTZ_FMT=wav;
+				max=1200;  #free account limit
+			};;
+		tts-1*) 	max=4096;;
+		*) 	max=40960;;
+	esac;
 
-	[[ ${MOD_SPEECH} = tts-1* ]] && max=4096 || max=40960;
+	[[ $FOUT = "-" ]] || FOUT=$(set_fnamef "${FILEOUT_TTS%.*}.${OPTZ_FMT}");
 	((${#} >1)) && set -- "$*";
 
 	if ((!CHAT_ENV))
@@ -5520,7 +5534,7 @@ function __set_voicef
 		Aaliyah-PlayAI|Adelaide-PlayAI|Angelo-PlayAI|Arista-PlayAI|Atlas-PlayAI|Basil-PlayAI|Briggs-PlayAI|Calum-PlayAI|\
 		Celeste-PlayAI|Cheyenne-PlayAI|Chip-PlayAI|Cillian-PlayAI|Deedee-PlayAI|Eleanor-PlayAI|Fritz-PlayAI|Gail-PlayAI|\
 		Indigo-PlayAI|Jennifer-PlayAI|Judy-PlayAI|Mamaw-PlayAI|Mason-PlayAI|Mikail-PlayAI|Mitch-PlayAI|Nia-PlayAI|\
-		Quinn-PlayAI|Ruby-PlayAI|Thunder-PlayAI) 	VOICEZ=$1;;
+		Quinn-PlayAI|Ruby-PlayAI|Thunder-PlayAI|daniel|autumn|diana|hannah|austin|troy) 	VOICEZ=$1;;
 		*) 	false;;
 	esac
 }

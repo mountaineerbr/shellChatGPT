@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: January 2026
-title: CHATGPT.SH(1) v0.131 \| General Commands Manual
+title: CHATGPT.SH(1) v0.132 \| General Commands Manual
 ---
 
 # NAME
@@ -265,9 +265,8 @@ Unset context truncation parameter (Responses API).
 **--no-verbosity**  
 Model response verbosity level (OpenAI).
 
-**--voice** \[*alloy*\|*fable*\|*onyx*\|*nova*\|*shimmer*\|*ash*\|*ballad*\|*coral*\|*sage*\|*verse*\|*Adelaide-PlayAI*\|*Angelo-PlayAI*\|*Arista-PlayAI..*\]  
-TTS voice name. OpenAI or PlayAI (Groq) voice names. Def=*echo*,
-*Aaliyah-PlayAI*.
+**--voice** \[*alloy*\|*fable*\|*onyx*\|*nova*\|*shimmer*\|*ash*\|*ballad*\|*coral*\|*sage*\|*verse*\|*daniel*\|*autumn*\|*diana*\|*hannah*\|*austin*\|*troy*\]  
+TTS voice name. OpenAI or GroqAI voice names. Def=*echo*, *daniel*.
 
 ## Session and History Files
 
@@ -584,9 +583,8 @@ as the *voice speed* (*0.25* - *4.0*), and, finally the *output file
 name* or the *format*, such as “*./new_audio.mp3*” (“*mp3*”, “*wav*”,
 “*flac*”, “*opus*”, “*aac*”, or “*pcm16*”); or set “*-*” for stdout.
 
-Do mind that PlayAI (supported by Groq AI) has different output formats
-such as “*mulaw*” and “*ogg*”, as well as different voice names such as
-Aaliyah-PlayAI, Adelaide-PlayAI, Angelo-PlayAI, etc.
+Do mind that GroqAI’s Orpheus has the specific output format “*wav*”, as
+well as different voice names such as daniel, autumn, diana, etc.
 
 Set `options -zv` to *not* play received output.
 

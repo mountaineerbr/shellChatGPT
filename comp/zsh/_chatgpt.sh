@@ -1,7 +1,6 @@
 #compdef chatgpt.sh
-
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.128
+# v0.132
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -204,7 +203,7 @@ _chatgpt.sh()
     {-Y,--no-tik}'[Unset tiktoken for chat]' \
     {-z,--tts,--speech}'[Synthesize speech]' \
     --format'[TTS out-format]:format:(mp3 opus aac flac wav pcm16  mulaw ogg)' \
-    --voice'[TTS voice]:voice:(alloy echo fable onyx nova shimmer  ash ballad coral sage verse  Aaliyah-PlayAI Basil-PlayAI Calum-PlayAI Deedee-PlayAI Eleanor-PlayAI Fritz-PlayAI Gail-PlayAI Indigo-PlayAI Jennifer-PlayAI Mamaw-PlayAI Nia-PlayAI Quinn-PlayAI Ruby-PlayAI Thunder-PlayAI)' \
+    --voice'[TTS voice]:voice:(alloy echo fable onyx nova shimmer  ash ballad coral sage verse  daniel autumn diana hannah austin troy)' \
     {-Z,--last}'[Dump last response JSON]' \
     '--info[Print info]' \
     --version'[Print script version]' \

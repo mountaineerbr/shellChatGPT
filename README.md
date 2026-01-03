@@ -97,7 +97,7 @@ If no suffix is provided, it works as plain text completions.
   - 15.2 [TTS Chat - Removal of Markdown](#tts-chat---removal-of-markdown)
   - 15.3 [Tiktoken](#tiktoken)
   - 15.4 [Termux Troubleshoot](#termux-troubleshoot)
-- 16  [Troubleshoot](#troubleshoot)
+- 16. [Troubleshoot](#troubleshoot)
 - 17. [Notes and Tips](#-notes-and-tips)
 - 18. [Project Objectives](#--project-objectives)
 - 19. [Roadmap](#roadmap)
@@ -1228,8 +1228,8 @@ Check the [configuration file](.chatgpt.conf) to set Groq Whisper STT.
 
 #### Groq TTS
 
-Groq also offers the text-to-speech model "playai-tts". This model
-can be used in the stand-alone TTS mode of command line option -z,
+Groq also offers the text-to-speech model "canopylabs/orpheus-v1-english".
+This model can be used in the stand-alone TTS mode of command line option -z,
 or set up as the preferred chat TTS engine.
 
 Check the [configuration file](.chatgpt.conf) to set Groq TTS.
