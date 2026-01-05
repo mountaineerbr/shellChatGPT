@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.132.1  jan/2026  by mountaineerbr  GPL+3
+# v0.132.2  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -5371,9 +5371,10 @@ function _ttsf
 		_set_ttsf "$1" && shift
 	fi
 
+	max=4096;
 	case "${MOD_SPEECH##*[/]}" in
 		orpheus-*)
-			((GROQAI)) && {
+			((GROQAI+WHISPER_GROQ)) && {
 				[[ $OPTZ_FMT != wav ]] && OPTZ_FMT="wav";
 				max=1200;  #free account limit
 			};;
@@ -5393,7 +5394,7 @@ function _ttsf
 	[[ ${1:0:320} = *[!$IFS]* ]] || ! echo '(empty)' >&2 || return 2
 
 	if ((${#1}>max))
-	then 	_warmsgf 'Warning:' "TTS input ${#1} chars / max ${max} chars"  #max ~5 minutes
+	then 	_warmsgf 'Warning:' "TTS input ${#1} chars / max ${max:-err} chars"  #max ~5 minutes
 		i=1 FOUT=${FOUT%.*}-${i}.${OPTZ_FMT};
 	fi  #https://help.openai.com/en/articles/8555505-tts-api
 	REPLAY_FILES=();
