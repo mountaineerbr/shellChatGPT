@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.132.2  jan/2026  by mountaineerbr  GPL+3
+# v0.132.3  jan/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -9010,7 +9010,7 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			HIST_TIME= BREAK_SET=;
 		elif ((MTURN))
 		then
-			[[ -t 1 ]] && {
+			[[ -t 1 ]] && ((RET_PRF<120)) && {
 				_printbf '[wait]' >&2;
 				((OPTX)) && read_charf -t 6 >/dev/null;
 				((!OPTX)) && ((${#REPLY}>COLUMNS*LINES)) && read_charf -t 4 >/dev/null;
