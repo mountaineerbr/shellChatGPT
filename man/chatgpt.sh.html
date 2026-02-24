@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.132 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.132.4 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.132 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.132.4 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">January 2026</p>
+<p class="date">February 2026</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT /
@@ -425,11 +425,15 @@ Fallback=<em>8000</em>.</p>
 <p><strong>--effort</strong>
 [<em>xhigh</em>|<em>high</em>|<em>medium</em>|<em>low</em>|<em>minimal</em>|<em>none</em>]
 (OpenAI)</p>
+<p><strong>--think</strong>
+[<em>max</em>|<em>high</em>|<em>medium</em>|<em>low</em>] (Anthropic
+claude-{sonnet,opus}-4-6+)</p>
 <dl>
 <dt><strong>--think</strong> [<em>token_num</em>] (Anthropic /
 Google)</dt>
 <dd>
-<p>Amount of effort in reasoning models.</p>
+<p>Amount of effort in reasoning models. These flags can be used
+interchangeably.</p>
 </dd>
 <dt><strong>--format</strong>
 [<em>mp3</em>|<em>wav</em>|<em>flac</em>|<em>opus</em>|<em>aac</em>|<em>pcm16</em>|<em>mulaw</em>|<em>ogg</em>]</dt>
@@ -1389,7 +1393,8 @@ flush.</td>
 <tr>
 <td style="text-align: left;"><code>!effort</code></td>
 <td style="text-align: left;">- [<em>MODE</em>]</td>
-<td>Effort: xhigh, high, medium, low, minimal, or none (OpenAI).</td>
+<td>Effort: xhigh, high, medium, low, minimal, or none (OpenAI /
+Anthropic).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>!think</code></td>
@@ -2149,9 +2154,10 @@ user has changed his terminal tabstop setting. Reset it with command
 “tabs -8” or “reset” before starting the script, or set one of these in
 the script configuration file.</p>
 <p>This script deviates from XDG standards; it expects the configuration
-file to be located at <code>~/.chatgpt.sh</code>, and utilises a single
-cache directory for both ephemeral data and extended data, including
-more persistent files like prompt <code>.pr</code> and session history
+file to be located at <code>~/.chatgpt.conf</code> (which can be changed
+with envar <strong>$CHATGPTRC</strong>), and utilises a single cache
+directory for both ephemeral data and extended data, including more
+persistent files like prompt <code>.pr</code> and session history
 <code>.tsv</code> files (which users are expected to backup and manage
 themselves =).</p>
 <p>If folding does not work well at all, try exporting envar

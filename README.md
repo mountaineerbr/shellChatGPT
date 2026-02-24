@@ -125,8 +125,8 @@ If no suffix is provided, it works as plain text completions.
 ## 🚀 Features
 
 - Native chat completions, plain text completions, and responses api (text).
-- [Vision](#vision-models-gpt-4-vision), **reasoning** and [**audio models**](#audio-models)
-- **Voice-in** (Whisper) plus **voice out** (TTS) [_chatting mode_](#voice-in-and-out--chat-completions) (`options -cczw`)
+- [**Vision**](#vision-models-gpt-4-vision), [**reasoning**](#reasoning-and-thinking-models) and [**audio models**](#audio-models)
+- **Voice-in** (Whisper) plus **voice out** (TTS) [_chatting mode_](#voice-in-and-out--chat-completions) (`options -bcd -zw`)
 - **Text editor interface**, _Bash readline_, and _multiline/cat_ modes
 - [**Markdown rendering**](#markdown) support in response
 - Easily [**regenerate responses**](#--notes-and-tips)
@@ -444,6 +444,11 @@ Print out last session, optionally set the history name:
 
 ### Reasoning and Thinking Models
 
+For Anthropic's `claude-3-7-sonnet` hybrid model thinking activation,
+the user must specify either `--think [NUM]` (or `--effort [NUM]`)
+command line option. To activate thinking during chat, use either
+`!think`, `/think`, or `/effort` commands.
+
 Some of our server integrations will not make a distinct separation
 between reasoning and actual answers, which is unfortunate because it
 becomes hard to know what is thinking and what is the actual answer as
@@ -451,11 +456,6 @@ they will be printed out without any visible separation!
 
 This is mostly due to a limitation in how we use JQ to process the JSON
 response from the APIs in the fastest way possible.
-
-For Anthropic's `claude-3-7-sonnet` hybrid model thinking activation,
-the user must specify either `--think [NUM]` (or `--effort [NUM]`)
-command line option. To activate thinking during chat, use either
-`!think`, `/think`, or `/effort` commands.
 
 
 ### Vision and Multimodal Models
@@ -1376,7 +1376,7 @@ set command-line `options -cd` instead.
 The xAI live search feature has been discontinued server-side.
 
 Use the in-house solution for simple search text dumps to
-ground the prompt, chat command `/g [search_ string]`.
+ground the prompt, chat command `/g [search string]`.
 
 
 <!--

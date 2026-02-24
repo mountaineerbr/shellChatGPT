@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: January 2026
-title: CHATGPT.SH(1) v0.132 \| General Commands Manual
+date: February 2026
+title: CHATGPT.SH(1) v0.132.4 \| General Commands Manual
 ---
 
 # NAME
@@ -210,8 +210,12 @@ Frequency penalty (cmpls/chat, -2.0 - 2.0).
 **--effort** \[*xhigh*\|*high*\|*medium*\|*low*\|*minimal*\|*none*\]
 (OpenAI)
 
+**--think** \[*max*\|*high*\|*medium*\|*low*\] (Anthropic
+claude-{sonnet,opus}-4-6+)
+
 **--think** \[*token_num*\] (Anthropic / Google)  
-Amount of effort in reasoning models.
+Amount of effort in reasoning models. These flags can be used
+interchangeably.
 
 **--format** \[*mp3*\|*wav*\|*flac*\|*opus*\|*aac*\|*pcm16*\|*mulaw*\|*ogg*\]  
 TTS out-file format. Def= *mp3*.
@@ -838,7 +842,7 @@ parameters and manage sessions.
 | `-w` | `!rec` \[*ARGS*\] | Toggle voice-in STT. Optionally, set arguments. |
 | `-z` | `!tts` \[*ARGS*\] | Toggle TTS chat mode (speech out). |
 | `!blk` | `!block` \[*ARGS*\] | Set and add custom options to JSON request. |
-| `!effort` | \- \[*MODE*\] | Effort: xhigh, high, medium, low, minimal, or none (OpenAI). |
+| `!effort` | \- \[*MODE*\] | Effort: xhigh, high, medium, low, minimal, or none (OpenAI / Anthropic). |
 | `!think` | \- \[*NUM*\] | Budget: token value (Anthropic). |
 | `!ka` | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
 | `!verb` | `!verbosity` \[*MODE*\] | Model verbosity level (high, medium, or low). |
@@ -1516,10 +1520,11 @@ user has changed his terminal tabstop setting. Reset it with command
 the script configuration file.
 
 This script deviates from XDG standards; it expects the configuration
-file to be located at `~/.chatgpt.sh`, and utilises a single cache
-directory for both ephemeral data and extended data, including more
-persistent files like prompt `.pr` and session history `.tsv` files
-(which users are expected to backup and manage themselves =).
+file to be located at `~/.chatgpt.conf` (which can be changed with envar
+**\$CHATGPTRC**), and utilises a single cache directory for both
+ephemeral data and extended data, including more persistent files like
+prompt `.pr` and session history `.tsv` files (which users are expected
+to backup and manage themselves =).
 
 If folding does not work well at all, try exporting envar `$COLUMNS`
 before script execution.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.132.3  jan/2026  by mountaineerbr  GPL+3
+# v0.132.4  feb/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -18,7 +18,7 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-gpt-5.1}"
+MOD_CHAT="${MOD_CHAT:-gpt-5.2}"
 MOD_AUDIO="${MOD_AUDIO:-whisper-1}"  #gpt-4o-mini-transcribe
 # Speech model (TTS)
 MOD_SPEECH="${MOD_SPEECH:-gpt-4o-mini-tts}"  #tts-1
@@ -29,7 +29,7 @@ MOD_LOCALAI="${MOD_LOCALAI:-${LOCALAI_MODEL:-phi-4}}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-${OLLAMA_MODEL:-llama4}}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-${GEMINI_MODEL:-gemini-3-flash-preview}}"
+MOD_GOOGLE="${MOD_GOOGLE:-${GEMINI_MODEL:-gemini-3-flash-preview}}"  #gemini-flash-latest
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-${MISTRAL_MODEL:-mistral-large-latest}}"
 MOD_AUDIO_MISTRAL="${MOD_AUDIO_MISTRAL:-voxtral-mini-latest}"
@@ -46,7 +46,7 @@ MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-canopylabs/orpheus-v1-english}"
 # Groq TTS voice
 OPTZ_VOICE_GROQ="daniel"  #autumn diana hannah austin troy
 # Anthropic model
-MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-sonnet-4-5}}"
+MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-sonnet-4-6}}"
 # GitHub Azure model
 MOD_GITHUB="${MOD_GITHUB:-${GITHUB_MODEL:-gpt-4.1}}"  #GH_MODEL
 # OpenRouter API model
@@ -112,6 +112,7 @@ OPTFOLD=1
 # Reasoning effort
 #REASON_EFFORT=
 #OpenAI: effort -- none, minimal, low, medium, high, xhigh
+#Anthropic: {sonnet,opus}-4-6+ -- low, medium, high, or max
 #Anthropic: reasoning budget -- tokens
 #Gemini: thinking budget -- tokens
 # OpenAI model verbosity
@@ -672,9 +673,11 @@ Options
 		Presence penalty  (cmpls/chat, -2.0 - 2.0).
 	-A, --frequency-penalty  [VAL]
 		Frequency penalty (cmpls/chat, -2.0 - 2.0).
-	--effort  [ xhigh | high | medium | low | minimal | none ]    (OpenAI)
-	--think   [ token_num ]              (Anthropic/Google)
+	--effort  [ xhigh | high | medium | low | minimal | none ]  (OpenAI)
+	          [ max | high | medium | low ]  (Anthropic {sonnet,opus}-4-6+)
+	--think   [ token_num ]                  (Anthropic/Google)
 		Amount of effort in reasoning models.
+		These flags can be used interchangeably.
 	--format  [ mp3 | wav | flac | opus | aac | pcm16 | mulaw | ogg ]
 		TTS output format. Def=mp3.
 	-j, --seed  [NUM]
@@ -995,7 +998,7 @@ function model_capf
 			MODMAX=131072;;
 		claude*-[3-9]*|claude*-2.1*|o[1-9]*|codex-mini*|codex*)
 			MODMAX=200000;  #204800
-			((ANTHROPICAI)) && [[ $model = claude-sonnet-4* ]] && MODMAX=1000000;;  #T#
+			((ANTHROPICAI)) && [[ $model = *claude-sonnet-[4-9]* || $model = *claude-opus-[5-9]* || $model = *claude-opus-4-[6-9]* ]] && MODMAX=1000000;;  #T#
 		claude*-2.0*|claude-instant*)
 			MODMAX=100000;;
 		*openchat-7b|*mythomax-l2-13b|*airoboros-l2-70b|*lzlv_70b|*nous-hermes-llama2-13b|\
@@ -2008,6 +2011,19 @@ function is_anthropic_openrouterf
 	[[ ${MOD##*[/]} = *claude-* ]] || [[ ${MOD} = *anthropic/* ]];
 }
 
+#is claude new thinking method?
+function is_claude_new_thinkingf
+{
+	case "${1:-${MOD##*[/]}}" in
+	claude-[1-3]*|claude-instant*|claude-opus-[1-4]|\
+	claude-opus-4-[1-5]*|claude-sonnet-[1-4]|claude-sonnet-4-[1-5]*|\
+	claude-haiku-[1-4]|claude-haiku-4-[1-5]*)
+		! :;;
+	*) 	:;;
+	esac
+}
+#https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking
+
 #set runtime config
 function set_conff
 {
@@ -2536,7 +2552,7 @@ function cmdf
 			if [[ ${*} != *[!$IFS]* ]]
 			then 	if ((${#REASON_EFFORT}))
 				then 	REASON_EFFORT=;
-				elif ((ANTHROPICAI+GOOGLEAI))
+				elif { ((ANTHROPICAI)) && ! is_claude_new_thinkingf "${MOD##*[/]}" ;} || ((GOOGLEAI))
 				then 	REASON_EFFORT=16000;
 				else 	REASON_EFFORT="high";
 				fi
@@ -2693,7 +2709,10 @@ function cmdf
 			set_mdcmdf "${1:-$MD_CMD}"; xskip=1;
 			printf "${NC}\\n" >&2;
 			((BREAK_SET)) ||
-			prompt_pf -r ${STREAM:+-j --unbuffered} "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
+			if ((${#ANS_OLD}))
+			then 	mdf >&2 2>/dev/null <<<$ANS_OLD;
+			else 	prompt_pf -r ${STREAM:+-j --unbuffered} "$FILE" 2>/dev/null | mdf >&2 2>/dev/null;
+			fi;
 			printf "${NC}\\n\\n" >&2;
 			;;
 		url*|[/!]url*)
@@ -2910,12 +2929,17 @@ function cmdf
 		-o|clipboard|clip)
 			((++OPTCLIP)); ((OPTCLIP%=2))
 			cmdmsgf 'Clipboard' $(_onoff $OPTCLIP)
-			if ((OPTCLIP))  #set clipboard
+			if ((OPTCLIP)) && ((!BREAK_SET))  #set clipboard
 			then 	set_clipcmdf;
-				set -- "$(tail -n 64 -- "$FILECHAT" | grep -v -e '^[[:space:]]*#' | hist_lastlinef)";
-				[[ ${1:0:320} = *[!$IFS]* ]] &&
-				  unescapef "$*" | ${CLIP_CMD:-false} &&
-				  printf "${NC}Clipboard Set -- %.*s..${CYAN}\\n" $((COLUMNS-20>20?COLUMNS-20:20)) "$*" >&2;
+				if ((${#ANS_OLD}))
+				then
+					${CLIP_CMD:-false} <<<$ANS_OLD;
+				else
+					set -- "$(tail -n 64 -- "$FILECHAT" | grep -v -e '^[[:space:]]*#' | hist_lastlinef)";
+					[[ ${1:0:320} = *[!$IFS]* ]] &&
+					  unescapef "$*" | ${CLIP_CMD:-false};
+				fi &&
+				printf "${NC}Clipboard Set -- %.*s..${CYAN}\\n" $((COLUMNS-20>20?COLUMNS-20:20)) "${ANS_OLD:-$*}" >&2;
 			fi
 			;;
 		-q|insert)
@@ -4326,7 +4350,7 @@ function _is_linkf
 	[[ ! -f $1 ]] || return;
 	case "$1" in
 		[Hh][Tt][Tt][Pp][Ss]://* | [Hh][Tt][Tt][Pp]://* | [Ff][Tt][Pp]://* | [Ff][Ii][Ll][Ee]://* | telnet://* | gopher://* | about://* | wais://* ) :;;
-		*?.[Hh][Tt][Mm] | *?.[Hh][Tt][Mm][Ll] | *?.[A-Za-z][Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm][Ll]? | *?.[Xx][Mm][Ll] | *?.com | *?.com/ | *?.com.[a-z][a-z] | *?.com.[a-z][a-z]/ ) :;;
+		*?.[Hh][Tt][Mm] | *?.[Hh][Tt][Mm][Ll] | *?.[A-Za-z][Hh][Tt][Mm][Ll] | *?.[Hh][Tt][Mm][Ll]? | *?.[Aa][Ss][CcPp][Xx] | *?.[Xx][Mm][Ll] | *?.com | *?.com/ | *?.com.[a-z][a-z] | *?.com.[a-z][a-z]/ ) :;;
 		[Ww][Ww][Ww].?* ) :;;
 		*) false;;
 	esac
@@ -4713,6 +4737,16 @@ function set_optsf
 		claude-3-[7-9]*|claude-[4-9]*|claude*-[4-9]*)
 
 			((MOD_THINK)) || {
+			if is_claude_new_thinkingf "$model"
+			then
+				case "$model" in
+					*[:-]max|*[:-]high|*[:-]medium|*[:-]low)
+						REASON_EFFORT=${MOD##*[:-]} MOD=${MOD%[:-]*};;
+				esac;
+
+				save_reasoning_autosetf;
+				MOD_REASON= MOD_THINK=1;
+			else
 				case "$REASON_EFFORT" in
 					'') 	:;;
 					*[!0-9-]*) 	_warmsgf 'Warning:' "Thinking budget_tokens must be an integer -- $REASON_EFFORT";
@@ -4732,6 +4766,7 @@ function set_optsf
 				MOD_REASON= MOD_THINK=1;
 				#api enforces at least 1024 thinking tokens, or nought
 				((REASON_EFFORT)) && ((REASON_EFFORT<2048)) && REASON_EFFORT=2048;
+			fi
 			}
 		;;
 		gemini-[2-9]*-thinking*|\
@@ -4875,17 +4910,18 @@ function set_optsf
 
 
 	((${REASON_EFFORT:+1}0)) &&
-	if ((ANTHROPICAI)) || { ((GOOGLEAI)) && [[ $model = *gemini-[12]* ]] ;}
+	if { ((ANTHROPICAI)) && ! is_claude_new_thinkingf "$model" ;} ||
+		{ ((GOOGLEAI)) && [[ $model = *gemini-[12]* ]] ;}
 	then
 		if [[ $REASON_EFFORT != *[0-9]* ]]
 		then 	_warmsgf "Warning:" "${ANTHROPICAI:+AnthropicAI}${GOOGLEAI:+GoogleAI}: ${ANTHROPICAI:+reasoning}${GOOGLEAI:+thinking} budget -- $REASON_EFFORT";
 			_warmsgf 'Note:' "${ANTHROPICAI:+reasoning}${GOOGLEAI:+thinking} budget must be an integer!";
 		fi;
 	else
-		((ANTHROPICAI+GOOGLEAI)) ||
+		((xANTHROPICAIx+GOOGLEAI)) ||
 		if [[ $REASON_EFFORT != *[a-z]* ]]
 		then 	_warmsgf "Warning:" "reasoning effort -- $REASON_EFFORT";
-			_warmsgf 'Note:' "reasoning effort must be [ none | minimal | low | medium | high | xhigh ]!";
+			_warmsgf 'Note:' "reasoning effort must be [ none | minimal | low | medium | high | xhigh ${ANTHROPICAI:+| max }]!";
 		fi;
 	fi;
 
@@ -6752,10 +6788,10 @@ function set_anthropicf
 		typeset var
 
 		# 8192 output tokens
-		[[ ${MOD##*[/]} =  *claude-3-5-sonnet* ]] && var="${var},max-tokens-3-5-sonnet-2024-07-15";
-		[[ ${MOD##*[/]} =  *claude-3-7-sonnet* ]] && var="${var},output-128k-2025-02-19";
+		[[ ${MOD##*[/]} = *claude-3-5-sonnet* ]] && var="${var},max-tokens-3-5-sonnet-2024-07-15";
+		[[ ${MOD##*[/]} = *claude-3-7-sonnet* ]] && var="${var},output-128k-2025-02-19";
 		# 1M token context window for Claude Sonnet 4 and Sonnet 4.5
-		[[ ${MOD##*[/]} =  *claude-sonnet-4* ]] && var="${var},context-1m-2025-08-07";  #T#
+		[[ ${MOD##*[/]} = *claude-sonnet-[4-9]* || ${MOD##*[/]} = *claude-opus-[5-9]* || ${MOD##*[/]} = *claude-opus-4-[6-9]* ]] && var="${var},context-1m-2025-08-07";  #T#
 
 		# prompt caching
 		((ANTHROPICAI_CACHE_CONTROL_DISABLE)) || var="${var},prompt-caching-2024-07-31";
@@ -7117,7 +7153,7 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCONTEXT MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET MOD_REASON MOD_THINK OPTT_REASON OPTA_REASON OPTAA_REASON OPTMAX_REASON STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD NC  regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCONTEXT MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET MOD_REASON MOD_THINK OPTT_REASON OPTA_REASON OPTAA_REASON OPTMAX_REASON STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD ANS_OLD NC  regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 
 set -o ${READLINEOPT:-emacs};  #required, hopefully overruled by user ~/.inputrc
@@ -8623,12 +8659,16 @@ $(
 	#had we disabled ours in the request block.
   elif ((ANTHROPICAI))
   then
-  	echo "\"thinking\": {
-  \"type\": \"enabled\",
-  \"budget_tokens\": ${REASON_EFFORT:-16000}
-    },"
+	if is_claude_new_thinkingf "${MOD##*[/]}"
+	then
+ 		echo "\"thinking\": { \"type\": \"adaptive\" },";
+		echo "\"output_config\": { \"effort\": \"${REASON_EFFORT:-high}\" },";
+	else
+  		echo "\"thinking\": { \"type\": \"enabled\", \"budget_tokens\": ${REASON_EFFORT:-16000} },";
+		#echo "\"output_config\": { \"effort\": \"${REASON_EFFORT:-high}\" },";  #default is high
+	fi;
 	#effort parameter works alongside the thinking token budget when extended thinking is enabled
-	#var="\"output_config\": { \"effort\": \"high\" }";
+	#https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking
   else
   	#OpenAI
   	echo "\"reasoning_effort\": \"${REASON_EFFORT:-high}\","
@@ -8931,8 +8971,9 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 
 
 			#prepare answer string
+			ANS_OLD="$(unescapef "$ans")"
 			ans="${A_TYPE##$SPC1}${ans}"
-			((${#SUFFIX})) && ans=${ans}${SUFFIX}
+			((${#SUFFIX})) && ans="${ans}$(escapef "${SUFFIX}")" ANS_OLD="${ans}${SUFFIX}"
 
 			#prepare token arithmetics
 			((MAX_PREV>0)) || MAX_PREV=;
@@ -9116,10 +9157,10 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			done; unset RET_APRF ok var m n;
 		elif ((OPTZ))
 		then
-			ans=${ans##"${A_TYPE##$SPC1}"};
+			ans=${ans:2};
 			#detect and remove possible markdown from $ans to avoid some tts glitches
 			if [[ OPTMD -gt 0 || \\n$ans = *\\n@(\#\ |[\*-]\ |\>\ )* ]]
-			then 	ans_tts=$(unescapef "$ans") &&
+			then 	ans_tts=${ANS_OLD:-$(unescapef "$ans")} &&
 				ans_tts=$(
 					unmarkdownf <<<"$ans_tts" || {
 					command -v pandoc >/dev/null 2>&1 && pandoc --from markdown --to plain <<<"$ans_tts" ;} ) 2>/dev/null;

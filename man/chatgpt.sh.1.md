@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.132 | General Commands Manual
+% CHATGPT.SH(1) v0.132.4 | General Commands Manual
 % mountaineerbr
-% January 2026
+% February 2026
 
 
 # NAME
@@ -262,9 +262,11 @@ print out chat sessions.
 
 **\--effort**  \[_xhigh_|_high_|_medium_|_low_|_minimal_|_none_]  (OpenAI)
 
-**\--think**   \[_token_num_]            (Anthropic / Google)
+**\--think**   \[_max_|_high_|_medium_|_low_]  (Anthropic claude-{sonnet,opus}-4-6+)
 
-: Amount of effort in reasoning models.
+**\--think**   \[_token_num_]  (Anthropic / Google)
+
+: Amount of effort in reasoning models. These flags can be used interchangeably.
 
 
 **\--format**  \[_mp3_|_wav_|_flac_|_opus_|_aac_|_pcm16_|_mulaw_|_ogg_]
@@ -997,7 +999,7 @@ to change parameters and manage sessions.
  --------------    -----------------------    ----------------------------------------------------------
 
  Model             Settings
- --------------    ------------------------    ------------------------------------------------------------------
+ --------------    ------------------------    --------------------------------------------------------------------------
    `!Nill`         `-Nill`                     Unset max response tokens (chat cmpls).
     `!NUM`         `-M`          \[_NUM_]      Maximum response tokens.
    `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
@@ -1016,12 +1018,12 @@ to change parameters and manage sessions.
       `-w`         `!rec`       \[_ARGS_]      Toggle voice-in STT. Optionally, set arguments.
       `-z`         `!tts`       \[_ARGS_]      Toggle TTS chat mode (speech out).
     `!blk`         `!block`     \[_ARGS_]      Set and add custom options to JSON request.
- `!effort`          \-          \[_MODE_]      Effort: xhigh, high, medium, low, minimal, or none (OpenAI).
+ `!effort`          \-          \[_MODE_]      Effort: xhigh, high, medium, low, minimal, or none (OpenAI / Anthropic).
   `!think`          \-           \[_NUM_]      Budget: token value (Anthropic).
      `!ka`         `!keep-alive` \[_NUM_]      Set duration of model load in memory (Ollama).
    `!verb`         `!verbosity` \[_MODE_]      Model verbosity level (high, medium, or low).
   `!vision`        `!audio`, `!multimodal`     Toggle multimodality type.
- --------------    ------------------------    ------------------------------------------------------------------
+ --------------    ------------------------    --------------------------------------------------------------------------
 
  Session           Management
  --------------    --------------------------------------    ---------------------------------------------------------------------------------------------------
@@ -1781,10 +1783,10 @@ or "reset" before starting the script, or set one of these in the
 script configuration file.
 
 This script deviates from XDG standards; it expects the configuration file to
-be located at `~/.chatgpt.sh`, and utilises a single cache directory for
-both ephemeral data and extended data, including more persistent files
-like prompt `.pr` and session history `.tsv` files
-(which users are expected to backup and manage themselves =).
+be located at `~/.chatgpt.conf` (which can be changed with envar **$CHATGPTRC**),
+and utilises a single cache directory for both ephemeral data and extended data,
+including more persistent files like prompt `.pr` and session history `.tsv`
+files (which users are expected to backup and manage themselves  =).
 
 If folding does not work well at all, try exporting envar `$COLUMNS`
 before script execution.
