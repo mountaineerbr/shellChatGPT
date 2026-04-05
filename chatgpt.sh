@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.133  apr/2026  by mountaineerbr  GPL+3
+# v0.133.1  apr/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -4879,6 +4879,7 @@ function set_optsf
 				REASON_EFFORT= MOD_REASON= MOD_THINK=;
 			elif ((${REASON_EFFORT:+1}0)) && ((!(MOD_REASON+MOD_THINK) ))
 			then
+				optmax_resetf 8000;
 				save_reasoning_autosetf;
 				MOD_THINK= MOD_REASON=1;
 			fi
@@ -5010,7 +5011,7 @@ function start_compf { ((${#1}+${#START})) && START=$(escapef "$(unescapef "${1:
 function optmax_resetf
 {
 	((OPTMAX>0)) &&                    #is not zero or negative signal
-	[[ -z ${OPTMAX_REASON} ]] &&       #property has not been set before already
+	#[[ -z ${OPTMAX_REASON} ]] &&       #property has not been set before already
 	{ 	((OPTMAX==OPTMAX_DEF)) ||   #is at default value
 	 [[ -z ${OPTMM}${xOPTNN} ]] ;} &&   #user has not set options -MN at incantation
 	((${1:-25000}>OPTMAX)) &&          #default value is bigger than current
