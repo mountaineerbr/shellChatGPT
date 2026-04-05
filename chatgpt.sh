@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.132.4  feb/2026  by mountaineerbr  GPL+3
+# v0.133  apr/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -243,20 +243,21 @@ Synopsis
 
 
 Description
-	Wraps ChatGPT, STT, and TTS endpoints from various providers.
+	Wraps OpenAI's ChatGPT and other LLM API providers.
 
 	Defaults to single-turn native chat completions. Handles multi-turn
 	chat, text completions, speech-to-text, and text-to-speech models.
-
-	Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints
-	are available to use as stand-alone functions or set to work with
-	multi-turn chat modes.
 
 	Positional arguments are read as a single text PROMPT. Text files
 	and stdin are appended to the prompt from the command line.
 
 	Users can craft model instructions and reuse them, as well as
 	manage and print out chat sessions.
+
+	Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints
+	are available to use as stand-alone functions or set to work with
+	multi-turn chat modes. STT and TTS endpoint functionality is
+	modestly available for some providers.
 
 
 Chat Completion Mode
@@ -1115,7 +1116,7 @@ function promptf
 
 	fi & pid=$! PIDS+=($!)  #catch <CTRL-C>
 
-	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2; TRAP_WEDIT=1 EDIT=1;" INT;
+	trap "trap 'exit' INT; kill -- $pid 2>/dev/null; echo >&2; TRAP_WEDIT=1 EDIT=1; ((MTURN)) || tty_sanityf || exit; ((!OPTEXIT)) || exit;" INT;
 	wait $pid; printf "${NC}\\n" >&2;
 	trap 'exit' INT; RET_APRF=;
 	((STREAM)) && [[ -s $FILEFIFO ]] && {
@@ -1132,6 +1133,20 @@ function promptf
 		[[ -t 1 ]] || printf '%s\n' "$out" >&2  #pipe + stderr
 	fi
 	wait $pid;  #curl exit code
+}
+
+#clogged or orphaned pipe check
+function tty_sanityf
+{
+	if [[ ! -t 1 ]]
+	then
+		#exit at single-turn mode
+		((STURN+OPTEXIT==0)) || return 2;
+
+		#controlling terminal is still responsive
+		stty </dev/tty >/dev/tty >/dev/null 2>&2 || return 2;
+	else 	:;  #skip check
+	fi;
 }
 
 #print tokens from response
@@ -2429,7 +2444,7 @@ function cmdf
 			((++OPTMAX_NILL)) ;((OPTMAX_NILL%=2));
 			((OPTMAX_NILL)) || unset OPTMAX_NILL;
 			((!OPTMAX_NILL && OPTMAX<1)) && OPTMAX=${OPTMAX_DEF:-4096}  #M#
-			cmdmsgf 'Response' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") tkns"
+			cmdmsgf 'Response' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") tkns";  #W#
 			;;
 		-.[0-9]*|-[0-9]*.*|.*[0-9]*|[0-9]*.*|[/!].*[0-9]*|[/!][0-9]*.*|--.*[0-9]*|--[0-9]*.*)
 			set -- "${*##*([$IFS/!-])}";
@@ -2939,7 +2954,7 @@ function cmdf
 					[[ ${1:0:320} = *[!$IFS]* ]] &&
 					  unescapef "$*" | ${CLIP_CMD:-false};
 				fi &&
-				printf "${NC}Clipboard Set -- %.*s..${CYAN}\\n" $((COLUMNS-20>20?COLUMNS-20:20)) "${ANS_OLD:-$*}" >&2;
+				printf "${NC}Clipboard Set -- %.*q..${CYAN}\\n" $((COLUMNS-20>20?COLUMNS-20:20)) "${ANS_OLD:-$*}" >&2;
 			fi
 			;;
 		-q|insert)
@@ -3666,6 +3681,10 @@ function cmdf
 		q|quit|exit|bye)
 			send_tiktokenf '/END_TIKTOKEN/' && wait
 			echo '[bye]' >&2; exit 0
+			;;
+		[hrbp][ooor][mooo][ettc]/*|[bulotm][isipmn][nrbtpt]/*)
+		# /{home,root,boot,proc,bin,usr,lib,opt,tmp,mnt}/
+			return 181;  #skip filepaths
 			;;
 		*)
 			#run shell command?
@@ -4451,7 +4470,7 @@ function _is_docf
 {
 	typeset -l ext=$1
 	case "$ext" in
-	*.doc|*.docx|*.odt|*.ott|*.rtf) :;;
+	*.[Dd][Oo][Cc]|*.[Dd][Oo][Cc][Xx]|*.[Oo][Dd][Tt]|*.[Oo][Tt][Tt]|*.[Rr][Tt][Ff]) :;;
 	*) false;;
 	esac;
 }
@@ -4590,11 +4609,12 @@ function vimeo_descf
 }  #[DEPRECATED]
 
 #alternative to du
+#`du --apparent-size`
 function duf
 {
 	typeset s x u y
 	wc -c -- "$@" | while read x y
-	  do  if ((x>1024*1224))
+	  do  if ((x>1024*1224))  #avoid MB display for files just over 1MB
 	      then 	x=$(bc <<<"scale=3; $x/1024/1024") s=2 u=MB;
 	      elif ((x>1024*5))
 	      then 	x=$(bc <<<"scale=2; $x/1024") s=1 u=KB;
@@ -4757,10 +4777,7 @@ function set_optsf
 				#when extended thinking is enabled. It defaults to high.
 
 				((${REASON_EFFORT:+1}0)) &&
-				(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT<OPTMAX )) && {
-					_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
-					OPTMAX_REASON=${OPTMAX:-$OPTMAX_REASON} OPTMAX=25000;
-				}
+				optmax_resetf 25000;
 
 				save_reasoning_autosetf;
 				MOD_REASON= MOD_THINK=1;
@@ -4801,11 +4818,7 @@ function set_optsf
 				#https://ai.google.dev/gemini-api/docs/thinking-mode
 
 				#((${REASON_EFFORT:+1}0)) &&
-				((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
-					#_warmsgf 'Warning:' 'Thinking may require large numbers of output tokens';
-					_warmsgf 'Warning:' 'Gemini models require large numbers of output tokens';
-					OPTMAX_REASON=${OPTMAX:-$OPTMAX_REASON} OPTMAX=8000;
-				}
+				optmax_resetf 8000;
 
 				OPTA= OPTAA= \
 				save_reasoning_autosetf;
@@ -4832,10 +4845,7 @@ function set_optsf
 				esac;
 
 				((${REASON_EFFORT:+1}0)) &&
-				((OPTMM<1024*4 && OPTMAX<1024*5)) && ((!OPTMAX_NILL)) && {
-				  _warmsgf 'Warning:' 'Reasoning requires large numbers of output tokens';
-				  OPTMAX_REASON=${OPTMAX:-$OPTMAX_REASON} OPTMAX=25000;
-				}
+				optmax_resetf 25000;
 
 				save_reasoning_autosetf;
 				MOD_THINK= MOD_REASON=1;
@@ -4994,6 +5004,26 @@ function set_optsf
 
 function restart_compf { ((${#1}+${#RESTART})) && RESTART=$(escapef "$(unescapef "${1:-$RESTART}")") RESTART_OLD="$RESTART" ;}
 function start_compf { ((${#1}+${#START})) && START=$(escapef "$(unescapef "${1:-$START}")") START_OLD="$START" ;}
+
+#check and reset max response token value
+# optmax_resetf  [default_budget]
+function optmax_resetf
+{
+	((OPTMAX>0)) &&                    #is not zero or negative signal
+	[[ -z ${OPTMAX_REASON} ]] &&       #property has not been set before already
+	{ 	((OPTMAX==OPTMAX_DEF)) ||   #is at default value
+	 [[ -z ${OPTMM}${xOPTNN} ]] ;} &&   #user has not set options -MN at incantation
+	((${1:-25000}>OPTMAX)) &&          #default value is bigger than current
+	#[[ ${OPTMM:-0}${OPTMAX:-0}${REASON_EFFORT:-0} != *[!0-9]* ]] &&   #user input is valid
+	(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT>OPTMAX )) &&  #err: may contain [a-z/-] chars!
+	{
+		OPTMAX_REASON=${OPTMAX:-$OPTMAX_REASON} OPTMAX=${1:-25000};
+
+		((OPTV>1)) || ((OPTMAX_REASON==OPTMAX)) ||
+		((OPTMAX_NILL && !ANTHROPICAI)) ||
+		cmdmsgf 'Response' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") tkns";  #W#
+	}
+}
 
 #load text, pdf, doc file or url text
 function exp_txturl
@@ -6981,7 +7011,7 @@ function set_githubaif
 
 #parse opts  #anchor# #IPC#  #BDIJQX@i  <- free
 unset OPTMM OPTMARG OPENAI MAIN_LOOP HIST_LOOP RESPONSES_API; STOPS=();
-optstring="a:A:bcCdeEfFgGhHj:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789:/,:.:-:"
+optstring="a:A:bcCdeEfFgGhHj:kK:lL:m:M:n:N:p:Pqr:R:s:S:t:ToOuUvVxwWyYzZ0123456789/,:.:-:"
 while getopts "$optstring" opt
 do
 	case "$opt" in -)  #order matters: anthropic anthropic:ant
@@ -7975,7 +8005,7 @@ else
 							0) 	XSKIP=1 BAD_RES=;
 								((${#REPLY}+${#PREPEND})) || OPTX=;
 								set -- "$REPLY"; break;  #IPC#
-								trap 'trap "exit" INT; TRAP_WEDIT=1 TRAP_EDIT=1' INT;;  #yes
+								trap 'trap "exit" INT; TRAP_WEDIT=1 TRAP_EDIT=1; ((MTURN)) || tty_sanityf || exit; ((!OPTEXIT)) || exit;' INT;;  #yes
 							*) 	((OPTX>1)) && OPTX=; BAD_RES=;
 								SKIP_SH_HIST= XSKIP= PREPEND= REPLY_CMD_DUMP= REPLY_CMD=;
 								((${#PREPEND})) && echo '[buffer clear]' >&2;
@@ -8240,7 +8270,7 @@ else
 							cmdf /resubmit;
 							set --; continue 2;;
 						0) 	BAD_RES=; :;
-							trap 'trap "exit" INT; TRAP_WEDIT=1 TRAP_EDIT=1' INT;;  #yes
+							trap 'trap "exit" INT; TRAP_WEDIT=1 TRAP_EDIT=1; ((MTURN)) || tty_sanityf || exit; ((!OPTEXIT)) || exit;' INT;;  #yes
 						*) 	((${#PREPEND})) && echo '[buffer clear]' >&2;
 							REPLY= PREPEND= XSKIP= REPLY_CMD_DUMP= REPLY_CMD= SKIP_SH_HIST= BAD_RES=;
 							set -- ;break;;  #no
@@ -8264,6 +8294,7 @@ else
 			else
 				((REGEN)) && echo "[regenerate mode]" >&2;
 				_warmsgf "(empty)";
+				((MTURN)) || tty_sanityf || exit 2;
 				set -- ; continue
 			fi
 		fi

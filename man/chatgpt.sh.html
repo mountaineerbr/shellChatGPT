@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.132.4 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.133 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.132.4 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.133 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">February 2026</p>
+<p class="date">April 2026</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT /
@@ -208,16 +208,18 @@ TTS</div>
 |    **chatgpt.sh** `-i` \[`opt`..] \[_X_|_L_|_P_]\[_high_|_medium_|_low_] \[_PNG_FILE_] \[_MASK_FILE_] \[_PROMPT_]
 -->
 <h1 id="description">DESCRIPTION</h1>
-<p>Wraps ChatGPT, STT, and TTS endpoints from various providers.</p>
+<p>Wraps OpenAI’s ChatGPT and multiple Large Language Model API
+providers.</p>
 <p>Defaults to single-turn native chat completions. Handles multi-turn
 chat, text completions, speech-to-text, and text-to-speech models.</p>
-<p>Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints are
-available to use as stand-alone functions or set to work with multi-turn
-chat modes.</p>
 <p>Positional arguments are read as a single text PROMPT. Text files and
 stdin are appended to the prompt from the command line.</p>
 <p>Users can craft model instructions and reuse them, as well as manage
 and print out chat sessions.</p>
+<p>Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints are
+available to use as stand-alone functions or set to work with multi-turn
+chat modes. STT and TTS endpoints functionality is modestly available
+for some providers.</p>
 <h1 id="options">OPTIONS</h1>
 <h2 id="interface-modes">Interface Modes</h2>
 <dl>
@@ -826,11 +828,11 @@ the original model used to generate responses.</p>
 <p><code>Option -w</code> <strong>transcribes audio speech</strong> from
 <em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
 <em>wav</em>, <em>webm</em>, <em>flac</em> and <em>ogg</em> files. First
-positional argument must be an <em>AUDIO/VOICE</em> file. Optionally,
-set a <em>TWO-LETTER</em> input language (<em>ISO-639-1</em>) as the
-second argument. A PROMPT may also be set to guide the model’s style, or
-continue a previous audio segment. The text prompt should match the
-speech language.</p>
+positional argument must be an <em>AUDIO/VOICE</em> file.</p>
+<p>Optionally, set a <em>TWO-LETTER</em> input language
+(<em>ISO-639-1</em>) as the second argument. A PROMPT may also be set to
+guide the model’s style, or continue a previous audio segment. The text
+prompt should match the speech language.</p>
 <p>Note that <code>option -w</code> can also be set to <strong>translate
 speech</strong> input to any text language to the target language.</p>
 <p><code>Option -W</code> <strong>translates speech</strong> stream to
@@ -847,20 +849,21 @@ models and voice out.</p>
 <p><code>Option -z</code> synthesises voice from text (TTS models). Set
 a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>echo</em>”, “<em>fable</em>”, “<em>onyx</em>”, “<em>nova</em>”, or
-“<em>shimmer</em>”). Set the second positional parameter as the
-<em>voice speed</em> (<em>0.25</em> - <em>4.0</em>), and, finally the
-<em>output file name</em> or the <em>format</em>, such as
-“<em>./new_audio.mp3</em>” (“<em>mp3</em>”, “<em>wav</em>”,
-“<em>flac</em>”, “<em>opus</em>”, “<em>aac</em>”, or “<em>pcm16</em>”);
-or set “<em>-</em>” for stdout.</p>
+“<em>shimmer</em>”).</p>
+<p>Set the second positional parameter as the <em>voice speed</em>
+(<em>0.25</em> - <em>4.0</em>), and, finally the <em>output file
+name</em> or the <em>format</em>, such as “<em>./new_audio.mp3</em>”
+(“<em>mp3</em>”, “<em>wav</em>”, “<em>flac</em>”, “<em>opus</em>”,
+“<em>aac</em>”, or “<em>pcm16</em>”); or set “<em>-</em>” for
+stdout.</p>
 <p>Do mind that GroqAI’s Orpheus has the specific output format
 “<em>wav</em>”, as well as different voice names such as daniel, autumn,
 diana, etc.</p>
 <p>Set <code>options -zv</code> to <em>not</em> play received
 output.</p>
 <h1 id="multimodal-audio-models">MULTIMODAL AUDIO MODELS</h1>
-<p>Audio models, such as <em>gpt-4o-audio</em>, deal with audio input
-and output directly.</p>
+<p>Audio models for chatting interface, such as <em>gpt-4o-audio</em>,
+deal with audio input and output directly.</p>
 <p>To activate the microphone recording function of the script, set
 command line <code>option -w</code>.</p>
 <p>Otherwise, the audio model accepts any compatible audio file (such as
@@ -870,6 +873,9 @@ or added with chat command “<code>/audio</code>
 <em>path/to/file.mp3</em>”.</p>
 <p>To activate the audio synthesis output mode of an audio model, make
 sure to set command line <code>option -z</code>!</p>
+<p>In chat mode, when the model does not support audio-in or audio-out
+modalities, the script uses whisper and tts functions in a special
+manner to achieve audio turns.</p>
 <!--
 # IMAGE GENERATIONS AND EDITS (Dall-E)
 
@@ -930,7 +936,7 @@ class="uri">https://platform.openai.com/examples</a>.</p>
 <p>Set the <code>option -c</code> to start chat completions mode. More
 recent models are also the best option for many non-chat use cases.</p>
 <h3 id="text-completions-chat">2.2 Text Completions Chat</h3>
-<p>Set <code>option -cd</code> to start chat mode of text completions.
+<p>Set <code>options -bcd</code> to start chat mode of text completions.
 It keeps a history file, and keeps new questions in context. This works
 with a variety of models. Set <code>option -E</code> to exit on
 response.</p>
@@ -2166,6 +2172,15 @@ themselves =).</p>
 <p>Garbage in, garbage out. An idiot savant.</p>
 <p>The script logic resembles a bowl of spaghetti code after a cat
 fight.</p>
+<!--
+Signal-trapped functions may fail to terminate the script immediately
+when run in an interrupted pipeline, leading to a zombie loop state
+that waits for unreachable user input.
+
+ Hopefully mostly solved in v0.133.
+ We now trap these conditions to ensure the script exits rather than
+ spinning in a state where user input is unreachable.
+-->
 <!-- Changing models in the same session may generate token count errors
 because the recorded token count may differ from model encoding to encoding.
 Set `option -y` for accurate token counting. -->

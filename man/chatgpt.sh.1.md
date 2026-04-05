@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.132.4 | General Commands Manual
+% CHATGPT.SH(1) v0.133 | General Commands Manual
 % mountaineerbr
-% February 2026
+% April 2026
 
 
 # NAME
@@ -31,19 +31,20 @@
 
 # DESCRIPTION
 
-Wraps ChatGPT, STT, and TTS endpoints from various providers.
+Wraps OpenAI's ChatGPT and multiple Large Language Model API providers.
 
 Defaults to single-turn native chat completions. Handles multi-turn chat,
 text completions, speech-to-text, and text-to-speech models.
-
-Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints are available
-to use as stand-alone functions or set to work with multi-turn chat modes.
 
 Positional arguments are read as a single text PROMPT. Text files and stdin
 are appended to the prompt from the command line.
 
 Users can craft model instructions and reuse them, as well as manage and
 print out chat sessions.
+
+Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints are available
+to use as stand-alone functions or set to work with multi-turn chat modes.
+STT and TTS endpoints functionality is modestly available for some providers.
 
 
 # OPTIONS
@@ -718,7 +719,9 @@ model used to generate responses.
 
 `Option -w` **transcribes audio speech** from _mp3_, _mp4_, _mpeg_, _mpga_, _m4a_,
 _wav_, _webm_, _flac_ and _ogg_ files. First positional argument must be
-an _AUDIO/VOICE_ file. Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
+an _AUDIO/VOICE_ file.
+
+Optionally, set a _TWO-LETTER_ input language (_ISO-639-1_)
 as the second argument. A PROMPT may also be set to guide the model's style,
 or continue a previous audio segment. The text prompt should match the speech language.
 
@@ -741,7 +744,9 @@ Additionally, set `option -z` to enable **text-to-speech** (TTS) models and voic
 
 `Option -z` synthesises voice from text (TTS models). Set a _voice_ as
 the first positional parameter ("_alloy_", "_echo_", "_fable_", "_onyx_",
-"_nova_", or "_shimmer_"). Set the second positional parameter as the
+"_nova_", or "_shimmer_").
+
+Set the second positional parameter as the
 _voice speed_ (_0.25_ - _4.0_), and, finally the _output file name_ or
 the _format_, such as "_./new_audio.mp3_" ("_mp3_", "_wav_", "_flac_",
 "_opus_", "_aac_", or "_pcm16_"); or set "_-_" for stdout.
@@ -754,7 +759,7 @@ Set `options -zv` to _not_ play received output.
 
 # MULTIMODAL AUDIO MODELS
 
-Audio models, such as _gpt-4o-audio_, deal with audio input and output directly.
+Audio models for chatting interface, such as _gpt-4o-audio_, deal with audio input and output directly.
 
 To activate the microphone recording function of the script, set command line `option -w`.
 
@@ -763,6 +768,10 @@ These files can be added to be loaded at the very end of the user prompt
 or added with chat command "`/audio` _path/to/file.mp3_".
 
 To activate the audio synthesis output mode of an audio model, make sure to set command line `option -z`!
+
+In chat mode, when the model does not support audio-in or audio-out modalities,
+the script uses whisper and tts functions in a special manner to achieve
+audio turns.
 
 
 <!--
@@ -835,7 +844,7 @@ models are also the best option for many non-chat use cases.
 
 ### 2.2 Text Completions Chat
 
-Set `option -cd` to start chat mode of text completions. It keeps
+Set `options -bcd` to start chat mode of text completions. It keeps
 a history file, and keeps new questions in context. This works
 with a variety of models. Set `option -E` to exit on response.
 
@@ -1796,6 +1805,17 @@ Bash truncates input on "\\000" (null).
 Garbage in, garbage out. An idiot savant.
 
 The script logic resembles a bowl of spaghetti code after a cat fight.
+
+
+<!--
+Signal-trapped functions may fail to terminate the script immediately
+when run in an interrupted pipeline, leading to a zombie loop state
+that waits for unreachable user input.
+
+ Hopefully mostly solved in v0.133.
+ We now trap these conditions to ensure the script exits rather than
+ spinning in a state where user input is unreachable.
+-->
 
 <!-- Changing models in the same session may generate token count errors
 because the recorded token count may differ from model encoding to encoding.

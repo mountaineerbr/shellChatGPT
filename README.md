@@ -38,7 +38,7 @@ If no suffix is provided, it works as plain text completions.
 ## Index
 
 <details>
-  <summary>★ Click to expand! ★</summary>
+  <summary>★ CLICK TO EXPAND! ★</summary>
 
 - 1. [Features](#-features)
 - 2. [Project Status](#project-status)
@@ -59,21 +59,21 @@ If no suffix is provided, it works as plain text completions.
 - 7. [Text Completions](#-text-completions)
   - 7.1 [Insert Mode of Text Completions](#insert-mode-of-text-completions)
 - 8. [Responses  API](#responses-api)
-- 9. [Markdown](#markdown)
-- 10. [Prompts](#-prompts)
-  - 10.1 [Instruction Prompt](#instruction-prompt)
-  - 10.2 [Custom Prompts](#-custom-prompts)
-  - 10.3 [Awesome Prompts](#-awesome-prompts)
-- 11. [Shell Completion](#shell-completion)
-  - 11.1 [Bash](#bash)
-  - 11.2 [Zsh](#zsh)
-  - 11.3 [Shell Troubleshoot](#shell-troubleshoot)
-- 12. [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
+- 9. [Speech Transcriptions / Translations](#-speech-transcriptions--translations)
+- 10. [Markdown](#markdown)
+- 11. [Prompts](#-prompts)
+  - 11.1 [Instruction Prompt](#instruction-prompt)
+  - 11.2 [Custom Prompts](#-custom-prompts)
+  - 11.3 [Awesome Prompts](#-awesome-prompts)
+- 12. [Shell Completion](#shell-completion)
+  - 12.1 [Bash](#bash)
+  - 12.2 [Zsh](#zsh)
+  - 12.3 [Shell Troubleshoot](#shell-troubleshoot)
 - 13. [Service Providers](#service-providers)
   - 13.1 [LocalAI](#localai)
     - 13.1.1 [LocalAI Server](#localai-server)
     - 13.1.2 [LocalAI Tips](#localai-tips)
-    - 13.1.3 [Running the shell wrapper](#running-the-shell-wrapper)
+    - 13.1.3 [Running the Shell Wrapper](#running-the-shell-wrapper)
     - 13.1.4 [Installing Models](#installing-models)
     - 13.1.5 [Host API Configuration](#base-url-configuration)
     - 13.1.6 [OpenAI Web Search](#openai-web-search)
@@ -102,7 +102,7 @@ If no suffix is provided, it works as plain text completions.
 - 18. [Project Objectives](#--project-objectives)
 - 19. [Roadmap](#roadmap)
 - 20. [Limitations](#%EF%B8%8F-limitations)
-- 21. [Bug report](#bug-report)
+- 21. [Bug Report](#bug-report)
 - 22. [Help Pages](#-help-pages)
 - 23. [Contributors](#-contributors)
 - 24. [Acknowledgements](#acknowledgements)
@@ -170,7 +170,7 @@ Development is ongoing, with an emphasis on improving stability and
 addressing bugs, rather than new features in 2026. <!-- In fact, we may **remove some features**. -->
  It is considered _mostly feature‑complete_ for my personal use-cases.
 
-Check the [Troubleshoot section](#troubleshoot) for information on how to
+Check the [Troubleshoot section](#troubleshoot) for information on how
 to work with newer models and [different API providers](#service-providers).
 
 Refer to the [Roadmap section](#roadmap) and [Limitations section](#%EF%B8%8F-limitations)
@@ -671,6 +671,69 @@ is [chatgpt.sh v23.16](https://gitlab.com/fenixdragao/shellchatgpt/-/tree/f82978
 -->
 
 
+## 🔊 Speech Transcriptions / Translations
+
+Generate transcription from audio file speech. A prompt to guide the model's style is optional.
+The prompt should match the speech language:
+
+    chatgpt.sh -w path/to/audio.mp3
+
+    chatgpt.sh -w path/to/audio.mp3 "en" "This is a poem about X."
+
+
+**1.** Generate transcription from voice recording, set Portuguese as the language to transcribe to:
+
+    chatgpt.sh -w pt
+
+
+This also works to transcribe from one language to another.
+
+
+**2.** Transcribe any language speech input **to Japanese** (_prompt_ should be in
+the same language as the input audio language, preferably):
+
+    chatgpt.sh -w ja "A job interview is currently being done."
+
+
+**3.1** Translate English speech input to Japanese, and generate speech output from the text response.
+
+    chatgpt.sh -wz ja "Getting directions to famous places in the city."
+
+
+**3.2** Also doing it conversely, this gives an opportunity to (manual)
+conversation turns of two speakers of different languages. Below,
+a Japanese speaker can translate its voice and generate audio in the target language.
+
+    chatgpt.sh -wz en "Providing directions to famous places in the city."
+
+
+**4.** Translate speech from any language to English:
+
+    chatgpt.sh -W [speech_file]
+
+    chatgpt.sh -W
+
+
+To retry with the last microphone recording saved in the cache, set
+_speech_file_ as `last` or `retry`.
+
+**NOTE:** Generate **phrasal-level timestamps** double setting `option -ww` or `option -WW`.
+For **word-level timestamps**, set option `-www` or `-WWW`.
+
+
+![Transcribe speech with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
+
+
+<!-- 
+### Code Completions (Codex, _discontinued_)
+
+Codex models are discontinued. Use models davinci or gpt-3.5+.
+
+Start with a commented out code or instruction for the model,
+or ask it in comments to optimise the following code, for example.
+-->
+
+
 ## Markdown
 
 To enable markdown rendering of responses, set command line `option --markdown`,
@@ -891,69 +954,6 @@ In this example, a mask is made from the white colour.
 <!-- ![Inpaint, steps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/img_edits_steps.png) -->
 
 <!-- Adding a bat in the night sky. -->
-
-
-## 🔊 Speech Transcriptions / Translations
-
-Generate transcription from audio file speech. A prompt to guide the model's style is optional.
-The prompt should match the speech language:
-
-    chatgpt.sh -w path/to/audio.mp3
-
-    chatgpt.sh -w path/to/audio.mp3 "en" "This is a poem about X."
-
-
-**1.** Generate transcription from voice recording, set Portuguese as the language to transcribe to:
-
-    chatgpt.sh -w pt
-
-
-This also works to transcribe from one language to another.
-
-
-**2.** Transcribe any language speech input **to Japanese** (_prompt_ should be in
-the same language as the input audio language, preferably):
-
-    chatgpt.sh -w ja "A job interview is currently being done."
-
-
-**3.1** Translate English speech input to Japanese, and generate speech output from the text response.
-
-    chatgpt.sh -wz ja "Getting directions to famous places in the city."
-
-
-**3.2** Also doing it conversely, this gives an opportunity to (manual)
-conversation turns of two speakers of different languages. Below,
-a Japanese speaker can translate its voice and generate audio in the target language.
-
-    chatgpt.sh -wz en "Providing directions to famous places in the city."
-
-
-**4.** Translate speech from any language to English:
-
-    chatgpt.sh -W [speech_file]
-
-    chatgpt.sh -W
-
-
-To retry with the last microphone recording saved in the cache, set
-_speech_file_ as `last` or `retry`.
-
-**NOTE:** Generate **phrasal-level timestamps** double setting `option -ww` or `option -WW`.
-For **word-level timestamps**, set option `-www` or `-WWW`.
-
-
-![Transcribe speech with timestamps](https://gitlab.com/mountaineerbr/etc/-/raw/main/gfx/chat_trans.png)
-
-
-<!-- 
-### Code Completions (Codex, _discontinued_)
-
-Codex models are discontinued. Use models davinci or gpt-3.5+.
-
-Start with a commented out code or instruction for the model,
-or ask it in comments to optimise the following code, for example.
--->
 
 
 ## Service Providers

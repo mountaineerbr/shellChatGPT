@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: February 2026
-title: CHATGPT.SH(1) v0.132.4 \| General Commands Manual
+date: April 2026
+title: CHATGPT.SH(1) v0.133 \| General Commands Manual
 ---
 
 # NAME
@@ -37,20 +37,21 @@ title: CHATGPT.SH(1) v0.132.4 \| General Commands Manual
 
 # DESCRIPTION
 
-Wraps ChatGPT, STT, and TTS endpoints from various providers.
+Wraps OpenAI’s ChatGPT and multiple Large Language Model API providers.
 
 Defaults to single-turn native chat completions. Handles multi-turn
 chat, text completions, speech-to-text, and text-to-speech models.
-
-Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints are
-available to use as stand-alone functions or set to work with multi-turn
-chat modes.
 
 Positional arguments are read as a single text PROMPT. Text files and
 stdin are appended to the prompt from the command line.
 
 Users can craft model instructions and reuse them, as well as manage and
 print out chat sessions.
+
+Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints are
+available to use as stand-alone functions or set to work with multi-turn
+chat modes. STT and TTS endpoints functionality is modestly available
+for some providers.
 
 # OPTIONS
 
@@ -559,10 +560,12 @@ used to generate responses.
 
 `Option -w` **transcribes audio speech** from *mp3*, *mp4*, *mpeg*,
 *mpga*, *m4a*, *wav*, *webm*, *flac* and *ogg* files. First positional
-argument must be an *AUDIO/VOICE* file. Optionally, set a *TWO-LETTER*
-input language (*ISO-639-1*) as the second argument. A PROMPT may also
-be set to guide the model’s style, or continue a previous audio segment.
-The text prompt should match the speech language.
+argument must be an *AUDIO/VOICE* file.
+
+Optionally, set a *TWO-LETTER* input language (*ISO-639-1*) as the
+second argument. A PROMPT may also be set to guide the model’s style, or
+continue a previous audio segment. The text prompt should match the
+speech language.
 
 Note that `option -w` can also be set to **translate speech** input to
 any text language to the target language.
@@ -582,10 +585,12 @@ input** (Whisper) support. Additionally, set `option -z` to enable
 
 `Option -z` synthesises voice from text (TTS models). Set a *voice* as
 the first positional parameter (“*alloy*”, “*echo*”, “*fable*”,
-“*onyx*”, “*nova*”, or “*shimmer*”). Set the second positional parameter
-as the *voice speed* (*0.25* - *4.0*), and, finally the *output file
-name* or the *format*, such as “*./new_audio.mp3*” (“*mp3*”, “*wav*”,
-“*flac*”, “*opus*”, “*aac*”, or “*pcm16*”); or set “*-*” for stdout.
+“*onyx*”, “*nova*”, or “*shimmer*”).
+
+Set the second positional parameter as the *voice speed* (*0.25* -
+*4.0*), and, finally the *output file name* or the *format*, such as
+“*./new_audio.mp3*” (“*mp3*”, “*wav*”, “*flac*”, “*opus*”, “*aac*”, or
+“*pcm16*”); or set “*-*” for stdout.
 
 Do mind that GroqAI’s Orpheus has the specific output format “*wav*”, as
 well as different voice names such as daniel, autumn, diana, etc.
@@ -594,8 +599,8 @@ Set `options -zv` to *not* play received output.
 
 # MULTIMODAL AUDIO MODELS
 
-Audio models, such as *gpt-4o-audio*, deal with audio input and output
-directly.
+Audio models for chatting interface, such as *gpt-4o-audio*, deal with
+audio input and output directly.
 
 To activate the microphone recording function of the script, set command
 line `option -w`.
@@ -607,6 +612,10 @@ at the very end of the user prompt or added with chat command “`/audio`
 
 To activate the audio synthesis output mode of an audio model, make sure
 to set command line `option -z`!
+
+In chat mode, when the model does not support audio-in or audio-out
+modalities, the script uses whisper and tts functions in a special
+manner to achieve audio turns.
 
 <!--
 # IMAGE GENERATIONS AND EDITS (Dall-E)
@@ -665,7 +674,7 @@ are also the best option for many non-chat use cases.
 
 ### 2.2 Text Completions Chat
 
-Set `option -cd` to start chat mode of text completions. It keeps a
+Set `options -bcd` to start chat mode of text completions. It keeps a
 history file, and keeps new questions in context. This works with a
 variety of models. Set `option -E` to exit on response.
 
@@ -1534,6 +1543,15 @@ Bash truncates input on “\000” (null).
 Garbage in, garbage out. An idiot savant.
 
 The script logic resembles a bowl of spaghetti code after a cat fight.
+
+<!--
+Signal-trapped functions may fail to terminate the script immediately
+when run in an interrupted pipeline, leading to a zombie loop state
+that waits for unreachable user input.
+&#10; Hopefully mostly solved in v0.133.
+ We now trap these conditions to ensure the script exits rather than
+ spinning in a state where user input is unreachable.
+-->
 
 <!-- Changing models in the same session may generate token count errors
 because the recorded token count may differ from model encoding to encoding.
