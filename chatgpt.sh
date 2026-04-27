@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.134  apr/2026  by mountaineerbr  GPL+3
+# v0.134.1  apr/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -7436,7 +7436,7 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"
 pick_modelf "$MOD"
 #``model endpoint'' and ``model capacity''
 [[ -n $EPN ]] ||
-  if ((MULTIMODAL))  #keep user setting
+  if ((MULTIMODAL)) || [[ $MULTIMODAL = "0" ]]  #keep user setting
   then 	MULTIMODAL= set_model_epnf "$MOD";
   else 	set_model_epnf "$MOD";
   fi
