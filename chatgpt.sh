@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.133.1  apr/2026  by mountaineerbr  GPL+3
+# v0.134  apr/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -54,7 +54,7 @@ MOD_OPENROUTER="${MOD_OPENROUTER:-${OPENROUTER_MODEL:-openrouter/auto}}"
 # xAI model
 MOD_XAI="${MOD_XAI:-${XAI_MODEL:-grok-4-latest}}"
 # DeepSeek model
-MOD_DEEPSEEK="${MOD_DEEPSEEK:-${DEEPSEEK_MODEL:-deepseek-reasoner}}"
+MOD_DEEPSEEK="${MOD_DEEPSEEK:-${DEEPSEEK_MODEL:-deepseek-v4-flash}}"
 # Bash readline mode
 READLINEOPT="emacs"  #"vi"
 # Stream response
@@ -820,13 +820,13 @@ function set_model_epnf
 			((OPTWW)) && EPN=8 || EPN=7;;
 		code-*) 	EPN=0;;
 		text-*|*turbo-instruct*|*davinci*|*babbage*|ada|*moderation*)
-			is_amodelf "$1" || is_visionf "$1";
+			set_modalf "$1";
 			case "$1" in
 				*moderation*) 	EPN=1 OPTEMBED=1;;
 				*) 		EPN=0;;
 			esac;;
 		gpt-[5-9]*|o[1-9]*|chatgpt-*|gpt-[4-9]*|gpt-3.5*|gpt-*|*turbo*|*vision*|*audio*|*voxtral*)
-			is_amodelf "$1" || is_visionf "$1";
+			set_modalf "$1";
 			EPN=6 OPTCMPL=;
 			((OPTC)) && OPTC=2
 			#set token adjustment per message
@@ -842,17 +842,20 @@ function set_model_epnf
 			elif ((OPTW && !(MTURN+CHAT_ENV) ))
 			then 	OPTCMPL= OPTC= EPN=7;
 			elif ((OPTCMPL || OPTSUFFIX))
-			then 	is_amodelf "$1" || is_visionf "$1";
+			then 	set_modalf "$1";
 				OPTC= EPN=0;
 			elif ((OPTC>1 || GROQAI || MISTRALAI || GOOGLEAI || GITHUBAI || OPENROUTER ||XAI || DEEPSEEK))
-			then 	is_amodelf "$1" || is_visionf "$1";
+			then 	set_modalf "$1";
 				OPTCMPL= EPN=6;
 			elif ((OPTC))
-			then 	is_amodelf "$1" || is_visionf "$1";
+			then 	set_modalf "$1";
 				OPTCMPL= EPN=0;
-			else 	is_amodelf "$1" || is_visionf "$1";
+			else 	set_modalf "$1";
 				EPN=0;  #defaults
 			fi;
+
+			#enable vision features generically (2006)
+			((EPN!=6 && EPN!=12)) || ((MULTIMODAL)) || MULTIMODAL=1;
 			return 1;;
 	esac
 }
@@ -984,6 +987,7 @@ function model_capf
 			MODMAX=32768;;
 		gpt-[5].1*) ((MOD_REASON || ${REASON_EFFORT:+1}0)) && MODMAX=196000 || MODMAX=400000;;
 		gpt-[5-9]*) MODMAX=400000;;
+		deepseek-v[4-9]*) MODMAX=1000000;;
 		gpt-[4-9].[1-9]*|gpt-[5-9][!.a-z]*) MODMAX=1047576;;
 		o1-*preview*|o1-*mini*|gpt-[4-9].[1-9]*|gpt-[4-9][a-z]*|chatgpt-*|gpt-[5-9]*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|gpt-4-1106*|\
@@ -2697,11 +2701,7 @@ function cmdf
 			set_optsf;
 			set_model_epnf "$MOD";
 			model_capf "$MOD";
-			if is_amodelf "$MOD"
-			then 	MULTIMODAL=2;
-			elif is_visionf "$MOD"
-			then 	MULTIMODAL=1;
-			fi
+			set_modalf "$MOD";
 			send_tiktokenf '/END_TIKTOKEN/'
 			cmdmsgf 'Model Name' "$MOD$( ((MULTIMODAL)) && printf ' / %s' 'multimodal')"
 			cmdmsgf 'Response / Capacity:' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
@@ -4531,6 +4531,17 @@ function is_amodelf
 	esac;
 }
 
+#check and set model modal type
+function set_modalf
+{
+	if is_amodelf "$1"
+	then 	MULTIMODAL=2;
+	elif is_visionf "$1"
+	then 	MULTIMODAL=1;
+	else 	! :;
+	fi
+}
+
 function is_mdf
 {
 	[[ "\\n$1" =~ (\
@@ -5011,11 +5022,9 @@ function start_compf { ((${#1}+${#START})) && START=$(escapef "$(unescapef "${1:
 function optmax_resetf
 {
 	((OPTMAX>0)) &&                    #is not zero or negative signal
-	#[[ -z ${OPTMAX_REASON} ]] &&       #property has not been set before already
 	{ 	((OPTMAX==OPTMAX_DEF)) ||   #is at default value
 	 [[ -z ${OPTMM}${xOPTNN} ]] ;} &&   #user has not set options -MN at incantation
 	((${1:-25000}>OPTMAX)) &&          #default value is bigger than current
-	#[[ ${OPTMM:-0}${OPTMAX:-0}${REASON_EFFORT:-0} != *[!0-9]* ]] &&   #user input is valid
 	(( (OPTMM<1024*4 && OPTMAX<1024*5) || REASON_EFFORT>OPTMAX )) &&  #err: may contain [a-z/-] chars!
 	{
 		OPTMAX_REASON=${OPTMAX:-$OPTMAX_REASON} OPTMAX=${1:-25000};
@@ -7215,9 +7224,9 @@ def byellow: null; \
 def bpurple: null; \
 def reset:   null;"
 
-# Signal resolvers
-# As the codebase grew organically, signal transduction holds
-# refactoring unwarranted for entire feature sets (but documentation).
+# Signal resolvers - shim layer
+# As the codebase grew organically, signal transduction avoids unwarranted
+# refactoring of entire feature sets and keeps documentation steady.
 
 ##((OPTCMPL<0)) && ((OPTC==1)) && ((!OPTEXIT)) && OPTEXIT=1;  #-dc text chat single-turn; -ddc, -dcc multi-turn
 ((OPTC==1)) && OPTC=2;  #option -c now defaults to native chat completions!  2025-12-21
@@ -7426,7 +7435,11 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_KEY:-${OPENAI_API_KEY:?Required}}}"
 
 pick_modelf "$MOD"
 #``model endpoint'' and ``model capacity''
-[[ -n $EPN ]] || set_model_epnf "$MOD"
+[[ -n $EPN ]] ||
+  if ((MULTIMODAL))  #keep user setting
+  then 	MULTIMODAL= set_model_epnf "$MOD";
+  else 	set_model_epnf "$MOD";
+  fi
 ((MODMAX)) || model_capf "$MOD"
 
 #``max model / response tkns''
@@ -7798,12 +7811,7 @@ else
 		  else 	sysmsgf 'Text Completions'"$var";
 		  fi
 	fi; var=;
-	((MULTIMODAL)) ||
-	if is_amodelf "$MOD"
-	then 	MULTIMODAL=2;
-	elif is_visionf "$MOD" || ((MOD_REASON))
-	then 	MULTIMODAL=1;
-	fi;
+	((MULTIMODAL)) || set_modalf "$MOD";
 	((MULTIMODAL>1 && STREAM)) && OPTZ_FMT="pcm16";  #audio-model preview
 	#non-streaming mode supports more audio formats!
 	((OPTV)) || sysmsgf 'Language Model:' "$MOD$( ((MULTIMODAL)) && echo ' / multimodal')";
@@ -8702,6 +8710,11 @@ $(
 	#effort parameter works alongside the thinking token budget when extended thinking is enabled
 	#https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking
   else
+	#DeepSeek newer models
+	#((DEEPSEEK)) && ((${REASON_EFFORT:+1})) &&
+  	#echo "\"thinking\": {\"type\": \"enabled\"},"  #api defaults
+	#https://api-docs.deepseek.com/guides/thinking_mode
+
   	#OpenAI
   	echo "\"reasoning_effort\": \"${REASON_EFFORT:-high}\","
   fi

@@ -98,7 +98,8 @@ If no suffix is provided, it works as plain text completions.
   - 15.3 [Tiktoken](#tiktoken)
   - 15.4 [Termux Troubleshoot](#termux-troubleshoot)
 - 16. [Troubleshoot](#troubleshoot)
-- 17. [Notes and Tips](#-notes-and-tips)
+- 17. [Notes and Tips](#--notes-and-tips)
+  - 17.1 [Simple Code Statistics](#code-statistics)
 - 18. [Project Objectives](#--project-objectives)
 - 19. [Roadmap](#roadmap)
 - 20. [Limitations](#%EF%B8%8F-limitations)
@@ -1670,6 +1671,32 @@ generate very interesting responses (good for
 - Write your customised instruction as plain text file and set that file
 name as the instruction prompt.
 -->
+
+
+### Code Statistics
+
+Some simple stats for release v0.133 (april/2026).
+
+#### Main script file
+
+*    **7** master project **files** (code + docs + templates)
+*   **11** API **providers**
+*   **81** unique command line **options**
+*   **88** unique chat **commands**
+*  **184** internal **shell functions**
+* **1251** internal **function calls**
+*  **312** **KB** size on disk
+
+
+#### Repository files
+
+* **7154** **lines** of code in main script
+*  **540** **lines** of code from 4 other secondary files
+* **7694** **total lines** of code from all 5 files (_no empty lines_)
+* **3600** **lines** of documentation from 3 files (_no empty lines_)
+
+<!-- * **9235** **lines** in main code file -->
+<!-- * **4436** **lines** of documentation from 3 files (_with empty lines_) -->
 
 
 ## 🎯  Project Objectives
