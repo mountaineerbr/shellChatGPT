@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.134.1  apr/2026  by mountaineerbr  GPL+3
+# v0.134.2  may/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -52,7 +52,7 @@ MOD_GITHUB="${MOD_GITHUB:-${GITHUB_MODEL:-gpt-4.1}}"  #GH_MODEL
 # OpenRouter API model
 MOD_OPENROUTER="${MOD_OPENROUTER:-${OPENROUTER_MODEL:-openrouter/auto}}"
 # xAI model
-MOD_XAI="${MOD_XAI:-${XAI_MODEL:-grok-4-latest}}"
+MOD_XAI="${MOD_XAI:-${XAI_MODEL:-grok-latest}}"
 # DeepSeek model
 MOD_DEEPSEEK="${MOD_DEEPSEEK:-${DEEPSEEK_MODEL:-deepseek-v4-flash}}"
 # Bash readline mode
@@ -961,7 +961,7 @@ function model_capf
 	#ollama and localai models vary too widely
 	model=${1##*/};
 	case "${model##ft:}" in
-		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*|grok-[4-9]*|grok-code*)
+		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*|grok-code*)
 			MODMAX=256000;;
 		open-mixtral-8x22b|text-davinci-002-render-sha|*-64k*)
 			MODMAX=64000;;
@@ -987,7 +987,8 @@ function model_capf
 			MODMAX=32768;;
 		gpt-[5].1*) ((MOD_REASON || ${REASON_EFFORT:+1}0)) && MODMAX=196000 || MODMAX=400000;;
 		gpt-[5-9]*) MODMAX=400000;;
-		deepseek-v[4-9]*) MODMAX=1000000;;
+		grok-4.20*) MODMAX=2000000;;
+		deepseek-v[4-9]*|grok-[4-9][.-]*|grok-latest) MODMAX=1000000;;
 		gpt-[4-9].[1-9]*|gpt-[5-9][!.a-z]*) MODMAX=1047576;;
 		o1-*preview*|o1-*mini*|gpt-[4-9].[1-9]*|gpt-[4-9][a-z]*|chatgpt-*|gpt-[5-9]*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|gpt-4-1106*|\
@@ -3489,6 +3490,7 @@ function cmdf
 			SKIP=1 EDIT=1 xskip=1;
 			;;
 		r|rr|''|[/!]|regen|[/!]regen|regenerate|[/!]regenerate|[$IFS])
+			((REGEN==181)) && return 181;
 			if ((!BAD_RES)) && [[ -s "$FILECHAT" ]] &&
 			[[ "$(tail -n 2 "$FILECHAT")"$'\n' != *[Bb][Rr][Ee][Aa][Kk]*([$' \t'])$'\n'* ]]
 			then 	# comment out two lines from tail
@@ -3800,7 +3802,7 @@ function rcmdf
 {
 	typeset BLOCK_USR BLOCK_CMD EDIT JUMP REGEN REPLY REPLY_OLD REPLY_CMD REPLY_CMD_DUMP RESUBW RET SKIP PSKIP WSKIP HARGS OPTAWE BAD_RES BCYAN CYAN ON_CYAN;
 
-	SKIP_SH_HIST=1 REGEN=-1 CMD_ENV=201 cmdf "$@";
+	SKIP_SH_HIST=1 REGEN=181 CMD_ENV=201 cmdf "$@";
 
 	(($?==181)) && _warmsgf 'illegal command';
 	((${#REPLY}+${#BLOCK_USR}+${#BLOCK_CMD}+JUMP+REGEN+RESUBW==0)) || _warmsgf 'Warning:' 'command block';

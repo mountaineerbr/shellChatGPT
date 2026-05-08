@@ -1679,7 +1679,6 @@ Some simple stats for release v0.133 (april/2026).
 
 #### Main script file
 
-*    **7** master project **files** (code + docs + templates)
 *   **11** API **providers**
 *   **81** unique command line **options**
 *   **88** unique chat **commands**
@@ -1690,10 +1689,11 @@ Some simple stats for release v0.133 (april/2026).
 
 #### Repository files
 
+*    **7** master project **files** (code + docs + templates)
 * **7154** **lines** of code in main script
-*  **540** **lines** of code from 4 other secondary files
-* **7694** **total lines** of code from all 5 files (_no empty lines_)
-* **3600** **lines** of documentation from 3 files (_no empty lines_)
+*  **540** **lines** of code from four other secondary files
+* **7694** **total lines** of code from five files (_no empty lines_)
+* **3600** **lines** of documentation from three files (_no empty lines_)
 
 <!-- * **9235** **lines** in main code file -->
 <!-- * **4436** **lines** of documentation from 3 files (_with empty lines_) -->
@@ -1835,6 +1835,7 @@ Alternatively, a help page snippet can be printed with `chatgpt.sh -h`.
 
 - [edshamis](https://www.github.com/edshamis)
 - [johnd0e](https://github.com/johnd0e)
+- [dreieck](https://aur.archlinux.org/packages/chatgpt.sh)
 - [Novita AI's GTM Leo](https://novita.ai/model-api/product/llm-api)
   <!-- Growth Tech Market -->
 
@@ -1852,23 +1853,25 @@ They were studied during development of this script and used as referential code
 2. [Gemini CLI](https://github.com/google-gemini/gemini-cli)
 3. [OpenAI Codex CLI](https://github.com/openai/codex)
 4. [Gauthier's Aider](https://github.com/Aider-AI/aider)
-5. [sigoden's aichat](https://github.com/sigoden/aichat)
-6. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
-7. [andrew's tgpt](https://github.com/aandrew-me/tgpt)
-8. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
-9. [ErikBjare's gptme](https://github.com/ErikBjare/gptme)
-10. [SimonW's LLM](https://github.com/simonw/llm)
-11. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
-12. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
-13. [mudler's LocalAI](https://github.com/mudler/LocalAI)
-14. [Ollama](https://github.com/ollama/ollama/)
-15. [Google Gemini](https://gemini.google.com/)
-16. [Groq](https://console.groq.com/docs/api-reference)
-17. [Antropic AI](https://docs.anthropic.com/)
-18. [Novita AI](https://novita.ai/)
-19. [xAI](https://docs.x.ai/docs/quickstart)
-20. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-21. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+5. [BerriAI's LiteLLM](https://github.com/BerriAI/litellm)
+6. [sigoden's aichat](https://github.com/sigoden/aichat)
+7. [xenodium's chatgpt-shell](https://github.com/xenodium/chatgpt-shell)
+8. [andrew's tgpt](https://github.com/aandrew-me/tgpt)
+9. [TheR1D's shell_gpt](https://github.com/TheR1D/shell_gpt/)
+10. [ErikBjare's gptme](https://github.com/ErikBjare/gptme)
+11. [SimonW's LLM](https://github.com/simonw/llm)
+12. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
+13. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
+14. [mudler's LocalAI](https://github.com/mudler/LocalAI)
+15. [Ollama](https://github.com/ollama/ollama/)
+16. [Google Gemini](https://gemini.google.com/)
+17. [Groq](https://console.groq.com/docs/api-reference)
+18. [Antropic AI](https://docs.anthropic.com/)
+19. [Novita AI](https://novita.ai/)
+20. [xAI](https://docs.x.ai/docs/quickstart)
+21. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+22. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+
 <!-- 17. [Kardolu's chatgpt-cli](https://github.com/kardolus/chatgpt-cli) -->
 <!-- https://github.com/sst/opencode -->
 
