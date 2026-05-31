@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.134 | General Commands Manual
+% CHATGPT.SH(1) v0.134.3 | General Commands Manual
 % mountaineerbr
-% April 2026
+% June 2026
 
 
 # NAME
@@ -465,6 +465,11 @@ STT and TTS endpoints functionality is modestly available for some providers.
 : The API key to use.
 
 
+**\--cache-disable**
+
+: Disable the 5-min ephemeral cache option for Anthropic API.
+
+
 **\--fold** (_defaults_), **\--no-fold**
 
 : Set or unset response folding (wrap at white spaces).
@@ -480,7 +485,7 @@ STT and TTS endpoints functionality is modestly available for some providers.
 : Print OpenAI usage status (requires envar `$OPENAI_ADMIN_KEY`).
 
 
-**-k**, **\--no-colour**
+**-k**, **\--no-colour**, **\--no-color**
 
 : Disable colour output. Def=_auto_.
 

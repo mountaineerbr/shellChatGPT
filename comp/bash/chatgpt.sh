@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.132
+# v0.134.3
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -53,7 +53,7 @@ _chatgptsh()
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-  models=( 'davinci-002'  'gpt-3.5-turbo'  'gpt-3.5-turbo-instruct' 
+  models=( 'davinci-002'  'gpt-3.5-turbo'  'gpt-3.5-turbo-instruct'
     'gpt-4o'  'gpt-4-turbo'  'text-moderation-latest'
     'mistral-large-latest'  'codestral-latest'  'open-mixtral-8x22b'
     'llama3'  'gemini-1.5-flash-latest'  'gemini-1.5-pro-latest' )
@@ -82,9 +82,9 @@ _chatgptsh()
         -c --chat
         -cd --text-chat
         -C --continue --resume
-        -d --text
+        -d -dd --text
         --effort --budget
-        -e --edit
+        -e -eex --edit
         -E --exit -EE
         -g --stream
         -G --no-stream
@@ -96,6 +96,7 @@ _chatgptsh()
         -w --transcribe --stt -ww -www
         -W --translate -WW -WWW
         --api-key
+        --cache-disable
         -f --no-conf
         -F -FF
         --fold --wrap --no-fold --no-wrap
@@ -118,7 +119,7 @@ _chatgptsh()
         -U --cat
         -v -vv
         -V -VV
-        -x --editor
+        -x -xx --editor
         -y --tik
         -Y --no-tik
         -z --tts --speech
@@ -126,18 +127,24 @@ _chatgptsh()
         --no-truncation
         --verb --verbosity --no-verbosity
         --voice
-        -Z --last
+        -Z -ZZ --last
         --info
         --version
   "
 
-
-  #main
-  [[ $prev = "=" ]] && prev=${PREV_PREV:-$prev}; PREV_PREV=$prev;  #--foo=bar hack
+  # Main
+  # If the previous word is '=', the real previous flag is two steps back.
+  [[ $prev = "=" ]] && prev=${COMP_WORDS[COMP_CWORD-2]:-$prev};  #--foo=bar hack
 
   case "${prev}" in
+    --api-key)
+      ((${#cur})) || COMPREPLY=( '[key]' )
+      ;;
     -[aApt]|-[!-]*[aApt]|--presence*|--pre|--frequency*|--freq|--top-p|--topp|--temperature|--temp)
       ((${#cur})) || COMPREPLY=( '[float]' )
+      ;;
+    --keep-alive|--ka)
+      ((${#cur})) || COMPREPLY=( '[seconds]' )
       ;;
     -[NbBKn]|-[!-]*[NbBKn]|--modmax*|--top-k|--topk|--keep-alive|--ka|--results|--seed)
       ((${#cur})) || COMPREPLY=( '[integer]' )
@@ -155,7 +162,7 @@ _chatgptsh()
       ((${#cur})) || COMPREPLY=( '[stop-sequence]' '"\\nQ: "' '"\\nA:"' )
       ;;
     --effort|--budget)
-      ((${#cur})) || COMPREPLY=( 'none' 'minimal' 'low' 'medium' 'high' 'xhigh' )
+      ((${#cur})) || COMPREPLY=( 'none' 'minimal' 'low' 'medium' 'high' 'xhigh' 'max' )
       ;;
     --think)
       ((${#cur})) || COMPREPLY=( 'TOKEN_NUM' '16000' )

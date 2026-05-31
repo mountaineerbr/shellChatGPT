@@ -1,6 +1,6 @@
 #compdef chatgpt.sh
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.132
+# v0.134.3
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -136,10 +136,11 @@ _chatgpt.sh()
     {-cd,--text-chat}'[Pure text chat completions]' \
     {-c,--chat}'[Native chat completions]' \
     {-C,--continue,--resume}'[Continue from last session]' \
-    {-d,--text}'[Text completions]' \
-    {--effort,--budget}'[Reasoning effort]:effort:(none minimal low medium high xhigh)' \
+    '--cache-disable[Disable Anthropic 5-min cache]' \
+    {-d,-dd,--text}'[Text completions]' \
+    {--effort,--budget}'[Reasoning effort]:effort:(none minimal low medium high xhigh max)' \
     --think'[Thinking budget]:effort:(TOKEN_NUM 16000)' \
-    {-e,--edit}'[Edit first prompt]' \
+    {-e,-eex,--edit}'[Edit input (eex: edit last '"${VISUAL:-${EDITOR:-text editor}}"' buffer)]' \
     {-E,-EE,--exit}'[Exit on first run]' \
     {-g,--stream}'[Stream response on]' \
     {-G,--no-stream}'[Stream response off]' \
@@ -195,16 +196,16 @@ _chatgpt.sh()
     --no-truncation'[Disable context truncation (Responses API)]' \
     --verb{,osity}'[Model response verbosity]:mode:(low medium high)' \
     --no-verbosity'[Model response verbosity off]' \
-    {-v,-vv}'[Less interface verbose]' \
+    {-v,-vv}'[Less interface verbosity]' \
     '-V[Pretty-print context]' \
     '-VV[Dump raw request (debug)]' \
-    {-x,--editor}'[Edit prompt in text editor]' \
+    {-x,-xx,--editor}'[Edit prompt in '"${VISUAL:-${EDITOR:-text editor}}"' (xx: single-shot)]' \
     {-y,--tik}'[Set tiktoken for chat]' \
     {-Y,--no-tik}'[Unset tiktoken for chat]' \
     {-z,--tts,--speech}'[Synthesize speech]' \
     --format'[TTS out-format]:format:(mp3 opus aac flac wav pcm16  mulaw ogg)' \
     --voice'[TTS voice]:voice:(alloy echo fable onyx nova shimmer  ash ballad coral sage verse  daniel autumn diana hannah austin troy)' \
-    {-Z,--last}'[Dump last response JSON]' \
+    {-Z,-ZZ,--last}'[Print data from last JSON responses]' \
     '--info[Print info]' \
     --version'[Print script version]' \
     '1:session/file:__session_or_pr_listf' '*:file:_files'

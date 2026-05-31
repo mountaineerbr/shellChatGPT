@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.134 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.134.3 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.134 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.134.3 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">April 2026</p>
+<p class="date">June 2026</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT /
@@ -615,6 +615,10 @@ respectively.</p>
 <dd>
 <p>The API key to use.</p>
 </dd>
+<dt><strong>--cache-disable</strong></dt>
+<dd>
+<p>Disable the 5-min ephemeral cache option for Anthropic API.</p>
+</dd>
 <dt><strong>--fold</strong> (<em>defaults</em>),
 <strong>--no-fold</strong></dt>
 <dd>
@@ -629,7 +633,8 @@ respectively.</p>
 <p>Print OpenAI usage status (requires envar
 <code>$OPENAI_ADMIN_KEY</code>).</p>
 </dd>
-<dt><strong>-k</strong>, <strong>--no-colour</strong></dt>
+<dt><strong>-k</strong>, <strong>--no-colour</strong>,
+<strong>--no-color</strong></dt>
 <dd>
 <p>Disable colour output. Def=<em>auto</em>.</p>
 </dd>

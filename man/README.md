@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: April 2026
-title: CHATGPT.SH(1) v0.134 \| General Commands Manual
+date: June 2026
+title: CHATGPT.SH(1) v0.134.3 \| General Commands Manual
 ---
 
 # NAME
@@ -345,6 +345,9 @@ xAI Grok integration (cmpls/chat).
 **--api-key** \[*KEY*\]  
 The API key to use.
 
+**--cache-disable**  
+Disable the 5-min ephemeral cache option for Anthropic API.
+
 **--fold** (*defaults*), **--no-fold**  
 Set or unset response folding (wrap at white spaces).
 
@@ -354,7 +357,7 @@ Print the help page.
 **--info**  
 Print OpenAI usage status (requires envar `$OPENAI_ADMIN_KEY`).
 
-**-k**, **--no-colour**  
+**-k**, **--no-colour**, **--no-color**  
 Disable colour output. Def=*auto*.
 
 **-l**, **--list-models** \[*MODEL*\]  

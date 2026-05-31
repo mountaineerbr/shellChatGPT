@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.134.2  may/2026  by mountaineerbr  GPL+3
+# v0.134.3  jun/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -119,7 +119,7 @@ OPTFOLD=1
 #VERBOSITY=""  #low, medium, or high
 #Whisper text context max chars
 WCONTEXT_MAX=490
-# Anthropic cache control
+# Anthropic cache control (5min cache)
 #ANTHROPICAI_CACHE_CONTROL_DISABLE=0  #0 or 1
 # Mistral reasoning control
 MISTRALAI_REASONING_CONTROL_DISABLE=1  #-1, 0, or 1
@@ -256,8 +256,8 @@ Description
 
 	Speech-to-text (STT, Whisper) and text-to-speech (TTS) endpoints
 	are available to use as stand-alone functions or set to work with
-	multi-turn chat modes. STT and TTS endpoint functionality is
-	modestly available for some providers.
+	multi-turn chat modes. STT and TTS endpoint functionalities are
+	modestly available.
 
 
 Chat Completion Mode
@@ -582,12 +582,14 @@ Options
 	Miscellaneous Settings
 	--api-key  [KEY]
 		The API key to use.
+	--cache-disable
+		Disable the 5-min cache option for Anthropic.
 	--fold (defaults), --no-fold
 		Set or unset response folding (wrap at white spaces).
 	-h, --help
 		Print this help page.
 	--info  Print OpenAI usage status (envar \`\$OPENAI_ADMIN_KEY\`).
-	-k, --no-colour
+	-k, --no-colour, --no-color
 		Disable colour output. Def=auto.
 	-l, --list-models  [MOD]
 		List models or print details of MODEL.
@@ -1104,7 +1106,7 @@ function promptf
 		#colorise response
 		if test_cmplsf || ((OPTV>1))
 		then 	printf "${BYELLOW}" >&2;
-		else 	printf "${BYELLOW}%s\\b" "C" >&2;
+		else 	[[ ! -t 1 ]] || printf "${BYELLOW}%s\\b" "C" >&2;
 		fi
 
 		{ _promptf || exit ;} |  #!#
@@ -1113,7 +1115,7 @@ function promptf
 		trap '-' INT;
 		if test_cmplsf || ((OPTV>1))
 		then 	printf "${BYELLOW}" >&2;
-		else 	printf "${BYELLOW}%*s\\r" "$COLUMNS" "C" >&2;
+		else 	[[ ! -t 1 ]] || printf "${BYELLOW}%*s\\r" "$COLUMNS" "C" >&2;
 		fi
 
 		COLUMNS=$((COLUMNS-1)) _promptf || { 	! printf "${NC}" >&2; exit 1 ;}  #!#
@@ -1916,11 +1918,7 @@ function _tiktokenf
 	#str="${str//\\[ntrvf]/xxxx}" tkn=$((${#str}/4))
 
 	# 1 TOKEN ~= ¾ WORDS
-	wc=$(
-	  sed 's/\\[ntrvf]/ x /g' <<<"$1" |
-	  sed 's/[^[:alnum:] '$'\t''\n]/ x/g' |
-	  wc -w
-	)
+	wc=$( sed 's/\\[ntrvf]/ x /g' <<<"$1" | sed 's/[^[:alnum:] '$'\t''\n]/ x/g' | wc -w )
 	tkn=$(( (wc * 4) / 3 ))
 
 	printf '%d\n' "${tkn:-0}" ;((tkn>0))
@@ -4278,7 +4276,7 @@ function _dialog_optf
 {
 	typeset i v m
 	m=8192;
-	
+
 	printf 'loading options\r' >&2;
 	for ((i=0;i<${#};i++))
 	do
@@ -5717,7 +5715,7 @@ function awesomef
 	while IFS=, read -r -d ${del:-$'\n'} key prompt
 	do
 		printf 'loading -- %-32s \r' "${key:1:32}" >&2;  #*#
-		
+
 		if [[ ${key:0:128} != *[!$'  \r\t\n']* ]]
 		then 	continue;
 		elif [[ ${key:1:1} = ["'\""] ]]  #awesome-zh skips these
@@ -7032,7 +7030,7 @@ google  google:goo  mistral  openai  groq  grok  grok:xai  anthropic \
 anthropic:ant  github  github:git  openrouter  openrouter:open  deepseek deepseek:deep \
 w:transcribe  w:stt  W:translate  z:tts  z:speech  Z:last  api-key  multimodal \
 effort  effort:budget  effort:think  verbosity  verbosity:verb  no-verbosity \
-b:resp  b:responses \
+b:resp  b:responses cache-disable \
 vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
@@ -7082,6 +7080,8 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 		b)  #responses api
 			((EPN==12)) && OPTC=2;
 			EPN=12 RESPONSES_API=1;;
+		cache-disable)  # Anthropic cache control (5min cache)
+			ANTHROPICAI_CACHE_CONTROL_DISABLE=1;;
 		c) 	((++OPTC));;
 		C) 	((++OPTRESUME));;
 		text-chat) OPTC=1 OPTCMPL=1;;
@@ -8036,9 +8036,10 @@ else
 				((${#PREPEND})) && Q=">>"
 				B=${Q:0:128} B=${B##*$'\n'} B=${B##*\\n} B=${B//?/\\b}  #backspaces
 
-				((SKIP+XSKIP)) ||
+				[[ ! -t 1 ]] || { 	((SKIP+XSKIP)) ||
 				printf "${CYAN}${Q}${B}${NC}${OPTW:+${PURPLE}VOICE: }${NC}" >&2
 				printf "${BCYAN}${OPTW:+${NC}${BPURPLE}}" >&2
+				};
 			do
 				((SKIP+XSKIP+OPTW+${#RESTART})) && echo >&2
 				((XSKIP)) ||
@@ -9208,9 +9209,7 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			#detect and remove possible markdown from $ans to avoid some tts glitches
 			if [[ OPTMD -gt 0 || \\n$ans = *\\n@(\#\ |[\*-]\ |\>\ )* ]]
 			then 	ans_tts=${ANS_OLD:-$(unescapef "$ans")} &&
-				ans_tts=$(
-					unmarkdownf <<<"$ans_tts" || {
-					command -v pandoc >/dev/null 2>&1 && pandoc --from markdown --to plain <<<"$ans_tts" ;} ) 2>/dev/null;
+				ans_tts=$( unmarkdownf <<<"$ans_tts" || if command -v pandoc >/dev/null 2>&1; then pandoc --from markdown --to plain <<<"$ans_tts"; fi ) 2>/dev/null;
  				ans_tts=$(escapef "$ans_tts");
 			fi
 

@@ -1689,9 +1689,9 @@ Some simple stats for release v0.133 (april/2026).
 
 #### Repository files
 
-*    **7** master project **files** (code + docs + templates)
-* **7154** **lines** of code in main script
+*    **7** **files** of master project (code + docs + templates)
 *  **540** **lines** of code from four other secondary files
+* **7154** **lines** of code in main script
 * **7694** **total lines** of code from five files (_no empty lines_)
 * **3600** **lines** of documentation from three files (_no empty lines_)
 
@@ -1835,7 +1835,7 @@ Alternatively, a help page snippet can be printed with `chatgpt.sh -h`.
 
 - [edshamis](https://www.github.com/edshamis)
 - [johnd0e](https://github.com/johnd0e)
-- [dreieck](https://aur.archlinux.org/packages/chatgpt.sh)
+- [dreieck](https://aur.archlinux.org/packages/chatgpt.sh#comment-1049351)
 - [Novita AI's GTM Leo](https://novita.ai/model-api/product/llm-api)
   <!-- Growth Tech Market -->
 
