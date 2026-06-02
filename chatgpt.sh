@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.134.3  jun/2026  by mountaineerbr  GPL+3
+# v0.134.4  jun/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1094,6 +1094,7 @@ function promptf
 
 	if ((OPTVV))
 	then 	block_printf || {
+		  ((REGEN)) && cmdmsgf 'Regenerate' "OFF";
 		  REPLY=${REPLY_CMD:-$REPLY} REGEN= JUMP= PSKIP=;
 		  REPLY_CMD_DUMP= SKIP_SH_HIST= WSKIP= XSKIP= SKIP=;  #E#
 		  return 200 ;}
@@ -2601,7 +2602,8 @@ function cmdf
 			;;
 		-H|H|history|hist)
 			_edf "$FILECHAT"
-			CKSUM_OLD= REGEN= xskip=1
+			((REGEN)) && cmdmsgf 'Regenerate' "OFF"
+			REPLY_OLD= CKSUM_OLD= REGEN= xskip=1
 			;;
 		-H[0-9\ ]*|H[0-9\ ]*|history[0-9\ ]*|hist[0-9\ ]*)
 			set -- "${*##@(-H|H|history|hist)*(\ )}";
