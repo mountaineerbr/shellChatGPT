@@ -86,10 +86,10 @@ __mod_listf()
   local options
 
   options=( $(chatgpt.sh -EE -lll 2>/dev/null) )
-  ((${#options[@]})) || options=( 'davinci-002'  'gpt-3.5-turbo'  'gpt-3.5-turbo-instruct'
-    'gpt-4o'  'gpt-4-turbo'  'text-moderation-latest'
-    'mistral-large-latest'  'codestral-latest'  'open-mixtral-8x22b'
-    'llama3'  'gemini-1.5-flash-latest'  'gemini-1.5-pro-latest' )
+  ((${#options[@]})) || options=( 'davinci-002' 'chat-latest'
+           'gpt-5.5' 'o4-mini' 'codestral-latest' 'mistral-large-latest'
+           'grok-4.5' 'gemini-pro-latest' 'gemini-3.5-flash'
+           'meta-llama/llama-4-maverick' )
   compadd -a options "$@"
 }
 

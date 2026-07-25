@@ -2164,6 +2164,8 @@ spaces.</p>
 user has changed his terminal tabstop setting. Reset it with command
 “tabs -8” or “reset” before starting the script, or set one of these in
 the script configuration file.</p>
+<p>If folding does not work well at all, try exporting envar
+<code>$COLUMNS</code> before script execution.</p>
 <p>This script deviates from XDG standards; it expects the configuration
 file to be located at <code>~/.chatgpt.conf</code> (which can be changed
 with envar <strong>$CHATGPTRC</strong>), and utilises a single cache
@@ -2171,8 +2173,6 @@ directory for both ephemeral data and extended data, including more
 persistent files like prompt <code>.pr</code> and session history
 <code>.tsv</code> files (which users are expected to backup and manage
 themselves =).</p>
-<p>If folding does not work well at all, try exporting envar
-<code>$COLUMNS</code> before script execution.</p>
 <p>Bash truncates input on “\000” (null).</p>
 <p>Garbage in, garbage out. An idiot savant.</p>
 <p>The script logic resembles a bowl of spaghetti code after a cat

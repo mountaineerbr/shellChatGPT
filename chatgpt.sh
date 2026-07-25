@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.134.4  jun/2026  by mountaineerbr  GPL+3
+# v0.134.5  jun/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -175,7 +175,6 @@ FILECHAT="${FILECHAT:-${CACHEDIR%/}/chatgpt.tsv}"
 FILEWHISPER="${CACHEDIR%/}/whisper.json"
 FILEWHISPERLOG="${OUTDIR%/*}/whisper_log.txt"
 FILETXT="${CACHEDIR%/}/chatgpt.txt"
-FILEOUT="${OUTDIR%/}/dalle_out.png"
 FILEOUT_TTS="${OUTDIR%/}/tts.${OPTZ_FMT:=mp3}"
 FILEIN="${CACHEDIR%/}/dalle_in.png"
 FILEINW="${CACHEDIR%/}/whisper_in.${REC_FMT:=mp3}"
@@ -963,7 +962,7 @@ function model_capf
 	#ollama and localai models vary too widely
 	model=${1##*/};
 	case "${model##ft:}" in
-		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*|grok-code*)
+		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*|grok-code*|*kimi-k[12]*)
 			MODMAX=256000;;
 		open-mixtral-8x22b|text-davinci-002-render-sha|*-64k*)
 			MODMAX=64000;;
@@ -976,7 +975,7 @@ function model_capf
 		davinci|curie|babbage|ada)
 			MODMAX=2049;;
 		aqa) MODMAX=7168;;
-		gemini-exp*|gemini-*) MODMAX=1048576;;  #2097152;;
+		gemini-exp*|gemini-*|*kimi-k*) MODMAX=1048576;;  #2097152;;
 		learnlm-1.5-pro*|*qwen-2.5-72b-instruct|-32k*) MODMAX=32000;;
 		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
 			MODMAX=16000;;
@@ -1004,7 +1003,7 @@ function model_capf
 		*llama-3.1-405b-instruct|cohere-command-r*|grok*|grok-beta|\
 		grok-2-1212|grok-2*|gemma-3-27b*|gemma-*)
 			MODMAX=131072;;
-		claude*-[3-9]*|claude*-2.1*|o[1-9]*|codex-mini*|codex*)
+		claude*-[3-9]*|claude*-2.1*|claude-*latest|claude-*[fm][ay][bt][lh][eo]*|o[1-9]*|codex-mini*|codex*)
 			MODMAX=200000;  #204800
 			((ANTHROPICAI)) && [[ $model = *claude-sonnet-[4-9]* || $model = *claude-opus-[5-9]* || $model = *claude-opus-4-[6-9]* ]] && MODMAX=1000000;;  #T#
 		claude*-2.0*|claude-instant*)
@@ -1013,9 +1012,11 @@ function model_capf
 		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
 		gpt-4*|*-bison*|*-unicorn|*wizardlm-2-8x22b)
 			MODMAX=65535;;
-		*) 	MODMAX=8192;
-			((OPTV==99)) || OPTV=99 NOVITAAI=1 MISTRALAI=1 GROQAI=1 GOOGLEAI=1 GITHUBAI=1 model_capf "${model##ft:}";  #IPC#
-			;;
+		*) 	MODMAX=16384;
+			if ((MODMAX==16384)) && ((OPTV==99))
+			then 	_warmsgf "Please set model context size manually with \`--modmax [NUM]' or \`-N [NUM]'!" >&2;
+			else 	OPTV=99 NOVITAAI=1 MISTRALAI=1 GROQAI=1 GOOGLEAI=1 GITHUBAI=1 model_capf "${model##ft:}";  #IPC#
+			fi;;
 	esac
 }
 #novita: model names: [provider]/[model]

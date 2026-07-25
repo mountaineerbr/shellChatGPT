@@ -53,10 +53,10 @@ _chatgptsh()
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-  models=( 'davinci-002'  'gpt-3.5-turbo'  'gpt-3.5-turbo-instruct'
-    'gpt-4o'  'gpt-4-turbo'  'text-moderation-latest'
-    'mistral-large-latest'  'codestral-latest'  'open-mixtral-8x22b'
-    'llama3'  'gemini-1.5-flash-latest'  'gemini-1.5-pro-latest' )
+  models=( 'davinci-002' 'chat-latest' 'gpt-5.5' 'o4-mini'
+           'codestral-latest' 'mistral-large-latest'
+           'grok-4.5' 'gemini-pro-latest' 'gemini-3.5-flash'
+           'meta-llama/llama-4-maverick' )
 
   opts="-Nill -M --max --max-tokens
         -N --modmax --mod-max
