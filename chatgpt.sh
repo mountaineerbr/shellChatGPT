@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.134.5  jun/2026  by mountaineerbr  GPL+3
+# v0.134.6  jun/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -18,7 +18,7 @@ set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 # Text cmpls model
 MOD="gpt-3.5-turbo-instruct"
 # Chat cmpls model
-MOD_CHAT="${MOD_CHAT:-gpt-5.2}"
+MOD_CHAT="${MOD_CHAT:-gpt-5.6-terra}"
 MOD_AUDIO="${MOD_AUDIO:-whisper-1}"  #gpt-4o-mini-transcribe
 # Speech model (TTS)
 MOD_SPEECH="${MOD_SPEECH:-gpt-4o-mini-tts}"  #tts-1
@@ -29,7 +29,7 @@ MOD_LOCALAI="${MOD_LOCALAI:-${LOCALAI_MODEL:-phi-4}}"
 # Ollama model
 MOD_OLLAMA="${MOD_OLLAMA:-${OLLAMA_MODEL:-llama4}}"
 # Google AI model
-MOD_GOOGLE="${MOD_GOOGLE:-${GEMINI_MODEL:-gemini-3-flash-preview}}"  #gemini-flash-latest
+MOD_GOOGLE="${MOD_GOOGLE:-${GEMINI_MODEL:-gemini-flash-latest}}"
 # Mistral AI model
 MOD_MISTRAL="${MOD_MISTRAL:-${MISTRAL_MODEL:-mistral-large-latest}}"
 MOD_AUDIO_MISTRAL="${MOD_AUDIO_MISTRAL:-voxtral-mini-latest}"
@@ -46,7 +46,7 @@ MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-canopylabs/orpheus-v1-english}"
 # Groq TTS voice
 OPTZ_VOICE_GROQ="daniel"  #autumn diana hannah austin troy
 # Anthropic model
-MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-sonnet-4-6}}"
+MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-sonnet-5}}"
 # GitHub Azure model
 MOD_GITHUB="${MOD_GITHUB:-${GITHUB_MODEL:-gpt-4.1}}"  #GH_MODEL
 # OpenRouter API model
