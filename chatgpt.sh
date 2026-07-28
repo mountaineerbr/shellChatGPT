@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.134.6  jun/2026  by mountaineerbr  GPL+3
+# v0.135  jun/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -50,7 +50,7 @@ MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-sonnet-5}}"
 # GitHub Azure model
 MOD_GITHUB="${MOD_GITHUB:-${GITHUB_MODEL:-gpt-4.1}}"  #GH_MODEL
 # OpenRouter API model
-MOD_OPENROUTER="${MOD_OPENROUTER:-${OPENROUTER_MODEL:-openrouter/auto}}"
+MOD_OPENROUTER="${MOD_OPENROUTER:-${OPENROUTER_MODEL:-~moonshotai/kimi-latest}}"
 # xAI model
 MOD_XAI="${MOD_XAI:-${XAI_MODEL:-grok-latest}}"
 # DeepSeek model
@@ -120,9 +120,11 @@ OPTFOLD=1
 #Whisper text context max chars
 WCONTEXT_MAX=490
 # Anthropic cache control (5min cache)
-#ANTHROPICAI_CACHE_CONTROL_DISABLE=0  #0 or 1
+ANTHROPICAI_CACHE_CONTROL_DISABLE=0  #0 or 1
 # Mistral reasoning control
 MISTRALAI_REASONING_CONTROL_DISABLE=1  #-1, 0, or 1
+# LiteLLM model specs lookup
+LITELLM_MODEL_SPECS_DISABLE=1  #-1, 0, or 1
 
 # INSTRUCTION
 # Chat completions, chat mode only
@@ -181,6 +183,7 @@ FILEINW="${CACHEDIR%/}/whisper_in.${REC_FMT:=mp3}"
 FILEAWE="${CACHEDIR%/}/awesome-prompts.csv"
 FILEFIFO="${CACHEDIR%/}/fifo.buff"
 FILEMODEL="${CACHEDIR%/}/models.txt"
+FILELITELLM="${CACHEDIR%/}/model_prices_and_context_window.json"
 USRLOG="${OUTDIR%/}/${FILETXT##*/}"
 HISTFILE="${CACHEDIR%/}/history_bash"
 HISTCONTROL=erasedups:ignoredups
@@ -670,7 +673,10 @@ Options
 		Maximum number of \`response tokens'. Def=$OPTMAX.
 		A second number in the argument sets model capacity.
 	-N, --modmax    [NUM]
-		Model capacity token value. Def=auto, Fallback=8000.
+		Model capacity token value. Def=auto, Fallback=16000.
+		Set -Nn to disable using LiteLLM model specs.
+		Set -NN to force use LiteLLM model specs.
+		Set -NNN to update and use LiteLLM model specs file.
 	-a, --presence-penalty   [VAL]
 		Presence penalty  (cmpls/chat, -2.0 - 2.0).
 	-A, --frequency-penalty  [VAL]
@@ -864,146 +870,63 @@ function set_model_epnf
 #set ``model capacity''
 function model_capf
 {
-	typeset -l model nomatch;
-	model=${1##ft:};  #fine-tune
+	typeset -l model;
+	model=${1##ft:};
+	model=${model##*[/]};
+	model=${model##[~]};
 
-	((NOVITAAI)) && {
-	case "${model##*/}" in
-	llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1048576;;
-	deepseek-prover-v2-671b) MODMAX=160000;;
-	llama-3.3-70b-instruct|llama-4-scout-17b-16e-instruct) MODMAX=131072;;
-	llama-3.2-1b-instruct) MODMAX=131000;;
-	deepseek-r1-0528*|deepseek-v3-0324|qwen3-[48]b-fp8) MODMAX=128000;;
-	qwen2.5-vl-72b-instruct) MODMAX=96000;;
-	wizardlm-2-8x22b) MODMAX=65535;;
-	deepseek-r1-distill-qwen*|deepseek-r1-turbo|\
-	deepseek-v3-turbo|mistral-nemo) MODMAX=64000;;
-	qwen3-*-a*-fp8|qwen3-32b-fp8) MODMAX=40960;;
-	llama-3.2-3b-instruct|mistral-7b-instruct) MODMAX=32768;;
-	deepseek-r1-distill-llama*|gemma-3-27b-it|qwen-2.5-*-instruct|\
-	qwen2.5-*-instruct|glm-*-0414|glm-z1-rumination-32b-0414) MODMAX=32000;;
-	llama-3.1-8b-instruct) MODMAX=16384;;
-	dolphin-mixtral-8x22b) MODMAX=16000;;
-	llama-3-*-instruct|llama-3.1-8b-instruct-bf16|\
-	hermes-2-pro-llama*|l3*) MODMAX=8192;;
-	mythomax-l2-13b|midnight-rose-70b) MODMAX=4096;;
-	*) nomatch=1;;
-	esac; ((nomatch)) || return 0; nomatch= ;}
+	#force use litellm model specs
+ 	((LITELLM_MODEL_SPECS_DISABLE<0)) && model="";
 
-	((MISTRALAI)) && {
-	case "${model}" in
-	codestral-2411-rc5|codestral-2412|codestral-2501|codestral-latest) MODMAX=262144;;
-	devstral-small*|ministral-[38]b*|mistral-large-2407|mistral-large-2411|\
-	mistral-large-latest|mistral-large-pixtral-2411|mistral-medium|\
-	mistral-medium-2505|mistral-medium-latest|mistral-small-2503|mistral-small-latest|\
-	mistral-tiny-2407|mistral-tiny-latest|open-mistral-nemo*|pixtral-12b*|pixtral-large*) MODMAX=131072;;
-	open-mixtral-8x22b*) MODMAX=65536;;
-	codestral-2405|mistral-large-2402|mistral-medium-2312|\
-	mistral-moderation*|mistral-ocr*|mistral-saba*|mistral-small-2[34]??|mistral-small-2501|mistral-small|\
-	mistral-tiny-2312|mistral-tiny|open-mistral-7b|open-mixtral-8x7b|*voxtral-mini*|*voxtral-small*) MODMAX=32768;;
-	magistral-small*|magistral-medium*|magistral*) MODMAX=40960;;
-	*) nomatch=1;;
-	esac; ((nomatch)) || return 0; nomatch= ;}
-
-	((GROQAI)) && {
-	case "${model}" in
-	deepseek-r1-distill-llama-70b|llama-3.[1-9]*|\
-	meta-llama/llama-4*|meta-llama/llama-guard-4-12b|\
-	qwen-qwq-32b) MODMAX=131072;;
-	mistral-saba-24b) MODMAX=32768;;
-	compound-beta*|gemma2-9b-it|llama3-*|llama-guard*) MODMAX=8192;;
-	allam-2-7b) MODMAX=4096;;
-	*) nomatch=1;;
-	esac; ((nomatch)) || return 0; nomatch= ;}
-
-	((GOOGLEAI)) && {
-	case "${model}" in
-	gemini-1.5-pro*) MODMAX=2000000;;
-	gemini-1.5-flash*) MODMAX=1000000;;
-	gemma-3-27b-it) MODMAX=131072;;
-	gemini-1.0*-pro-vision*) MODMAX=12288;;
-	gemma-3n-e4b-it) MODMAX=8192;;
-	gemini-2.0-flash-preview-image-generation|\
-	gemma-3*) MODMAX=32768;;
-	gemini-2.0-flash*|gemini-2.0-flash-exp*|\
-	gemini-2.[0-9]-pro*|gemini-exp*|gemini-*|\
-	learnlm-2.0-flash*) MODMAX=1048576;;
-	*) nomatch=1;;
-	esac; ((nomatch)) || return 0; nomatch= ;}
-
-	((GITHUBAI)) && {
-	case "${model}" in
-	llama-4-scout-17b-16e-instruct|\
-	llama-4-maverick-17b-128e-instruct-fp8) MODMAX=1000000;;
-	gpt-[5].1*) ((MOD_REASON || ${REASON_EFFORT:+1}0)) && MODMAX=196000 || MODMAX=400000;;
-	gpt-[5-9]*) MODMAX=400000;;
-	gpt-[4-9].[1-9]*) MODMAX=1048576;;
-	ai21-jamba-1.5-*) MODMAX=262144;;
-	grok-[4-9]-fast-reasoning|grok-[4-9]-fast-non-reasoning) MODMAX=2000000;;
-	codestral-2501|grok-[4-9]*|grok-code*) MODMAX=256000;;
-	o1|o1-mini|o3|o3-mini|o4-mini) MODMAX=200000;;
-	phi-4-mini*|phi-4-multimodal*|gpt-oss*|\
-	mistral-small-2503|mistral-medium-2505|mistral-large-2411|\
-	llama-3.[23]-*|deepseek-*|\
-	o1-preview|mai-ds-r1) MODMAX=128000;;
-	grok-[23]*|cohere-command-*|\
-	mistral-nemo|ministral-3b|\
-	meta-llama-3.1-*-instruct|phi-3.5-*|\
-	phi-3-*[8,128]k-instruct|gpt-4o*) MODMAX=131072;;
-	phi-4) MODMAX=16384;;
-	meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|jais-30b-chat) MODMAX=8192;;
-	phi-3-*4k-instruct) MODMAX=4096;;
-	phi-4-reasoning) MODMAX=32768;;
-	*) nomatch=1;;
-	esac; ((nomatch)) || return 0; nomatch= ;}
-
-	#openai models and fallback
-	#deepseek and grok have few models
-	#ollama and localai models vary too widely
-	model=${1##*/};
 	case "${model##ft:}" in
-		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|ai21-jamba-instruct|-256k*|grok-code*|*kimi-k[12]*)
+		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|\
+		ai21-jamba-instruct|-256k*|grok-code*|*kimi-k[12]*)
 			MODMAX=256000;;
 		open-mixtral-8x22b|text-davinci-002-render-sha|*-64k*)
 			MODMAX=64000;;
+		compound-beta*|gemma2-9b-it|llama-guard*|jais-30b-chat|\
+		llama-3-*-instruct|hermes-2-pro-llama*|l3*|*-8k*) MODMAX=8192;;
 		meta-llama-3-70b-instruct|meta-llama-3-8b-instruct|\
 		code-davinci-00[2-9]*|-8k*)
 			MODMAX=8001;;
 		*llama-3-8b-instruct|*llama-3-70b-instruct|*gemma-2-9b-it|\
 		*hermes-2-pro-llama-3-8b|llama3*|grok-vision-beta)
 			MODMAX=8191;;  #8192
-		davinci|curie|babbage|ada)
-			MODMAX=2049;;
 		aqa) MODMAX=7168;;
-		gemini-exp*|gemini-*|*kimi-k*) MODMAX=1048576;;  #2097152;;
+		davinci|curie|babbage|ada) MODMAX=2049;;
+		learnlm-2.0-flash*|gemini-exp*|gemini-*|*kimi-k[34]*|*kimi-latest|gpt-5.[6-9]*)  #*#
+			MODMAX=1048576;;  #2097152
+		qwen-2.5-*-instruct|qwen2.5-*-instruct|glm-*-0414|glm-z1-rumination-32b-0414|\
 		learnlm-1.5-pro*|*qwen-2.5-72b-instruct|-32k*) MODMAX=32000;;
 		*l3-70b-euryale-v2.1|*l31-70b-euryale-v2.2|*dolphin-mixtral-8x22b)
 			MODMAX=16000;;
 		*llama-3.1-8b-instruct|davinci-00[2-9]|babbage-00[2-9]|gpt-3.5*16k*|\
-		*turbo*16k*|gpt-3.5-turbo-1106|*-16k*)
+		phi-4|*turbo*16k*|gpt-3.5-turbo-1106|*-16k*)
 			MODMAX=16384;;
 		*llama-3.1-70b-instruct|*mistral-7b-instruct|*wizardlm-2-7b|*qwen-2-7*b-instruct*|\
 		gpt-4*32k*|*32k|*mi[sx]tral*|*codestral*|mistral-small|*mathstral*|*moderation*|\
-		grok-2-vision*|gemma-3-[14]*)
+		grok-2-vision*|gemma-3-[14]*|phi-4-reasoning|*voxtral-mini*|*voxtral-small*)
 			MODMAX=32768;;
 		gpt-[5].1*) ((MOD_REASON || ${REASON_EFFORT:+1}0)) && MODMAX=196000 || MODMAX=400000;;
-		gpt-[5-9]*) MODMAX=400000;;
+		gpt-[5-9]*) MODMAX=400000;;  #*#
 		grok-4.20*) MODMAX=2000000;;
-		deepseek-v[4-9]*|grok-[4-9][.-]*|grok-latest) MODMAX=1000000;;
-		gpt-[4-9].[1-9]*|gpt-[5-9][!.a-z]*) MODMAX=1047576;;
+		deepseek-v[4-9]*|grok-[4-9][.-]*|grok-latest) MODMAX=1000000;;  #*#
+		gpt-[4-9].[1-9]*|gpt-[5-9][!.a-z]*) MODMAX=1047576;;  #*#
 		o1-*preview*|o1-*mini*|gpt-[4-9].[1-9]*|gpt-[4-9][a-z]*|chatgpt-*|gpt-[5-9]*|\
 		gpt-4-*preview*|gpt-4-vision*|gpt-4-turbo|gpt-4-turbo-202[4-9]-*|gpt-4-1106*|\
 		mistral-3b*|open-mistral-nemo*|*mistral-nemo*|*mistral-large*|\
 		phi-3.5-mini-instruct|phi-3.5-moe-instruct|phi-3.5-vision-instruct|\
 		*llama-[3-9].[1-9]*|*llama[4-9]-*|*llama[4-9]*|*ministral*|*pixtral*|\
-		gpt-oss*|deepseek*|*-128k*)
+		phi-4-mini*|phi-4-multimodal*|mai-ds-r1|qwen3-[48]b-fp8|\
+		gpt-oss*|deepseek*|*-128k*)  #*#
 			MODMAX=128000;;
-		*turbo*|*davinci*|openhermes-2.5-mistral-7b|openchat-7b|\
-		chat-bison-001|*-4k*) MODMAX=4096;;
+		*-turbo*|*davinci*|openhermes-2.5-mistral-7b|openchat-7b|\
+		phi-3-*4k-instruct|allam-2-7b|chat-bison-001|*-4k*) MODMAX=4096;;
 		*llama-3.1-405b-instruct|cohere-command-r*|grok*|grok-beta|\
-		grok-2-1212|grok-2*|gemma-3-27b*|gemma-*)
+		devstral-small*|cohere-command-*|phi-3.5-*|phi-3-*instruct|\
+		qwen-qwq-32b|grok-2-1212|grok-2*|gemma-3-27b*|gemma-*)  #*#
 			MODMAX=131072;;
-		claude*-[3-9]*|claude*-2.1*|claude-*latest|claude-*[fm][ay][bt][lh][eo]*|o[1-9]*|codex-mini*|codex*)
+		claude*-[3-9]*|claude*-2.1*|claude-*latest|claude-*[fm][ay][bt][lh][eo]*|o[1-9]*|codex-mini*|codex*)  #*#
 			MODMAX=200000;  #204800
 			((ANTHROPICAI)) && [[ $model = *claude-sonnet-[4-9]* || $model = *claude-opus-[5-9]* || $model = *claude-opus-4-[6-9]* ]] && MODMAX=1000000;;  #T#
 		claude*-2.0*|claude-instant*)
@@ -1012,17 +935,121 @@ function model_capf
 		*openhermes-2.5-mistral-7b|*midnight-rose-70b|\
 		gpt-4*|*-bison*|*-unicorn|*wizardlm-2-8x22b)
 			MODMAX=65535;;
-		*) 	MODMAX=16384;
-			if ((MODMAX==16384)) && ((OPTV==99))
-			then 	_warmsgf "Please set model context size manually with \`--modmax [NUM]' or \`-N [NUM]'!" >&2;
-			else 	OPTV=99 NOVITAAI=1 MISTRALAI=1 GROQAI=1 GOOGLEAI=1 GITHUBAI=1 model_capf "${model##ft:}";  #IPC#
-			fi;;
+		qwen2.5-vl-72b-instruct) MODMAX=96000;;
+		magistral-small*|magistral-medium*|magistral*|\
+		qwen3-*-a*-fp8|qwen3-32b-fp8) MODMAX=40960;;  #*#
+		#fallback	
+		''|*) 	if ((LITELLM_MODEL_SPECS_DISABLE>0)) ||
+				! MODMAX=$(get_model_context_limit "${1}")
+			then 	MODMAX=16000;
+				_warmsgf "Please set model capacity manually with \`--modmax [NUM]' or \`-N [NUM]'!" >&2;
+			fi;
+		;;
 	esac
 }
-#novita: model names: [provider]/[model]
-#groq: 3.1 models to max_tokens of 8k and 405b to 16k input tokens.
-#pixtral: maximum number images per request is 8.
-#https://blog.google/technology/ai/google-gemini-next-generation-model-february-2024/
+
+# File modification epoch time
+function get_file_mtime
+{
+	local file ts
+	file="$1" ts=""
+	[[ ! -s "$file" ]] && echo 0 && return 0
+
+	# GNU stat or BSD stat
+	if ts=$(stat -c %Y "$file" 2>/dev/null) ||
+		ts=$(stat -f %m "$file" 2>/dev/null)
+	then 	:
+	elif command -v perl >/dev/null 2>&1
+	then 	ts=$(perl -e 'print((stat shift)[9])' "$file")
+	elif command -v python3 >/dev/null 2>&1
+	then 	ts=$(python3 -c 'import os,sys;print(int(os.path.getmtime(sys.argv[1])))' "$file")
+	else 	ts=0
+	fi
+	echo "${ts:-0}"
+}
+
+# Redownload stale LiteLLM json resource
+function update_litellm_specs
+{
+	local cache_file="$1"
+	local now ts url
+	now=$(date +%s)
+	ts=$(get_file_mtime "$cache_file")
+	url="https://raw.githubusercontent.com/BerriAI/litellm/refs/heads/main/model_prices_and_context_window.json"
+
+	if (( now - ts > 604800 ))
+	then 	_warmsgf "Updating LiteLLM model specs cache..." >&2
+
+		curl -sfSL --compressed --connect-timeout 5 --max-time 16 "$url" -o "${cache_file}.tmp" &&
+		[[ -s "${cache_file}.tmp" ]] &&
+		mv -f "${cache_file}.tmp" "${cache_file}"
+	fi
+}
+
+function get_model_context_limit
+{
+    local model modeld provider tkn
+    model=${1##ft:}
+    modeld=${model##*[/~]}
+
+    # Ensure cache freshness (1 week = 604800s)
+    update_litellm_specs "$FILELITELLM"
+
+    [[ -s "$FILELITELLM" ]] || return 1
+
+    # Determine provider prefix
+    if ((OPENAI));        then provider="openai"
+    elif ((MISTRALAI));   then provider="mistralai"
+    elif ((GROQAI));      then provider="groq"
+    elif ((GOOGLEAI));    then provider="google"
+    elif ((GITHUBAI));    then provider="github_copilot"
+    elif ((XAI));         then provider="xai"
+    elif ((ANTHROPICAI)); then provider="anthropic"
+    elif ((OPENROUTER));  then provider="openrouter"
+    elif ((DEEPSEEK));    then provider="deepseek"
+    fi
+
+    # - Exact Match: "provider/model" or "model"
+    # - Suffix Match: key ends with "model"
+    # - Fuzzy Match: key contains both provider AND model name
+    # - Loose Match: key contains model name
+    tkn=$(jq -er --arg prov "$provider" --arg mod "$model" --arg modd "$modeld" '
+    def tok: .max_input_tokens // .max_tokens;
+
+    def find_match(term; prov; lc):
+      if term == "" then empty else
+        ( lc[prov + "/" + term] | tok ),
+        ( lc[term] | tok ),
+        ( lc | to_entries[] | select(.key | endswith(term)) | .value | tok ),
+        ( if prov != "" then
+            lc | to_entries[]
+            | select((.key | test(prov)) and (.key | test(term)))
+            | .value | tok
+          else empty end ),
+        ( lc | to_entries[] | select(.key | test(term)) | .value | tok )
+      end;
+
+    ($prov | ascii_downcase) as $prov |
+    ($mod  | ascii_downcase) as $mod  |
+    ($modd | ascii_downcase) as $modd |
+    (with_entries(.key |= ascii_downcase)) as $lc |
+
+    [
+      find_match($mod; $prov; $lc),
+      (if $modd != $mod then find_match($modd; $prov; $lc) else empty end)
+    ]
+    | map(select(. != null and . > 0))
+    | .[0] // empty
+    ' "$FILELITELLM" 2>/dev/null)
+
+    if [[ -n "$tkn" && "$tkn" != *[!0-9]* && "$tkn" -gt 0 ]]
+    then
+        echo "$tkn"
+        return 0
+    else
+        return 1
+    fi
+}
 
 #make cmpls request
 function __promptf
@@ -4386,7 +4413,7 @@ function is_linkf
 	  *[$IFS]*) false;;
 	  *[[:alnum:]][-[:alnum:]]*.[[:alnum:]][-[:alnum:]]*|[0-9]*.[0-9]*.[0-9]*.[0-9]*)
 	      [[ \ $LINK_CACHE_BAD\  != *\ "${1:-empty}"\ * ]] &&
-	      if curl --output /dev/null --max-time 4 --silent --head --fail --location -H "$UAG" -- "$1" 2>/dev/null
+	      if curl --output /dev/null --connect-timeout 2 --max-time 4 --silent --head --fail --location -H "$UAG" -- "$1" 2>/dev/null
 	      then  LINK_CACHE="$LINK_CACHE $1";
 	      else  ! LINK_CACHE_BAD="$LINK_CACHE_BAD $1";
 	      fi;;
@@ -6747,7 +6774,7 @@ function set_googleaif
 		fi
 		printf '%s\b' 'o' >&2;
 		((!${#1})) ||
-		  curl -fsS --max-time 10 -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		  curl -fsS --connect-timeout 5 --max-time 14 -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$block" | jq -er '.totalTokens//.tokenCount//empty';  #debug: --fail-with-body
 		ret=$?; printf '%s\b' ' ' >&2;
@@ -6866,7 +6893,7 @@ function set_anthropicf
 		fi
 		printf '%s\b' '•' >&2;
 		((!${#1})) ||
-		curl -fsS --max-time 10 -L "${ANTHROPIC_BASE_URL}/messages/count_tokens" \
+		curl -fsS --connect-timeout 5 --max-time 14 -L "${ANTHROPIC_BASE_URL}/messages/count_tokens" \
 		    -H "X-Api-Key: $ANTHROPIC_API_KEY" \
 		    -H "anthropic-version: 2023-06-01" \
 		    -H 'Content-Type: application/json' \
@@ -6966,7 +6993,7 @@ function set_xaif
 		fi
 		printf '%s\b' '∅' >&2;  #↻, ∅, Ø
 		((!${#1})) ||
-		curl -fsS --max-time 10 -L "${BASE_URL}/tokenize-text" \
+		curl -fsS --connect-timeout 5 --max-time 14 -L "${BASE_URL}/tokenize-text" \
 		    -H "X-Api-Key: $OPENAI_API_KEY" \
 		    -H 'Content-Type: application/json' \
 		    -d "$block" | jq -er '.token_ids | length';
@@ -7073,7 +7100,20 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 	case "$opt" in
 		[0-9/-]) 	OPTMM="$OPTMM$opt";;
 		M) 	OPTMM="$OPTARG";;
-		N) 	[[ $OPTARG = *[!0-9\ ]* ]] && OPTMM="$OPTARG" || OPTNN="$OPTARG";;
+		N) 	if [[ $OPTARG = NN ]] || [[ $OPTARG = NNN ]]
+			then 	#update and use litellm model specs
+				LITELLM_MODEL_SPECS_DISABLE=-1
+				[[ -f $FILELITELLM ]] && rm -fv "$FILELITELLM"
+			elif [[ $OPTARG = N ]]
+			then 	#force use of litellm model specs
+				LITELLM_MODEL_SPECS_DISABLE=-1
+			elif [[ $OPTARG = n ]]
+			then 	#disable use of litellm model specs
+				LITELLM_MODEL_SPECS_DISABLE=1
+			elif [[ $OPTARG = *[!0-9\ ]* ]]
+			then 	OPTMM="$OPTARG"
+			else 	OPTNN="$OPTARG"
+			fi;;
 		a) 	OPTA="$OPTARG";;
 		api-key) if [[ $OPTARG != api-key ]]
 			then 	OPENAI_API_KEY="$OPTARG";
@@ -7445,6 +7485,7 @@ pick_modelf "$MOD"
   then 	MULTIMODAL= set_model_epnf "$MOD";
   else 	set_model_epnf "$MOD";
   fi
+((OPTFF+OPTHH+OPTZZ+OPTL+OPTTIKTOKEN+OPTINFO)) ||
 ((MODMAX)) || model_capf "$MOD"
 
 #``max model / response tkns''

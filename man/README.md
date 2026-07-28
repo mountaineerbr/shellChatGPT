@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: June 2026
-title: CHATGPT.SH(1) v0.134.3 \| General Commands Manual
+date: July 2026
+title: CHATGPT.SH(1) v0.135 \| General Commands Manual
 ---
 
 # NAME
@@ -195,7 +195,13 @@ Maximum number of *response tokens*. Def=*4096*.
 A second number in the argument sets model capacity.
 
 **-N**, **--modmax** \[*NUM*\]  
-*Model capacity* token value. Def=*auto*, Fallback=*8000*.
+*Model capacity* token value. Def=*auto*, Fallback=*16000*.
+
+Set **-Nn** to disable using LiteLLM model specs.
+
+Set **-NN** to force use LiteLLM model specs.
+
+Set **-NNN** to update and use LiteLLM model specs file.
 
 **-a**, **--presence-penalty** \[*VAL*\]  
 Presence penalty (cmpls/chat, -2.0 - 2.0).
@@ -1013,14 +1019,14 @@ small modifications of history context in a live session.
 <!--
 # CODE COMPLETIONS _(discontinued)_
 &#10;Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
-&#10;-- 
+&#10;--
 Turn comments into code, complete the next line or function in
 context, add code comments, and rewrite code for efficiency,
 amongst other functions.
 --
 &#10;Start with a comment with instructions, data or code. To create
 useful completions it's helpful to think about what information
-a programmer would need to perform a task. 
+a programmer would need to perform a task.
 -->
 
 <!--
@@ -1032,7 +1038,7 @@ a prompt and the prompt proper.
 &#10;The edits endpoint can be used to change the tone or structure
 of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
-to the completions endpoint. 
+to the completions endpoint.
 &#10;--
 &#10;Alternatively, use _gpt-4+ models_ and the right instructions.
 -->
@@ -1341,7 +1347,7 @@ export BLOCK_USR='"search_parameters": {
   "mode": "auto",
   "max_search_results": 10
 }'
-&#10;chatgpt.sh --xai -cc -m grok-3-latest 
+&#10;chatgpt.sh --xai -cc -m grok-3-latest
 ```
 &#10;Check more search parameters at the xAI API documentation:
 <https://docs.x.ai/docs/guides/live-search>.

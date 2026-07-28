@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.134.3 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.135 | General Commands Manual</title>
   <style>
     html {
       color: #1a1a1a;
@@ -171,9 +171,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.134.3 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.135 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">June 2026</p>
+<p class="date">July 2026</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT /
@@ -406,7 +406,11 @@ first user input.</p>
 <dt><strong>-N</strong>, <strong>--modmax</strong> [<em>NUM</em>]</dt>
 <dd>
 <p><em>Model capacity</em> token value. Def=<em>auto</em>,
-Fallback=<em>8000</em>.</p>
+Fallback=<em>16000</em>.</p>
+<p>Set <strong>-Nn</strong> to disable using LiteLLM model specs.</p>
+<p>Set <strong>-NN</strong> to force use LiteLLM model specs.</p>
+<p>Set <strong>-NNN</strong> to update and use LiteLLM model specs
+file.</p>
 </dd>
 <dt><strong>-a</strong>, <strong>--presence-penalty</strong>
 [<em>VAL</em>]</dt>
@@ -1646,7 +1650,7 @@ small modifications of history context in a live session.</p>
 
 Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
 
--- 
+--
 Turn comments into code, complete the next line or function in
 context, add code comments, and rewrite code for efficiency,
 amongst other functions.
@@ -1654,7 +1658,7 @@ amongst other functions.
 
 Start with a comment with instructions, data or code. To create
 useful completions it's helpful to think about what information
-a programmer would need to perform a task. 
+a programmer would need to perform a task.
 -->
 <!--
 # TEXT EDITS  _(discontinued)_
@@ -1667,7 +1671,7 @@ a prompt and the prompt proper.
 The edits endpoint can be used to change the tone or structure
 of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
-to the completions endpoint. 
+to the completions endpoint.
 
 --
 
@@ -1996,7 +2000,7 @@ export BLOCK_USR='"search_parameters": {
   "max_search_results": 10
 }'
 
-chatgpt.sh --xai -cc -m grok-3-latest 
+chatgpt.sh --xai -cc -m grok-3-latest
 ```
 
 Check more search parameters at the xAI API documentation:

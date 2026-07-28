@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.134.3 | General Commands Manual
+% CHATGPT.SH(1) v0.135 | General Commands Manual
 % mountaineerbr
-% June 2026
+% July 2026
 
 
 # NAME
@@ -14,7 +14,7 @@
 |    **chatgpt.sh** `-w` \[`opt`..] \[_AUDIO_FILE_|_._] \[_LANG_] \[_PROMPT_]
 |    **chatgpt.sh** `-W` \[`opt`..] \[_AUDIO_FILE_|_._] \[_PROMPT-EN_]
 |    **chatgpt.sh** `-z` \[`opt`..] \[_OUTFILE_|_FORMAT_|_-_] \[_VOICE_] \[_SPEED_] \[_PROMPT_]
-|    **chatgpt.sh** `-bcdWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[_stt_arg_..] \-- \[_tts_arg_..] 
+|    **chatgpt.sh** `-bcdWwz` \[`opt`..] \-- \[_PROMPT_] \-- \[_stt_arg_..] \-- \[_tts_arg_..]
 
 |    **chatgpt.sh** `-l` \[_MODEL_]
 |    **chatgpt.sh** `-TTT` \[-v] \[`-m`\[_MODEL_|_ENCODING_]] \[_INPUT_|_TEXT_FILE_|_PDF_FILE_]
@@ -70,7 +70,7 @@ STT and TTS endpoints functionality is modestly available for some providers.
 **-C**, **\--continue**, **\--resume**
 
 : Continue from (resume) last session (cmpls/chat).
- 
+
 **-d**, **\--text**
 
 : Single-turn session of plain text completions.
@@ -135,13 +135,13 @@ STT and TTS endpoints functionality is modestly available for some providers.
 **-S** **,**\[_PROMPT_NAME_], **-,**\[_PROMPT_NAME_]
 
 :     Load, search for, or create custom prompt.
-      
+
       Set `.`\[_PROMPT_] to load prompt silently.
-      
+
       Set `,`\[_PROMPT_] to single-shot edit prompt.
 
       Set `,,`\[_PROMPT_] to edit the prompt template file.
-      
+
       Set `.`_?_, or `.`_list_ to list all prompt files.
 
 
@@ -150,7 +150,7 @@ STT and TTS endpoints functionality is modestly available for some providers.
 **-S**, **--awesome-zh**  **%**\[_AWESOME_PROMPT_NAME_ZH_]
 
 :     Set or search for an **awesome-chatgpt-prompt(-zh)**.
-      
+
       Set **//** or **%%** instead to refresh cache.
 
 
@@ -161,9 +161,9 @@ STT and TTS endpoints functionality is modestly available for some providers.
 :     Count input tokens with python Tiktoken (ignores special tokens).
 
       Set twice to print tokens, thrice to available encodings.
-      
+
       Set the model or encoding with `option -m`.
-      
+
       It heeds `options -bcdm`.
 
 
@@ -172,7 +172,7 @@ STT and TTS endpoints functionality is modestly available for some providers.
 :     Transcribe audio file speech into text. LANG is optional.
       A prompt that matches the speech language is optional.
       Speech will be transcribed or translated to the target LANG.
-      
+
       Set twice to phrase or thrice for word-level timestamps (-www).
 
       With `options -vv`, stop voice recorder on silence auto detection.
@@ -181,7 +181,7 @@ STT and TTS endpoints functionality is modestly available for some providers.
 **-W**, **\--translate**   \[_AUD_] \[_PROMPT-EN_]
 
 :     Translate audio file speech into English text.
-      
+
       Set twice to phrase or thrice for word-level timestamps (-WWW).
 
 
@@ -207,7 +207,7 @@ STT and TTS endpoints functionality is modestly available for some providers.
 **-x**, **-xx**, **\--editor**
 
 :     Edit prompt in text editor.
-  
+
       Set twice to run the text editor interface a single time
       for the first user input.
 
@@ -241,7 +241,13 @@ STT and TTS endpoints functionality is modestly available for some providers.
 
 **-N**, **\--modmax**   \[_NUM_]
 
-: _Model capacity_ token value. Def=_auto_, Fallback=_8000_.
+:    _Model capacity_ token value. Def=_auto_, Fallback=_16000_.
+
+     Set **-Nn** to disable using LiteLLM model specs.
+
+     Set **-NN** to force use LiteLLM model specs.
+
+     Set **-NNN** to update and use LiteLLM model specs file.
 
 
 **-a**, **\--presence-penalty**   \[_VAL_]
@@ -364,21 +370,21 @@ STT and TTS endpoints functionality is modestly available for some providers.
 **-H**, **\--hist**   \[`/`_HIST_NAME_]
 
 :     Edit history file with text editor or pipe to stdout.
-      
+
       A history file name can be optionally set as argument.
 
 
 **-P**, **-PP**, **\--print**   \[`/`_HIST_NAME_]
 
 :     Print out last history session.
-      
+
       Set twice to print commented out history entries, inclusive.
       Heeds `options -bcdrR`.
 
       These are aliases to **-HH** and **-HHH**, respectively.
 
 **\--tmp**
- 
+
 : Temporary cache location. Defaults to subdirectory in `$CACHEDIR`, `$TMPDIR`, or `/tmp`.
 
 
@@ -392,7 +398,7 @@ STT and TTS endpoints functionality is modestly available for some providers.
 **-F**
 
 :     Edit configuration file with text editor, if it exists.
-      
+
       \$CHATGPTRC=\"_~/.chatgpt.conf_\".
 
 
@@ -561,15 +567,15 @@ STT and TTS endpoints functionality is modestly available for some providers.
 
 # CHAT COMPLETION MODE
 
-Invoke `option -c`, `--chat` to initiate interactive multi-turn sessions via 
-**native chat completions** with persistent history. This mode defaults 
+Invoke `option -c`, `--chat` to initiate interactive multi-turn sessions via
+**native chat completions** with persistent history. This mode defaults
 to the _gpt-5.1_ model.
 
-Models compatible with **pure text completions** (instruct models), set 
+Models compatible with **pure text completions** (instruct models), set
 `options -cd` or `--text-chat` at the command line. If no model is specified,
 it defaults to _gpt-3.5-turbo-instruct_.
 
-In chat mode, certain internal parameters are automatically tuned to 
+In chat mode, certain internal parameters are automatically tuned to
 un-lobotomise the bot for better reasoning.
 
 When using different providers, ensure that `options -c`, `-cd`, or `-bc`
@@ -583,13 +589,13 @@ even when multi-turn mode is enabled.
 
 # RESPONSES API
 
-The Responses API is a superset of the Chat Completions API. It offers 
+The Responses API is a superset of the Chat Completions API. It offers
 extended functionality but currently has limited support.
 
-Access the responses endpoint via `option -b`, `--responses` for single-turn 
+Access the responses endpoint via `option -b`, `--responses` for single-turn
 incantation, or `options -bb` or `-bc` for multi-turn mode.
 
-To hot-swap to this API during an active session, use the internal 
+To hot-swap to this API during an active session, use the internal
 command `/responses [model]`, aliased to `/resp` or even `-b`.
 
 
@@ -1019,7 +1025,7 @@ to change parameters and manage sessions.
    `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
       `-a`         `!pre`        \[_VAL_]      Presence penalty.
       `-A`         `!freq`       \[_VAL_]      Frequency penalty.
-      `-b`         `!responses`  \[_MOD_]      Responses API request (experimental). 
+      `-b`         `!responses`  \[_MOD_]      Responses API request (experimental).
       `-j`         `!seed`       \[_NUM_]      Seed number (integer).
       `-K`         `!topk`       \[_NUM_]      Top_k.
       `-m`         `!mod`        \[_MOD_]      Model by name, empty to pick from list.
@@ -1204,7 +1210,7 @@ for small modifications of history context in a live session.
 
 Codex models are discontinued. Use davinci or _gpt-3.5+ models_ for coding tasks.
 
--- 
+--
 Turn comments into code, complete the next line or function in
 context, add code comments, and rewrite code for efficiency,
 amongst other functions.
@@ -1212,7 +1218,7 @@ amongst other functions.
 
 Start with a comment with instructions, data or code. To create
 useful completions it's helpful to think about what information
-a programmer would need to perform a task. 
+a programmer would need to perform a task.
 -->
 
 
@@ -1227,7 +1233,7 @@ a prompt and the prompt proper.
 The edits endpoint can be used to change the tone or structure
 of text, or make targeted changes like fixing spelling. Edits
 work well on empty prompts, thus enabling text generation similar
-to the completions endpoint. 
+to the completions endpoint.
 
 --
 
@@ -1238,12 +1244,12 @@ Alternatively, use _gpt-4+ models_ and the right instructions.
 # CUSTOM PROMPTS
 
 When the argument to `option -S` or the first positional argument starts with
-a full stop, such as "`-S.`_my_prompt_", load, search for, or create the 
+a full stop, such as "`-S.`_my_prompt_", load, search for, or create the
 _that prompt file_.
 
 If a comma is prepended to the prompt name, such as "-S`,`_my_prompt_", load the
-file and edit it one-shot for the current session. If a double comma is used 
-instead, such as "`-S,,`_my_prompt_", permanently edit the prompt template 
+file and edit it one-shot for the current session. If a double comma is used
+instead, such as "`-S,,`_my_prompt_", permanently edit the prompt template
 file and then load it. Use "`-S .?`" to list all available custom prompts.
 
 These operators also set corresponding history files automatically.
@@ -1256,7 +1262,7 @@ They are usually located at "`~/.cache/chatgptsh/*.pr`".
 
 When the argument to `option -S` starts with a forward slash or a percent sign,
 such as "`-S/`_linux_terminal_", search for an **awesome-chatgpt-prompt**
-(English/Fatih KAv) or **awesome-chatgpt-prompt-zh** (Chinese/PlexPt). 
+(English/Fatih KAv) or **awesome-chatgpt-prompt-zh** (Chinese/PlexPt).
 
 Set "`-S //`" or "`-S %%`" as the argument to refresh the local prompt cache.
 
@@ -1604,7 +1610,7 @@ export BLOCK_USR='"search_parameters": {
   "max_search_results": 10
 }'
 
-chatgpt.sh --xai -cc -m grok-3-latest 
+chatgpt.sh --xai -cc -m grok-3-latest
 ```
 
 Check more search parameters at the xAI API documentation:
@@ -1675,7 +1681,7 @@ may contain the following file types:
 *   **Command History (history_bash):**  Bash command-line input history.  This file is trimmed according to the **$HISTSIZE** setting in the configuration file.  While it improves session recall, a large **history_bash** file can slow down script startup. It can be safely removed if necessary.
 *   **Temporary Buffers:** Various files holding temporary text and data. These files are safe to remove and are not intended for backup.
 
-**Backup Recommendation:**  It is strongly recommended to back up 
+**Backup Recommendation:**  It is strongly recommended to back up
 session record files (tsv) and prompt files (pr), as well as the
 configuration file (chatgpt.sh)
 to preserve session history, custom promptsnd settings.

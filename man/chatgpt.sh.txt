@@ -1,6 +1,6 @@
-CHATGPT.SH(1) v0.134.3 | General Commands Manual
+CHATGPT.SH(1) v0.135 | General Commands Manual
 mountaineerbr
-June 2026
+July 2026
 
 NAME
 
@@ -184,7 +184,13 @@ Model Settings
 
 -N, --modmax [NUM]
 
-    Model capacity token value. Def=auto, Fallback=8000.
+    Model capacity token value. Def=auto, Fallback=16000.
+
+    Set -Nn to disable using LiteLLM model specs.
+
+    Set -NN to force use LiteLLM model specs.
+
+    Set -NNN to update and use LiteLLM model specs file.
 
 -a, --presence-penalty [VAL]
 
