@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.135 | General Commands Manual
+% CHATGPT.SH(1) v0.135.1 | General Commands Manual
 % mountaineerbr
 % July 2026
 
@@ -1023,6 +1023,7 @@ to change parameters and manage sessions.
    `!Nill`         `-Nill`                     Unset max response tokens (chat cmpls).
     `!NUM`         `-M`          \[_NUM_]      Maximum response tokens.
    `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
+     `-NN`         `-NNN`                      Auto-set model capacity (LiteLLM model specs lookup).
       `-a`         `!pre`        \[_VAL_]      Presence penalty.
       `-A`         `!freq`       \[_VAL_]      Frequency penalty.
       `-b`         `!responses`  \[_MOD_]      Responses API request (experimental).

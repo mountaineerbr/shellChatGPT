@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.135  jun/2026  by mountaineerbr  GPL+3
+# v0.135.1  jun/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -502,6 +502,7 @@ Command List
      !Nill    -Nill             Unset max response tokens (chat cmpls).
       !NUM    -M        [NUM]   Max response tokens.
      !!NUM    -N        [NUM]   Model token capacity.
+      -NN     -NNN              Auto-set model capacity (LiteLLM specs).
       -a      !pre      [VAL]   Presence penalty.
       -A      !freq     [VAL]   Frequency penalty.
       -b      !responses [MOD]  Responses API request (experimental).
@@ -951,7 +952,7 @@ function model_capf
 # File modification epoch time
 function get_file_mtime
 {
-	local file ts
+	typeset file ts
 	file="$1" ts=""
 	[[ ! -s "$file" ]] && echo 0 && return 0
 
@@ -971,8 +972,8 @@ function get_file_mtime
 # Redownload stale LiteLLM json resource
 function update_litellm_specs
 {
-	local cache_file="$1"
-	local now ts url
+	typeset cache_file="$1"
+	typeset now ts url
 	now=$(date +%s)
 	ts=$(get_file_mtime "$cache_file")
 	url="https://raw.githubusercontent.com/BerriAI/litellm/refs/heads/main/model_prices_and_context_window.json"
@@ -988,7 +989,7 @@ function update_litellm_specs
 
 function get_model_context_limit
 {
-    local model modeld provider tkn
+    typeset model modeld provider tkn
     model=${1##ft:}
     modeld=${model##*[/~]}
 
@@ -2488,7 +2489,15 @@ function cmdf
 			case "$*" in -N*|-[Mm]odmax*|[/!]*|--*)
 				#model capacity
 				set -- "${*##@([Mm]odmax|-N|[/!]|--)*([$IFS])}";
-				[[ $* = *[!0-9]* ]] && set_maxtknf "$*" || MODMAX="$*";
+				if [[ -n $* && $* != *[!N]* ]]
+				then 	typeset LITELLM_MODEL_SPECS_DISABLE=-1;
+					[[ $* = NN* ]] && [[ -f $FILELITELLM ]] &&
+					rm -fv "$FILELITELLM";
+					model_capf "$MOD";
+				elif [[ $* = *[!0-9]* ]]
+				then 	set_maxtknf "$*";
+				else 	MODMAX="$*";
+				fi
 				;;
 			*) 	#response max
 				set_maxtknf "${*##?([Mm]ax|-M)*([$IFS])}";
