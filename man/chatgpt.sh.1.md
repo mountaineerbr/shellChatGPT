@@ -715,15 +715,17 @@ and "`-M` _NUM-NUM_".
 
 _Model capacity_ (maximum model tokens) can be set more intuitively with
 `option` "`-N` _NUM_", otherwise model capacity is set automatically
-for known models or to _8000_ tokens as fallback.
+for known models or to _16000_ tokens as fallback.
+
+There is also the `option -NN` to automatically set the model capacity
+looking up LiteLLM model specs file on a best-effort basis, whereas
+`option -Nn` actually prevents this feature activation.
 
 `Option -y` sets python tiktoken instead of the default script hack
-to preview token count. This option makes token count preview
+to count tokens. This option makes token count
 accurate and fast (we fork tiktoken as a coprocess for fast token queries).
 Useful for rebuilding history context independently from the original
 model used to generate responses.
-
-<!-- LocalAI only tested with text and chat completion models (vision) -->
 
 
 # SPEECH-TO-TEXT (Whisper)

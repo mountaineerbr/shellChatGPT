@@ -596,12 +596,17 @@ The option syntax takes the form of
 \f[I]Model capacity\f[R] (maximum model tokens) can be set more
 intuitively with \f[CR]option\f[R] \[lq]\f[CR]\-N\f[R]
 \f[I]NUM\f[R]\[rq], otherwise model capacity is set automatically for
-known models or to \f[I]8000\f[R] tokens as fallback.
+known models or to \f[I]16000\f[R] tokens as fallback.
+.PP
+There is also the \f[CR]option \-NN\f[R] to automatically set the model
+capacity looking up LiteLLM model specs file on a best\-effort basis,
+whereas \f[CR]option \-Nn\f[R] actually prevents this feature
+activation.
 .PP
 \f[CR]Option \-y\f[R] sets python tiktoken instead of the default script
-hack to preview token count.
-This option makes token count preview accurate and fast (we fork
-tiktoken as a coprocess for fast token queries).
+hack to count tokens.
+This option makes token count accurate and fast (we fork tiktoken as a
+coprocess for fast token queries).
 Useful for rebuilding history context independently from the original
 model used to generate responses.
 .SH SPEECH\-TO\-TEXT (Whisper)

@@ -826,13 +826,16 @@ capacity</em> will also be set. The option syntax takes the form of
 <p><em>Model capacity</em> (maximum model tokens) can be set more
 intuitively with <code>option</code> “<code>-N</code> <em>NUM</em>”,
 otherwise model capacity is set automatically for known models or to
-<em>8000</em> tokens as fallback.</p>
+<em>16000</em> tokens as fallback.</p>
+<p>There is also the <code>option -NN</code> to automatically set the
+model capacity looking up LiteLLM model specs file on a best-effort
+basis, whereas <code>option -Nn</code> actually prevents this feature
+activation.</p>
 <p><code>Option -y</code> sets python tiktoken instead of the default
-script hack to preview token count. This option makes token count
-preview accurate and fast (we fork tiktoken as a coprocess for fast
-token queries). Useful for rebuilding history context independently from
-the original model used to generate responses.</p>
-<!-- LocalAI only tested with text and chat completion models (vision) -->
+script hack to count tokens. This option makes token count accurate and
+fast (we fork tiktoken as a coprocess for fast token queries). Useful
+for rebuilding history context independently from the original model
+used to generate responses.</p>
 <h1 id="speech-to-text-whisper">SPEECH-TO-TEXT (Whisper)</h1>
 <p><code>Option -w</code> <strong>transcribes audio speech</strong> from
 <em>mp3</em>, <em>mp4</em>, <em>mpeg</em>, <em>mpga</em>, <em>m4a</em>,
