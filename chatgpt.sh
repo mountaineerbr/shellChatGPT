@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.135.2  jun/2026  by mountaineerbr  GPL+3
+# v0.135.3  aug/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -8142,7 +8142,7 @@ else
 								printf "${NC}${Color5}%s${NC}\n" "$REPLY" | foldf >&2;
 								REPLY_TRANS=$REPLY REPLY=${FILEINW/"$HOME"/"~"};
 							fi
-							((WAPPEND)) && REPLY=$REPLY_OLD${REPLY_OLD:+${REPLY:+ }}$REPLY WAPPEND= ;
+							((WAPPEND)) && REPLY=$REPLY_OLD${REPLY_OLD:+${REPLY:+ }}$REPLY REPLY_OLD=$REPLY WAPPEND= ;
 						else 	case $? in
 								196)  #whisper off
 									WSKIP= XSKIP= OPTW= REPLY= SKIP_SH_HIST=;
