@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: July 2026
-title: CHATGPT.SH(1) v0.135.2 \| General Commands Manual
+date: August 2026
+title: CHATGPT.SH(1) v0.135.4 \| General Commands Manual
 ---
 
 # NAME
@@ -320,7 +320,7 @@ Anthropic integration (cmpls/chat). Also see **--think**.
 DeepSeek integration (cmpls/chat).
 
 **--github**, **--git**  
-GitHub Models integration (chat).
+(Retired) GitHub Models integration (chat).
 
 **--google**, **-goo**  
 Google Gemini integration (cmpls/chat).

@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.135.2 | General Commands Manual
+% CHATGPT.SH(1) v0.135.4 | General Commands Manual
 % mountaineerbr
-% July 2026
+% August 2026
 
 
 # NAME
@@ -421,7 +421,7 @@ STT and TTS endpoints functionality is modestly available for some providers.
 
 **\--github**, **\--git**
 
-: GitHub Models integration (chat).
+: (Retired) GitHub Models integration (chat).
 
 
 **\--google**, **\-goo**

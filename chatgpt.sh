@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.135.3  aug/2026  by mountaineerbr  GPL+3
+# v0.135.4  aug/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -47,7 +47,7 @@ MOD_SPEECH_GROQ="${MOD_SPEECH_GROQ:-canopylabs/orpheus-v1-english}"
 OPTZ_VOICE_GROQ="daniel"  #autumn diana hannah austin troy
 # Anthropic model
 MOD_ANTHROPIC="${MOD_ANTHROPIC:-${ANTHROPIC_MODEL:-claude-sonnet-5}}"
-# GitHub Azure model
+# GitHub Azure model (retired)
 MOD_GITHUB="${MOD_GITHUB:-${GITHUB_MODEL:-gpt-4.1}}"  #GH_MODEL
 # OpenRouter API model
 MOD_OPENROUTER="${MOD_OPENROUTER:-${OPENROUTER_MODEL:-~moonshotai/kimi-latest}}"
@@ -625,7 +625,7 @@ Options
 	--deepseek
 		DeepSeek API integration (cmpls/chat).
 	--github
-		GitHub Models integration (chat).
+		(Retired) GitHub Models integration (chat).
 	--google
 		Google Gemini integration (cmpls/chat).
 	--groq  Groq AI integration (chat).
@@ -5870,7 +5870,7 @@ function awesomef
 # Custom prompts
 function custom_prf
 {
-	typeset file filechat name template list msg new skip title ret
+	typeset file filechat name template list msg new skip title ret_read ret
 
 	trap "trap '-' INT RETURN; FILECHAT=\"$FILECHAT\" INSTRUCTION=; _clr_dialogf; return 201 || exit 201" INT;
 	trap "trap '-' INT RETURN" RETURN;
@@ -5981,19 +5981,21 @@ function custom_prf
 		_clr_ttystf;
 		if ((OPTX))  #edit prompt
 		then 	INSTRUCTION=$(ed_outf "$INSTRUCTION") || exit
-			printf '%s\n\n' "$INSTRUCTION" >&2 ;
+			printf '%s\n\n' "${INSTRUCTION:-(empty)}" >&2 ;
 		elif ((CATPR)) && ((!${#INSTRUCTION}))
 		then 	_printbf '>';
 			INSTRUCTION=$(cat </dev/tty);
+			ret_read=$?;
 		else 	_printbf '>';
 			readf -i "$INSTRUCTION" INSTRUCTION </dev/tty;
+			ret_read=$?;
 		fi
 		((OPTCTRD+CATPR)) && ((!OPTX)) && {
 			trim_rf "$INSTRUCTION" $'*([\r\b])'
 			INSTRUCTION="$TRIM"
 		}
 
-		if ((template))  #push changes to file
+		if ((template)) && ((ret_read<2))  #push changes to file
 		then 	printf '%s' "$INSTRUCTION"${INSTRUCTION:+$'\n'} >"$file"
 			[[ -f "$file" && ! -s "$file" ]] && { rm -v -- "$file" || rm -- "$file" ;} >&2
 		fi
