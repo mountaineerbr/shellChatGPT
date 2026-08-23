@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/DALL-E/STT/TTS
-# v0.135.4  aug/2026  by mountaineerbr  GPL+3
+# v0.135.5  aug/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -804,7 +804,8 @@ function set_model_epnf
 {
 	unset OPTEMBED TKN_ADJ MULTIMODAL
 	typeset -l model; model=${1##*/};
-	set -- "${model##ft:}"; model=;
+	model=${model%%:@(free|batch|thinking|reasoning)};
+	set -- "${model##@(ft:|[~])}"; model=;
 
 	#responses-api exclusive models
 	if ((OPENAI)) && case "$1" in
@@ -872,14 +873,13 @@ function set_model_epnf
 function model_capf
 {
 	typeset -l model;
-	model=${1##ft:};
-	model=${model##*[/]};
-	model=${model##[~]};
+	model=${1##*[/]} model=${model##@(ft:|[~])};
+	model=${model%%:@(free|batch|thinking|reasoning)};
 
 	#force use litellm model specs
  	((LITELLM_MODEL_SPECS_DISABLE<0)) && model="";
 
-	case "${model##ft:}" in
+	case "${model}" in
 		open-codestral-mamba*|codestral-mamba*|ai21-jamba-1.5*|\
 		ai21-jamba-instruct|-256k*|grok-code*|*kimi-k[12]*)
 			MODMAX=256000;;
@@ -895,7 +895,7 @@ function model_capf
 			MODMAX=8191;;  #8192
 		aqa) MODMAX=7168;;
 		davinci|curie|babbage|ada) MODMAX=2049;;
-		learnlm-2.0-flash*|gemini-exp*|gemini-*|*kimi-k[34]*|*kimi-latest|gpt-5.[6-9]*)  #*#
+		learnlm-2.0-flash*|gemini-exp*|gemini-*|*kimi-k[34]*|*kimi-latest|gpt-5.[6-9]*|*ox-alpha*)  #*#
 			MODMAX=1048576;;  #2097152
 		qwen-2.5-*-instruct|qwen2.5-*-instruct|glm-*-0414|glm-z1-rumination-32b-0414|\
 		learnlm-1.5-pro*|*qwen-2.5-72b-instruct|-32k*) MODMAX=32000;;
@@ -990,8 +990,9 @@ function update_litellm_specs
 function get_model_context_limit
 {
     typeset model modeld provider tkn
-    model=${1##ft:}
-    modeld=${model##*[/~]}
+    model=${1##@(ft:|[~])};
+    model=${model%%:@(free|batch|thinking|reasoning)};
+    modeld=${model##*[/~]} modeld=${modeld##@(ft:|[~])};
 
     # Ensure cache freshness (1 week = 604800s)
     update_litellm_specs "$FILELITELLM"
@@ -1528,7 +1529,9 @@ function _p_suffixf { 	((!${#SUFFIX} )) || printf '%s' "${SUFFIX}" ;}
 #check if model is responses-api-compatible
 function is_responses_apif
 {
-	typeset -l model; model=${1##*/} model=${model##ft:};
+	typeset -l model;
+	model=${1##*/} model=${model##@(ft:|[~])};
+	model=${model%%:@(free|batch|thinking|reasoning)};
 
 	case "${model:-${MOD##*[/]}}" in
 	gpt-[5-9]*|o[1-9]*|gpt-[4-9]o*|gpt-[4-9][.-][0-9]*|chatgpt*-[4-9]o*|chatgpt*-[4-9][.-][0-9]o*|\
@@ -4545,9 +4548,11 @@ function is_txturl
 #check for multimodal (vision) model
 function is_visionf
 {
-	typeset -l model; model=${1##*/};
+	typeset -l model;
+	model=${1##*/} model=${model##@(ft:|[~])};
+	model=${model%%:@(free|batch|thinking|reasoning)};
 
-	case "${model##ft:}" in
+	case "${model}" in
 	o[1-3]*-mini*|o1*-preview) 	((MULTIMODAL));;  #glob exceptions
 	*vision*|*pixtral*|*llava*|*cogvlm*|*cogagent*|*qwen*|*detic*|*codet*|*kosmos-2*|*fuyu*|*instructir*|*idefics*|*unival*|*glamm*|\
 	o[1-9]*|gpt-[4-9]o*|gpt-[4-9][.-][0-9]*|chatgpt*-[4-9]o*|chatgpt*-[4-9][.-][0-9]o*|chatgpt*-[4-9]*|\
@@ -4563,8 +4568,11 @@ function is_visionf
 #check for audio-model
 function is_amodelf
 {
-	typeset -l model; model=${1##*/};
-	case "${model##ft:}" in
+	typeset -l model;
+	model=${1##*/} model=${model##@(ft:|[~])};
+	model=${model%%:@(free|batch|thinking|reasoning)};
+
+	case "${model}" in
 	*audio*|*speech*|*speaker*|*bark*|*lalm*|*music*|*yi-vl*|*voxtral*) :;;
 	*) 	((MULTIMODAL>1));;
 	esac;
@@ -4772,7 +4780,8 @@ function set_optsf
 	typeset s n p stop
 	typeset -a pids
 	typeset -l model;
-	model=${MOD##*/} model=${model##ft:};
+	model=${MOD##*/} model=${model##@(ft:|[~])};
+	model=${model%%:@(free|batch|thinking|reasoning)};
 
 	#misc model and reasoning auto settings
 	case "$model" in
@@ -7478,6 +7487,7 @@ then
 		else 	jq -r '.data[].id' "$FILE" | sort | tee -- "$FILEMODEL" || ! _warmsgf 'Err' || return;
 			[[ ! -t 1 ]] || printf "${BWHITE}%s:${NC} %d\\n" "models" "$(wc -l <"$FILEMODEL")" >&2;
 		fi;
+		#?output_modalities=all
 	}
 	OPENROUTER=1;
 	unset LOCALAI OLLAMA GOOGLEAI GROQAI ANTHROPICAI MISTRALAI XAI DEEPSEEK;
