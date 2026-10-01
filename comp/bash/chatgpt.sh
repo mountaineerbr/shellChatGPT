@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.134.3
+# v0.136
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -100,7 +100,7 @@ _chatgptsh()
         -f --no-conf
         -F -FF
         --fold --wrap --no-fold --no-wrap
-        --google --goo --groq --anthropic --ant --github --git --openai
+        --google --goo --groq --anthropic --ant --openai
         --xai --grok --deepseek --deep --openrouter --open
         -h --help
         -H --hist -HH -P -PP --print
@@ -170,7 +170,7 @@ _chatgptsh()
     --md|--markdown)
       COMPREPLY=( $(compgen -W "bat pygmentize glow mdcat mdless" -- "${cur##*=}") )
       ;;
-    -m|-[!-]*m|--model|--mod)
+    -m|-[!-]*m|--model|--mod|-l)
       COMPREPLY=( $(compgen -W "$(chatgpt.sh -EE -lll 2>/dev/null)" -- "${cur}") )
       ((${#COMPREPLY[@]})) || COMPREPLY=( "${models[@]}" )
       ;;

@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
+  <meta name="generator" content="pandoc 3.10.2" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.135.4 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.136 | General Commands Manual</title>
   <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
     html {
       color: #1a1a1a;
       background-color: #fdfdfd;
@@ -39,7 +42,6 @@
       body {
         background-color: transparent;
         color: black;
-        font-size: 12pt;
       }
       p, h2, h3 {
         orphans: 3;
@@ -89,6 +91,7 @@
       color: #606060;
     }
     code {
+      white-space: pre-wrap;
       font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
       font-size: 85%;
       margin: 0;
@@ -108,8 +111,8 @@
      overflow: visible;
     }
     hr {
-      background-color: #1a1a1a;
       border: none;
+      border-top: 1px solid #1a1a1a;
       height: 1px;
       margin: 1em 0;
     }
@@ -152,10 +155,13 @@
     #TOC a:not(:hover) {
       text-decoration: none;
     }
-    code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     /* The extra [class] is a hack that increases specificity enough to
        override a similar rule in reveal.js */
@@ -171,13 +177,13 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.135.4 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.136 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">August 2026</p>
+<p class="date">September 2026</p>
 </header>
 <h1 id="name">NAME</h1>
-<div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT /
-TTS</div>
+<div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT / TTS
+and other LLM Providers</div>
 <h1 id="synopsis">SYNOPSIS</h1>
 <div class="line-block">   <strong>chatgpt.sh</strong>
 [<code>-bb</code>|<code>-c</code>|<code>-cd</code>|<code>-dd</code>|<code>-qq</code>]
@@ -256,9 +262,9 @@ support.</p>
 </dd>
 <dt><strong>-e</strong>, <strong>--edit</strong></dt>
 <dd>
-<p>Edit first input from stdin or file (cmpls/chat).</p>
-<p>With <code>options -eex</code>, edit last text editor buffer from
-cache.</p>
+<pre><code>Edit first input from stdin or file (cmpls/chat).
+
+With `options -eex`, edit last text editor buffer from cache.</code></pre>
 </dd>
 <dt><strong>-E</strong>, <strong>-EE</strong>,
 <strong>--exit</strong></dt>
@@ -295,10 +301,11 @@ cache.</p>
 <dt><strong>-q</strong>, <strong>-qq</strong>,
 <strong>--insert</strong></dt>
 <dd>
-<p>Insert text rather than completing only. May be set twice for
-multi-turn.</p>
-<p>Use “<em>[insert]</em>” to indicate where the language model should
-insert text (`instruct’ and Mistral `code models’).</p>
+<pre><code>Insert text rather than completing only. May be set twice
+for multi-turn.
+
+Use &quot;_\[insert]_&quot; to indicate where the language model
+should insert text (\`instruct&#39; and Mistral \`code models&#39;).</code></pre>
 </dd>
 </dl>
 <p><strong>-S</strong> <strong>.</strong>[<em>PROMPT_NAME</em>],
@@ -307,13 +314,15 @@ insert text (`instruct’ and Mistral `code models’).</p>
 <dt><strong>-S</strong> <strong>,</strong>[<em>PROMPT_NAME</em>],
 <strong>-,</strong>[<em>PROMPT_NAME</em>]</dt>
 <dd>
-<p>Load, search for, or create custom prompt.</p>
-<p>Set <code>.</code>[<em>PROMPT</em>] to load prompt silently.</p>
-<p>Set <code>,</code>[<em>PROMPT</em>] to single-shot edit prompt.</p>
-<p>Set <code>,,</code>[<em>PROMPT</em>] to edit the prompt template
-file.</p>
-<p>Set <code>.</code><em>?</em>, or <code>.</code><em>list</em> to list
-all prompt files.</p>
+<pre><code>Load, search for, or create custom prompt.
+
+Set `.`\[_PROMPT_] to load prompt silently.
+
+Set `,`\[_PROMPT_] to single-shot edit prompt.
+
+Set `,,`\[_PROMPT_] to edit the prompt template file.
+
+Set `.`_?_, or `.`_list_ to list all prompt files.</code></pre>
 </dd>
 </dl>
 <p><strong>-S</strong>, <strong>–awesome</strong>
@@ -322,44 +331,48 @@ all prompt files.</p>
 <dt><strong>-S</strong>, <strong>–awesome-zh</strong>
 <strong>%</strong>[<em>AWESOME_PROMPT_NAME_ZH</em>]</dt>
 <dd>
-<p>Set or search for an
-<strong>awesome-chatgpt-prompt(-zh)</strong>.</p>
-<p>Set <strong>//</strong> or <strong>%%</strong> instead to refresh
-cache.</p>
+<pre><code>Set or search for an **awesome-chatgpt-prompt(-zh)**.
+
+Set **//** or **%%** instead to refresh cache.</code></pre>
 </dd>
 </dl>
 <p><strong>-T</strong>, <strong>--tiktoken</strong></p>
 <dl>
 <dt><strong>-TT</strong>, <strong>-TTT</strong></dt>
 <dd>
-<p>Count input tokens with python Tiktoken (ignores special tokens).</p>
-<p>Set twice to print tokens, thrice to available encodings.</p>
-<p>Set the model or encoding with <code>option -m</code>.</p>
-<p>It heeds <code>options -bcdm</code>.</p>
+<pre><code>Count input tokens with python Tiktoken (ignores special tokens).
+
+Set twice to print tokens, thrice to available encodings.
+
+Set the model or encoding with `option -m`.
+
+It heeds `options -bcdm`.</code></pre>
 </dd>
 <dt><strong>-w</strong>, <strong>--transcribe</strong> [<em>AUD</em>]
 [<em>LANG</em>] [<em>PROMPT</em>]</dt>
 <dd>
-<p>Transcribe audio file speech into text. LANG is optional. A prompt
-that matches the speech language is optional. Speech will be transcribed
-or translated to the target LANG.</p>
-<p>Set twice to phrase or thrice for word-level timestamps (-www).</p>
-<p>With <code>options -vv</code>, stop voice recorder on silence auto
-detection.</p>
+<pre><code>Transcribe audio file speech into text. LANG is optional.
+A prompt that matches the speech language is optional.
+Speech will be transcribed or translated to the target LANG.
+
+Set twice to phrase or thrice for word-level timestamps (-www).
+
+With `options -vv`, stop voice recorder on silence auto detection.</code></pre>
 </dd>
 <dt><strong>-W</strong>, <strong>--translate</strong> [<em>AUD</em>]
 [<em>PROMPT-EN</em>]</dt>
 <dd>
-<p>Translate audio file speech into English text.</p>
-<p>Set twice to phrase or thrice for word-level timestamps (-WWW).</p>
+<pre><code>Translate audio file speech into English text.
+
+Set twice to phrase or thrice for word-level timestamps (-WWW).</code></pre>
 </dd>
 <dt><strong>-z</strong>, <strong>--tts</strong>
 [<em>OUTFILE</em>|<em>FORMAT</em>|<em>-</em>] [<em>VOICE</em>]
 [<em>SPEED</em>] [<em>PROMPT</em>]</dt>
 <dd>
-<p>Synthesise speech from text prompt. Takes a voice name, speed and
-text prompt.</p>
-<p>Set <code>option -v</code> to not play response automatically.</p>
+<pre><code>Synthesise speech from text prompt. Takes a voice name, speed and text prompt.
+
+Set `option -v` to not play response automatically.</code></pre>
 </dd>
 </dl>
 <h2 id="input-modes">Input Modes</h2>
@@ -375,10 +388,12 @@ text prompt.</p>
 <dt><strong>-x</strong>, <strong>-xx</strong>,
 <strong>--editor</strong></dt>
 <dd>
-<p>Edit prompt in text editor.</p>
-<p>Set twice to run the text editor interface a single time for the
-first user input.</p>
-<p>Set <code>options -eex</code> to edit last buffer from cache.</p>
+<pre><code>Edit prompt in text editor.
+
+Set twice to run the text editor interface a single time
+for the first user input.
+
+Set `options -eex` to edit last buffer from cache.</code></pre>
 </dd>
 </dl>
 <h2 id="model-settings">Model Settings</h2>
@@ -400,17 +415,19 @@ first user input.</p>
 <dt><strong>-M</strong>, <strong>--max</strong>
 [<em>NUM</em>[<em>-NUM</em>]]</dt>
 <dd>
-<p>Maximum number of <em>response tokens</em>. Def=<em>4096</em>.</p>
-<p>A second number in the argument sets model capacity.</p>
+<pre><code>Maximum number of _response tokens_. Def=_4096_.
+
+A second number in the argument sets model capacity.</code></pre>
 </dd>
 <dt><strong>-N</strong>, <strong>--modmax</strong> [<em>NUM</em>]</dt>
 <dd>
 <p><em>Model capacity</em> token value. Def=<em>auto</em>,
 Fallback=<em>16000</em>.</p>
-<p>Set <strong>-Nn</strong> to disable using LiteLLM model specs.</p>
-<p>Set <strong>-NN</strong> to force use LiteLLM model specs.</p>
-<p>Set <strong>-NNN</strong> to update and use LiteLLM model specs
-file.</p>
+<p>Set <strong>-Nn</strong> to disable using model specs data.</p>
+<p>Set <strong>-NN</strong> to force use provider or LiteLLM model
+specs.</p>
+<p>Set <strong>-NNN</strong> to update provider and LiteLLM cached data
+of model specs.</p>
 </dd>
 <dt><strong>-a</strong>, <strong>--presence-penalty</strong>
 [<em>VAL</em>]</dt>
@@ -442,7 +459,7 @@ Google)</dt>
 interchangeably.</p>
 </dd>
 <dt><strong>--format</strong>
-[<em>mp3</em>|<em>wav</em>|<em>flac</em>|<em>opus</em>|<em>aac</em>|<em>pcm16</em>|<em>mulaw</em>|<em>ogg</em>]</dt>
+[<em>mp3</em>|<em>wav</em>|<em>flac</em>|<em>opus</em>|<em>aac</em>|<em>pcm</em>|<em>mulaw</em>|<em>ogg</em>]</dt>
 <dd>
 <p>TTS out-file format. Def= <em>mp3</em>.</p>
 </dd>
@@ -461,9 +478,9 @@ interchangeably.</p>
 </dd>
 <dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
 <dd>
-<p>Language <em>MODEL</em> name.
-Def=<em>gpt-5.1</em>/<em>gpt-3.5-turbo-instruct</em>.</p>
-<p>Set <em>MODEL</em> name as “<em>.</em>” to pick from the list.</p>
+<pre><code>Language _MODEL_ name. Def=_gpt-6-astra_/_gpt-3.5-turbo-instruct_.
+
+Set _MODEL_ name as &quot;_._&quot; to pick from the list.</code></pre>
 </dd>
 <dt><strong>--multimodal</strong>, <strong>--vision</strong>,
 <strong>--audio</strong></dt>
@@ -531,17 +548,19 @@ Def=<em>0</em>.</p>
 <dt><strong>-H</strong>, <strong>--hist</strong>
 [<code>/</code><em>HIST_NAME</em>]</dt>
 <dd>
-<p>Edit history file with text editor or pipe to stdout.</p>
-<p>A history file name can be optionally set as argument.</p>
+<pre><code>Edit history file with text editor or pipe to stdout.
+
+A history file name can be optionally set as argument.</code></pre>
 </dd>
 <dt><strong>-P</strong>, <strong>-PP</strong>, <strong>--print</strong>
 [<code>/</code><em>HIST_NAME</em>]</dt>
 <dd>
-<p>Print out last history session.</p>
-<p>Set twice to print commented out history entries, inclusive. Heeds
-<code>options -bcdrR</code>.</p>
-<p>These are aliases to <strong>-HH</strong> and <strong>-HHH</strong>,
-respectively.</p>
+<pre><code>Print out last history session.
+
+Set twice to print commented out history entries, inclusive.
+Heeds `options -bcdrR`.
+
+These are aliases to **-HH** and **-HHH**, respectively.</code></pre>
 </dd>
 <dt><strong>--tmp</strong></dt>
 <dd>
@@ -557,8 +576,9 @@ respectively.</p>
 </dd>
 <dt><strong>-F</strong></dt>
 <dd>
-<p>Edit configuration file with text editor, if it exists.</p>
-<p>$CHATGPTRC="<em>~/.chatgpt.conf</em>".</p>
+<pre><code>Edit configuration file with text editor, if it exists.
+
+\$CHATGPTRC=\&quot;_~/.chatgpt.conf_\&quot;.</code></pre>
 </dd>
 <dt><strong>-FF</strong></dt>
 <dd>
@@ -576,10 +596,13 @@ respectively.</p>
 <dd>
 <p>DeepSeek integration (cmpls/chat).</p>
 </dd>
-<dt><strong>--github</strong>, <strong>--git</strong></dt>
-<dd>
-<p>(Retired) GitHub Models integration (chat).</p>
-</dd>
+</dl>
+<!--
+**\--github**, **\--git**
+
+: (Retired) GitHub Models integration (chat).
+ -->
+<dl>
 <dt><strong>--google</strong>, <strong>-goo</strong></dt>
 <dd>
 <p>Google Gemini integration (cmpls/chat).</p>
@@ -617,11 +640,15 @@ respectively.</p>
 <dl>
 <dt><strong>--api-key</strong> [<em>KEY</em>]</dt>
 <dd>
-<p>The API key to use.</p>
+<p>The API key to use (OpenAI only).</p>
+</dd>
+<dt><strong>--cache-enable</strong></dt>
+<dd>
+<p>Enable the upstream 5-min cache option for Anthropic API.</p>
 </dd>
 <dt><strong>--cache-disable</strong></dt>
 <dd>
-<p>Disable the 5-min ephemeral cache option for Anthropic API.</p>
+<p>Disable the 5-min ephemeral cache for Anthropic API (default).</p>
 </dd>
 <dt><strong>--fold</strong> (<em>defaults</em>),
 <strong>--no-fold</strong></dt>
@@ -672,16 +699,19 @@ respectively.</p>
 </dd>
 <dt><strong>-v</strong>, <strong>-vv</strong> <!-- verbose --></dt>
 <dd>
-<p>Less interface verbosity.</p>
-<p>Sleep after response in voice chat (<code>-vvbcdw</code>).</p>
-<p>With <code>options -bcdwv</code>, sleep after response. With
-<code>options -bcdwzvv</code>, stop recording voice input on silence
-detection and play TTS response right away.</p>
-<p>May be set multiple times.</p>
+<pre><code>Less interface verbosity.
+
+Sleep after response in voice chat (`-vvbcdw`).
+
+With `options -bcdwv`, sleep after response. With `options -bcdwzvv`,
+stop recording voice input on silence detection and play TTS response
+right away.
+
+May be set multiple times.</code></pre>
 </dd>
 <dt><strong>-V</strong></dt>
 <dd>
-<p>Dump raw JSON request block (debug).</p>
+<pre><code>Dump raw JSON request block (debug).</code></pre>
 </dd>
 <dt><strong>--version</strong></dt>
 <dd>
@@ -706,7 +736,7 @@ detection and play TTS response right away.</p>
 <p>Invoke <code>option -c</code>, <code>--chat</code> to initiate
 interactive multi-turn sessions via <strong>native chat
 completions</strong> with persistent history. This mode defaults to the
-<em>gpt-5.1</em> model.</p>
+<em>gpt-6-astra</em> model.</p>
 <p>Models compatible with <strong>pure text completions</strong>
 (instruct models), set <code>options -cd</code> or
 <code>--text-chat</code> at the command line. If no model is specified,
@@ -828,9 +858,9 @@ intuitively with <code>option</code> “<code>-N</code> <em>NUM</em>”,
 otherwise model capacity is set automatically for known models or to
 <em>16000</em> tokens as fallback.</p>
 <p>There is also the <code>option -NN</code> to automatically set the
-model capacity looking up LiteLLM model specs file on a best-effort
-basis, whereas <code>option -Nn</code> actually prevents this feature
-activation.</p>
+model capacity looking up provider-specific or LiteLLM model specs file
+on a best-effort basis, whereas <code>option -Nn</code> actually
+prevents this feature activation.</p>
 <p><code>Option -y</code> sets python tiktoken instead of the default
 script hack to count tokens. This option makes token count accurate and
 fast (we fork tiktoken as a coprocess for fast token queries). Useful
@@ -857,7 +887,7 @@ and -WW. Set thrice for word-level timestamps.</p>
 input</strong> (Whisper) support. Additionally, set
 <code>option -z</code> to enable <strong>text-to-speech</strong> (TTS)
 models and voice out.</p>
-<h1 id="text-to-voice-tts">TEXT-TO-VOICE (TTS)</h1>
+<h1 id="text-to-speech-tts">TEXT-TO-SPEECH (TTS)</h1>
 <p><code>Option -z</code> synthesises voice from text (TTS models). Set
 a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 “<em>echo</em>”, “<em>fable</em>”, “<em>onyx</em>”, “<em>nova</em>”, or
@@ -866,8 +896,7 @@ a <em>voice</em> as the first positional parameter (“<em>alloy</em>”,
 (<em>0.25</em> - <em>4.0</em>), and, finally the <em>output file
 name</em> or the <em>format</em>, such as “<em>./new_audio.mp3</em>”
 (“<em>mp3</em>”, “<em>wav</em>”, “<em>flac</em>”, “<em>opus</em>”,
-“<em>aac</em>”, or “<em>pcm16</em>”); or set “<em>-</em>” for
-stdout.</p>
+“<em>aac</em>”, or “<em>pcm</em>”); or set “<em>-</em>” for stdout.</p>
 <p>Do mind that GroqAI’s Orpheus has the specific output format
 “<em>wav</em>”, as well as different voice names such as daniel, autumn,
 diana, etc.</p>
@@ -886,7 +915,7 @@ or added with chat command “<code>/audio</code>
 <p>To activate the audio synthesis output mode of an audio model, make
 sure to set command line <code>option -z</code>!</p>
 <p>In chat mode, when the model does not support audio-in or audio-out
-modalities, the script uses whisper and tts functions in a special
+modalities, the script uses whisper and TTS functions in a special
 manner to achieve audio turns.</p>
 <!--
 # IMAGE GENERATIONS AND EDITS (Dall-E)
@@ -1335,7 +1364,7 @@ flush.</td>
 <tr>
 <td style="text-align: left;"><code>-NN</code></td>
 <td style="text-align: left;"><code>-NNN</code></td>
-<td>Auto-set model capacity (LiteLLM model specs lookup).</td>
+<td>Auto-set model capacity / update cache data.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>-a</code></td>
@@ -1416,7 +1445,7 @@ flush.</td>
 <tr>
 <td style="text-align: left;"><code>!effort</code></td>
 <td style="text-align: left;">- [<em>MODE</em>]</td>
-<td>Effort: xhigh, high, medium, low, minimal, or none (OpenAI /
+<td>Effort: max, xhigh, high, medium, low, minimal, or none (OpenAI /
 Anthropic).</td>
 </tr>
 <tr>
@@ -1535,8 +1564,9 @@ entries.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>!grep</code></td>
-<td style="text-align: left;"><code>!sub</code> [<em>REGEX</em>]</td>
-<td>Grep sessions and copy session to hist tail.</td>
+<td style="text-align: left;"><code>!!grep</code> [<em>REGEX</em>]</td>
+<td>Grep sessions and copy session to hist tail; include dead
+lines.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>!tmp</code></td>
@@ -1561,10 +1591,11 @@ preceded by space.</div>
 “[<em>PROMPT</em>] <code>/pick</code>”</div>
 <div class="line-block">  “[<em>PROMPT</em>] <code>/sh</code>”,
 “<em>Translate this to French</em> <code>/sh</code>”</div>
-<p>Some options can be disabled and excluded from the request by setting
-a “<em>-1</em>” as argument (bypass with “<em>-1.0</em>”)</p>
-<div class="line-block">  “<code>!presence</code> <em>-1</em>”,
-“<code>-a</code> <em>-1</em>”, “<code>-t</code><em>-1</em>”</div>
+<p>Some runtime options can be disabled and excluded from the request by
+setting “<em>-0</em>” as argument</p>
+<div class="line-block">  “<code>!presence</code> <em>-0</em>”,
+“<code>!frequency</code> <em>-0</em>”,
+“<code>/temp</code><em>-0</em>”</div>
 <hr />
 <h2 id="response-regeneration">Response Regeneration</h2>
 <p>To <strong>regenerate response</strong>, type in the command
@@ -1901,8 +1932,8 @@ see <strong>BUGS section</strong>.</p>
 <p><strong>MOD_AUDIO_GROQ</strong>, <strong>MOD_SPEECH_GROQ</strong>,
 <strong>MOD_ANTHROPIC</strong>,</p>
 <dl>
-<dt><strong>MOD_GITHUB</strong>, <strong>MOD_OPENROUTER</strong>,
-<strong>MOD_XAI</strong>, <strong>MOD_DEEPSEEK</strong></dt>
+<dt><strong>MOD_OPENROUTER</strong>, <strong>MOD_XAI</strong>,
+<strong>MOD_DEEPSEEK</strong></dt>
 <dd>
 <p>Set default model for each endpoint / provider.</p>
 </dd>
@@ -1911,24 +1942,24 @@ see <strong>BUGS section</strong>.</p>
 <dl>
 <dt><strong>OPENAI_URL_PATH</strong></dt>
 <dd>
-<p>Main Base URL setting. Alternatively, provide a <em>URL_PATH</em>
-parameter with the full url path to disable endpoint auto selection.</p>
+<p>Main Base URL setting. <em>LOCALAI</em> and <em>OLLAMA</em> use
+this.</p>
+<p>Provide the <em>OPENAI_URL_PATH</em> parameter with the full url path
+to disable endpoint auto selection.</p>
 </dd>
 <dt><strong>PROVIDER_BASE_URL</strong></dt>
 <dd>
-<p>Base URLs for each service provider: <em>LOCALAI</em>,
-<em>OLLAMA</em>, <em>MISTRAL</em>, <em>GOOGLE</em>, <em>ANTHROPIC</em>,
-<em>GROQ</em>, <em>GITHUB</em>, <em>OPENROUTER</em>, <em>XAI</em>, and
-<em>DEEPSEEK</em>.</p>
+<p>Base URLs for each service provider: <em>MISTRAL</em>,
+<em>GOOGLE</em>, <em>ANTHROPIC</em>, <em>GROQ</em>, <em>OPENROUTER</em>,
+<em>XAI</em>, and <em>DEEPSEEK</em>.</p>
 </dd>
 </dl>
 <p><strong>OPENAI_API_KEY</strong></p>
-<p><strong>PROVIDER_API_KEY</strong></p>
 <dl>
-<dt><strong>GITHUB_TOKEN</strong></dt>
+<dt><strong>PROVIDER_API_KEY</strong></dt>
 <dd>
-<p>Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models,
-OpenRouter, xAI, and DeepSeek APIs.</p>
+<p>Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, OpenRouter, xAI,
+and DeepSeek APIs.</p>
 </dd>
 <dt><strong>OUTDIR</strong></dt>
 <dd>
@@ -2150,7 +2181,13 @@ December-2005 with script version v123.</p>
     https://gitlab.com/fenixdragao/shellchatgpt/-/tree/22f7c89b1dc012e16c796e45ac5c0a3aef9e7e3e
      -->
 <h1 id="bugs">BUGS</h1>
-<p>Prompt caching may render (havoc) seemigly higher token counts
+<p>This programme is meant to be run as a single instance per user.
+Instances share the same cache files, so running several at once will
+truncate files that another instance is still receiving data from the
+APIs into, leaving you with corrupted or incomplete data. As
+workarounds, use the <code>--tmp</code> option or a unique directory
+path in environment variable <code>$CACHEDIR</code>.</p>
+<p>Prompt caching may render (havoc) seemingly higher token counts
 recorded in the local session history database due to cached tokens,
 e.g. xAI reasoning models. Service providers may actually inject (though
 not bill) certain amounts of instruction-like tokens automatically.</p>
@@ -2174,17 +2211,20 @@ interface. Make sure to backslash-escape filepaths with white
 spaces.</p>
 <p>Folding the response at white spaces may not worked correctly if the
 user has changed his terminal tabstop setting. Reset it with command
-“tabs -8” or “reset” before starting the script, or set one of these in
-the script configuration file.</p>
+<code>tabs -8</code> or <code>reset</code> before starting the script,
+or set one of these in the script configuration file.</p>
 <p>If folding does not work well at all, try exporting envar
 <code>$COLUMNS</code> before script execution.</p>
 <p>This script deviates from XDG standards; it expects the configuration
 file to be located at <code>~/.chatgpt.conf</code> (which can be changed
-with envar <strong>$CHATGPTRC</strong>), and utilises a single cache
-directory for both ephemeral data and extended data, including more
-persistent files like prompt <code>.pr</code> and session history
-<code>.tsv</code> files (which users are expected to backup and manage
-themselves =).</p>
+with envar <code>$CHATGPTRC</code>), and utilises a single cache
+directory for both ephemeral data and extended data.</p>
+<p>Persistent cache like session history <code>.tsv</code> files and
+prompt <code>.pr</code> files could have been placed in
+<code>~/.config</code> alongside with the configuration file. On
+retrospective, user prompts <code>.pr</code> should always have been
+<code>.md</code> files by defaults, and the configuration file should
+also have been named <code>.chatgptrc</code> from the start.</p>
 <p>Bash truncates input on “\000” (null).</p>
 <p>Garbage in, garbage out. An idiot savant.</p>
 <p>The script logic resembles a bowl of spaghetti code after a cat

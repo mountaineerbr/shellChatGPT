@@ -1,6 +1,6 @@
 #compdef chatgpt.sh
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.134.3
+# v0.136
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -11,7 +11,7 @@
 __session_listf()
 {
   case "${words[CURRENT]}" in
-    [!/]|[!/][!/]*|*/*[!/]*/*|\~*|.*)
+    [!/]|[!/][!/]*|*/*[!/]*/*|[.~]/*|.*)
       _files
       ;;
     *)
@@ -90,7 +90,7 @@ __mod_listf()
            'gpt-5.5' 'o4-mini' 'codestral-latest' 'mistral-large-latest'
            'grok-4.5' 'gemini-pro-latest' 'gemini-3.5-flash'
            'meta-llama/llama-4-maverick' )
-  compadd -a options "$@"
+  compadd -Q -a options "$@"
 }
 
 #list awesome-prompts
@@ -170,7 +170,7 @@ _chatgpt.sh()
     {-H,--hist}'[Edit history file]' \
     {-HH,-P,-PP,--print}'[Print out last session from history]' \
     {-k,--no-colour,--no-color}'[Disable color output]' \
-    {-l,--list-models}'[List models]:model name (optional)' \
+    {-l,--list-models}'[List models or model specs]:model name:__mod_listf' \
     {-L,--log}'[Log file]:log filepath:_files' \
     '--source[Source this script (debug)]:source file:_files' \
     '--tmp[Use temporary directory]' \
@@ -180,7 +180,6 @@ _chatgpt.sh()
     {--google,--goo}'[GoogleAI integration]' \
     '--groq[Groq integration]' \
     {--anthropic,--ant}'[Anthropic integration]' \
-    {--github,--git}'[GitHub Models integration]' \
     {--xai,--grok}'[xAI integration]' \
     {--deepseek,--deep}'[DeepSeek integration]' \
     {--openrouter,--open}'[OpenRouter API integration]' \

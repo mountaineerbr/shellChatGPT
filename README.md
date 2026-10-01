@@ -86,11 +86,10 @@ If no suffix is provided, it works as plain text completions.
     - 13.5.2 [Groq TTS](#groq-tts)
   - 13.6 [Anthropic](#anthropic)
     - 13.6.1 [Anthropic Web Search](#anthropic-web-search)
-  - 13.7 [GitHub Models](#github-models)
-  - 13.8 [Novita AI](#novita-ai)
-  - 13.9 [OpenRouter API](#openrouter-api)
-  - 13.10 [xAI](#xai)
-  - 13.11 [DeepSeek](#deepseek)
+  - 13.7 [Novita AI](#novita-ai)
+  - 13.8 [OpenRouter API](#openrouter-api)
+  - 13.9 [xAI](#xai)
+  - 13.10 [DeepSeek](#deepseek)
 - 14. [Arch Linux Users](#arch-linux-users)
 - 15. [Termux Users](#termux-users)
   - 15.1 [Dependencies](#dependencies-termux)
@@ -111,6 +110,7 @@ If no suffix is provided, it works as plain text completions.
 <!-- - 9. [Local Cache Structure](#cache-structure) (prompts, sessions, and history files) -->
 <!--
 - 13. [Image Generations](#%EF%B8%8F-image-generations)
+  - 13.7 [GitHub Models](#github-models)
 - 14. [Image Variations](#image-variations)
 - 15. [Image Edits](#image-edits)
   - 15.1 [Outpaint - Canvas Extension](#outpaint---canvas-extension)
@@ -967,9 +967,10 @@ Local LLM Software
 
 Free service providers
 
-- [GitHub Models](#github-models)
 - [Gemini Google Vertex](#google-ai)
 - [Groq](#groq)
+
+<!-- - [GitHub Models](#github-models) -->
 
 
 Paid service providers
@@ -1282,8 +1283,14 @@ chatgpt.sh --ant -c -m claude-opus-4-0
 Check more web search parameters at [Anthropic API docs](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking).
 
 
+
+<!--
 ### GitHub Models
 
+This provider has **retired the GitHub Models endpoint**.
+  -->
+
+<!--
 GitHub has partnered with Azure to use its infrastructure.
 
 As a GitHub user, join the [wait list](https://github.com/marketplace/models/waitlist/join)
@@ -1298,7 +1305,7 @@ or list the available models and their original names with `chatgpt.sh --github 
 ```
 chatgpt.sh --github -c -m Phi-3-small-8k-instruct
 ```
-
+ -->
 <!--
 See also the [GitHub Model Catalog - Getting Started](https://techcommunity.microsoft.com/t5/educator-developer-blog/github-model-catalog-getting-started/ba-p/4212711) page.
 -->

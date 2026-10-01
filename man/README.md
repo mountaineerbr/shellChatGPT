@@ -1,31 +1,31 @@
 ---
 author:
 - mountaineerbr
-date: August 2026
-title: CHATGPT.SH(1) v0.135.4 \| General Commands Manual
+date: September 2026
+title: CHATGPT.SH(1) v0.136 \| General Commands Manual
 ---
 
 # NAME
 
-   chatgpt.sh -- Wrapper for ChatGPT / STT / TTS
+   chatgpt.sh -- Wrapper for ChatGPT / STT / TTS and other LLM Providers
 
 # SYNOPSIS
 
    **chatgpt.sh** \[`-bb`\|`-c`\|`-cd`\|`-dd`\|`-qq`\] \[`opt`..\]
-\[*PROMPT*\|*TEXT_FILE*\|*PDF_FILE*\]  
+\[*PROMPT*\|*TEXT_FILE*\|*PDF_FILE*\]\
    **chatgpt.sh** `-w` \[`opt`..\] \[*AUDIO_FILE*\|*.*\] \[*LANG*\]
-\[*PROMPT*\]  
+\[*PROMPT*\]\
    **chatgpt.sh** `-W` \[`opt`..\] \[*AUDIO_FILE*\|*.*\]
-\[*PROMPT-EN*\]  
+\[*PROMPT-EN*\]\
    **chatgpt.sh** `-z` \[`opt`..\] \[*OUTFILE*\|*FORMAT*\|*-*\]
-\[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
+\[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]\
    **chatgpt.sh** `-bcdWwz` \[`opt`..\] -- \[*PROMPT*\] --
 \[*stt_arg*..\] -- \[*tts_arg*..\]
 
-   **chatgpt.sh** `-l` \[*MODEL*\]  
+   **chatgpt.sh** `-l` \[*MODEL*\]\
    **chatgpt.sh** `-TTT` \[-v\] \[`-m`\[*MODEL*\|*ENCODING*\]\]
-\[*INPUT*\|*TEXT_FILE*\|*PDF_FILE*\]  
-   **chatgpt.sh** `-HPP` \[`/`*HIST_NAME*\|*.*\]  
+\[*INPUT*\|*TEXT_FILE*\|*PDF_FILE*\]\
+   **chatgpt.sh** `-HPP` \[`/`*HIST_NAME*\|*.*\]\
    **chatgpt.sh** `-HPw`
 
 <!--
@@ -77,9 +77,9 @@ Single-turn session of plain text completions.
 Multi-turn session of plain text completions with history support.
 
 **-e**, **--edit**  
-Edit first input from stdin or file (cmpls/chat).
+    Edit first input from stdin or file (cmpls/chat).
 
-With `options -eex`, edit last text editor buffer from cache.
+    With `options -eex`, edit last text editor buffer from cache.
 
 **-E**, **-EE**, **--exit**  
 Exit on first run (even with options -bcd).
@@ -103,62 +103,61 @@ Unset response streaming.
 -->
 
 **-q**, **-qq**, **--insert**  
-Insert text rather than completing only. May be set twice for
-multi-turn.
+    Insert text rather than completing only. May be set twice
+    for multi-turn.
 
-Use “*\[insert\]*” to indicate where the language model should insert
-text (\`instruct’ and Mistral \`code models’).
+    Use "_\[insert]_" to indicate where the language model
+    should insert text (\`instruct' and Mistral \`code models').
 
 **-S** **.**\[*PROMPT_NAME*\], **-.**\[*PROMPT_NAME*\]
 
 **-S** **,**\[*PROMPT_NAME*\], **-,**\[*PROMPT_NAME*\]  
-Load, search for, or create custom prompt.
+    Load, search for, or create custom prompt.
 
-Set `.`\[*PROMPT*\] to load prompt silently.
+    Set `.`\[_PROMPT_] to load prompt silently.
 
-Set `,`\[*PROMPT*\] to single-shot edit prompt.
+    Set `,`\[_PROMPT_] to single-shot edit prompt.
 
-Set `,,`\[*PROMPT*\] to edit the prompt template file.
+    Set `,,`\[_PROMPT_] to edit the prompt template file.
 
-Set `.`*?*, or `.`*list* to list all prompt files.
+    Set `.`_?_, or `.`_list_ to list all prompt files.
 
 **-S**, **–awesome** **/**\[*AWESOME_PROMPT_NAME*\]
 
 **-S**, **–awesome-zh** **%**\[*AWESOME_PROMPT_NAME_ZH*\]  
-Set or search for an **awesome-chatgpt-prompt(-zh)**.
+    Set or search for an **awesome-chatgpt-prompt(-zh)**.
 
-Set **//** or **%%** instead to refresh cache.
+    Set **//** or **%%** instead to refresh cache.
 
 **-T**, **--tiktoken**
 
 **-TT**, **-TTT**  
-Count input tokens with python Tiktoken (ignores special tokens).
+    Count input tokens with python Tiktoken (ignores special tokens).
 
-Set twice to print tokens, thrice to available encodings.
+    Set twice to print tokens, thrice to available encodings.
 
-Set the model or encoding with `option -m`.
+    Set the model or encoding with `option -m`.
 
-It heeds `options -bcdm`.
+    It heeds `options -bcdm`.
 
 **-w**, **--transcribe** \[*AUD*\] \[*LANG*\] \[*PROMPT*\]  
-Transcribe audio file speech into text. LANG is optional. A prompt that
-matches the speech language is optional. Speech will be transcribed or
-translated to the target LANG.
+    Transcribe audio file speech into text. LANG is optional.
+    A prompt that matches the speech language is optional.
+    Speech will be transcribed or translated to the target LANG.
 
-Set twice to phrase or thrice for word-level timestamps (-www).
+    Set twice to phrase or thrice for word-level timestamps (-www).
 
-With `options -vv`, stop voice recorder on silence auto detection.
+    With `options -vv`, stop voice recorder on silence auto detection.
 
 **-W**, **--translate** \[*AUD*\] \[*PROMPT-EN*\]  
-Translate audio file speech into English text.
+    Translate audio file speech into English text.
 
-Set twice to phrase or thrice for word-level timestamps (-WWW).
+    Set twice to phrase or thrice for word-level timestamps (-WWW).
 
 **-z**, **--tts** \[*OUTFILE*\|*FORMAT*\|*-*\] \[*VOICE*\] \[*SPEED*\] \[*PROMPT*\]  
-Synthesise speech from text prompt. Takes a voice name, speed and text
-prompt.
+    Synthesise speech from text prompt. Takes a voice name, speed and text prompt.
 
-Set `option -v` to not play response automatically.
+    Set `option -v` to not play response automatically.
 
 ## Input Modes
 
@@ -169,12 +168,12 @@ Toggle multiline prompter, \<*CTRL-D*\> flush.
 Cat prompter, \<*CTRL-D*\> flush.
 
 **-x**, **-xx**, **--editor**  
-Edit prompt in text editor.
+    Edit prompt in text editor.
 
-Set twice to run the text editor interface a single time for the first
-user input.
+    Set twice to run the text editor interface a single time
+    for the first user input.
 
-Set `options -eex` to edit last buffer from cache.
+    Set `options -eex` to edit last buffer from cache.
 
 ## Model Settings
 
@@ -190,18 +189,18 @@ Unset model max response tokens (chat cmpls only).
 **-NUM**
 
 **-M**, **--max** \[*NUM*\[*-NUM*\]\]  
-Maximum number of *response tokens*. Def=*4096*.
+    Maximum number of _response tokens_. Def=_4096_.
 
-A second number in the argument sets model capacity.
+    A second number in the argument sets model capacity.
 
 **-N**, **--modmax** \[*NUM*\]  
 *Model capacity* token value. Def=*auto*, Fallback=*16000*.
 
-Set **-Nn** to disable using LiteLLM model specs.
+Set **-Nn** to disable using model specs data.
 
-Set **-NN** to force use LiteLLM model specs.
+Set **-NN** to force use provider or LiteLLM model specs.
 
-Set **-NNN** to update and use LiteLLM model specs file.
+Set **-NNN** to update provider and LiteLLM cached data of model specs.
 
 **-a**, **--presence-penalty** \[*VAL*\]  
 Presence penalty (cmpls/chat, -2.0 - 2.0).
@@ -224,7 +223,7 @@ claude-{sonnet,opus}-4-6+)
 Amount of effort in reasoning models. These flags can be used
 interchangeably.
 
-**--format** \[*mp3*\|*wav*\|*flac*\|*opus*\|*aac*\|*pcm16*\|*mulaw*\|*ogg*\]  
+**--format** \[*mp3*\|*wav*\|*flac*\|*opus*\|*aac*\|*pcm*\|*mulaw*\|*ogg*\]  
 TTS out-file format. Def= *mp3*.
 
 **-j**, **--seed** \[*NUM*\]  
@@ -237,9 +236,9 @@ Top_k value (local-ai, ollama, google).
 How long the model will stay loaded into memory (Ollama).
 
 **-m**, **--model** \[*MODEL*\]  
-Language *MODEL* name. Def=*gpt-5.1*/*gpt-3.5-turbo-instruct*.
+    Language _MODEL_ name. Def=_gpt-6-astra_/_gpt-3.5-turbo-instruct_.
 
-Set *MODEL* name as “*.*” to pick from the list.
+    Set _MODEL_ name as "_._" to pick from the list.
 
 **--multimodal**, **--vision**, **--audio**  
 Model multimodal model type.
@@ -282,17 +281,17 @@ TTS voice name. OpenAI or GroqAI voice names. Def=*echo*, *daniel*.
 ## Session and History Files
 
 **-H**, **--hist** \[`/`*HIST_NAME*\]  
-Edit history file with text editor or pipe to stdout.
+    Edit history file with text editor or pipe to stdout.
 
-A history file name can be optionally set as argument.
+    A history file name can be optionally set as argument.
 
 **-P**, **-PP**, **--print** \[`/`*HIST_NAME*\]  
-Print out last history session.
+    Print out last history session.
 
-Set twice to print commented out history entries, inclusive. Heeds
-`options -bcdrR`.
+    Set twice to print commented out history entries, inclusive.
+    Heeds `options -bcdrR`.
 
-These are aliases to **-HH** and **-HHH**, respectively.
+    These are aliases to **-HH** and **-HHH**, respectively.
 
 **--tmp**  
 Temporary cache location. Defaults to subdirectory in `$CACHEDIR`,
@@ -304,9 +303,9 @@ Temporary cache location. Defaults to subdirectory in `$CACHEDIR`,
 Ignore user configuration file.
 
 **-F**  
-Edit configuration file with text editor, if it exists.
+    Edit configuration file with text editor, if it exists.
 
-\$CHATGPTRC="*~/.chatgpt.conf*".
+    \$CHATGPTRC=\"_~/.chatgpt.conf_\".
 
 **-FF**  
 Dump template configuration file to stdout.
@@ -319,8 +318,10 @@ Anthropic integration (cmpls/chat). Also see **--think**.
 **--deepseek**, **--deep**  
 DeepSeek integration (cmpls/chat).
 
-**--github**, **--git**  
-(Retired) GitHub Models integration (chat).
+<!--
+**\--github**, **\--git**
+&#10;: (Retired) GitHub Models integration (chat).
+ -->
 
 **--google**, **-goo**  
 Google Gemini integration (cmpls/chat).
@@ -349,10 +350,13 @@ xAI Grok integration (cmpls/chat).
 ## Miscellaneous Settings
 
 **--api-key** \[*KEY*\]  
-The API key to use.
+The API key to use (OpenAI only).
+
+**--cache-enable**  
+Enable the upstream 5-min cache option for Anthropic API.
 
 **--cache-disable**  
-Disable the 5-min ephemeral cache option for Anthropic API.
+Disable the 5-min ephemeral cache for Anthropic API (default).
 
 **--fold** (*defaults*), **--no-fold**  
 Set or unset response folding (wrap at white spaces).
@@ -386,18 +390,18 @@ Copy response to clipboard.
 Source this script functions and shell configuration (debug).
 
 **-v**, **-vv** <!-- verbose -->  
-Less interface verbosity.
+    Less interface verbosity.
 
-Sleep after response in voice chat (`-vvbcdw`).
+    Sleep after response in voice chat (`-vvbcdw`).
 
-With `options -bcdwv`, sleep after response. With `options -bcdwzvv`,
-stop recording voice input on silence detection and play TTS response
-right away.
+    With `options -bcdwv`, sleep after response. With `options -bcdwzvv`,
+    stop recording voice input on silence detection and play TTS response
+    right away.
 
-May be set multiple times.
+    May be set multiple times.
 
 **-V**  
-Dump raw JSON request block (debug).
+    Dump raw JSON request block (debug).
 
 **--version**  
 Print script version.
@@ -415,7 +419,7 @@ Print JSON data of the last responses.
 
 Invoke `option -c`, `--chat` to initiate interactive multi-turn sessions
 via **native chat completions** with persistent history. This mode
-defaults to the *gpt-5.1* model.
+defaults to the *gpt-6-astra* model.
 
 Models compatible with **pure text completions** (instruct models), set
 `options -cd` or `--text-chat` at the command line. If no model is
@@ -558,8 +562,9 @@ also be set. The option syntax takes the form of “`-`*NUM/NUM*”, and
 known models or to *16000* tokens as fallback.
 
 There is also the `option -NN` to automatically set the model capacity
-looking up LiteLLM model specs file on a best-effort basis, whereas
-`option -Nn` actually prevents this feature activation.
+looking up provider-specific or LiteLLM model specs file on a
+best-effort basis, whereas `option -Nn` actually prevents this feature
+activation.
 
 `Option -y` sets python tiktoken instead of the default script hack to
 count tokens. This option makes token count accurate and fast (we fork
@@ -592,7 +597,7 @@ Combine `options -wW` **with** `options -bcd` to start **chat with voice
 input** (Whisper) support. Additionally, set `option -z` to enable
 **text-to-speech** (TTS) models and voice out.
 
-# TEXT-TO-VOICE (TTS)
+# TEXT-TO-SPEECH (TTS)
 
 `Option -z` synthesises voice from text (TTS models). Set a *voice* as
 the first positional parameter (“*alloy*”, “*echo*”, “*fable*”,
@@ -601,7 +606,7 @@ the first positional parameter (“*alloy*”, “*echo*”, “*fable*”,
 Set the second positional parameter as the *voice speed* (*0.25* -
 *4.0*), and, finally the *output file name* or the *format*, such as
 “*./new_audio.mp3*” (“*mp3*”, “*wav*”, “*flac*”, “*opus*”, “*aac*”, or
-“*pcm16*”); or set “*-*” for stdout.
+“*pcm*”); or set “*-*” for stdout.
 
 Do mind that GroqAI’s Orpheus has the specific output format “*wav*”, as
 well as different voice names such as daniel, autumn, diana, etc.
@@ -625,7 +630,7 @@ To activate the audio synthesis output mode of an audio model, make sure
 to set command line `option -z`!
 
 In chat mode, when the model does not support audio-in or audio-out
-modalities, the script uses whisper and tts functions in a special
+modalities, the script uses whisper and TTS functions in a special
 manner to achieve audio turns.
 
 <!--
@@ -847,7 +852,7 @@ parameters and manage sessions.
 | `!Nill` | `-Nill` | Unset max response tokens (chat cmpls). |
 | `!NUM` | `-M` \[*NUM*\] | Maximum response tokens. |
 | `!!NUM` | `-N` \[*NUM*\] | Model token capacity. |
-| `-NN` | `-NNN` | Auto-set model capacity (LiteLLM model specs lookup). |
+| `-NN` | `-NNN` | Auto-set model capacity / update cache data. |
 | `-a` | `!pre` \[*VAL*\] | Presence penalty. |
 | `-A` | `!freq` \[*VAL*\] | Frequency penalty. |
 | `-b` | `!responses` \[*MOD*\] | Responses API request (experimental). |
@@ -863,7 +868,7 @@ parameters and manage sessions.
 | `-w` | `!rec` \[*ARGS*\] | Toggle voice-in STT. Optionally, set arguments. |
 | `-z` | `!tts` \[*ARGS*\] | Toggle TTS chat mode (speech out). |
 | `!blk` | `!block` \[*ARGS*\] | Set and add custom options to JSON request. |
-| `!effort` | \- \[*MODE*\] | Effort: xhigh, high, medium, low, minimal, or none (OpenAI / Anthropic). |
+| `!effort` | \- \[*MODE*\] | Effort: max, xhigh, high, medium, low, minimal, or none (OpenAI / Anthropic). |
 | `!think` | \- \[*NUM*\] | Budget: token value (Anthropic). |
 | `!ka` | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
 | `!verb` | `!verbosity` \[*MODE*\] | Model verbosity level (high, medium, or low). |
@@ -885,7 +890,7 @@ parameters and manage sessions.
 | `!!u` | `!!unkill` \[\[*0*\]*NUM*\] | Dry-run of command `!unkill`. |
 | `!br` | `!break`, `!new` | Start new session (session break). |
 | `!ls` | `!list` \[*GLOB*\|*.*\|*pr*\|*awe*\] | List history files with “*glob*” in *name*; Files: “*.*”; Prompts: “*pr*”; Awesome: “*awe*”. |
-| `!grep` | `!sub` \[*REGEX*\] | Grep sessions and copy session to hist tail. |
+| `!grep` | `!!grep` \[*REGEX*\] | Grep sessions and copy session to hist tail; include dead lines. |
 | `!tmp` | `!!tmp` | Fork session to a temporary cache. |
 
 <!--
@@ -908,10 +913,10 @@ Examples
 
   “\[*PROMPT*\] `/sh`”, “*Translate this to French* `/sh`”
 
-Some options can be disabled and excluded from the request by setting a
-“*-1*” as argument (bypass with “*-1.0*”)
+Some runtime options can be disabled and excluded from the request by
+setting “*-0*” as argument
 
-  “`!presence` *-1*”, “`-a` *-1*”, “`-t`*-1*”
+  “`!presence` *-0*”, “`!frequency` *-0*”, “`/temp`*-0*”
 
 ------------------------------------------------------------------------
 
@@ -1250,27 +1255,26 @@ Default instruction language in chat mode.
 
 **MOD_AUDIO_GROQ**, **MOD_SPEECH_GROQ**, **MOD_ANTHROPIC**,
 
-**MOD_GITHUB**, **MOD_OPENROUTER**, **MOD_XAI**, **MOD_DEEPSEEK**  
+**MOD_OPENROUTER**, **MOD_XAI**, **MOD_DEEPSEEK**  
 Set default model for each endpoint / provider.
 
 **OPENAI_BASE_URL**
 
 **OPENAI_URL_PATH**  
-Main Base URL setting. Alternatively, provide a *URL_PATH* parameter
-with the full url path to disable endpoint auto selection.
+Main Base URL setting. *LOCALAI* and *OLLAMA* use this.
+
+Provide the *OPENAI_URL_PATH* parameter with the full url path to
+disable endpoint auto selection.
 
 **PROVIDER_BASE_URL**  
-Base URLs for each service provider: *LOCALAI*, *OLLAMA*, *MISTRAL*,
-*GOOGLE*, *ANTHROPIC*, *GROQ*, *GITHUB*, *OPENROUTER*, *XAI*, and
-*DEEPSEEK*.
+Base URLs for each service provider: *MISTRAL*, *GOOGLE*, *ANTHROPIC*,
+*GROQ*, *OPENROUTER*, *XAI*, and *DEEPSEEK*.
 
 **OPENAI_API_KEY**
 
-**PROVIDER_API_KEY**
-
-**GITHUB_TOKEN**  
-Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, GitHub Models,
-OpenRouter, xAI, and DeepSeek APIs.
+**PROVIDER_API_KEY**  
+Keys for OpenAI, Gemini, Mistral, Groq, Anthropic, OpenRouter, xAI, and
+DeepSeek APIs.
 
 **OUTDIR**  
 Output directory for received audio and files.
@@ -1312,8 +1316,8 @@ provider, run “`//g [prompt]`” and choose amongst *Google*,
 Running “`//g [prompt]`” will always use the in-house solution instead
 of any service provider specific web search tool.
 
-A cli-browser is required, such as **w3m**, **elinks, **links**, or
-**lynx\*\*.
+A cli-browser is required, such as **w3m**, **elinks,** links**, or**
+lynx\*\*.
 
 ## OpenAI Web Search
 
@@ -1508,7 +1512,14 @@ December-2005 with script version v123.
 
 # BUGS
 
-Prompt caching may render (havoc) seemigly higher token counts recorded
+This programme is meant to be run as a single instance per user.
+Instances share the same cache files, so running several at once will
+truncate files that another instance is still receiving data from the
+APIs into, leaving you with corrupted or incomplete data. As
+workarounds, use the `--tmp` option or a unique directory path in
+environment variable `$CACHEDIR`.
+
+Prompt caching may render (havoc) seemingly higher token counts recorded
 in the local session history database due to cached tokens, e.g. xAI
 reasoning models. Service providers may actually inject (though not
 bill) certain amounts of instruction-like tokens automatically.
@@ -1537,7 +1548,7 @@ interface. Make sure to backslash-escape filepaths with white spaces.
 
 Folding the response at white spaces may not worked correctly if the
 user has changed his terminal tabstop setting. Reset it with command
-“tabs -8” or “reset” before starting the script, or set one of these in
+`tabs -8` or `reset` before starting the script, or set one of these in
 the script configuration file.
 
 If folding does not work well at all, try exporting envar `$COLUMNS`
@@ -1545,10 +1556,14 @@ before script execution.
 
 This script deviates from XDG standards; it expects the configuration
 file to be located at `~/.chatgpt.conf` (which can be changed with envar
-**\$CHATGPTRC**), and utilises a single cache directory for both
-ephemeral data and extended data, including more persistent files like
-prompt `.pr` and session history `.tsv` files (which users are expected
-to backup and manage themselves =).
+`$CHATGPTRC`), and utilises a single cache directory for both ephemeral
+data and extended data.
+
+Persistent cache like session history `.tsv` files and prompt `.pr`
+files could have been placed in `~/.config` alongside with the
+configuration file. On retrospective, user prompts `.pr` should always
+have been `.md` files by defaults, and the configuration file should
+also have been named `.chatgptrc` from the start.
 
 Bash truncates input on “\000” (null).
 
