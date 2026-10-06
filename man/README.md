@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: September 2026
-title: CHATGPT.SH(1) v0.136 \| General Commands Manual
+date: October 2026
+title: CHATGPT.SH(1) v0.136.1 \| General Commands Manual
 ---
 
 # NAME
@@ -122,9 +122,9 @@ Unset response streaming.
 
     Set `.`_?_, or `.`_list_ to list all prompt files.
 
-**-S**, **–awesome** **/**\[*AWESOME_PROMPT_NAME*\]
+**-S**, **--awesome** **/**\[*AWESOME_PROMPT_NAME*\]
 
-**-S**, **–awesome-zh** **%**\[*AWESOME_PROMPT_NAME_ZH*\]  
+**-S**, **--awesome-zh** **%**\[*AWESOME_PROMPT_NAME_ZH*\]  
     Set or search for an **awesome-chatgpt-prompt(-zh)**.
 
     Set **//** or **%%** instead to refresh cache.
@@ -490,7 +490,7 @@ respectively-named history file.
 
 Alternatively, set the first positional argument with the operator and
 the prompt name after any command line options, such as
-“`chatgpt;sh -c .[_prompt_name_]`”. This loads the prompt file unless
+“`chatgpt.sh -c .[_prompt_name_]`”. This loads the prompt file unless
 instruction was set with command line options.
 
 To prepend the current date and time to the instruction prompt, set
@@ -672,8 +672,8 @@ completions is not activated with `option -cd`.
 
 Readline is set to work with **multiline input** and pasting from the
 clipboard. Alternatively, set `option -u` to enable pressing
-\<*CTRL-D*\> to flush input! Or set `option -U` to set *cat command* as
-input prompter.
+\<*CTRL-D*\> to flush input! Or set `option -U` to use *cat* as the
+input prompt reader.
 
 Bash bracketed paste is enabled, meaning multiline input may be pasted
 or typed, even without setting `options -uU` (*v25.2+*).
@@ -986,7 +986,7 @@ first positional argument from the command line on invocation.
 
 The above command is a shortcut of “`/copy` *current* *current*”. In
 fact, there are multiple commands to copy and resume from an older
-session (the dot means *current session*): “`/copy . .`”, “`/fork.`”,
+session (the dot means *current session*): “`/copy . .`”, “`/fork .`”,
 “`/sub`”, and “`/grep` \[*REGEX*\]”.
 
 From the command line on invocation, simply type “`.`” as the first
@@ -1196,7 +1196,7 @@ Likewise, for xAI Grok, set environment `$XAI_API_KEY` with its API key.
 
 Likewise, for other supported service providers, use command line
 options, or for unknown providers, use environmental variables for
-configuiration.
+configuration.
 
 Many service providers can be wrapped by this script.
 
@@ -1297,7 +1297,7 @@ Defaults="*vim*"
 Clipboard set command, e.g. “*xsel* *-b*”, “*pbcopy*”.
 
 **PLAY_CMD**  
-Audio player command, e.g. “*mpv –no-video –vo=null*”.
+Audio player command, e.g. “*mpv --no-video --vo=null*”.
 
 **REC_CMD**  
 Audio recorder command, e.g. “*sox -d*”.
@@ -1397,8 +1397,8 @@ The colour palette is composed of *\$Red*, *\$Green*, *\$Yellow*,
 Bold variations are defined as *\$BRed*, *\$BGreen*, etc, and background
 colours can be set with *\$On_Yellow*, *\$On_Blue*, etc.
 
-Alternatively, raw escaped color sequences, such as *\u001b\[0;35m*, and
-*\u001b\[1;36m* may be set.
+Alternatively, raw escaped colour sequences, such as *\u001b\[0;35m*,
+and *\u001b\[1;36m* may be set.
 
 Theme colours are named variables from `Colour1` to about `Colour11`,
 and may be set with colour-named variables or raw escape sequences
@@ -1426,7 +1426,7 @@ the following file types:
 
 **Backup Recommendation:** It is strongly recommended to back up session
 record files (tsv) and prompt files (pr), as well as the configuration
-file (chatgpt.sh) to preserve session history, custom promptsnd
+file (chatgpt.sh) to preserve session history, custom prompts and
 settings.
 
 # KEYBINDINGS
@@ -1503,7 +1503,7 @@ nor “video generation / editing” capabilities.
 Support for “Responses API” is limited and experimental at this point.
 
 Image generations, variations, and editing endpoints was dropped in
-December-2005 with script version v123.
+December-2025 with script version v0.123.
 
 <!--
   chatgpt.sh v122.5  Dec-2025

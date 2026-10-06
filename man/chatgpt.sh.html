@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc 3.11" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.136 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.136.1 | General Commands Manual</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -176,9 +176,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.136 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.136.1 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">September 2026</p>
+<p class="date">October 2026</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT / TTS
@@ -324,10 +324,10 @@ Set `,,`\[_PROMPT_] to edit the prompt template file.
 Set `.`_?_, or `.`_list_ to list all prompt files.</code></pre>
 </dd>
 </dl>
-<p><strong>-S</strong>, <strong>–awesome</strong>
+<p><strong>-S</strong>, <strong>--awesome</strong>
 <strong>/</strong>[<em>AWESOME_PROMPT_NAME</em>]</p>
 <dl>
-<dt><strong>-S</strong>, <strong>–awesome-zh</strong>
+<dt><strong>-S</strong>, <strong>--awesome-zh</strong>
 <strong>%</strong>[<em>AWESOME_PROMPT_NAME_ZH</em>]</dt>
 <dd>
 <pre><code>Set or search for an **awesome-chatgpt-prompt(-zh)**.
@@ -793,7 +793,7 @@ actually edit the template file itself!</p>
 respectively-named history file.</p>
 <p>Alternatively, set the first positional argument with the operator
 and the prompt name after any command line options, such as
-“<code>chatgpt;sh -c .[_prompt_name_]</code>”. This loads the prompt
+“<code>chatgpt.sh -c .[_prompt_name_]</code>”. This loads the prompt
 file unless instruction was set with command line options.</p>
 <p>To prepend the current date and time to the instruction prompt, set
 command line <code>option --time</code>.</p>
@@ -963,8 +963,8 @@ the chat mode of text completions is not activated with
 <p>Readline is set to work with <strong>multiline input</strong> and
 pasting from the clipboard. Alternatively, set <code>option -u</code> to
 enable pressing &lt;<em>CTRL-D</em>&gt; to flush input! Or set
-<code>option -U</code> to set <em>cat command</em> as input
-prompter.</p>
+<code>option -U</code> to use <em>cat</em> as the input prompt
+reader.</p>
 <p>Bash bracketed paste is enabled, meaning multiline input may be
 pasted or typed, even without setting <code>options -uU</code>
 (<em>v25.2+</em>).</p>
@@ -1654,7 +1654,7 @@ on invocation.</p>
 <p>The above command is a shortcut of “<code>/copy</code>
 <em>current</em> <em>current</em>”. In fact, there are multiple commands
 to copy and resume from an older session (the dot means <em>current
-session</em>): “<code>/copy . .</code>”, “<code>/fork.</code>”,
+session</em>): “<code>/copy . .</code>”, “<code>/fork .</code>”,
 “<code>/sub</code>”, and “<code>/grep</code> [<em>REGEX</em>]”.</p>
 <p>From the command line on invocation, simply type “<code>.</code>” as
 the first positional argument.</p>
@@ -1867,7 +1867,7 @@ Run the script with `option --xai` and also with `option -cc` (chat completions.
 -->
 <p>Likewise, for other supported service providers, use command line
 options, or for unknown providers, use environmental variables for
-configuiration.</p>
+configuration.</p>
 <p>Many service providers can be wrapped by this script.</p>
 <p>Basically, set end export <strong>$OPENAI_BASE_URL</strong> to a
 target OpenAI-v1-compatible API host URL before executing the
@@ -1987,7 +1987,7 @@ and DeepSeek APIs.</p>
 </dd>
 <dt><strong>PLAY_CMD</strong></dt>
 <dd>
-<p>Audio player command, e.g. “<em>mpv –no-video –vo=null</em>”.</p>
+<p>Audio player command, e.g. “<em>mpv --no-video --vo=null</em>”.</p>
 </dd>
 <dt><strong>REC_CMD</strong></dt>
 <dd>
@@ -2074,7 +2074,7 @@ variables.</p>
 <p>Bold variations are defined as <em>$BRed</em>, <em>$BGreen</em>, etc,
 and background colours can be set with <em>$On_Yellow</em>,
 <em>$On_Blue</em>, etc.</p>
-<p>Alternatively, raw escaped color sequences, such as
+<p>Alternatively, raw escaped colour sequences, such as
 <em>\u001b[0;35m</em>, and <em>\u001b[1;36m</em> may be set.</p>
 <p>Theme colours are named variables from <code>Colour1</code> to about
 <code>Colour11</code>, and may be set with colour-named variables or raw
@@ -2103,7 +2103,7 @@ backup.</li>
 <p><strong>Backup Recommendation:</strong> It is strongly recommended to
 back up session record files (tsv) and prompt files (pr), as well as the
 configuration file (chatgpt.sh) to preserve session history, custom
-promptsnd settings.</p>
+prompts and settings.</p>
 <h1 id="keybindings">KEYBINDINGS</h1>
 <p>Press &lt;<em>CTRL-X</em> <em>CTRL-E</em>&gt; to edit command line in
 text editor from readline.</p>
@@ -2174,7 +2174,7 @@ options will be covered.</p>
 <p>Support for “Responses API” is limited and experimental at this
 point.</p>
 <p>Image generations, variations, and editing endpoints was dropped in
-December-2005 with script version v123.</p>
+December-2025 with script version v0.123.</p>
 <!--
   chatgpt.sh v122.5  Dec-2025
     https://gitlab.com/fenixdragao/shellchatgpt/-/tree/22f7c89b1dc012e16c796e45ac5c0a3aef9e7e3e

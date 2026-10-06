@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.136 | General Commands Manual
+% CHATGPT.SH(1) v0.136.1 | General Commands Manual
 % mountaineerbr
-% September 2026
+% October 2026
 
 
 # NAME
@@ -145,9 +145,9 @@ STT and TTS endpoints functionality is modestly available for some providers.
       Set `.`_?_, or `.`_list_ to list all prompt files.
 
 
-**-S**, **--awesome**  **/**\[_AWESOME_PROMPT_NAME_]
+**-S**, **\--awesome**  **/**\[_AWESOME_PROMPT_NAME_]
 
-**-S**, **--awesome-zh**  **%**\[_AWESOME_PROMPT_NAME_ZH_]
+**-S**, **\--awesome-zh**  **%**\[_AWESOME_PROMPT_NAME_ZH_]
 
 :     Set or search for an **awesome-chatgpt-prompt(-zh)**.
 
@@ -648,7 +648,7 @@ history file.
 
 Alternatively, set the first positional argument with the operator
 and the prompt name after any command line options, such as
-"`chatgpt;sh -c .[_prompt_name_]`". This loads the prompt file unless instruction
+"`chatgpt.sh -c .[_prompt_name_]`". This loads the prompt file unless instruction
 was set with command line options.
 
 To prepend the current date and time to the instruction prompt, set
@@ -843,7 +843,7 @@ is not activated with `option -cd`.
 
 Readline is set to work with **multiline input** and pasting from the
 clipboard. Alternatively, set `option -u` to enable pressing \<_CTRL-D_>
-to flush input! Or set `option -U` to set _cat command_ as input prompter.
+to flush input! Or set `option -U` to use _cat_ as the input prompt reader.
 
 Bash bracketed paste is enabled, meaning multiline input may be
 pasted or typed, even without setting `options -uU` (_v25.2+_).
@@ -1173,7 +1173,7 @@ as the first positional argument from the command line on invocation.
 The above command is a shortcut of "`/copy` _current_ _current_".
 In fact, there are multiple commands to copy and resume from
 an older session (the dot means _current session_):
-"`/copy . .`", "`/fork.`", "`/sub`", and "`/grep` \[_REGEX_]".
+"`/copy . .`", "`/fork .`", "`/sub`", and "`/grep` \[_REGEX_]".
 
 From the command line on invocation, simply type "`.`" as
 the first positional argument.
@@ -1422,7 +1422,7 @@ Run the script with `option --xai` and also with `option -cc` (chat completions.
 
 Likewise, for other supported service providers, use command line
 options, or for unknown providers,
-use environmental variables for configuiration.
+use environmental variables for configuration.
 
 Many service providers can be wrapped by this script.
 
@@ -1555,7 +1555,7 @@ see **BUGS section**.
 
 **PLAY_CMD**
 
-:    Audio player command, e.g. "_mpv --no-video --vo=null_".
+:    Audio player command, e.g. "_mpv \--no-video \--vo=null_".
 
 
 **REC_CMD**
@@ -1669,7 +1669,7 @@ _\$Purple_, _\$Cyan_, _\$White_, _\$Inv_ (invert), and _\$Nc_ (reset) variables.
 Bold variations are defined as _\$BRed_, _\$BGreen_, etc, and
 background colours can be set with _\$On_Yellow_, _\$On_Blue_, etc.
 
-Alternatively, raw escaped color sequences, such as
+Alternatively, raw escaped colour sequences, such as
 _\\u001b[0;35m_, and _\\u001b[1;36m_ may be set.
 
 Theme colours are named variables from `Colour1` to about `Colour11`,
@@ -1693,7 +1693,7 @@ may contain the following file types:
 **Backup Recommendation:**  It is strongly recommended to back up
 session record files (tsv) and prompt files (pr), as well as the
 configuration file (chatgpt.sh)
-to preserve session history, custom promptsnd settings.
+to preserve session history, custom prompts and settings.
 
 
 # KEYBINDINGS
@@ -1772,7 +1772,7 @@ capabilities.
 
 Support for "Responses API" is limited and experimental at this point.
 
-Image generations, variations, and editing endpoints was dropped in December-2005 with script version v123.
+Image generations, variations, and editing endpoints was dropped in December-2025 with script version v0.123.
 
 <!--
   chatgpt.sh v122.5  Dec-2025
