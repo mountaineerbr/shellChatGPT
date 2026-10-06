@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136  sep/2026  by mountaineerbr  GPL+3
+# v0.136.1  oct/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1799,8 +1799,8 @@ function lastjsonf
 #set up context from history file ($HIST and $HIST_C)
 function set_histf
 {
-	typeset time token string stringc stringd max_prev q_type a_type role role_last rest com sub ind herr nl x r n;
-	time= token= string= stringc= stringd= max_prev= role= role_last= rest= sub= ind= nl=;
+	typeset time token string stringc stringd max_prev total_old q_type a_type role role_last rest com sub ind herr nl x r n;
+	time= token= string= stringc= stringd= max_prev= total_old= role= role_last= rest= sub= ind= nl=;
         typeset ANTHROPICAI_CACHE_CONTROL_DISABLE=1;  #cache breakpoints only on system + last user msg (max 4)
 	typeset -a MEDIA MEDIA_CMD; MEDIA=(); MEDIA_CMD=();
 	HIST_LOOP=0 HIST= HIST_C=;
@@ -1808,6 +1808,7 @@ function set_histf
 	[[ -s $FILECHAT ]] || return;
 	((BREAK_SET)) && return;
 
+	total_old=$TOTAL_OLD
 	((OPTTIK)) && herr=1 || herr=4;  #context limit error pc
 	q_type=${Q_TYPE##$SPC1} a_type=${A_TYPE##$SPC1}
 	((OPTC>1 || EPN==6 || EPN==12)) && typeset A_TYPE="${A_TYPE} "  #pretty-print seq "\\nA: " ($rest)
@@ -1856,7 +1857,10 @@ function set_histf
 		   (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX))
 		}
 		then 	((++HIST_LOOP))
-			((max_prev+=token)); ((MAIN_LOOP)) || ((TOTAL_OLD+=token))
+			((max_prev+=token))
+			#rebuild total_old when zeroed or on "regen mode -1"
+			((MAIN_LOOP && REGEN>=0 && total_old>0)) || ((TOTAL_OLD+=token))
+
 			MAX_PREV=$((max_prev+TKN_PREV))  HIST_TIME="${time##\#}"
 
 			if ((OPTC || EPN==6 || EPN==12))
@@ -3312,7 +3316,8 @@ function cmdf
 						else 	set -- -e "${arr[${#arr[@]}-n]%%:*} s/^#//" "$@"
 						fi
 					done
-					sed -i "$@" "$FILECHAT";
+					sed -i "$@" "$FILECHAT" &&
+					  TOTAL_OLD= MAX_PREV=;
 				fi
 			else 	IFS=$' \t\n';
 			fi;
@@ -3682,6 +3687,7 @@ function cmdf
 					CKSUM_OLD=;
 				fi;
 			fi
+			TOTAL_OLD= MAX_PREV=;
 			XSKIP= SKIP=1 EDIT=1 SKIP_SH_HIST=1;
 			((REGEN)) || ((!MAIN_LOOP)) || ((--MAIN_LOOP));
 			case "$*" in
