@@ -1868,16 +1868,22 @@ They were studied during development of this script and used as referential code
 10. [ErikBjare's gptme](https://github.com/ErikBjare/gptme)
 11. [SimonW's LLM](https://github.com/simonw/llm)
 12. [llm-workflow-engine](https://github.com/llm-workflow-engine/llm-workflow-engine)
-13. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
-14. [mudler's LocalAI](https://github.com/mudler/LocalAI)
-15. [Ollama](https://github.com/ollama/ollama/)
-16. [Google Gemini](https://gemini.google.com/)
-17. [Groq](https://console.groq.com/docs/api-reference)
-18. [Antropic AI](https://docs.anthropic.com/)
-19. [Novita AI](https://novita.ai/)
-20. [xAI](https://docs.x.ai/docs/quickstart)
-21. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
-22. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+13. [ChatBlade](https://github.com/npiv/chatblade)
+14. [0xacx's chatGPT-shell-cli](https://github.com/0xacx/chatGPT-shell-cli)
+15. [mudler's LocalAI](https://github.com/mudler/LocalAI)
+16. [Ollama](https://github.com/ollama/ollama/)
+17. [Google Gemini](https://gemini.google.com/)
+18. [Groq](https://console.groq.com/docs/api-reference)
+19. [Antropic AI](https://docs.anthropic.com/)
+20. [Novita AI](https://novita.ai/)
+21. [xAI](https://docs.x.ai/docs/quickstart)
+22. [f's awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts)
+23. [PlexPt's awesome-chatgpt-prompts-zh](https://github.com/PlexPt/awesome-chatgpt-prompts-zh)
+
+
+<!--
+    https://github.com/danielmiessler/Fabric
+  -->
 
 <!-- 17. [Kardolu's chatgpt-cli](https://github.com/kardolus/chatgpt-cli) -->
 <!-- https://github.com/sst/opencode -->
