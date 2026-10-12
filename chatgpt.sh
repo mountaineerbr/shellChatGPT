@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136.1  oct/2026  by mountaineerbr  GPL+3
+# v0.136.2  oct/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -3312,12 +3312,12 @@ function cmdf
 					#build sed command with an expression for each line
 					for ((n=n;n>0;n--))
 					do 	if ((kill))
-						then 	set -- -e "${arr[${#arr[@]}-n]%%:*} s/^/#/" "$@"
-						else 	set -- -e "${arr[${#arr[@]}-n]%%:*} s/^#//" "$@"
+						then 	set -- "${1}${1+ }${arr[${#arr[@]}-n]%%:*} s/^/#/;"
+						else 	set -- "${1}${1+ }${arr[${#arr[@]}-n]%%:*} s/^#//;"
 						fi
 					done
-					sed -i "$@" "$FILECHAT" &&
-					  TOTAL_OLD= MAX_PREV=;
+					sed -i -e "$@" "$FILECHAT" &&
+					  TOTAL_OLD= MAX_PREV=;  #beware of bsd
 				fi
 			else 	IFS=$' \t\n';
 			fi;
