@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136.2  oct/2026  by mountaineerbr  GPL+3
+# v0.136.3  oct/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1769,8 +1769,9 @@ function get_infof
 	curl ${FAIL} -\# -L "${BASE_URL}${ENDPOINTS[13]}/costs?start_time=${unix}&limit=31" \
 	  -H "Authorization: Bearer ${OPENAI_ADMIN_KEY:?required}" -H "Content-Type: application/json" -o "$FILE" &&
 
-	  jq -r '.data | map({start_time: (.start_time | strftime("%Y-%m-%d")), value: (.results[0].amount.value // 0)}) | reduce .[] as $item ({sum: 0, results: []}; .sum += $item.value | .results += [{start_time: $item.start_time, value: $item.value, sum: .sum}]) | .results[] | [.start_time, .value, .sum] | @tsv' "$FILE" |
-	  column -t -Ndate,price,subtotal;
+	  { printf 'date\tprice\tsubtotal\n'
+	  jq -r '.data | map({start_time: (.start_time | strftime("%Y-%m-%d")), value: (.results[0].amount.value // 0)}) | reduce .[] as $item ({sum: 0, results: []}; .sum += $item.value | .results += [{start_time: $item.start_time, value: $item.value, sum: .sum}]) | .results[] | [.start_time, .value, .sum] | @tsv' "$FILE"
+	  } | column -t;
 
 	curl ${FAIL} -\# -L "${BASE_URL}${ENDPOINTS[13]}/usage/completions?start_time=${unix}&limit=31" \
 	  -H "Authorization: Bearer ${OPENAI_ADMIN_KEY:?required}" -H "Content-Type: application/json" -o "$FILE" &&
@@ -2067,7 +2068,7 @@ function _tiktokenf
 #usage: tiktokenf [model|encoding] [text|-]
 function tiktokenf
 {
-	python -c "import sys
+	python3 -c "import sys
 
 try:
     import tiktoken
@@ -2125,7 +2126,7 @@ else:
 #convert markdown to plain text
 function unmarkdownf
 {
-	python -c "import sys
+	python3 -c "import sys
 try:
     import markdown
     from bs4 import BeautifulSoup
@@ -4041,7 +4042,7 @@ function _onoff
 function set_filetxtf
 {
 	typeset n;
-	while [[ $(ps a) = *"${VISUAL:-${EDITOR:-vim}}"[\ ]"$FILETXT"* ]] && ((n<32))
+	while [[ $(ps -ax -ww -o command= || ps a) = *"${VISUAL:-${EDITOR:-vim}}"[\ ]"$FILETXT"* ]] && ((n<32))
 	do 	((++n)); FILETXT="${FILETXT%%*([0-9]).${FILETXT##*.}}${n}.${FILETXT##*.}";
 	done;
 }
@@ -4180,7 +4181,7 @@ function _edit_no_execf
 function _escapef
 {
 	sed -e 's/\\/\\\\/g; s/$/\\n/' -e '$s/\\n$//'  \
-	    -e 's/\r/\\r/g; s/\t/\\t/g; s/"/\\"/g;'  \
+	    -e $'s/\r/\\\\r/g; s/\t/\\\\t/g; s/"/\\\\"/g;' \
 	    -e $'s/\a/\\\\a/g; s/\f/\\\\f/g; s/\b/\\\\b/g;'  \
 	    -e $'s/\v/\\\\v/g; s/\e/\\\\u001b/g; s/[\03\04]//g;' <<<"$*" \
 	| tr -d '\n\000'
@@ -4303,7 +4304,7 @@ function fmt_ccf
 				  printf '\n{ "type": "input_audio", "input_audio": { "data": "%s", "format": "%s" } }' "$var" "${ext:-mp3}";
 				  object=1;
 				else
-				  printf '\n{ "type": "input_audio", "input_audio": { "data": "%s", "format": "%s" } }' "$(base64 "$var" | tr -d $'\n')" "${ext:-mp3}";
+				  printf '\n{ "type": "input_audio", "input_audio": { "data": "%s", "format": "%s" } }' "$(base64 <"$var" | tr -d $'\n')" "${ext:-mp3}";
 				  object=1;
 				fi
 			elif [[ -s $var ]]
@@ -4317,16 +4318,16 @@ function fmt_ccf
 				((${#1}+object)) && printf ',';
 				if ((ANTHROPICAI))
 				then
-				  printf '\n{ "type": "image", "source": { "type": "base64", "media_type": "image/%s", "data": "%s" } }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
+				  printf '\n{ "type": "image", "source": { "type": "base64", "media_type": "image/%s", "data": "%s" } }' "${ext:-jpeg}" "$(base64 <"$var" | tr -d $'\n')";
 				  object=1;
 				else
 				  if ((EPN==12))
 				  then
-				  printf '\n{ "type": "input_image", "image_url": "data:image/%s;base64,%s" }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
+				  printf '\n{ "type": "input_image", "image_url": "data:image/%s;base64,%s" }' "${ext:-jpeg}" "$(base64 <"$var" | tr -d $'\n')";
 				  object=1;
 
 				  else
-				  printf '\n{ "type": "image_url", "image_url": { "url": "data:image/%s;base64,%s" } }' "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
+				  printf '\n{ "type": "image_url", "image_url": { "url": "data:image/%s;base64,%s" } }' "${ext:-jpeg}" "$(base64 <"$var" | tr -d $'\n')";
 				  #groq: detail  string  Optional  #groq: image URL or base64
 				  object=1;
 				  fi
@@ -4528,7 +4529,7 @@ function ollama_mediaf
 		if [[ ${var:0:320} != *[!$IFS]* ]]
 		then 	continue;
 		elif [[ -f $var ]] && [[ -s $var ]]
-		then 	printf '"%s"' "$(base64 "$var" | tr -d $'\n')";
+		then 	printf '"%s"' "$(base64 <"$var" | tr -d $'\n')";
 			((n < ${#})) && printf '%s' ',';
 		fi
 	done;
@@ -4807,7 +4808,7 @@ function yt_transf
 	xargs curl -Ls -H "$UAG" |
 	grep -o '<text[^<]*</text>' |
 	sed -E 's/<text start="([^"]*)".*>(.*)<.*/\1 \2/' |
-	sed 's/\xc2\xa0/ /g;s/&amp;/\&/g' |
+	sed -e $'s/\302\240/ /g' -e 's/\xc2\xa0/ /g;s/&amp;/\&/g' |
 	{ sedhtmlf || cat ;} |
 	awk '{$1=sprintf("%02d:%02d:%02d",$1/3600,$1%3600/60,$1%60)}1' |
 	awk 'NR%n==1{printf"%s ",$1}{sub(/^[^ ]* /,"");printf"%s"(NR%n?FS:RS),$0}' n=2 |
@@ -5080,7 +5081,7 @@ function set_optsf
 
 			((MOD_REASON)) || {
 				case "$REASON_EFFORT" in
-					xhigh|high|medium|low|minimal|none|'') 	:;;
+					max|xhigh|high|medium|low|minimal|none|'') 	:;;
 					*[!0-9-]*) 	_warmsgf 'Warning:' "Reasoning effort must be xhigh, high, medium, low, minimal, or none -- $REASON_EFFORT";;
 				esac;
 
@@ -5950,10 +5951,12 @@ function awesomef
 	#  zzz,yyy,xxx
 	#https://datatracker.ietf.org/doc/html/rfc4180#section-2
 
-	#map prompts to indexes and get user selection
-	while IFS=, read -r -d ${del:-$'\n'} key prompt
+	n=0; #map prompts to indexes and get user selection
+	while IFS=, read -r -d ${del:-$'\n'} key prompt || [[ -n "${key}${prompt}" ]]
 	do
-		printf 'loading -- %-32s \r' "${key:1:32}" >&2;  #*#
+		((n++)) || continue;  #skip csv header
+		((${#key})) && ((${#prompt}>1)) || continue 
+		printf 'loading[%04d]: %-32s \r' "${n:-0}" "${key:1:32}" >&2;  #*#
 
 		if [[ ${key:0:128} != *[!$'  \r\t\n']* ]]
 		then 	continue;
@@ -5961,8 +5964,7 @@ function awesomef
 		then  #fix key names
 			key_old=$key;
 			key=$(sed -n -e 's/^"//; s/""/"/g; s/",".*//p' <<<"${key},${prompt}");
-			((!${#key})) && key=$key_old ||
-			prompt=${prompt:${#key}-${#key_old}+4};
+			prompt=${prompt: (${#key}-${#key_old}+4 > 0 ? ${#key}-${#key_old}+4 : 0) };
 		elif [[ ${key:0:1} = ["'\""] ]]
 		then  #remove leading and trailing double quotes
 			key=${key:1:${#key}-2};
@@ -5972,15 +5974,16 @@ function awesomef
 		else 	act_keys+=( "$key" )
 		fi
 		prompts+=( "$prompt" )
-	done < <(sed '1d' -- "$FILEAWE")
-		printf '           %-32s \r' "" >&2;  #clear stderr  #*#
+	done <"$FILEAWE"; n=;
+		printf '               %-32s \r' "" >&2;  #clear stderr  #*#
 
 	case "$1" in
 		[.,][.,]list*|[.,][.,]ls*|\
 		[.,]list*|[.,]ls*|\
 		list*|ls*|+([./%*?-]))  #list awesome keys
 			printf '%s\n' "${act_keys[@]}" |
-			{ 	pr -T -t -n:3 -W $COLUMNS -$(( (COLUMNS/80)+1)) || cat ;} >&2;
+			{ 	pr -T -t -n:3 -W $COLUMNS -$(( (COLUMNS/80)+1)) 2>/dev/null ||
+				pr -t -n:3 -w "$COLUMNS" -"$((COLUMNS/80+1))" || cat ;} >&2;
 			return 210;;
 	esac
 
@@ -6007,7 +6010,7 @@ function awesomef
 		for act in "${act_keys[@]}"
 		do  ((++n));
 		    printf 'matching: %d -- %-32s \r' "$n" "${act:0:32}" >&2;  #*#
-		    case "$REPLY" in "$act")  act=${n:-1}; break;; esac;
+		    [[ "$REPLY" = "$act" ]] && { 	act=${n:-1}; break ;}
 		    act=;
 		done
 		    printf '                 %-32s \r' "" >&2;  #clear stderr  #*#
@@ -6314,7 +6317,9 @@ function set_reccmdf
 	elif command -v ffmpeg
 	then 	case "${OSTYPE:-$(uname -a)}" in
 		    *[Dd]arwin*)
-			REC_CMD='ffmpeg -hide_banner -f avfoundation -i ":1" -ar 16000 -ac 1 -y';;
+			REC_CMD='ffmpeg -hide_banner -f avfoundation -i :1 -ar 16000 -ac 1 -y';;
+		    *[Ff]ree[Bb][Ss][Dd]*)
+			REC_CMD='ffmpeg -hide_banner -f oss -i /dev/dsp -ar 16000 -ac 1 -y';;
 		    *)  REC_CMD='ffmpeg -hide_banner -f alsa -i pulse -ar 16000 -ac 1 -y';;
 		esac;
 	else 	REC_CMD='false'
@@ -7042,7 +7047,7 @@ function set_googleaif
       "mimeType":"%s/%s",
       "data": "%s"
     }
-}' "$(if _is_audiof "$var"; then echo audio; elif _is_videof "$var"; then echo video; else echo image; fi)" "${ext:-jpeg}" "$(base64 "$var" | tr -d $'\n')";
+}' "$(if _is_audiof "$var"; then echo audio; elif _is_videof "$var"; then echo video; else echo image; fi)" "${ext:-jpeg}" "$(base64 <"$var" | tr -d $'\n')";
 			object=1;
 			elif is_linkf "$var"
 			then 	_warmsgf 'GoogleAI: illegal URL --' "${var:0: COLUMNS-25}";
@@ -8210,10 +8215,11 @@ else
 		if ((REGEN>0))  #regen + edit prompt
 		then 	if ((REGEN==1))
 			then 	((OPTX)) && PSKIP=1;
-				set -- "${REPLY_OLD:-$@}"
-			elif ((REGEN>1)) && ((OPTX))
-			then 	PSKIP= ;
-				set -- "${REPLY_OLD:-$@}"
+				set -- "${REPLY:-${REPLY_OLD:-$@}}"
+				# "/" submit the remembered prompt directly.
+			else 	PSKIP= ;
+				set -- ;
+				# "//" edit it, with readline or the editor.
 			fi; REGEN=-1;
 		fi; RET=;
 		((OPTAWE)) || {  #awesome 1st pass skip
@@ -9055,6 +9061,8 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		fi; RET_PRF=$? RET=;
 		((OPTEXIT>1)) && exit $RET_PRF;
 
+		((RET_PRF==200)) || REPLY_OLD="${REPLY:-$REPLY_OLD}";  #I#
+
 		((OLLAMA)) && BASE_URL=$base_url;
 		buff= base_url=;
 
@@ -9065,7 +9073,6 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 			set --; continue;  #B#
 		fi
 		((RET_PRF>120)) && INT_RES='#';
-		((RET_PRF)) || REPLY_OLD="${REPLY:-${REPLY_OLD:-$*}}";  #I#
 
 		#record to hist file
 		if 	if ((STREAM))
