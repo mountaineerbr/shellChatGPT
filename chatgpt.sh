@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136.3  oct/2026  by mountaineerbr  GPL+3
+# v0.136.4  oct/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -1722,7 +1722,7 @@ function list_models_errf
 
 function pick_modelf
 {
-	typeset REPLY mod options
+	typeset REPLY mod options ret
 	set -- "${1// }"; set -- "${1##*(0)}";
 	((${#1}<2)) || [[ $1 != *[!0-9]* ]] || return  #mind o1 models
 	((${#MOD_LIST[@]})) || MOD_LIST=($(list_modelsf))
@@ -1737,8 +1737,9 @@ function pick_modelf
 				  dialog --backtitle "Model Picker" --title "Selection Menu" \
 				    --menu "Choose a model:" 0 40 0 \
 				    -- "${options[@]}"  2>&1 >/dev/tty;
-				) || typeset NO_DIALOG=1;
-				_clr_dialogf;
+				)
+				ret=${?}; _clr_dialogf;
+				case "${ret}" in 255) 	typeset NO_DIALOG=1;; 1) 	return 0;; esac
 			else
 				echo $'\nPick model:' >&2;
 				select mod in ${MOD_LIST[@]:-err} '[a]bort'
@@ -5915,7 +5916,7 @@ function moderationf
 # Awesome-chatgpt-prompts
 function awesomef
 {
-	typeset REPLY key key_old prompt options glob act del zh a l n
+	typeset REPLY key key_old prompt options glob act del ret zh a l n
 	typeset -a act_keys prompts
 	[[ "$INSTRUCTION" = %* ]] && FILEAWE="${FILEAWE%%.csv}-zh.csv" zh=1
 
@@ -5926,7 +5927,7 @@ function awesomef
 	trim_lrf "$TRIM" "*( )";
 	set -- "${TRIM// /_}";
 	FILECHAT="${FILECHAT%/*}/awesome.tsv"
-	_cmdmsgf 'Awesome Prompts' "$1"
+	_cmdmsgf 'Awesome Prompts' "${1:-pick}"
 
 	if [[ ! -s $FILEAWE ]] || [[ ${1:0:8} = [/%]* ]]  #second slash
 	then 	set -- "${1##[/%]}"
@@ -5974,8 +5975,9 @@ function awesomef
 		else 	act_keys+=( "$key" )
 		fi
 		prompts+=( "$prompt" )
-	done <"$FILEAWE"; n=;
+	done <"$FILEAWE"
 		printf '               %-32s \r' "" >&2;  #clear stderr  #*#
+		printf 'prompts: [%04d]\n' "${n:-0}" >&2; n=;
 
 	case "$1" in
 		[.,][.,]list*|[.,][.,]ls*|\
@@ -6003,8 +6005,10 @@ function awesomef
 		  dialog --backtitle "Awesome Picker" --title "Select an Act" \
 		    --menu "The following acts are available:" 0 40 0 \
 		    -- "${options[@]}"  2>&1 >/dev/tty;
-		) || typeset NO_DIALOG=1;
-		_clr_dialogf;
+		)
+		ret=${?}; _clr_dialogf;
+		case "$ret" in 255) 	typeset NO_DIALOG=1;; 1) 	return 201;; esac
+		((${#REPLY})) || return 201;  #cancel/abort
 
 		n=0;
 		for act in "${act_keys[@]}"
