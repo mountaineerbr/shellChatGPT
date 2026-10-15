@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136.4  oct/2026  by mountaineerbr  GPL+3
+# v0.136.5  oct/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -4774,7 +4774,7 @@ function set_modalf
 function is_mdf
 {
 	[[ "\\n$1" =~ (\
-[*_][*_][[:alnum:]\"\'¿¡]|\
+[*_][*_][[:alnum:]\"\'¿¡“]|\
 \\n\ *\`\`\`|\
 \\n\#\#*\ |\
 \\n\ \ *[*-]\ |\
@@ -5955,9 +5955,9 @@ function awesomef
 	n=0; #map prompts to indexes and get user selection
 	while IFS=, read -r -d ${del:-$'\n'} key prompt || [[ -n "${key}${prompt}" ]]
 	do
-		((n++)) || continue;  #skip csv header
-		((${#key})) && ((${#prompt}>1)) || continue 
 		printf 'loading[%04d]: %-32s \r' "${n:-0}" "${key:1:32}" >&2;  #*#
+		((${#key})) && ((${#prompt}>1)) || continue 
+		((n++)) || continue;  #skip csv header
 
 		if [[ ${key:0:128} != *[!$'  \r\t\n']* ]]
 		then 	continue;
@@ -6322,7 +6322,7 @@ function set_reccmdf
 	then 	case "${OSTYPE:-$(uname -a)}" in
 		    *[Dd]arwin*)
 			REC_CMD='ffmpeg -hide_banner -f avfoundation -i :1 -ar 16000 -ac 1 -y';;
-		    *[Ff]ree[Bb][Ss][Dd]*)
+		    *[FfOo][RrPp][Ee][EeNn][Bb][Ss][Dd]*|*[Bb][Ss][Dd]*)
 			REC_CMD='ffmpeg -hide_banner -f oss -i /dev/dsp -ar 16000 -ac 1 -y';;
 		    *)  REC_CMD='ffmpeg -hide_banner -f alsa -i pulse -ar 16000 -ac 1 -y';;
 		esac;
