@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136.5  oct/2026  by mountaineerbr  GPL+3
+# v0.136.6  oct/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -221,7 +221,7 @@ SPC="*([$IFS])"
 SPC1="*(\\\\[ntrvf]|[$IFS])"
 NL=$'\n' BS=$'\b'
 
-UAG='user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36'  #chrome on win10
+UAG='user-agent: Mozilla/5.0 (Linux; Android 16; Pixel 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36'  #Chrome on Android
 PLACEHOLDER='sk-CbCCb0CC0bbbCbb0CCCbC0CbbbCC00bC00bbCbbCbbbCbb0C'
 
 TIME_ISO8601_FMT='%Y-%m-%dT%H:%M:%S%z'
@@ -2732,14 +2732,20 @@ function cmdf
 			  PSKIP XSKIP WSKIP SKIP JUMP REGEN INT_RES MEDIA MEDIA_IND MEDIA_CMD_IND BLOCK_CMD;
 			;;
 		block*|blk*)
+			trap "trap 'exit' INT; printf \"\n[abort]\n\" >&2; return 0;" INT;
+
 			trim_lf "$*" "@(block|blk)$SPC"
 			set -- "$TRIM"
+
 			_printbf '>';
 			readf -i "${BLOCK_USR}${1:+ }${1}" BLOCK_USR </dev/tty;
+
 			((${#BLOCK_USR})) && {
 				trim_rf "$BLOCK_USR" $',*([\n\t ])';
 				BLOCK_USR="$TRIM";
 			}; echo >&2;
+
+			trap "exit" INT;
 			cmdmsgf 'User Block:' "${BLOCK_USR:-unset}";
 			;;
 		effort*|budget*|think*)
@@ -2788,15 +2794,24 @@ function cmdf
 			;;
 		-HH|-HHH*|HH|HHH*)
 			[[ $* = ?(-)HHH* ]] && typeset OPTHH=3
+
+			#this trap may not work reliably but is better than nothing
+			trap "trap 'exit' INT; printf \"\n[abort]\n\" >&2; return 130;" INT;
 			Q_TYPE="\\n${Q_TYPE}" A_TYPE="\\n${A_TYPE}" \
-			  MOD= OLLAMA= TKN_PREV= MAX_PREV= set_histf
-			var=$( usr_logf "$(unescapef "$HIST")" )
+			  MOD= OLLAMA= TKN_PREV= MAX_PREV= set_histf;
+
+			trap "trap 'exit' INT; printf \"\n[abort]\n\" >&2;" INT;
+			var=$( trap 'exit 130;' INT; usr_logf "$(unescapef "$HIST")" )
+
 			if ((OPTMD))
 			then 	set_mdcmdf "$MD_CMD";
 				mdf <<<"$var" >&2 2>/dev/null;
 			else 	printf "\\n---\\n%s\\n---\\n" "$var" >&2;
 			fi
+
 			((OPTCLIP)) && ${CLIP_CMD:-false} <<<"$var" && echo 'Clipboard set!' >&2
+
+			trap "exit" INT;
 			;;
 		-PP*\|*|PP*\|*|[/!]PP*)
 			cmdf -HHH 2>&1 | less >&2;
@@ -2910,9 +2925,14 @@ function cmdf
 		url*|[/!]url*)
 			HARGS=${HARGS:-$*} xskip=1;
 			case "$*" in [/!]url:*|url:*) 	append=1;; esac;  #prompt buffer
+
 			trim_lf "$*" '@(url|[/!]url)*(:)';
 			trim_lrf "$TRIM" "$SPC";
 			set -- "$TRIM";
+
+			trap "trap '-' RETURN; trap 'exit' INT;" RETURN;
+			trap "trap '-' RETURN; trap 'exit' INT; printf \"\n[abort]\n\" >&2; return 0" INT;
+
 			case "$*" in
 			*youtube.com/watch*|*youtube.com/live*|*youtube.com/shorts*|*youtu.be/*)
 				curl -Ls -H "$UAG" "$*" >"$FILEFIFO"; var= out=;
@@ -2980,6 +3000,9 @@ function cmdf
 				fi;
 				;;
 			esac;
+
+			trap "-" RETURN;
+			trap "exit" INT;
 			;;
 		media*|img*|audio*|aud*)
 			trim_lrf "$*" "@(media|img|audio|aud)*([$IFS:])" "*([$IFS])";
@@ -3473,6 +3496,7 @@ function cmdf
 				function _is_pdff { 	false ;};
 			fi 2>/dev/null >&2
 
+			_printbf 'working..'
 			case "$*" in
 				pdf:*[!$IFS]*)
 					cmdf /sh: "$var";;
@@ -3498,6 +3522,7 @@ function cmdf
 				function _is_docf { 	false ;};
 			fi 2>/dev/null >&2
 
+			_printbf 'working..'
 			case "$*" in
 				doc:*[!$IFS]*)
 					cmdf /sh: "$var";;
@@ -3514,6 +3539,7 @@ function cmdf
 		[/!]sh*)
 			trim_lf "$*" "[/!]@(shell|sh)*([:$IFS])";
 			set -- "$TRIM";
+
 			if [[ ${1:0:320} = *[!$IFS]* ]]
 			then 	bash -i -c "$1"$'\nexit'
 			else 	bash -i
@@ -3612,6 +3638,9 @@ function cmdf
 		photo*)
 			trim_lf "$*" "photo$SPC";
 			set -- "$TRIM";
+
+			trap "trap 'exit' INT; printf \"\n[abort]\n\" >&2;" INT;
+
 			if [[ -n $TERMUX_VERSION ]]
 			then
 				case "${1:0:2}" in [0-9]|[0-9][!0-9]) 	typeset CAMIDX=${1:0:1}; set -- "${1:1}";; esac;
@@ -3653,6 +3682,8 @@ function cmdf
 				fi || _warmsgf 'Err:' 'Photo camera';
 			else 	cmdf /pick "$*"; return;
 			fi;
+
+			trap 'exit' INT;
 			SKIP=1 EDIT=1 xskip=1;
 			;;
 		[/!]photo*)
@@ -3738,22 +3769,26 @@ function cmdf
 			cmdmsgf 'Dialog' $(_onoff $( ((NO_DIALOG)) && echo 0 || echo 1) )
 			;;
 		[/!]g*|g*)  #ground context
-			typeset engine query url ok
+			typeset engine query query_orig url ok
 			HARGS=${HARGS:-${args[*]:-$*}};
 			case "$*" in [/!]g:*|g:*|[/!]gg:*|gg:*) 	append=1;; esac;  #edit buffer
 			case "$*" in [/!]g[or]o[gu][ln][ed]:*|g[or]o[gu][ln][ed]:*) 	append=1;; esac;  #edit buffer
 
-			trim_lf "$*" "@([/!]g|g|[/!]g[g:]|g[g:]|g[or]o[gu][ln][ed])?(:)$SPC";
+			trim_lf "$*" "@([/!]g|g|[/!]g[g:]|g[g:]|[/!]g[or]o[gu][ln][ed]|g[or]o[gu][ln][ed])?(:)$SPC";
 			set -- "$TRIM";
-			
+
+			trap "trap '-' RETURN; trap 'exit' INT;" RETURN;
+			trap "trap '-' RETURN; trap 'exit' INT; printf \"\n[abort]\n\" >&2; return 0" INT;
+
 			case "${args[*]:-$*}" in
 			  [/!]*|gg*)
 			    n=50; engine=$(
 			      printf 'Search Engine:\n' >&2;
-			      select engine in '[d]uckduckgo' '[b]rave' '[m]ojeek' '[e]cosia' '[y]andex' '[s]tartpage' '[g]oogle' '[a]bort'
+			      select engine in '[d]uckduckgo' '[b]rave' '[B]ing rss' '[g]oogle rss' '[D]eepseek' '[M]wmbl' '[w]iby' 'searchm[Y]site' 'ma[r]ginalia' '[m]ojeek' '[e]cosia' '[y]andex' '[s]tartpage' '[a]bort'
 			      do 	break;
 			      done </dev/tty;
 			      echo "${engine:-$REPLY}")
+			      engine="${engine//[][]}";
 			    ;;
 
 			    *)  #provider specific web search tool, or in-house fallback
@@ -3761,6 +3796,10 @@ function cmdf
 			    then  ok=1;
 			      BLOCK_CMD="\"plugins\": [{ \"id\": \"web\", \"max_results\": 5 }]";
 			      ((OPTV)) || printf "${BWHITE}%s\\n${NC}" "OpenRouter Web Plugin enabled" >&2;
+
+			    elif ((DEEPSEEK))
+			    then  ok= ;
+			    	engine=deepseek;
 
 			    elif ((ANTHROPICAI)) && case "${MOD##*[/]}" in
 			    	claude*-[4-9]*|claude-opus-[4-9]*|claude-sonnet-[4-9]*|claude*-[4-9]*-sonnet*|claude-3[.-]7*|claude-3-5-sonnet-latest|claude-3-5-haiku-latest) :;;
@@ -3824,42 +3863,75 @@ function cmdf
 				fi; var= ;
 			fi
 
+			query_orig="$*"
 			query=$(urlencode "$*") || query=$(_urlencode "$*") || query=$*;
 			((${#query}<2000)) || _warmsgf 'Warning:' "query length (${#query}) exceeds ~2000 chars"
 
-
 			case "$engine" in
-			  8|[AaQq]|[Aa]bort|*bort|[Cc]ancel|[Ee]xit|[Qq]uit|[$'\e\t ']*)
+			  14|[AaQq]|*[Aa]*bort|*[Cc]*ancel|*[Ee]*xit|*[Qq]*uit|[$'\e\t ']*)
 			    EDIT=1 RET=200; echo '[abort]' >&2;
 			    return 0;
 			    ;;
-			  7|[Gg]oogle|*oogle|[Gg]*)  #scrape block
-			    engine=Google n=50;
-			    url="https://www.google.com/search?q=${query}&num=${n}&gbv=1";
-			    ;;
-			  6|[Ss]tart[Pp]age|*tart[Pp]age|[Ss]*)  #scrape block
+			  13|*[Ss]*tart*[Pp]*age|[Ss][!Ee]*|[Ss])  #scrape blocked
 			    engine=StartPage;
 			    url="https://www.startpage.com/sp/search?query=${query}";
 			    ;;
-			  5|[Yy]andex|*andex|[Yy]*)  #scrape block
+			  12|*[Yy]*andex|[y]*)  #scrape blocked
 			    engine=Yandex;
 			    url="https://yandex.com/search/?text=${query}";
 			    ;;
-			  4|[Ee]cosia|*cosia|[Ee]*)
+			  11|*[Ee]*cosia|[Ee]*)  #scrape blocked
 			    engine=Ecosia;
 			    url="https://www.ecosia.org/search?method=index&q=${query}";
 			    ;;
-			  3|[Mm]ojeek|*ojeek|[Mm]*)
+			  10|*[Mm]*ojeek|[Mm][!AaWw]*|[m])  #scrape blocked
 			    engine=Mojeek;
 			    url="https://www.mojeek.com/search?q=${query}";
 			    ;;
-			  2|[Bb]rave|*rave|[Bb]*)
+
+			9|*[Mm]*[Aa]*[Rr]*ginalia|[Rr]*)  #scrape blocked
+			    engine=Marginalia
+			    url="https://search.marginalia.nu/search?query=${query}"
+			    ;;
+			8|*[Ss]*earch*[Mm]*[Yy]*[Ss]*ite|[Yy]*)
+			    engine=SearchMySite
+			    url="https://searchmysite.net/search/?q=${query}"
+			    ;;
+			7|*[Ww]*iby|[Ww]*)
+			    engine=Wiby
+			    url="https://wiby.me/?q=${query}"
+			    ;;
+			6|*[Mm]*wmbl|[M]*)
+			    engine=Mwmbl;
+			    url="https://api.mwmbl.org/search/"
+			    ;;
+			5|*[Dd]*eep*[Ss]*eek|[D])
+			    engine=DeepSeek; #n=30;
+			    url="https://api.deepseek.com/v1/tools/search"
+			    #https://api-docs.deepseek.com/guides/search
+			    ;;
+			4|*[Gg]*oogle|*[Gg]*oogle*[Rr]*[Ss]*[Ss]|[Gg]*)
+			    engine='Google RSS' n=50;
+			    #url="https://www.google.com/search?q=${query}&num=${n}&gbv=1";  #scrape block
+			    #url="https://news.google.com/rss/search?q=${query}";
+			    url="https://news.google.com/news/section?cf=all&ned=us&as_qdr=w&output=rss&q=${query}";
+			    #https://stackoverflow.com/questions/20738454/
+			    #https://i-tweak.blogspot.com/2013/10/google-news-search-parameters-missing.html
+			    ;;
+			3|*[Bb]*ing|*[Bb]*ing*[Rr]*[Ss]*[Ss]|[B])
+			    engine='Bing RSS'
+			    #url="https://www.bing.com/search/news"
+			    url="https://www.bing.com/search"
+			    #https://www.virtualcuriosities.com/articles/2543/how-to-use-rss-to-subscribe-to-search-results-on-bing
+			    ;;
+
+			  2|*[Bb]*rave|[Bb]*)
 			    engine=Brave;
 			    n=0;
 			    url="https://search.brave.com/search?q=${query}&source=web&count=20&offset=${n}";
 			    #https://api-dashboard.search.brave.com/app/documentation/web-search/query
 			    ;;
-			  1|[Dd]uck[Dd]uck[Gg]o|*uck[Dd]uck[Gg]o|[Dd]*|*)
+			  1|*[Dd]*uck*[Dd]*uck*[Gg]*o|[Dd]*|*)
 			    engine=DuckDuckGo;
 			    var= n=;  #((n>1)) && var="&s=$((n*12))&v=l&dc=$(( (n*12)-1))";
 			    url="https://html.duckduckgo.com/html/?q=${query}&k1=-1&kv=1&kaf=1&kp=-2&kl=wt-wt${var}";
@@ -3870,9 +3942,85 @@ function cmdf
 
 			((OPTV)) || printf "${BWHITE}%s\\n<%s>\\n${NC}" "${engine:-[DuckDuckGo]}" "${url}" >&2;
 
-			#simple search dump, few results but relevant ones..
-			cmdf /url${append:+:} "${url:-err}";
+			case "$engine" in  #apis and others
+			        [Bb]ing*[Rr][Ss][Ss])
+				    cmdf /sh${append:+:} "set -o pipefail"\; \
+				    curl -fsSGL \
+				        --header "\"${UAG}\"" \
+					--connect-timeout 5 \
+					--max-time 20 \
+					--data "\"q=${query}\"" \
+					--data 'format=rss' \
+					"\"${url}\"" \
+					\| if command -v xmlstarlet \>/dev/null 2\>\&1\; \
+					    then    xmlstarlet sel -T -t \
+					        -m '/rss/channel/item' \
+					        -v title -n -v link -n -v pubDate -n \
+					        -v description -n -n \|\| cat\; \
+					    else cat\; \
+					    fi \
+					|| RET=${RET:-$?}
+				    ;;
+				[Gg]oogle*[Rr][Ss][Ss])
+				    cmdf /sh${append:+:} "set -o pipefail"\; \
+				    curl -fsSGL \
+				        --header "\"${UAG}\"" \
+					--connect-timeout 5 \
+					--max-time 20 \
+					--data 'output=rss' \
+					"\"${url}\"" \
+					\| if command -v xmlstarlet \>/dev/null 2\>\&1\; \
+					    then xmlstarlet sel -T -t \
+					        -m '/rss/channel/item' \
+				  		-v 'title' -n -v 'pubDate' -n -v link -n \
+				  		-v 'source/@url' -n -v description -n -n \
+						\| sed "'s/<[^>]*>//g'" \|\| cat\; \
+					    else cat\; \
+					    fi \
+					|| RET=${RET:-$?}
+				    ;;
+				[Mm]wmbl)
+				    cmdf /sh${append:+:} "set -o pipefail"\; \
+				    curl -fsSGL \
+				        --header "\"${UAG}\"" \
+					--connect-timeout 5 \
+					--max-time 20 \
+					--data "\"s=${query}\"" \
+					"\"${url}\"" \
+					\| jq -r "'.[] |
+  \"Title: \(.title | map(.value) | join(\"\"))\",
+  \"Date: \(.date//.time//empty)\",
+  \"URL: \(.url//empty)\",
+  \"Description: \(.extract | map(.value) | join(\"\"))\",
+  \"\" '" || RET=${RET:-$?}
+				    ;;
+				[Dd]eep[Ss]eek)
+				    ((${#DEEPSEEK_API_KEY})) || { 	_warmsgf 'Err:' 'DeepSeek API key required'; return 0 ;}
+
+				    cmdf /sh${append:+:} "set -o pipefail"\; \
+				    curl -fsSL \
+					-H "\"Authorization: Bearer ${DEEPSEEK_API_KEY}\"" \
+					-H "\"Content-Type: application/json\"" \
+					"\"${url}\"" \
+					-d "$( printf '%q' "{
+					  \"query\": \"$(escapef "${query_orig:-${*:-${query:-err}}}")\",
+					  \"count\": 30,
+					  \"need_content\": true
+					}" )" \
+					\| jq -r "'.results[] |
+  \"Title: \(.title)\nDate: \(.date)\nURL: \(.url)\n\n\(.content)\n\" '" \
+					|| RET=${RET:-$?}
+				    ;;
+				#simple search dump
+				*)
+				    cmdf /url${append:+:} "${url:-err}";
+				    ;;
+			esac;
+
 			((RET)) || REPLY="${REPLY}"${REPLY:+$'\n\n'}"${*}";
+
+			trap "-" RETURN;
+			trap "exit" INT;
 			return 0;
 			;;
 		q|quit|exit|bye)
@@ -4000,8 +4148,8 @@ function rcmdf
 
 	SKIP_SH_HIST=1 REGEN=181 CMD_ENV=201 cmdf "$@";
 
-	(($?==181)) && _warmsgf 'illegal command';
-	((${#REPLY}+${#BLOCK_USR}+${#BLOCK_CMD}+JUMP+REGEN+RESUBW==0)) || _warmsgf 'Warning:' 'command block';
+	(($?==181)) && RED="${INV/0;/1;}" _warmsgf 'illegal command' '' $'\a\n';
+	((${#REPLY}+${#BLOCK_USR}+${#BLOCK_CMD}+JUMP+REGEN+RESUBW==0)) || RED="${INV/0;/1;}" _warmsgf 'Warning:' 'Command block' $'\a\n';
 }
 
 #print msg to stderr
@@ -4694,7 +4842,7 @@ function _is_docf
 {
 	typeset -l ext=$1
 	case "$ext" in
-	*.[Dd][Oo][Cc]|*.[Dd][Oo][Cc][Xx]|*.[Oo][Dd][Tt]|*.[Oo][Tt][Tt]|*.[Rr][Tt][Ff]) :;;
+	*.[Dd][Oo][Cc]|*.[Dd][Oo][Cc][Xx]|*.[Oo][Dd][Tt]|*.[Oo][Tt][Tt]|*.[Rr][Tt][Ff]|*.[Pp][Pp][Tt]|*.[Pp][Pp][Tt][Xx]|*.[Oo][Dd][Pp]|*.[Oo][Tt][Pp]|*.[Xx][Ll][Ss]|*.[Xx][Ll][Ss][MmXx]|*.[Oo][TtDd][Ss]) :;;
 	*) false;;
 	esac;
 }
@@ -5881,7 +6029,9 @@ function __set_speedf
 #url encode/decode - percent codes
 _urlencode()
 {
+    typeset LC_ALL=C  #read byte-wise
     typeset i length="${#1}"
+
     for (( i = 0; i < length; i++ )); do
         typeset c="${1:$i:1}"
         case $c in
@@ -6886,6 +7036,7 @@ function cleanupf
 	typeset ret=$?
 	SCRIPT_NAME=${TERM%%-*} set_titlef "";
 	printf "${NC}" >&2;  #reset text colour
+	[[ ! -t 1 ]] || printf "\\n" >&2;
 
 	((${#PIDS[@]})) || return $ret;
 	for pid in ${PIDS[@]}
@@ -6996,7 +7147,7 @@ function set_googleaif
 		fi
 		printf '%s\b' 'o' >&2;
 		((!${#1})) ||
-		  curl -fsS --connect-timeout 5 --max-time 14 -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
+		  curl -fsS --connect-timeout 5 --max-time 16 -L "$GOOGLE_BASE_URL/models/$MOD:${epn}?key=$GOOGLE_API_KEY" \
 			-H 'Content-Type: application/json' -X POST \
 			-d "$block" | jq -er '.totalTokens//.tokenCount//empty';  #debug: --fail-with-body
 		ret=$?; printf '%s\b' ' ' >&2;
@@ -7116,7 +7267,7 @@ function set_anthropicf
 		fi
 		printf '%s\b' '•' >&2;
 		((!${#1})) ||
-		curl -fsS --connect-timeout 5 --max-time 14 -L "${ANTHROPIC_BASE_URL}/messages/count_tokens" \
+		curl -fsS --connect-timeout 5 --max-time 16 -L "${ANTHROPIC_BASE_URL}/messages/count_tokens" \
 		    -H "X-Api-Key: $ANTHROPIC_API_KEY" \
 		    -H "anthropic-version: 2023-06-01" \
 		    -H 'Content-Type: application/json' \
@@ -7218,7 +7369,7 @@ function set_xaif
 		fi
 		printf '%s\b' '∅' >&2;  #↻, ∅, Ø
 		((!${#1})) ||
-		curl -fsS --connect-timeout 5 --max-time 14 -L "${BASE_URL}/tokenize-text" \
+		curl -fsS --connect-timeout 5 --max-time 16 -L "${BASE_URL}/tokenize-text" \
 		    -H "Authorization: Bearer ${XAI_API_KEY:-$OPENAI_API_KEY}" \
 		    -H 'Content-Type: application/json' \
 		    -d "$block" | jq -er '.token_ids | length';
@@ -7816,7 +7967,7 @@ if ! command -v jq >/dev/null 2>&1
 then 	function jq { 	false ;}
 	function escapef { 	_escapef "$@" ;}
 	function unescapef { 	_unescapef "$@" ;}
-	Color200=$INV _warmsgf 'Warning:' 'JQ not found. Please, install JQ.'
+	Color200="${INV}" _warmsgf 'Warning:' 'JQ not found. Please, install JQ.'
 fi
 command -v tac >/dev/null 2>&1 || function tac { 	tail -r "$@" ;}  #bsd
 ((!(OPTHH+OPTFF+OPTZZ) )) &&
