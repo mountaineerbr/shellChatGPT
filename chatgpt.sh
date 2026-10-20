@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136.6  oct/2026  by mountaineerbr  GPL+3
+# v0.136.7  oct/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -8434,7 +8434,8 @@ else
 		if ((XSKIP)) || ((${#1}+${#2}==0)) ||
 			[[ "${1:0:256}${2:0:256} " = @("${Q_TYPE##$SPC1}"|"${RESTART##$SPC1}")$SPC ]]
 		then
-			while ((OPTC+RESPONSES_API)) && Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
+			while ((OPTC>1 || RESPONSES_API>1)) && ((OPTEXIT<1 && STURN<1)) &&
+				Q="${RESTART:-${Q_TYPE:->}}" || Q="${RESTART:->}"
 				((${#PREPEND})) && Q=">>"
 				B=${Q:0:128} B=${B##*$'\n'} B=${B##*\\n} B=${B//?/\\b}  #backspaces
 
