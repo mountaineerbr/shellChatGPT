@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: October 2026
-title: CHATGPT.SH(1) v0.136.1 \| General Commands Manual
+title: CHATGPT.SH(1) v0.136.9 \| General Commands Manual
 ---
 
 # NAME
@@ -57,9 +57,9 @@ for some providers.
 
 ## Interface Modes
 
-**-b**, **--responses**  
-Responses API calls (may be used with `option -c` or as `-bb`). Set a
-valid model with “**--model** \[*name*\]”.
+**-b**, **-bb**, **--responses**  
+Responses API calls. May be used with `option -c`. Set twice
+(`options -bb`) for multi-turn sessions. Limited endpoint support.
 
 **-c**, **-cc**, **--chat**  
 Chat mode in text completions (used with `options -wzvv`).

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136.8  oct/2026  by mountaineerbr  GPL+3
+# v0.136.9  oct/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -736,9 +736,9 @@ Options
 		TTS voice name (OpenAI, Groq). Def=echo, daniel.
 
 	Interface Modes
-	-b, --responses
-		Responses API calls (may be used with -c). Limited
-		support. See --model.
+	-b, -bb, --responses
+		Responses API calls. May be used with option -c.
+		Set twice for multi-turn sessions.
 	-c, -cc, --chat
 		Chat mode in native chat completions (used with -wzvv).
 	-cd, --text-chat
@@ -8764,12 +8764,6 @@ else
 					var="${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}";
 					((${#var})) && _sysmsgf 'INSTRUCTION:' "\`${var:0:8192}$( ((${#var}>8192)) && echo '[..]' )'" 2>&1 | foldf >&2;
 					;;
-				#::)  #unset system prompts
-				#	#syntax exceptions
-				#	INSTRUCTION= GINSTRUCTION= GINSTRUCTION_PERM=;
-				#	((ANTHROPICAI)) && INSTRUCTION_OLD=;  #R#
-				#	_sysmsgf "System Prompt: unset";
-				#	;;
 				::*)  #prepend to system instruction
 					((${#var})) && buff=$(exp_txturl "$var") && var=${buff:-$var} buff=;
 					((${#var})) && ((INSTRUCTION_RESET+=${#var}+2));

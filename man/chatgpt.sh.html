@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc 3.11" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.136.1 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.136.9 | General Commands Manual</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -176,7 +176,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.136.1 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.136.9 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">October 2026</p>
 </header>
@@ -228,11 +228,12 @@ for some providers.</p>
 <h1 id="options">OPTIONS</h1>
 <h2 id="interface-modes">Interface Modes</h2>
 <dl>
-<dt><strong>-b</strong>, <strong>--responses</strong></dt>
+<dt><strong>-b</strong>, <strong>-bb</strong>,
+<strong>--responses</strong></dt>
 <dd>
-<p>Responses API calls (may be used with <code>option -c</code> or as
-<code>-bb</code>). Set a valid model with “<strong>--model</strong>
-[<em>name</em>]”.</p>
+<p>Responses API calls. May be used with <code>option -c</code>. Set
+twice (<code>options -bb</code>) for multi-turn sessions. Limited
+endpoint support.</p>
 </dd>
 <dt><strong>-c</strong>, <strong>-cc</strong>,
 <strong>--chat</strong></dt>

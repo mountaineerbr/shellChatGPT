@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.136.1 | General Commands Manual
+% CHATGPT.SH(1) v0.136.9 | General Commands Manual
 % mountaineerbr
 % October 2026
 
@@ -51,10 +51,11 @@ STT and TTS endpoints functionality is modestly available for some providers.
 
 ## Interface Modes
 
-**-b**, **\--responses**
+**-b**, **-bb**, **\--responses**
 
-: Responses API calls (may be used with `option -c` or as `-bb`).
-  Set a valid model with "**\--model** \[_name_]".
+: Responses API calls. May be used with `option -c`.
+  Set twice (`options -bb`) for multi-turn sessions.
+  Limited endpoint support.
 
 
 **-c**, **-cc**, **\--chat**
