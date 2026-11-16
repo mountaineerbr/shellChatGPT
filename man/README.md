@@ -1,8 +1,8 @@
 ---
 author:
 - mountaineerbr
-date: October 2026
-title: CHATGPT.SH(1) v0.136.9 \| General Commands Manual
+date: November 2026
+title: CHATGPT.SH(1) v0.137 \| General Commands Manual
 ---
 
 # NAME
@@ -202,10 +202,10 @@ Set **-NN** to force use provider or LiteLLM model specs.
 
 Set **-NNN** to update provider and LiteLLM cached data of model specs.
 
-**-a**, **--presence-penalty** \[*VAL*\]  
+**-a**, **--presence-penalty** \[\[*-*\]*VAL*\]  
 Presence penalty (cmpls/chat, -2.0 - 2.0).
 
-**-A**, **--frequency-penalty** \[*VAL*\]  
+**-A**, **--frequency-penalty** \[\[*-*\]*VAL*\]  
 Frequency penalty (cmpls/chat, -2.0 - 2.0).
 
 <!--
@@ -235,19 +235,25 @@ Top_k value (local-ai, ollama, google).
 **--keep-alive**, **--ka**=\[*NUM*\]  
 How long the model will stay loaded into memory (Ollama).
 
+**--min-p**, **--minp** \[*VAL*\]  
+Min_p value, dynamic sampling (cmpls/chat, 0.0 - 1.0).
+
+**--multimodal**, **--vision**, **--audio**  
+Model multimodal model type.
+
 **-m**, **--model** \[*MODEL*\]  
     Language _MODEL_ name. Def=_gpt-6-astra_/_gpt-3.5-turbo-instruct_.
 
     Set _MODEL_ name as "_._" to pick from the list.
-
-**--multimodal**, **--vision**, **--audio**  
-Model multimodal model type.
 
 **-n**, **--results** \[*NUM*\]  
 Number of results. Def=*1*.
 
 **-p**, **--top-p** \[*VAL*\]  
 Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
+
+**--repetition-penalty**, **--repeat** \[*VAL*\]  
+Repetition penalty (cmpls/chat, around 1.0).
 
 **-r**, **--restart** \[*SEQ*\]  
 Restart sequence string (cmpls).
@@ -853,8 +859,8 @@ parameters and manage sessions.
 | `!NUM` | `-M` \[*NUM*\] | Maximum response tokens. |
 | `!!NUM` | `-N` \[*NUM*\] | Model token capacity. |
 | `-NN` | `-NNN` | Auto-set model capacity / update cache data. |
-| `-a` | `!pre` \[*VAL*\] | Presence penalty. |
-| `-A` | `!freq` \[*VAL*\] | Frequency penalty. |
+| `-a` | `!pre` \[\[*-*\]*VAL*\] | Presence penalty. |
+| `-A` | `!freq` \[\[*-*\]*VAL*\] | Frequency penalty. |
 | `-b` | `!responses` \[*MOD*\] | Responses API request (experimental). |
 | `-j` | `!seed` \[*NUM*\] | Seed number (integer). |
 | `-K` | `!topk` \[*NUM*\] | Top_k. |
@@ -871,6 +877,8 @@ parameters and manage sessions.
 | `!effort` | \- \[*MODE*\] | Effort: max, xhigh, high, medium, low, minimal, or none (OpenAI / Anthropic). |
 | `!think` | \- \[*NUM*\] | Budget: token value (Anthropic). |
 | `!ka` | `!keep-alive` \[*NUM*\] | Set duration of model load in memory (Ollama). |
+| `!minp` | \- \[*VAL*\] | Min_p. |
+| `!repeat` | \- \[*VAL*\] | Repetition penalty. |
 | `!verb` | `!verbosity` \[*MODE*\] | Model verbosity level (high, medium, or low). |
 | `!vision` | `!audio`, `!multimodal` | Toggle multimodality type. |
 
@@ -916,7 +924,7 @@ Examples
 Some runtime options can be disabled and excluded from the request by
 setting “*-0*” as argument
 
-  “`!presence` *-0*”, “`!frequency` *-0*”, “`/temp`*-0*”
+  “`/temp`*-0*”, “`!min-p` *-0*”, “`-p` *-0*”,
 
 ------------------------------------------------------------------------
 

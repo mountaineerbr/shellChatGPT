@@ -1,6 +1,6 @@
 #compdef chatgpt.sh
 # Zsh Completion Script for ``chatgpt.sh''
-# v0.136
+# v0.137
 
 # System Wide:  /usr/share/zsh/site-functions/
 #               /usr/local/share/zsh/site-functions/
@@ -119,6 +119,7 @@ _chatgpt.sh()
     {-N,--modmax,--mod-max}'[Model capacity tokens]:model capacity -- [integer]' \
     {-a,--presence-penalty,--presence,--pre}'[Presence penalty]:presence-penalty -- [float]' \
     {-A,--frequency-penalty,--frequency,--freq}'[Frequency penalty]:frequency-penalty -- [float]' \
+    {--repetition-penalty,--repeat}'[Repeat penalty]:repetition-penalty -- [float]' \
     {-b,--responses,--resp}'[Use Responses API]' \
     {-j,--seed}'[Seed number]:seed -- [integer]' \
     {-K,--top-k,--topk}'[Top_k value]:top_k -- [integer]' \
@@ -129,6 +130,7 @@ _chatgpt.sh()
     '--audio[Enable audio mode]' \
     {-n,--results}'[Number of results]:results -- [integer]' \
     {-p,--top-p,--topp}'[Top_p value]:top_p -- [float]' \
+    {--min-p,--minp}'[Min_p value]:min_p -- [float]' \
     {-r,--restart,--restart-seq,--restart-sequence}'[Restart sequence]:restart-sequence:(sequence \\nQ\:\ )' \
     {-R,--start,--start-seq,--start-sequence}'[Start sequence]:start-sequence:(sequence \\nA\:)' \
     {-s,--stop}'[Stop sequences]:stop-sequence:(sequence \\nQ\:\  \\nA\:)' \

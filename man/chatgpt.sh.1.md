@@ -1,6 +1,6 @@
-% CHATGPT.SH(1) v0.136.9 | General Commands Manual
+% CHATGPT.SH(1) v0.137 | General Commands Manual
 % mountaineerbr
-% October 2026
+% November 2026
 
 
 # NAME
@@ -251,12 +251,12 @@ STT and TTS endpoints functionality is modestly available for some providers.
      Set **-NNN** to update provider and LiteLLM cached data of model specs.
 
 
-**-a**, **\--presence-penalty**   \[_VAL_]
+**-a**, **\--presence-penalty**   \[\[_-_]_VAL_]
 
 : Presence penalty  (cmpls/chat, -2.0 - 2.0).
 
 
-**-A**, **\--frequency-penalty**   \[_VAL_]
+**-A**, **\--frequency-penalty**   \[\[_-_]_VAL_]
 
 : Frequency penalty (cmpls/chat, -2.0 - 2.0).
 
@@ -297,16 +297,21 @@ STT and TTS endpoints functionality is modestly available for some providers.
 : How long the model will stay loaded into memory (Ollama).
 
 
-**-m**, **\--model**   \[_MODEL_]
+**\--min-p**, **\--minp**   \[_VAL_]
 
-:     Language _MODEL_ name. Def=_gpt-6-astra_/_gpt-3.5-turbo-instruct_.
-
-      Set _MODEL_ name as "_._" to pick from the list.
+: Min_p value, dynamic sampling (cmpls/chat, 0.0 - 1.0).
 
 
 **\--multimodal**, **\--vision**, **\--audio**
 
 : Model multimodal model type.
+
+
+**-m**, **\--model**   \[_MODEL_]
+
+:     Language _MODEL_ name. Def=_gpt-6-astra_/_gpt-3.5-turbo-instruct_.
+
+      Set _MODEL_ name as "_._" to pick from the list.
 
 
 **-n**, **\--results**   \[_NUM_]
@@ -317,6 +322,11 @@ STT and TTS endpoints functionality is modestly available for some providers.
 **-p**, **\--top-p**   \[_VAL_]
 
 : Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
+
+
+**\--repetition-penalty**, **\--repeat**   \[_VAL_]
+
+: Repetition penalty (cmpls/chat, around 1.0).
 
 
 **-r**, **\--restart**   \[_SEQ_]
@@ -1033,8 +1043,8 @@ to change parameters and manage sessions.
     `!NUM`         `-M`          \[_NUM_]      Maximum response tokens.
    `!!NUM`         `-N`          \[_NUM_]      Model token capacity.
      `-NN`         `-NNN`                      Auto-set model capacity / update cache data.
-      `-a`         `!pre`        \[_VAL_]      Presence penalty.
-      `-A`         `!freq`       \[_VAL_]      Frequency penalty.
+      `-a`         `!pre`   \[\[_-_]_VAL_]     Presence penalty.
+      `-A`         `!freq`  \[\[_-_]_VAL_]     Frequency penalty.
       `-b`         `!responses`  \[_MOD_]      Responses API request (experimental).
       `-j`         `!seed`       \[_NUM_]      Seed number (integer).
       `-K`         `!topk`       \[_NUM_]      Top_k.
@@ -1051,6 +1061,8 @@ to change parameters and manage sessions.
  `!effort`          \-          \[_MODE_]      Effort: max, xhigh, high, medium, low, minimal, or none (OpenAI / Anthropic).
   `!think`          \-           \[_NUM_]      Budget: token value (Anthropic).
      `!ka`         `!keep-alive` \[_NUM_]      Set duration of model load in memory (Ollama).
+   `!minp`          \-           \[_VAL_]      Min_p.
+ `!repeat`          \-           \[_VAL_]      Repetition penalty.
    `!verb`         `!verbosity` \[_MODE_]      Model verbosity level (high, medium, or low).
   `!vision`        `!audio`, `!multimodal`     Toggle multimodality type.
  --------------    ------------------------    -------------------------------------------------------------------------------
@@ -1098,7 +1110,7 @@ Examples
 Some runtime options can be disabled and excluded from the request
 by setting "_-0_" as argument
 
-|   "`!presence` _-0_",  "`!frequency` _-0_", "`/temp`_-0_"
+|   "`/temp`_-0_", "`!min-p` _-0_",  "`-p` _-0_",
 
 ---
 

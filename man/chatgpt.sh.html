@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc 3.11" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.136.9 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.137 | General Commands Manual</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -176,9 +176,9 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.136.9 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.137 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
-<p class="date">October 2026</p>
+<p class="date">November 2026</p>
 </header>
 <h1 id="name">NAME</h1>
 <div class="line-block">   chatgpt.sh -- Wrapper for ChatGPT / STT / TTS
@@ -430,12 +430,12 @@ specs.</p>
 of model specs.</p>
 </dd>
 <dt><strong>-a</strong>, <strong>--presence-penalty</strong>
-[<em>VAL</em>]</dt>
+[[<em>-</em>]<em>VAL</em>]</dt>
 <dd>
 <p>Presence penalty (cmpls/chat, -2.0 - 2.0).</p>
 </dd>
 <dt><strong>-A</strong>, <strong>--frequency-penalty</strong>
-[<em>VAL</em>]</dt>
+[[<em>-</em>]<em>VAL</em>]</dt>
 <dd>
 <p>Frequency penalty (cmpls/chat, -2.0 - 2.0).</p>
 </dd>
@@ -476,16 +476,21 @@ interchangeably.</p>
 <dd>
 <p>How long the model will stay loaded into memory (Ollama).</p>
 </dd>
-<dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
+<dt><strong>--min-p</strong>, <strong>--minp</strong>
+[<em>VAL</em>]</dt>
 <dd>
-<pre><code>Language _MODEL_ name. Def=_gpt-6-astra_/_gpt-3.5-turbo-instruct_.
-
-Set _MODEL_ name as &quot;_._&quot; to pick from the list.</code></pre>
+<p>Min_p value, dynamic sampling (cmpls/chat, 0.0 - 1.0).</p>
 </dd>
 <dt><strong>--multimodal</strong>, <strong>--vision</strong>,
 <strong>--audio</strong></dt>
 <dd>
 <p>Model multimodal model type.</p>
+</dd>
+<dt><strong>-m</strong>, <strong>--model</strong> [<em>MODEL</em>]</dt>
+<dd>
+<pre><code>Language _MODEL_ name. Def=_gpt-6-astra_/_gpt-3.5-turbo-instruct_.
+
+Set _MODEL_ name as &quot;_._&quot; to pick from the list.</code></pre>
 </dd>
 <dt><strong>-n</strong>, <strong>--results</strong> [<em>NUM</em>]</dt>
 <dd>
@@ -494,6 +499,11 @@ Set _MODEL_ name as &quot;_._&quot; to pick from the list.</code></pre>
 <dt><strong>-p</strong>, <strong>--top-p</strong> [<em>VAL</em>]</dt>
 <dd>
 <p>Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).</p>
+</dd>
+<dt><strong>--repetition-penalty</strong>, <strong>--repeat</strong>
+[<em>VAL</em>]</dt>
+<dd>
+<p>Repetition penalty (cmpls/chat, around 1.0).</p>
 </dd>
 <dt><strong>-r</strong>, <strong>--restart</strong> [<em>SEQ</em>]</dt>
 <dd>
@@ -1368,12 +1378,14 @@ flush.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>-a</code></td>
-<td style="text-align: left;"><code>!pre</code> [<em>VAL</em>]</td>
+<td style="text-align: left;"><code>!pre</code>
+[[<em>-</em>]<em>VAL</em>]</td>
 <td>Presence penalty.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>-A</code></td>
-<td style="text-align: left;"><code>!freq</code> [<em>VAL</em>]</td>
+<td style="text-align: left;"><code>!freq</code>
+[[<em>-</em>]<em>VAL</em>]</td>
 <td>Frequency penalty.</td>
 </tr>
 <tr>
@@ -1458,6 +1470,16 @@ Anthropic).</td>
 <td style="text-align: left;"><code>!keep-alive</code>
 [<em>NUM</em>]</td>
 <td>Set duration of model load in memory (Ollama).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>!minp</code></td>
+<td style="text-align: left;">- [<em>VAL</em>]</td>
+<td>Min_p.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>!repeat</code></td>
+<td style="text-align: left;">- [<em>VAL</em>]</td>
+<td>Repetition penalty.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>!verb</code></td>
@@ -1593,9 +1615,8 @@ preceded by space.</div>
 “<em>Translate this to French</em> <code>/sh</code>”</div>
 <p>Some runtime options can be disabled and excluded from the request by
 setting “<em>-0</em>” as argument</p>
-<div class="line-block">  “<code>!presence</code> <em>-0</em>”,
-“<code>!frequency</code> <em>-0</em>”,
-“<code>/temp</code><em>-0</em>”</div>
+<div class="line-block">  “<code>/temp</code><em>-0</em>”,
+“<code>!min-p</code> <em>-0</em>”, “<code>-p</code> <em>-0</em>”,</div>
 <hr />
 <h2 id="response-regeneration">Response Regeneration</h2>
 <p>To <strong>regenerate response</strong>, type in the command

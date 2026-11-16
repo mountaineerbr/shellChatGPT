@@ -1,5 +1,5 @@
 # chatgpt.sh(1) completion                                 -*- shell-script -*-
-# v0.136
+# v0.137
 
 # System Wide: /usr/share/bash-completion/completions/         #pkg manager
 #              /usr/local/share/bash-completion/completions/   #manually
@@ -66,12 +66,14 @@ _chatgptsh()
         -j --seed
         -K --top-k --topk
         --keep-alive --ka
+	--min-p  --minp
         -m --model --mod
         --multimodal
         --vision
         --audio
         -n --results
         -p --top-p --topp
+	--repetition-penalty --repeat
         -r --restart --restart-seq --restart-sequence
         -R --start --start-seq --start-sequence
         -s --stop
@@ -140,7 +142,7 @@ _chatgptsh()
     --api-key)
       ((${#cur})) || COMPREPLY=( '[key]' )
       ;;
-    -[aApt]|-[!-]*[aApt]|--presence*|--pre|--frequency*|--freq|--top-p|--topp|--temperature|--temp)
+    -[aApt]|-[!-]*[aApt]|--presence*|--pre|--frequency*|--freq|--repetition*|--repeat*|--top-p|--topp|--min-p|--minp|--temperature|--temp)
       ((${#cur})) || COMPREPLY=( '[float]' )
       ;;
     --keep-alive|--ka)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.136.9  oct/2026  by mountaineerbr  GPL+3
+# v0.137  nov/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -66,6 +66,8 @@ STREAM=1
 OPTTW=0
 # Top_p probability mass (nucleus sampling)
 #OPTP=1
+# Min_p (dynamic sampling)
+#OPT_MINP=
 # Maximum response tokens (unset with 0)
 OPTMAX=4096  #IPC
 OPTMAX_DEF=$OPTMAX
@@ -76,6 +78,8 @@ MODMAX_DEF=16000
 #OPTA=
 # Frequency penalty
 #OPTAA=
+# Repetition penalty
+#OPT_REPEAT=
 # Number of responses
 #OPTN=
 # Keep Alive (seconds, Ollama)
@@ -84,6 +88,7 @@ MODMAX_DEF=16000
 #OPTSEED=
 # Set python tiktoken
 #OPTTIK=
+OPTTIK_ENC="o200k_base"
 # TTS voice
 OPTZ_VOICE=echo  #alloy, echo, fable, onyx, nova, and shimmer
 # TTS voice speed
@@ -510,8 +515,8 @@ Command List
       !NUM    -M        [NUM]   Max response tokens.
      !!NUM    -N        [NUM]   Model token capacity.
       -NN     -NNN              Auto-set model capacity / update cache.
-      -a      !pre      [VAL]   Presence penalty.
-      -A      !freq     [VAL]   Frequency penalty.
+      -a      !pre    [[-]VAL]  Presence penalty.
+      -A      !freq   [[-]VAL]  Frequency penalty.
       -b      !responses [MOD]  Responses API request (experimental).
       -j      !seed     [NUM]   Seed number (integer).
       -K      !topk     [NUM]   Top_k.
@@ -528,6 +533,8 @@ Command List
     !effort   -        [MODE]   Mode: xhigh, high, medium, low, minimal, none.
     !think    -         [NUM]   Budget: token value (Anthropic/Google).
      !ka      !keep-alive [NUM] Set duration of model load in memory.
+    !minp     -         [VAL]   Min_p.
+    !repeat   -         [VAL]   Repetition penalty.
     !verb     !verbosity [MODE] Model verbosity (high, medium, or low).
     !vision   !audio            Toggle model multimodality type.
    --- Session Management -------------------------------------------
@@ -561,7 +568,7 @@ Command List
 	\`[PROMPT] /sh',  \`Translate this to French /sh'
 
       To unset eligible runtime options, provide the argument of \`-0'
-        \`!presence -0',  \`!frequency -0',  \`/temp -0'
+	\`/temp -0', \`!min-p -0',  \`-p -0'
 
 
       Session Commands
@@ -685,9 +692,9 @@ Options
 		Set -Nn to disable using model specs.
 		Set -NN to force use provider or LiteLLM model specs.
 		Set -NNN to update provider and LiteLLM cached model specs.
-	-a, --presence-penalty   [VAL]
+	-a, --presence-penalty   [[-]VAL]
 		Presence penalty  (cmpls/chat, -2.0 - 2.0).
-	-A, --frequency-penalty  [VAL]
+	-A, --frequency-penalty  [[-]VAL]
 		Frequency penalty (cmpls/chat, -2.0 - 2.0).
 	--effort  [ xhigh | high | medium | low | minimal | none ]  (OpenAI)
 	          [ max | high | medium | low ]  (Anthropic {sonnet,opus}-4-6+)
@@ -705,12 +712,16 @@ Options
 	-m, --model     [MOD]
 		Language MODEL name or set it as \`.' to pick
 		from the list. Def=$MOD, $MOD_CHAT.
+	--min-p         [VAL]
+		Min_p value, dynamic sampling (cmpls/chat, 0.0 - 1.0).
 	--multimodal, --vision, --audio
 		Model multimodal mode.
 	-n, --results   [NUM]
 		Number of results. Def=${OPTN:-unset}.
 	-p, --top-p     [VAL]
 		Top_p value, nucleus sampling (cmpls/chat, 0.0 - 1.0).
+	--repetition-penalty  [VAL]
+		Repetition penalty (cmpls/chat, around 1.0).
 	-r, --restart   [SEQ]
 		Restart sequence string (cmpls).
 	-R, --start     [SEQ]
@@ -1805,12 +1816,16 @@ function set_histf
 	time= token= string= stringc= stringd= max_prev= total_old= role= role_last= rest= sub= ind= nl=;
         typeset ANTHROPICAI_CACHE_CONTROL_DISABLE=1;  #cache breakpoints only on system + last user msg (max 4)
 	typeset -a MEDIA MEDIA_CMD; MEDIA=(); MEDIA_CMD=();
-	HIST_LOOP=0 HIST= HIST_C=;
+	HIST_LOOP=0 MAX_PREV=0 HIST= HIST_C=;
 
 	[[ -s $FILECHAT ]] || return;
 	((BREAK_SET)) && return;
 
 	total_old=$TOTAL_OLD
+	#when $REGEN is -1, avoid adding retained history tokens to the existing global total
+	if ! ((MAIN_LOOP && REGEN>=0 && total_old>0))
+	then 	TOTAL_OLD=0
+	fi
 	((OPTTIK)) && herr=1 || herr=4;  #context limit error pc
 	q_type=${Q_TYPE##$SPC1} a_type=${A_TYPE##$SPC1}
 	((OPTC>1 || EPN==6 || EPN==12)) && typeset A_TYPE="${A_TYPE} "  #pretty-print seq "\\nA: " ($rest)
@@ -1850,6 +1865,8 @@ function set_histf
 		#we currently ignore (re)start seq tkns, always consider +3 tkns from $[QA]_TYPE
 
 		if (( ( ( (max_prev+token+TKN_PREV)*(100+herr) )/100 ) < MODMAX-OPTMAX)) || {
+			#history shortened: rebuild the retained-history baseline
+			TOTAL_OLD=$max_prev total_old=0;
 			#truncate input to fit most of the model capacity
 			if 	(( x = ( (MODMAX-OPTMAX-max_prev-TKN_PREV)*(100-(herr*2) ) )/100 )); ((x>20));
 			then 	(( r = ( ( ( ( ( (x*100)/token) * x) / 100) ) * ${#stringc}) / token ));
@@ -1929,8 +1946,9 @@ function set_histf
 		fi
 	done < <(tac -- "$FILECHAT")
 	_printbf ' ' #_spinf() end
-	((MAX_PREV+=3)) # chat cmpls, every reply is primed with <|start|>assistant<|message|>
+	# chat cmpls, every reply is primed with <|start|>assistant<|message|>
 	# in text chat cmpls, prompt is primed with A_TYPE = 3 tkns
+	((MAX_PREV= max_prev + TKN_PREV + 3))
 
 	#first system/instruction: add extra newlines and delete $S_TYPE  (txt cmpls)
 	case "$role" in system|developer)
@@ -2008,7 +2026,9 @@ function token_prevf
 function send_tiktokenf
 {
 	kill -0 $COPROC_PID 2>/dev/null || return
-	printf '%s\n' "${1//$NL/\\n}" >&"${COPROC[1]}"
+	{ 	((${#1})) && LC_ALL=C  tr '\n' '\t' <<<"${1}";
+		printf '\n';
+	} >&"${COPROC[1]}"
 }
 
 #get from tiktoken coproc
@@ -2074,8 +2094,8 @@ function tiktokenf
 try:
     import tiktoken
 except ImportError as e:
-    print(\"Err: Python -- \", e)
-    exit()
+    print(\"Err: Python -- \", e, file=sys.stderr)
+    sys.exit(1)
 
 opttiktoken, opttik = ${OPTTIKTOKEN:-0}, ${HOPTTIK:-0}
 optv, optl = ${OPTV:-0}, ${OPTL:-0}
@@ -2098,10 +2118,10 @@ except:
         try:
             enc = tiktoken.get_encoding(mod)
         except:
-            enc = tiktoken.get_encoding(\"${MODEL_ENCODING}\")
+            enc = tiktoken.get_encoding(\"${OPTTIK_ENC:-o200k_base}\")
     except:
-        enc = tiktoken.get_encoding(\"r50k_base\")  #davinci
-        print(\"Warning: Tiktoken -- unknown model/encoding, fallback \", str(enc), file=sys.stderr)
+        enc = tiktoken.get_encoding(\"${OPTTIK_ENC:-o200k_base}\")
+        print(\"Warning: Tiktoken -- Unknown model/encoding, fallback\", str(enc), file=sys.stderr)
 
 if opttik <= 0:
     encoded_text = enc.encode_ordinary(text)
@@ -2113,13 +2133,14 @@ if opttik <= 0:
         print(len(encoded_text),str(enc))
 else:
     try:
-        while text != \"/END_TIKTOKEN/\":
-            text = sys.stdin.readline().rstrip(\"\\n\")
+        while True:
+            text = (sys.stdin.readline() or \"/END_TIKTOKEN/\").rstrip(\"\\n\")
+            if text == \"/END_TIKTOKEN/\": break
             text = text.replace(\"\\\\\\\\\", \"&\\f\\f&\").replace(\"\\\\n\", \"\\n\").replace(\"\\\\t\", \"\\t\").replace(\"\\\\\\\"\", \"\\\"\").replace(\"&\\f\\f&\", \"\\\\\")
             encoded_text = enc.encode_ordinary(text)
             print(len(encoded_text), flush=True)
     except (KeyboardInterrupt, BrokenPipeError, SystemExit):  #BaseException:
-        exit()" "${MOD:-davinci}" "${@:-}"
+        sys.exit()" "${MOD:-davinci}" "${@:-}"
 }
 #cl100k_base gpt-3.5-turbo
 #json specials \" \\ b f n r t \uHEX
@@ -2207,7 +2228,7 @@ function set_conff
         fi
 
         if ((OPTLOG))
-        then  logfile=( "Log File Path:"  40 2 "${USRLOG/"$HOME"/"~"}"  40 22 50 $((${#USRLOG}+10)) );
+        then  logfile=( "Log File Path:"  42 2 "${USRLOG/"$HOME"/"~"}"  42 22 50 $((${#USRLOG}+10)) );
         else  logfile=( );
         fi
 
@@ -2226,41 +2247,43 @@ function set_conff
         "Model Verbosity:"     8 2 "$VERBOSITY"     8 22 10 0 \
         \
         "Temperature:"        10 2 "$OPTT"        10 22  6 0 \
-        "Top_p:"              11 2 "$OPTP"        11 22  6 0 \
-        "Top_k:"              12 2 "$OPTKK"       12 22  6 0 \
-        "Presence Penalty:"   13 2 "$OPTA"        13 22  6 0 \
-        "Frequency Penalty:"  14 2 "$OPTAA"       14 22  6 0 \
-        "Seed:"               15 2 "$OPTSEED"     15 22 25 0 \
+        "Top_k:"              11 2 "$OPTKK"       11 22  6 0 \
+        "Top_p:"              12 2 "$OPTP"        12 22  6 0 \
+        "Min_p:"              13 2 "$OPT_MINP"    13 22  6 0 \
+        "Presence Penalty:"   14 2 "$OPTA"        14 22  6 0 \
+        "Frequency Penalty:"  15 2 "$OPTAA"       15 22  6 0 \
+        "Repetition Penalty:" 16 2 "$OPT_REPEAT"  16 22  6 0 \
+        "Seed:"               17 2 "$OPTSEED"     17 22 25 0 \
         \
-        "Text Folding:"       17 2 "$OPTFOLD"     17 22  2 0 \
-        "Clipboard Mode:"     18 2 "$OPTCLIP"     18 22  2 0 \
+        "Text Folding:"       19 2 "$OPTFOLD"     19 22  2 0 \
+        "Clipboard Mode:"     20 2 "$OPTCLIP"     20 22  2 0 \
         \
-        "Text Editor:"        20 2 "${VISUAL:-$EDITOR}" 20 22 $((${#VISUAL}+22)) 0 \
-        "CLI Web Browser:"    21 2 "$BROWSER"     21 22 25 0 \
+        "Text Editor:"        22 2 "${VISUAL:-$EDITOR}" 22 22 $((${#VISUAL}+22)) 0 \
+        "CLI Web Browser:"    23 2 "$BROWSER"     23 22 25 0 \
         \
-        "Markdown Enable:"    23 2 "$OPTMD"       23 22  2 0 \
-        "Markdown Command:"   24 2 "$MD_CMD"      24 22 $((${#MD_CMD}+22)) 0 \
+        "Markdown Enable:"    25 2 "$OPTMD"       25 22  2 0 \
+        "Markdown Command:"   26 2 "$MD_CMD"      26 22 $((${#MD_CMD}+22)) 0 \
         \
-        "Speech-To-Text:"     26 2 "$OPTW"        26 22  2 0 \
-        "STT Model:"          27 2 "$(
+        "Speech-To-Text:"     28 2 "$OPTW"        28 22  2 0 \
+        "STT Model:"          29 2 "$(
             if is_whisper_groqf; then echo "$MOD_AUDIO_GROQ"; elif is_whisper_mistralf; then echo "$MOD_AUDIO_MISTRAL"; else echo "$MOD_AUDIO"; fi
-	  )"                                      27 22 30 0 \
-        "STT Args:"           28 2 "${WARGS[*]}"  28 22 $((${#WARGS[${#WARGS[@]}?${#WARGS[@]}-1:0]}+30)) 0 \
-        "STT Model Temp:"     29 2 "$OPTTW"       29 22  6 0 \
-        "*Groq STT:"          30 2 "$WHISPER_GROQ"    30 22  3 0 \
-        "*Mistral STT:"       31 2 "$WHISPER_MISTRAL" 31 22  3 0 \
+	  )"                                      29 22 30 0 \
+        "STT Args:"           30 2 "${WARGS[*]}"  30 22 $((${#WARGS[${#WARGS[@]}?${#WARGS[@]}-1:0]}+30)) 0 \
+        "STT Model Temp:"     31 2 "$OPTTW"       31 22  6 0 \
+        "*Groq STT:"          32 2 "$WHISPER_GROQ"    32 22  3 0 \
+        "*Mistral STT:"       33 2 "$WHISPER_MISTRAL" 33 22  3 0 \
         \
-        "Text-To-Speech:"     33 2 "$OPTZ"        33 22  2 0 \
-        "TTS Model:"          34 2 "$(is_tts_groqf &&
+        "Text-To-Speech:"     35 2 "$OPTZ"        35 22  2 0 \
+        "TTS Model:"          36 2 "$(is_tts_groqf &&
             echo "$MOD_SPEECH_GROQ" || echo "$MOD_SPEECH"
-	  )"                                      34 22 30 0 \
-        "TTS Args:"           35 2 "${ZARGS[*]}"  35 22 $((${#ZARGS[${#ZARGS[@]}?${#ZARGS[@]}-1:0]}+30)) 0 \
-        "TTS Voice:"          36 2 "$(is_tts_groqf &&
-	    echo "$OPTZ_VOICE_GROQ" || echo "$OPTZ_VOICE"
 	  )"                                      36 22 30 0 \
-        "*Groq TTS:"          37 2 "$SPEECH_GROQ" 37 22  3 0 \
+        "TTS Args:"           37 2 "${ZARGS[*]}"  37 22 $((${#ZARGS[${#ZARGS[@]}?${#ZARGS[@]}-1:0]}+30)) 0 \
+        "TTS Voice:"          38 2 "$(is_tts_groqf &&
+	    echo "$OPTZ_VOICE_GROQ" || echo "$OPTZ_VOICE"
+	  )"                                      38 22 30 0 \
+        "*Groq TTS:"          39 2 "$SPEECH_GROQ" 39 22  3 0 \
         \
-        "Text Log Enable:"    39 2 "$OPTLOG"      39 22  2 60 \
+        "Text Log Enable:"    41 2 "$OPTLOG"      41 22  2 60 \
         "${logfile[@]}" \
         2>&1 >/dev/tty </dev/tty;
     )
@@ -2270,7 +2293,8 @@ function set_conff
     then
         _clr_dialogf;
         for varname in MOD MODMAX OPTMAX OPTMAX_NILL MULTIMODAL STREAM \
-	    REASON_EFFORT VERBOSITY OPTT OPTP OPTKK OPTA OPTAA OPTSEED OPTFOLD \
+	    REASON_EFFORT VERBOSITY OPTT OPTKK OPTP OPT_MINP \
+	    OPTA OPTAA OPT_REPEAT OPTSEED OPTFOLD \
             OPTCLIP VISUAL BROWSER OPTMD MD_CMD OPTW \
             $(if is_whisper_groqf; then echo "MOD_AUDIO_GROQ"; elif is_whisper_mistralf; then echo "MOD_AUDIO_MISTRAL"; else echo "MOD_AUDIO"; fi) \
             WARGS OPTTW WHISPER_GROQ WHISPER_MISTRAL OPTZ \
@@ -2332,6 +2356,9 @@ function set_conff
                     OPTCLIP)
                         ((++OPTCLIP));
                         cmdf /clipboard;
+                        ;;
+                    OPTA)
+                        OPTA_AUTO=;
                         ;;
                     OPTW)
                         ((++OPTW));
@@ -2644,7 +2671,7 @@ function cmdf
 			[[ $1 = *-[0-0] ]] && OPTA= && set --;
 			set -- "${*##@(-a|presence|pre)*([$IFS])}";
 			set -- "${*//[!0-9.-]}"
-			OPTA="${*:-$OPTA}"
+			OPTA="${*:-$OPTA}" OPTA_AUTO=
 			fix_dotf OPTA
 			cmdmsgf 'Presence Penalty' "$OPTA"
 			;;
@@ -2656,21 +2683,29 @@ function cmdf
 			fix_dotf OPTAA
 			cmdmsgf 'Frequency Penalty' "$OPTAA"
 			;;
+		repetition*|repeat*)
+			[[ $1 = *-[0-0] ]] && OPT_REPEAT= && set --;
+			set -- "${*##@(repetition-penalty|repeat-penalty|repetition|repeat)*([$IFS])}";
+			set -- "${*//[!0-9.-]}"
+			OPT_REPEAT="${*:-$OPT_REPEAT}"
+			fix_dotf OPT_REPEAT
+			cmdmsgf 'Repetition Penalty' "$OPT_REPEAT"
+			;;
 		-C)
 			BREAK_SET= OPTRESUME=1 INSTRUCTION_OLD=${INSTRUCTION:-$INSTRUCTION_OLD} INSTRUCTION= GINSTRUCTION=;
-			cmdmsgf "Session Continue:" $(_onoff ${OPTRESUME:-0});
+			cmdmsgf "Session Continue" $(_onoff ${OPTRESUME:-0});
 			;;
 		-c)
 			((EPN==12)) && MOD=${MOD_RESPONSES:-$MOD} MOD_RESPONSES=;
 			((OPTC)) && { 	cmdf -cc; return ;}
 			OPTC=1 EPN=0 OPTCMPL= STURN= RESPONSES_API= ;
-			cmdmsgf "Endpoint[$EPN]:" "Text Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
+			cmdmsgf "Endpoint[$EPN]" "Text Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		-cc)
 			((EPN==12)) && MOD=${MOD_RESPONSES:-$MOD} MOD_RESPONSES=;
 			((OPTC>1)) && { 	cmdf -d; return ;}
 			OPTC=2 EPN=6 OPTCMPL= STURN= RESPONSES_API= ;
-			cmdmsgf "Endpoint[$EPN]:" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
+			cmdmsgf "Endpoint[$EPN]" "Chat Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		cache)
 			# Anthropic cache control
@@ -2715,7 +2750,7 @@ function cmdf
 			((EPN==12)) && MOD=${MOD_RESPONSES:-$MOD} MOD_RESPONSES=;
 			((!OPTC)) && { 	cmdf -c; return ;}
 			OPTC= EPN=0 OPTCMPL=1 STURN= RESPONSES_API= ;
-			cmdmsgf "Endpoint[$EPN]:" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
+			cmdmsgf "Endpoint[$EPN]" "Text Completions$(printf "${NC}") [${ENDPOINTS[EPN]:-$BASE_URL}]";
 			;;
 		break|br|new)
 			if ((OPTV==100))
@@ -2746,7 +2781,7 @@ function cmdf
 			}; echo >&2;
 
 			trap "exit" INT;
-			cmdmsgf 'User Block:' "${BLOCK_USR:-unset}";
+			cmdmsgf 'User Block' "${BLOCK_USR:-unset}";
 			;;
 		effort*|budget*|think*)
 			set -- "${*##@(effort|budget|think)$SPC}"
@@ -2759,7 +2794,7 @@ function cmdf
 				fi
 			else 	REASON_EFFORT="${*}";
 			fi;
-			cmdmsgf 'Reasoning Effort:' "${REASON_EFFORT:-unset}";
+			cmdmsgf 'Reasoning Effort' "${REASON_EFFORT:-unset}";
 			;;
 		fold|wrap|no-fold|no-wrap)
 			((++OPTFOLD)) ;((OPTFOLD%=2))
@@ -2785,7 +2820,8 @@ function cmdf
 		-H|H|history|hist)
 			_edf "$FILECHAT"
 			((REGEN)) && cmdmsgf 'Regenerate' "OFF"
-			REPLY_OLD= CKSUM_OLD= REGEN= xskip=1
+			REPLY_OLD= CKSUM_OLD= REGEN= TOTAL_OLD= MAX_PREV= xskip=1
+			#clear the baseline after editing or changing history
 			;;
 		-H[0-9\ ]*|H[0-9\ ]*|history[0-9\ ]*|hist[0-9\ ]*)
 			set -- "${*##@(-H|H|history|hist)*(\ )}";
@@ -2832,12 +2868,12 @@ function cmdf
 			;;
 		-j*|seed*)
 			OPTSEED="${*##@(-j|seed)*([$IFS])}"
-			cmdmsgf 'Seed:' "$OPTSEED"
+			cmdmsgf 'Seed' "$OPTSEED"
 			;;
 		j|jump)
 			if ((OPTCMPL || !EPN))
 			then
-				cmdmsgf 'Jump:' 'append response primer'
+				cmdmsgf 'Jump' 'append response primer'
 				JUMP=1 REPLY=
 			else
 				cmdf //jump;
@@ -2848,7 +2884,7 @@ function cmdf
 		[/!]j|[/!]jump|J|Jump)
 			if ((OPTCMPL || !EPN))
 			then
-				cmdmsgf 'Jump:' 'no response primer';
+				cmdmsgf 'Jump' 'no response primer';
 			else
 				echo '[jump]' >&2;
 			fi
@@ -2860,6 +2896,14 @@ function cmdf
 			set -- "${*//[!0-9.]}"
 			OPTKK="${*:-$OPTKK}"
 			cmdmsgf 'Top_K' "$OPTKK"
+			;;
+		min[Pp]*|min[_-][Pp]*)
+			[[ $1 = *-[0-0] ]] && OPT_MINP= && set --;
+			set -- "${*##@(min[_-][Pp]|min[Pp])*([$IFS])}"
+			set -- "${*//[!0-9.-]}"
+			OPT_MINP="${*:-$OPT_MINP}"
+			fix_dotf OPT_MINP
+			cmdmsgf 'Min_P' "$OPT_MINP"
 			;;
 		keep-alive*|ka*)
 			set -- "${*//[!0-9.]}"
@@ -2896,7 +2940,7 @@ function cmdf
 			set_modalf "$MOD";
 			send_tiktokenf '/END_TIKTOKEN/'
 			cmdmsgf 'Model Name' "$MOD$( ((MULTIMODAL)) && printf ' / %s' 'multimodal')"
-			cmdmsgf 'Response / Capacity:' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
+			cmdmsgf 'Response / Capacity' "$( ((OPTMAX_NILL && !ANTHROPICAI)) && echo "inf" || echo "$OPTMAX") / $MODMAX tkns"
 			;;
 		markdown*|md*)
 			((OPTMD)) || (OPTMD=1 cmdf //"${args[@]}");
@@ -3393,8 +3437,10 @@ function cmdf
 			temperature   "${OPTT:-unset}" \
 			pres-penalty  "${OPTA:-unset}" \
 			freq-penalty  "${OPTAA:-unset}" \
+			repeat-penlt  "${OPT_REPEAT:-unset}" \
 			top-k         "${OPTKK:-unset}" \
 			top-p         "${OPTP:-unset}" \
+			min-p         "${OPT_MINP:-unset}" \
 			num-results   "${OPTN:-unset}" \
 			insert-mode   "${OPTSUFFIX:-unset}" \
 			streaming     "${STREAM:-unset}" \
@@ -3533,7 +3579,7 @@ function cmdf
 			;;
 		save*|\#*)
 			shell_histf "${*##@(save|\#)*([$IFS])}"; history -a;
-			((${#1})) && cmdmsgf 'Shell:' 'Prompt added to history!';
+			((${#1})) && cmdmsgf 'Shell' 'Prompt added to shell history!';
 			REPLY= EDIT= SKIP_SH_HIST=;
 			;;
 		[/!]sh*)
@@ -3619,7 +3665,7 @@ function cmdf
 			[[ $* = [/!]* ]] && CACHEDIR=;
 			if set_tmpf
 			then 	OPTV=98 FILECHAT=$var sessionf /fork "$FILECHAT"
-				_cmdmsgf 'Temp Dir:' "${CACHEDIR/"$HOME"/\~}";
+				_cmdmsgf 'Temp Dir' "${CACHEDIR/"$HOME"/\~}";
 			else
 				FILECHAT=$var CACHEDIR=$buff;
 				_warmsgf 'Err:' "Cannot create temporary cache directory";
@@ -4103,7 +4149,7 @@ function cmdf
 					esac;
 
 					((n<2)) || echo >&2;
-					cmdmsgf "Command Run:" "\`${buff}\`";  #!#
+					cmdmsgf "Command Run" "\`${buff}\`";  #!#
 
 					CMD_ENV=211 cmdf "${buff}" ||
 						if ((m))  #duplicate-letter command fail
@@ -4111,7 +4157,7 @@ function cmdf
 							#try single-letter command
 							((OPTV>1)) || _clr_lineupf $((12+1+2+${#buff}));  #!#
 							buff="${argv[0]:0:1}${argv[0]:n:1}";
-							cmdmsgf "Command Run:" "\`${buff}\`";  #!#
+							cmdmsgf "Command Run" "\`${buff}\`";  #!#
 							CMD_ENV=211 cmdf "${buff}" && m=;
 						else 	! :;
 						fi ||
@@ -5023,7 +5069,7 @@ function usr_logf
 function foldf
 {
 	if ((!OPTFOLD)) || ((COLUMNS<18)) || [[ ! -t 1 ]]
-	then 	cat
+	then 	cat  #cat -u  #stdbuf -o0 cat
 	else 	typeset REPLY r x n text result
 
 		while IFS= read -r -d ' ' && REPLY=$REPLY' ' || ((${#REPLY}))
@@ -5079,7 +5125,9 @@ function check_optrangef
 #save config and set config for reasoning models
 function save_reasoning_autosetf
 {
-	[[ -n $OPTA$OPTAA ]] && _warmsgf 'Warning:' 'Resetting frequency and presence penalties';
+	[[ (-n $OPTA && $OPTA != "$OPTA_AUTO") || -n $OPTAA ]] &&
+	_warmsgf 'Warning:' 'Resetting frequency and presence penalties';
+
 	OPTT_REASON=${OPTT:-$OPTT_REASON} OPTT=;
 	OPTA_REASON=${OPTA:-$OPTA_REASON} OPTA=;
 	OPTAA_REASON=${OPTAA:-$OPTAA_REASON} OPTAA=;
@@ -5337,6 +5385,13 @@ function set_optsf
 	((!OPTMAX_NILL && OPTMAX<1)) && OPTMAX=${OPTMAX_DEF:-4096}  #M#
 	((WHISPER_GROQ>0 && WHISPER_MISTRAL>0)) && WHISPER_GROQ=1 WHISPER_MISTRAL=;
 
+	#fix input floats
+	((${#OPTA})) && fix_dotf OPTA; ((${#OPTAA})) && fix_dotf OPTAA;
+	((${#OPTP})) && fix_dotf OPTP; ((${#OPTT})) && fix_dotf OPTT;
+	((${#OPTKK})) && fix_dotf OPTKK; ((${#OPT_MINP})) && fix_dotf OPT_MINP;
+	((${#OPT_REPEAT})) && fix_dotf OPT_REPEAT;
+
+	#check valid ranges
 	((OPTW+OPTZ && !CHAT_ENV)) || {
 	  check_optrangef "$OPTA"   -2.0 2.0 'Presence-penalty'
 	  check_optrangef "$OPTAA"  -2.0 2.0 'Frequency-penalty'
@@ -5361,6 +5416,9 @@ function set_optsf
 	[[ "$OPTAA" = *[!$IFS]* ]] && OPTAA_OPT="\"frequency_penalty\": $OPTAA," || unset OPTAA_OPT;
 	[[ "$OPTP" = *[!$IFS]* ]] && OPTP_OPT="\"top_p\": $OPTP," || unset OPTP_OPT;
 	[[ "$OPTKK" = *[!$IFS]* ]] && OPTKK_OPT="\"top_k\": $OPTKK," || unset OPTKK_OPT;
+	[[ "$OPT_MINP" = *[!$IFS]* ]] && OPT_MINP_OPT="\"min_p\": $OPT_MINP," || unset OPT_MINP_OPT;
+	[[ "$OPT_REPEAT" = *[!$IFS]* ]] && OPT_REPEAT_OPT="\"repetition_penalty\": $OPT_REPEAT," || unset OPT_REPEAT_OPT;
+	((LOCALAI+OLLAMA)) && OPT_REPEAT_OPT="${OPT_REPEAT_OPT/repetition/repeat}";
 	if ((OPTSUFFIX+${#SUFFIX})); then 	OPTSUFFIX_OPT="\"suffix\": \"$(escapef "$SUFFIX")\","; else 	unset OPTSUFFIX_OPT; fi;
 
 	if ((STREAM))
@@ -5539,7 +5597,7 @@ function read_charrecf
 	    { case "$REC_CMD" in termux-microphone-record*)  false;; *)  :;; esac ;} &&
 	    command -v ffmpeg >/dev/null 2>&1
 	then
-	  _cmdmsgf "Silence Detection:" "tolerance: ${threshold}  min_length: ${min_len}s";
+	  _cmdmsgf "Silence Detection" "tolerance: ${threshold}  min_length: ${min_len}s";
 	  _clr_ttystf; sleep ${min_len};
 	  while var=$(
 	      ffmpeg -fflags +nobuffer+discardcorrupt \
@@ -5554,7 +5612,7 @@ function read_charrecf
 	    { case "$REC_CMD" in termux-microphone-record*)  false;; *)  :;; esac ;} &&
 	    command -v sox >/dev/null 2>&1
 	then
-	  _cmdmsgf "Silence Detection:" "rms_amplitude: ${rms}  min_length: ${min_len}s";
+	  _cmdmsgf "Silence Detection" "rms_amplitude: ${rms}  min_length: ${min_len}s";
 	  _clr_ttystf; sleep ${min_len};
 	  while var=$(
 	      sox "$1" -n trim -${min_len} stat 2>&1 </dev/null |
@@ -7010,7 +7068,7 @@ function sessionf
 		fi
 	fi
 
-	[[ ${file:-$FILECHAT} = "$FILECHAT" ]] && msg=Current || msg=Change;
+	[[ ${file:-$FILECHAT} = "$FILECHAT" ]] && msg=Current || TOTAL_OLD= MAX_PREV= msg=Change;
        	FILECHAT="${file:-$FILECHAT}";
 	_sysmsgf "History $(printf '%7s' "$msg"):" "${FILECHAT/"$HOME"/"~"}" $'\n\n';
 
@@ -7397,7 +7455,8 @@ google  google:goo  mistral  openai  groq  grok  grok:xai  anthropic \
 anthropic:ant  openrouter  openrouter:open  deepseek deepseek:deep \
 w:transcribe  w:stt  W:translate  z:tts  z:speech  Z:last  api-key  multimodal \
 effort  effort:budget  effort:think  verbosity  verbosity:verb  no-verbosity \
-b:responses b:resp   cache-enable cache-disable \
+b:responses b:resp   cache-enable cache-disable  min-p min-p:minp  repetition-penalty \
+repetition-penalty:repeat-penalty repetition-penalty:repetition repetition-penalty:repeat  \
 vision  audio  markdown  markdown:md  no-markdown  no-markdown:no-md  fold \
 fold:wrap  no-fold  no-fold:no-wrap  j:seed  keep-alive  keep-alive:ka \
 M:max-tokens  M:max  N:mod-max  N:modmax  a:presence-penalty \
@@ -7419,8 +7478,13 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 		case "$OPTARG" in
 			$name|$name=)
 				if [[ $optstring = *"$opt":* ]] ||
-					[[ :effort:format:voice:verbosity: = *:"$opt":* ]]
-				then 	OPTARG="${@:$OPTIND:1}"
+					[[ :repetition-penalty:min-p:effort:format:voice:verbosity: = *:"$opt":* ]]
+				then
+					if ((OPTIND > $#))
+					then 	_warmsgf "Missing option argument:" "--${OPTARG%%=*}"
+						exit 2
+					fi;
+					OPTARG="${@:$OPTIND:1}"
 					OPTIND=$((OPTIND+1))
 				fi;;
 			$name=*)
@@ -7480,7 +7544,7 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 			REASON_EFFORT=${OPTARG:?--effort/--think requires mode/tokens};;
 		e) 	((++OPTE));;
 		E) 	((++OPTEXIT));;
-		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_RESPONSES RESPONSES_API MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI OPENROUTER XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE CACHEDIR OPTTMP OPTZ_MAX OPTSEED MISTRALAI_REASONING_CONTROL_DISABLE ANTHROPICAI_CACHE_CONTROL_DISABLE LITELLM_MODEL_SPECS_DISABLE MODEL_SPECS_DISABLE DEEPSEEK MOD_DEEPSEEK MOD_AUDIO_MISTRAL INSTRUCTION_CHAT;
+		f$OPTF) unset EPN MOD MOD_CHAT MOD_AUDIO MOD_SPEECH MOD_SPEECH_GROQ SPEECH_GROQ MOD_RESPONSES RESPONSES_API MODMAX INSTRUCTION OPTZ_VOICE OPTZ_VOICE_GROQ OPTZ_SPEED OPTZ_FMT OPTC OPTLOG USRLOG OPTRESUME OPTCMPL OPTTIKTOKEN OPTTIK OPTTIK_ENC OPTYY OPTFF OPTK OPTKK OPT_KEEPALIVE OPTHH OPTINFO OPTL OPTMARG OPTMM OPTNN OPTMAX OPTA OPTAA OPTN OPTP OPTT OPTTW OPTV OPTVV OPTW OPTWW OPTZ OPTZZ OPTSTOP OPTCLIP CATPR OPTCTRD OPTMD Q_TYPE A_TYPE RESTART START STOPS OPTSUFFIX SUFFIX CHATGPTRC REC_CMD PLAY_CMD CLIP_CMD STREAM MEDIA MEDIA_CMD MD_CMD OPTE OPTEXIT BASE_URL OLLAMA MISTRALAI LOCALAI GROQAI ANTHROPICAI OPENROUTER XAI GOOGLEAI GPTCHATKEY READLINEOPT MULTIMODAL OPTFOLD HISTSIZE WAPPEND NO_DIALOG NO_OPTMD_AUTO WHISPER_GROQ WHISPER_MISTRAL INST_TIME REASON_EFFORT VERBOSITY TRUNCATION_DISABLE CACHEDIR OPTTMP OPTZ_MAX OPTSEED MISTRALAI_REASONING_CONTROL_DISABLE ANTHROPICAI_CACHE_CONTROL_DISABLE LITELLM_MODEL_SPECS_DISABLE MODEL_SPECS_DISABLE DEEPSEEK MOD_DEEPSEEK MOD_AUDIO_MISTRAL INSTRUCTION_CHAT OPT_MINP OPT_REPEAT;
 			unset MOD_LOCALAI MOD_OLLAMA MOD_MISTRAL MOD_GOOGLE MOD_GROQ MOD_AUDIO_GROQ MOD_ANTHROPIC MOD_OPENROUTER MOD_XAI;
 			unset OPENAI_MODEL LOCALAI_MODEL OLLAMA_MODEL GEMINI_MODEL MISTRAL_MODEL GROQ_MODEL ANTHROPIC_MODEL OPENROUTER_MODEL XAI_MODEL DEEPSEEK_MODEL;
 			unset RED BRED YELLOW BYELLOW PURPLE BPURPLE ON_PURPLE CYAN BCYAN WHITE BWHITE INV ALERT BOLD NC;
@@ -7582,11 +7646,14 @@ date  no-date  format  voice  awesome-zh  awesome  source  no-truncation  tmp
 		no-truncation) TRUNCATION_DISABLE=1;;
 		z) 	OPTZ=1;;
 		Z) 	((++OPTZZ));;
+		min-p) 	OPT_MINP=$OPTARG;;
+		repetition-penalty)
+			OPT_REPEAT=$OPTARG;;
 		\?) 	exit 1;;
 	esac; OPTARG= ;
 done
 shift $((OPTIND -1))
-unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCONTEXT MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET MOD_REASON MOD_THINK OPTT_REASON OPTA_REASON OPTAA_REASON OPTMAX_REASON STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD ANS_OLD NC RESPONSES_AUTO OPTC_OLD OPTCMPL_OLD regex init buff var arr tkn n s
+unset LANGW MTURN CHAT_ENV CMD_ENV SKIP PSKIP XSKIP EDIT INDEX BAD_RES REPLY REPLY_CMD REPLY_CMD_DUMP REPLY_TRANS REGEX SGLOB EXT PIDS NO_CLR WARGS ZARGS WCONTEXT MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND SMALLEST DUMP PREPEND BREAK_SET SKIP_SH_HIST OK_DIALOG DIALOG_CLR OPT_SLES RET MOD_REASON MOD_THINK OPTT_REASON OPTA_REASON OPTAA_REASON OPTMAX_REASON STURN LINK_CACHE LINK_CACHE_BAD HARGS GINSTRUCTION_PERM INSTRUCTION_RESET MD_AUTO TRAP_WEDIT TRAP_EDIT EPN_OLD ANS_OLD NC RESPONSES_AUTO OPTC_OLD OPTCMPL_OLD OPTA_AUTO regex init buff var arr tkn n s
 typeset -a PIDS MEDIA MEDIA_CMD MEDIA_IND MEDIA_CMD_IND WARGS ZARGS arr
 
 set -o ${READLINEOPT:-emacs};  #required, hopefully overruled by user ~/.inputrc
@@ -7955,7 +8022,7 @@ if ((OPTTMP))
 then  #temporary cache, --tmp
 	((OPTTMP>1)) && CACHEDIR=;
 	set_tmpf || exit;
-	_cmdmsgf 'Temp Dir:' "${CACHEDIR/"$HOME"/\~}";
+	_cmdmsgf 'Temp Dir' "${CACHEDIR/"$HOME"/\~}";
 else
 	[[ -d $OUTDIR ]] || mkdir -pv -- "$OUTDIR" ||
 	    _warmsgf 'Err:' "Output directory -- ${OUTDIR/"$HOME"/"~"}";
@@ -8183,7 +8250,8 @@ else
 
 		#presencePenalty may be incompatible with some models!
 		((MOD_REASON+MOD_THINK+ANTHROPICAI+LOCALAI+OLLAMA+XAI+GROQAI)) ||  #openrouter
-		{ ((${INSTRUCTION+1}0)) && ((!${#INSTRUCTION})) ;} || OPTA="${OPTA-0.6}";
+		{ ((${INSTRUCTION+1}0)) && ((!${#INSTRUCTION})) ;} ||
+		{ OPTA="${OPTA-${OPTA_AUTO:=0.6}}" ;}
 		#_j: frequency_penalty=0.05, presence_penalty=0.1
 
 		#stop sequences
@@ -8764,6 +8832,12 @@ else
 					var="${INSTRUCTION:-${GINSTRUCTION:-$INSTRUCTION_OLD}}";
 					((${#var})) && _sysmsgf 'INSTRUCTION:' "\`${var:0:8192}$( ((${#var}>8192)) && echo '[..]' )'" 2>&1 | foldf >&2;
 					;;
+				#::)  #unset system prompts
+				#	#syntax exceptions
+				#	INSTRUCTION= GINSTRUCTION= GINSTRUCTION_PERM=;
+				#	((ANTHROPICAI)) && INSTRUCTION_OLD=;  #R#
+				#	_sysmsgf "System Prompt: unset";
+				#	;;
 				::*)  #prepend to system instruction
 					((${#var})) && buff=$(exp_txturl "$var") && var=${buff:-$var} buff=;
 					((${#var})) && ((INSTRUCTION_RESET+=${#var}+2));
@@ -9009,7 +9083,7 @@ $(
   #https://platform.openai.com/docs/guides/deep-research#prompting-deep-research-models
 )
 $BLOCK
-$STREAM_OPT $OPTT_OPT $OPTP_OPT
+$STREAM_OPT $OPTT_OPT $OPTP_OPT $OPT_REPEAT_OPT $OPT_MINP_OPT
 \"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
 }"
 	#note: responses api stream_options and reasoning_effort are different from completions api!
@@ -9026,6 +9100,7 @@ $STREAM_OPT $OPTT_OPT $OPTP_OPT
     fi
   )
   ${OPTSTOP/stop/stopSequences} ${OPTP_OPT/_p/P}
+  ${OPT_REPEAT_OPT} ${OPT_MINP_OPT/_p/P}
   ${OPTKK_OPT/_k/K} ${OPTT_OPT}
   ${BLOCK_USR}"
     			[[ "${var:0:320}" = *[!$IFS]* ]] &&
@@ -9069,6 +9144,7 @@ $BLOCK
   $( ((OPTMAX_NILL)) && echo "\"num_predict\": -2" || echo "\"num_predict\": $OPTMAX" ),
   $OPTT_OPT $OPTSEED_OPT
   $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
+  ${OPT_REPEAT_OPT/repetition/repeat} $OPT_MINP_OPT
   $OPTSTOP
   \"num_ctx\": ${MODMAX}${BLOCK_USR:+,$NL}${BLOCK_USR}
   }
@@ -9164,6 +9240,7 @@ $(
   fi
 )
 $BLOCK $OPTSUFFIX_OPT
+$OPT_REPEAT_OPT $OPT_MINP_OPT
 $STREAM_OPT $OPTA_OPT $OPTAA_OPT $OPTP_OPT $OPTKK_OPT
 $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 \"model\": \"$MOD\"${BLOCK_CMD:+,$NL}${BLOCK_CMD}${BLOCK_USR:+,$NL}${BLOCK_USR}
@@ -9241,7 +9318,7 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				  fi
 				) )  #[0]input_tkn  [1]output_tkn  [2]reason_tkn
 				     #[3]time       [4]cmpl_time   [5]tkn_rate  [6]cached_tkn
-				((tkn[0]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
+				((tkn[0]+tkn[6]&&tkn[1])) 2>/dev/null || ((OLLAMA)) || {
 				  tkn_ans=$(
 				  	((EPN==6||EPN==12)) && A_TYPE=;
 				  	OPTV=97 __tiktokenf "${A_TYPE}${ans}" );
@@ -9328,8 +9405,10 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				#no full reasoning, but we request its summary
 			elif ((GOOGLEAI))
 			then
-				((tkn[2]*=-1));
-				#((!tkn[2])) || tkn[2]=0;
+				:  #deduct
+				#((tkn[2]*=-1));  #add
+				((!tkn[2])) || tkn[2]=0;  #dont deduct
+				# candidatesTokenCount excludes thoughtsTokenCount
 
 				#independent thoughts_token_count.
 				#
@@ -9385,6 +9464,8 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 		# our best shot is to go provider-wise and then exception-wise by model.
 		# still cannot guarantee recorded token count accuracy when using reasoning.
 
+			#use the assistant-row fallback for the rolling total
+			((tkn[1]>0 && tkn[2]>=tkn[1])) && tkn[2]=0;
 
 			#audio-model: audio only response
 			if ((OPTZ)) && ((!${#ans})) && is_amodelf "$MOD"  #((!RET_APRF))
@@ -9491,13 +9572,18 @@ $OPTT_OPT $OPTSEED_OPT $OPTN_OPT $OPTSTOP
 				(( TOTAL_OLD = tkn[0] - tkn[6] + tkn[1] - tkn[2] + ( (MAX_PREV > TOTAL_OLD) ? MAX_PREV : TOTAL_OLD) ))
 				#when this is blocked, xai api record will bump a few hundred tokens (cached server-side tokens)
 
-			#GoogleAI: cached tokens not included in input tokens
-			elif ((GOOGLEAI+ANTHROPICAI)) && ((tkn[6]>0))
-			then
-				(( TOTAL_OLD = tkn[0] + tkn[6] + tkn[1] - tkn[2] ))
-				#the cached token count will be in cached_content_token_count.
+			##GoogleAI: cached tokens ARE ALREADY included in input tokens
+			#elif ((GOOGLEAI)) && ((tkn[6]>0))  # (disabled)
+			#then  #otherwise...
+			#	(( TOTAL_OLD = tkn[0] + tkn[6] + tkn[1] - tkn[2] ))
+			#	#the cached token count will be in cached_content_token_count.
+			#
+			##promptTokenCount The total number of tokens in the prompt. This includes any text, images, or other media
+			##provided in the request. When cachedContent is set, this also includes the number of tokens in the cached content.
+			##https://docs.cloud.google.com/gemini-enterprise-agent-platform/reference/rest/v1/GenerateContentResponse
+			##Gemini 4 Carbon implicit caching minimum of 4,096 tokens
+			##OpenAI: cached tokens (history) included in input tokens
 
-			#OpenAI: cached tokens (history) included in input tokens
 			else
 				#OpenAI, Mistral, Groq, DeepSeek
 				(( TOTAL_OLD = tkn[0] + tkn[1] - tkn[2] ))
