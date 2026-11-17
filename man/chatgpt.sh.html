@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc 3.11" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="mountaineerbr" />
-  <title>CHATGPT.SH(1) v0.137 | General Commands Manual</title>
+  <title>CHATGPT.SH(1) v0.137.2 | General Commands Manual</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -176,7 +176,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CHATGPT.SH(1) v0.137 | General Commands Manual</h1>
+<h1 class="title">CHATGPT.SH(1) v0.137.2 | General Commands Manual</h1>
 <p class="author">mountaineerbr</p>
 <p class="date">November 2026</p>
 </header>
@@ -238,12 +238,12 @@ endpoint support.</p>
 <dt><strong>-c</strong>, <strong>-cc</strong>,
 <strong>--chat</strong></dt>
 <dd>
-<p>Chat mode in text completions (used with
+<p>Chat mode in chat completions (used with
 <code>options -wzvv</code>).</p>
 </dd>
 <dt><strong>-cd</strong>, <strong>--text-chat</strong></dt>
 <dd>
-<p>Chat mode in chat completions (used with
+<p>Chat mode in text completions (used with
 <code>options -wzvv</code>).</p>
 </dd>
 <dt><strong>-C</strong>, <strong>--continue</strong>,
@@ -2124,8 +2124,8 @@ backup.</li>
 </ul>
 <p><strong>Backup Recommendation:</strong> It is strongly recommended to
 back up session record files (tsv) and prompt files (pr), as well as the
-configuration file (chatgpt.sh) to preserve session history, custom
-prompts and settings.</p>
+configuration file (“~/.chatgpt.conf”, or the path set by “$CHATGPTRC”)
+to preserve session history, custom prompts and settings.</p>
 <h1 id="keybindings">KEYBINDINGS</h1>
 <p>Press &lt;<em>CTRL-X</em> <em>CTRL-E</em>&gt; to edit command line in
 text editor from readline.</p>

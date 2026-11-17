@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.137.1  nov/2026  by mountaineerbr  GPL+3
+# v0.137.2  nov/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -2124,10 +2124,8 @@ if opttik <= 0:
     encoded_text = enc.encode_ordinary(text)
     if opttiktoken > 1:
         print(encoded_text)
-    if optv:
-        print(len(encoded_text))
     else:
-        print(len(encoded_text),str(enc))
+        print(len(encoded_text))
 else:
     try:
         while True:

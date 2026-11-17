@@ -1,4 +1,4 @@
-% CHATGPT.SH(1) v0.137 | General Commands Manual
+% CHATGPT.SH(1) v0.137.2 | General Commands Manual
 % mountaineerbr
 % November 2026
 
@@ -60,12 +60,12 @@ STT and TTS endpoints functionality is modestly available for some providers.
 
 **-c**, **-cc**, **\--chat**
 
-: Chat mode in text completions (used with `options -wzvv`).
+: Chat mode in chat completions (used with `options -wzvv`).
 
 
 **-cd**, **\--text-chat**
 
-: Chat mode in chat completions (used with `options -wzvv`).
+: Chat mode in text completions (used with `options -wzvv`).
 
 
 **-C**, **\--continue**, **\--resume**
@@ -1705,7 +1705,7 @@ may contain the following file types:
 
 **Backup Recommendation:**  It is strongly recommended to back up
 session record files (tsv) and prompt files (pr), as well as the
-configuration file (chatgpt.sh)
+configuration file ("~/.chatgpt.conf", or the path set by "$CHATGPTRC")
 to preserve session history, custom prompts and settings.
 
 

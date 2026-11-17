@@ -2,7 +2,7 @@
 author:
 - mountaineerbr
 date: November 2026
-title: CHATGPT.SH(1) v0.137 \| General Commands Manual
+title: CHATGPT.SH(1) v0.137.2 \| General Commands Manual
 ---
 
 # NAME
@@ -62,10 +62,10 @@ Responses API calls. May be used with `option -c`. Set twice
 (`options -bb`) for multi-turn sessions. Limited endpoint support.
 
 **-c**, **-cc**, **--chat**  
-Chat mode in text completions (used with `options -wzvv`).
+Chat mode in chat completions (used with `options -wzvv`).
 
 **-cd**, **--text-chat**  
-Chat mode in chat completions (used with `options -wzvv`).
+Chat mode in text completions (used with `options -wzvv`).
 
 **-C**, **--continue**, **--resume**  
 Continue from (resume) last session (cmpls/chat).
@@ -1434,8 +1434,8 @@ the following file types:
 
 **Backup Recommendation:** It is strongly recommended to back up session
 record files (tsv) and prompt files (pr), as well as the configuration
-file (chatgpt.sh) to preserve session history, custom prompts and
-settings.
+file (“~/.chatgpt.conf”, or the path set by “\$CHATGPTRC”) to preserve
+session history, custom prompts and settings.
 
 # KEYBINDINGS
 
