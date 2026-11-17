@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chatgpt.sh -- Shell Wrapper for ChatGPT/STT/TTS and LLM Providers
-# v0.137  nov/2026  by mountaineerbr  GPL+3
+# v0.137.1  nov/2026  by mountaineerbr  GPL+3
 set -o pipefail; shopt -s extglob checkwinsize cmdhist lithist histappend;
 ((COLUMNS>8)) || COLUMNS=80; ((LINES>4)) || LINES=24; export COLUMNS LINES;
 
@@ -2026,7 +2026,7 @@ function token_prevf
 function send_tiktokenf
 {
 	kill -0 $COPROC_PID 2>/dev/null || return
-	{ 	((${#1})) && LC_ALL=C  tr '\n' '\t' <<<"${1}";
+	{ 	printf '%s' "${1}" | LC_ALL=C  tr '\n' '\t';
 		printf '\n';
 	} >&"${COPROC[1]}"
 }
@@ -2086,7 +2086,7 @@ function _tiktokenf
 
 #use openai python tiktoken lib
 #input should be `unescaped'
-#usage: tiktokenf [model|encoding] [text|-]
+#usage: MOD=model_or_encoding  tiktokenf [text|-]
 function tiktokenf
 {
 	python3 -c "import sys
@@ -2113,15 +2113,12 @@ if opttik <= 0:
 
 try:
     enc = tiktoken.encoding_for_model(mod)
-except:
+except Exception:
     try:
-        try:
-            enc = tiktoken.get_encoding(mod)
-        except:
-            enc = tiktoken.get_encoding(\"${OPTTIK_ENC:-o200k_base}\")
-    except:
+        enc = tiktoken.get_encoding(mod)
+    except Exception:
         enc = tiktoken.get_encoding(\"${OPTTIK_ENC:-o200k_base}\")
-        print(\"Warning: Tiktoken -- Unknown model/encoding, fallback\", str(enc), file=sys.stderr)
+        print(\"Tiktoken: Unknown model/encoding, fallback\", str(enc), file=sys.stderr)
 
 if opttik <= 0:
     encoded_text = enc.encode_ordinary(text)
@@ -2140,7 +2137,7 @@ else:
             encoded_text = enc.encode_ordinary(text)
             print(len(encoded_text), flush=True)
     except (KeyboardInterrupt, BrokenPipeError, SystemExit):  #BaseException:
-        sys.exit()" "${MOD:-davinci}" "${@:-}"
+        sys.exit()" "${MOD:-gpt-5.6-sol}" "${@:-}"
 }
 #cl100k_base gpt-3.5-turbo
 #json specials \" \\ b f n r t \uHEX
@@ -2152,7 +2149,7 @@ function unmarkdownf
 try:
     import markdown
     from bs4 import BeautifulSoup
-except:
+except Exception:
     sys.exit(2)
 
 def remove_markdown(text):
@@ -2420,7 +2417,9 @@ CONF_DIALOG="\Zr# RUNTIME OPTIONS #\ZR
   Press \ZbENTER\ZB or select \ZbOK\ZB to save.
   Press \ZbESC\ZB to cancel and exit without saving.
 
-  Enabling features like STT or TTS may update or reveal sub-options. To see them, \Zbrun '!conf' again\ZB.
+  Enabling features like STT or TTS may update or reveal sub-options.
+  To see them, \Zbrun '!conf'\ZB again.  To unset eligible form options,
+  \Zbclear their fields\ZB.
 
 \ZuFIELD TYPES\ZU
   Most fields accept a specific type of value:

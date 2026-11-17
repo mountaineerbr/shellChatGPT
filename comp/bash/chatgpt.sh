@@ -66,14 +66,14 @@ _chatgptsh()
         -j --seed
         -K --top-k --topk
         --keep-alive --ka
-	--min-p  --minp
+        --min-p  --minp
         -m --model --mod
         --multimodal
         --vision
         --audio
         -n --results
         -p --top-p --topp
-	--repetition-penalty --repeat
+        --repetition-penalty --repeat
         -r --restart --restart-seq --restart-sequence
         -R --start --start-seq --start-sequence
         -s --stop
